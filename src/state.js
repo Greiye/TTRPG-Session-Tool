@@ -54,13 +54,14 @@ const state = {
   rndArt: {}, // table -> slot -> label -> creature art url (item 26 art, uploaded by the DM)
   checkLib: [], // DM-made check presets
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
+  suggestions: [], // { id, name, text, at, vis } from spectators, seen by DM and players (src/spectate.js)
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -83,7 +84,8 @@ function fullState() {
   const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const codms = [...io.sockets.sockets.values()].filter((x) => x.data.role === 'codm').length;
-  return { ...state, players, roster: cards, screens, codms, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
+  const spectators = [...io.sockets.sockets.values()].filter((x) => x.data.spectator).length;
+  return { ...state, players, roster: cards, screens, codms, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
 }
 const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
 

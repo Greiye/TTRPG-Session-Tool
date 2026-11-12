@@ -118,6 +118,25 @@ const stop = (p) => new Promise((res) => { p.on('exit', res); p.kill(); });
   const crt = await fetch(`${URL}/tavern-cert.crt`);
   ok(crt.ok && /BEGIN CERTIFICATE/.test(await crt.text()), 'certificate downloadable for phones');
 
+  // Spectators (item 5): watch the public table, suggest, never hold a seat.
+  const sp = await client();
+  ok((await call(sp, 'spectate', { room: 'ZZZZ', name: 'Fan' })).error === 'room', 'spectator needs the room code');
+  ok((await call(sp, 'spectate', { room, name: 'Fan' })).ok, 'spectator joins with the room code');
+  ok((await call(sp, 'player:roll', { expr: 'd20' })).error, 'spectator cannot roll');
+  ok((await call(sp, 'spectator:suggest', { text: 'Ask the innkeeper about the cart' })).ok, 'spectator sends a suggestion');
+  ok((await call(sp, 'spectator:suggest', { text: 'too soon' })).error, 'suggestions are rate limited');
+  const a4 = await client();
+  ok((await call(a4, 'join', { id: ja.id, token })).id === ja.id, 'phone reclaims seat for suggestion check');
+  await wait(200);
+  ok(sp.last.viewer.role === 'spectator' && !sp.last.room && sp.last.suggestions.length === 0, 'spectator sees no room code or suggestions');
+  ok(a4.last.suggestions.length === 1 && a4.last.suggestions[0].text.includes('innkeeper'), 'players see the suggestion');
+  ok(dm2.last.suggestions.length === 1, 'DM sees the suggestion');
+  const sid = dm2.last.suggestions[0].id;
+  dm2.emit('dm:suggestion:dismiss', { id: sid });
+  await wait(200);
+  ok(a4.last.suggestions.length === 0, 'DM dismisses a suggestion');
+  a4.close(); sp.close();
+
   dm2.close();
   await stop(srv);
   fs.rmSync(TMP, { recursive: true, force: true });

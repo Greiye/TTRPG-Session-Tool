@@ -21,5 +21,6 @@ module.exports = function sockets(io) {
     require('./player')(socket);
     require('./dm')(socket);
     require('./atmo')(socket);
+    require('./spectator')(socket);
   });
 };

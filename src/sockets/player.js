@@ -25,6 +25,7 @@ module.exports = function playerSockets(socket) {
       c.token = session.newToken();
     }
     session.seat(c, socket);
+    socket.data.spectator = false;
     if (!state.players[c.id]) {
       state.players[c.id] = c;
       log('system', `${c.name} the ${c.race ? c.race + ' ' : ''}${c.cls} joined the party.`);

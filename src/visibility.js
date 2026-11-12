@@ -20,6 +20,7 @@ function viewerOf(socket) {
   if (d.role === 'codm') return { role: 'codm' };
   if (d.charId) return { role: 'player', charId: d.charId };
   if (d.screen) return { role: 'screen' };
+  if (d.spectator) return { role: 'spectator' };
   return { role: 'guest' };
 }
 // A spoil shows each character only their own claim, plus the DM's full view.
@@ -43,7 +44,7 @@ function canSee(vis, viewer) {
   if (vis === 'dm') return false;
   if (typeof vis === 'object') {
     if (viewer.role === 'player' && ((vis.to || []).includes(viewer.charId) || (vis.to || []).includes('*'))) return true; // '*' = every phone
-    if ((viewer.role === 'screen' || viewer.role === 'codm') && vis.screen) return true;
+    if ((viewer.role === 'screen' || viewer.role === 'codm' || viewer.role === 'spectator') && vis.screen) return true;
   }
   return false;
 }
@@ -64,6 +65,7 @@ function viewState(base, viewer) {
   out.log = filterList(base.log, viewer);
   out.rolls = filterList(base.rolls, viewer);
   out.whispers = filterList(base.whispers, viewer);
+  out.suggestions = filterList(base.suggestions, viewer); // spectator suggestions: DM and players only (src/spectate.js)
   out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h));
   if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
   if (base.scene) out.scene = { ...base.scene, secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
@@ -78,6 +80,7 @@ function viewState(base, viewer) {
   }
   // The room code is the join secret: only the DM and the TV (which displays it) get it.
   if (!['dm', 'screen', 'codm'].includes(viewer.role)) { delete out.room; delete out.joinUrl; }
+  // Spectators watch the public table only: no secret-holding DM fields, no relations (above).
   if (viewer.role !== 'dm') delete out.relations;
   if (viewer.role === 'dm') {
     out.lan = require('./net').lanAddresses();

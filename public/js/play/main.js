@@ -8,5 +8,6 @@ import './messages.js';
 import './combatmap.js';
 import './profile.js';
 import './whispers.js';
+import './spectate.js';
 
 Settings.mount();

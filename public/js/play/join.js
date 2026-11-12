@@ -2,6 +2,7 @@
 import { socket, $, onState, state } from '../client.js';
 import { me } from './identity.js';
 import { show, onShow, current } from './nav.js';
+import { spectate, watching } from './spectate.js';
 
 const { esc } = Stage;
 const ERR = {
@@ -82,7 +83,12 @@ $('#roomForm').onsubmit = (e) => {
     showJoin();
   });
 };
+$('#specBtn').onclick = () => {
+  if (!me.room) return showJoin('Enter the room code from the TV first.');
+  spectate(showJoin);
+};
 socket.on('connect', () => {
+  if (watching) return spectate(showJoin);
   const id = me.charId;
   if (id && me.tokenFor(id)) join({ id, token: me.tokenFor(id) }); else showJoin();
 });

@@ -28,6 +28,8 @@ function render() {
   $('#main').innerHTML = (VIEWS[S.mode] || exploreView)(S, c) + rollBox();
   Anim.hydrate($('#main'));
   $('#log').innerHTML = logFeed(S, 6);
+  const sug = (S.suggestions || []).slice(-5).reverse();
+  $('#suggest').innerHTML = sug.length ? `<details class="card suggest" open><summary>👀 Spectator suggestions (${sug.length})</summary>${sug.map((x) => `<p><b>${esc(x.name)}:</b> ${esc(x.text)}</p>`).join('')}</details>` : '';
 }
 onState(render);
 onShow((v) => { if (v === 'game') render(); });
