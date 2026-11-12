@@ -3,6 +3,7 @@ import './identity.js';
 import './join.js';
 import './game.js';
 import './sheet.js';
+import './rolls.js';
 import './profile.js';
 import './whispers.js';
 

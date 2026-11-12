@@ -13,12 +13,15 @@
   <script src="/anim.js"></script>
   <script src="/stage.js"></script>
   <script src="/audio.js"></script>
+  <script src="/rollpop.js"></script>
   <script>
     const root = document.getElementById('stage');
     const socket = io();
     socket.on('connect', () => socket.emit('screen:hello'));
     socket.on('state', (s) => { Settings.apply(s.settings.display); Stage.stage(root, s); }); // TV follows the table setting
     AudioOut.init(socket); // the TV is the speaker
+    socket.on('rollpop', (p) => RollPop.show(p)); // roll popups (item 5)
+    socket.on('rollpop:skip', () => RollPop.hide());
     // Double-click for fullscreen on the TV.
     document.addEventListener('dblclick', () => document.documentElement.requestFullscreen?.());
   </script>

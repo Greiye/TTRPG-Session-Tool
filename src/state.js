@@ -10,6 +10,7 @@ const store = require('./store');
 const saves = require('./saves');
 const { derived } = require('./sheet');
 const library = require('./library');
+const perception = require('./perception');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -23,6 +24,7 @@ const state = {
     text: 'Rain hammers a mossy crossroads. A toppled shrine leans against an oak, and fresh cart tracks vanish into the fog toward the old mill.',
     theme: 'forest',
     poi: ['Toppled shrine', 'Cart tracks', 'Old mill in the fog'],
+    secrets: [], // perception-gated items (src/perception.js)
   },
   players: {}, // character id -> roster entry, for characters at the table this session
   spotlight: null, // { id, kind: 'intro' | 'nat20' } shown briefly on the TV
@@ -38,16 +40,20 @@ const state = {
   backdrop: { image: null, effects: [], library: lib.backdrops },
   audio: { library: lib.audio, music: null, playing: false, volume: 0.6, sfxVolume: 0.9, builtins: BUILTIN_SFX },
   log: [],
+  rolls: [], // dice log (src/rolls.js)
+  checkLib: [], // DM-made check presets
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
   room: null, // join code, set by session.js
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
 };
 
+store.EXTRA.push('rolls', 'checkLib');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
 seq = store.restore(state, roster, store.load());
 if (!state.room) state.room = newRoomCode();
+state.scene.secrets ??= [];
 net.setHost(state.settings.host);
 const snap = () => store.snapshot(state, seq);
 
@@ -64,7 +70,7 @@ function fullState() {
   const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const codms = [...io.sockets.sockets.values()].filter((x) => x.data.role === 'codm').length;
-  return { ...state, players, roster: cards, screens, codms, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
+  return { ...state, players, roster: cards, screens, codms, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
 }
 const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
 
@@ -74,6 +80,11 @@ function broadcast() {
   pending = true;
   setImmediate(() => {
     pending = false;
+    // Perception-gated items: tell each phone once, privately, when its character notices something.
+    perception.scan(state, rules.get(state.system), (c, s) => {
+      state.log.push({ id: ++seq, t: Date.now(), kind: 'notice', text: `${c.name} notices: ${s.text}`, tone: 'call', vis: { to: [c.id] } });
+      if (c.socketId) hub.io.to(c.socketId).emit('notice', { id: s.id, text: s.text });
+    });
     const base = fullState();
     const cache = new Map();
     for (const socket of hub.io.sockets.sockets.values()) {

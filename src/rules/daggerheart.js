@@ -52,8 +52,11 @@ module.exports = {
     const crit = hope === fear;
     const pass = dc == null ? null : crit || total >= dc;
     const side = crit ? 'CRITICAL' : hope > fear ? 'with Hope' : 'with Fear';
-    return { natural: hope, hope, fear, total, pass, crit, text: `${trait}: Hope ${hope} / Fear ${fear}${sign(mod)} = ${total} ${side}`, outcome: pass == null ? side : `${pass ? 'SUCCESS' : 'FAIL'} ${side}` };
+    return { natural: hope, dice: [hope, fear], sides: 12, mod, hope, fear, total, pass, crit, fumble: false, mode: null, text: `${trait}: Hope ${hope} / Fear ${fear}${sign(mod)} = ${total} ${side}`, outcome: pass == null ? side : `${pass ? 'SUCCESS' : 'FAIL'} ${side}` };
   },
+  save(c, trait, opts) { return this.check(c, trait, opts); },
+  ability(c, trait, opts) { return this.check(c, trait, opts); },
+  dcLadder: [['Easy', 10], ['Standard', 15], ['Hard', 20], ['Very hard', 25], ['Legendary', 30]],
   initiative: () => 0, // Daggerheart has no initiative; order stays as listed (spotlight flow comes later).
   attack(attacker, target) {
     const r = this.check({ skills: { Attack: attacker.atk } }, 'Attack', { dc: target.ac });

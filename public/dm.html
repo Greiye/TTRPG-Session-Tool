@@ -83,14 +83,49 @@
       <input id="scenePoi" placeholder="Points of interest, comma separated">
       <button class="btn primary" data-act="scene">Update scene</button>
     </div>
-    <div class="card" data-panel="exploration social">
-      <h3>Call for a check</h3>
+    <div class="card" data-panel="exploration social combat">
+      <h3>Roll call <span class="note" id="callStatus"></span></h3>
       <div class="row">
+        <select id="callPreset" class="grow"><option value="">Custom</option></select>
+        <button class="btn small" id="presetSave" title="Save this as a preset">★ Save preset</button>
+      </div>
+      <div class="row">
+        <select id="callKind" style="width:auto"><option value="skill">Skill</option><option value="save">Save</option><option value="ability">Ability</option></select>
         <select id="checkSkill" class="grow"></select>
-        <input id="checkDc" type="number" value="13" style="width:70px" title="DC">
-        <button class="btn primary" data-act="check">Call</button>
+        <input id="checkDc" type="number" value="13" style="width:64px" title="DC">
+        <select id="callMode" style="width:auto" title="Advantage or disadvantage for the whole call"><option value="">Normal</option><option value="adv">Adv</option><option value="dis">Dis</option></select>
+      </div>
+      <div class="row">
+        <label class="chk"><input type="checkbox" id="callHide"> Hide the DC from phones</label>
+        <span class="grow"></span>
+        <button class="btn primary" data-act="callSend">Call</button>
         <button class="btn" data-act="checkClear">Clear</button>
       </div>
+      <div class="note">Targets (none ticked means everyone):</div>
+      <div id="callTargets" class="row"></div>
+      <div class="note">Auto-outcome text (posted to the log as each roll lands):</div>
+      <input id="callPass" placeholder="On success, e.g. You spot the tracks.">
+      <input id="callFail" placeholder="On failure, e.g. Nothing out of place.">
+      <div class="row"><span class="note">DC ladder:</span> <div id="dcLadder" class="row"></div></div>
+      <div id="checkResults" class="list"></div>
+    </div>
+    <div class="card" data-panel="exploration social combat">
+      <h3>Roll dice <span class="note">Secret rolls only show here</span></h3>
+      <div class="row">
+        <input id="rollExpr" class="grow" placeholder="2d6+3, 4d6kh3, d20">
+        <input id="rollLabel" placeholder="Label" style="width:110px">
+        <label class="chk"><input type="checkbox" id="rollSecret"> Secret</label>
+        <button class="btn" data-act="roll">Roll</button>
+      </div>
+    </div>
+    <div class="card" data-panel="exploration">
+      <h3>Hidden details <span class="note">perception-gated</span></h3>
+      <div class="row"><input id="secText" class="grow" placeholder="A loose stone hides a key."><select id="secSkill" style="width:auto"></select><input id="secDc" type="number" value="13" style="width:64px" title="DC"><button class="btn" id="secAdd">Add</button></div>
+      <div id="secList" class="list"></div>
+    </div>
+    <div class="card" data-panel="exploration">
+      <h3>Dice log</h3>
+      <div id="rollLog" class="list roll-log"></div>
     </div>
 
     <!-- COMBAT -->
@@ -245,6 +280,7 @@
   </dialog>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/rollpop.js"></script>
   <script src="/anim.js"></script>
   <script src="/stage.js"></script>
   <script src="/audio.js"></script>

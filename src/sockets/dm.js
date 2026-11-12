@@ -10,6 +10,8 @@ const entities = require('../entities');
 const { release, newRoomCode } = require('../session');
 const net = require('../net');
 const creatures = require('../creatures');
+const rolls = require('../rolls');
+const perception = require('../perception');
 const spells = require('../spells');
 const saves = require('../saves');
 const { applySheet } = require('../sheet');
@@ -36,6 +38,7 @@ module.exports = function dmSockets(socket) {
       theme: String(theme ?? state.scene.theme),
       poi: Array.isArray(poi) ? poi.map((s) => String(s).slice(0, 60)).filter(Boolean).slice(0, 8) : state.scene.poi,
     });
+    state.scene.secrets ??= [];
   });
   dm('dm:system', ({ id }) => {
     if (!rules.list().some((x) => x.id === id) || id === state.system) return;
@@ -44,10 +47,25 @@ module.exports = function dmSockets(socket) {
     log('system', `Rules system: ${rules.get(id).name}.`);
   });
   dm('dm:narrate', ({ text }) => { if (text) log('narrate', String(text).slice(0, 400)); });
-  dm('dm:check', ({ skill, dc }) => {
-    if (!skill) { state.check = null; return; }
-    state.check = { skill, dc: Number(dc) || 10, results: {} };
-    log('check', `DM calls for a ${skill} check (DC ${state.check.dc}).`, { tone: 'call' });
+  // ----- roll calls, dice, check presets (Phase 2) -----
+  dm('dm:check', ({ skill, dc }) => { if (!skill) rolls.clear(); else rolls.call({ kind: 'skill', key: skill, dc }); }); // older clients
+  dm('dm:call', (f) => { if (f.clear) rolls.clear(); else rolls.call(f); });
+  dm('dm:roll', ({ expr, label, secret, mode }) => { rolls.expr({ name: 'DM', id: 'dm', hue: 45 }, expr, { label, secret, mode }); });
+  dm('dm:preset:save', (f) => { rolls.savePreset(f); });
+  dm('dm:preset:delete', ({ id }) => { rolls.removePreset(id); });
+  dm('dm:rollpopup', ({ on }) => { state.settings.rollPopup = !!on; });
+  // The DM dismisses the popup for everyone (the TV has no keyboard).
+  dm('dm:rollpop:skip', () => { io.emit('rollpop:skip'); });
+
+  // ----- perception-gated items (item 6) -----
+  dm('dm:secret:add', (f) => { const s = perception.make(f, sys(), 's' + nextId()); if (s && state.scene.secrets.length < 30) state.scene.secrets.push(s); });
+  dm('dm:secret:remove', ({ id }) => { state.scene.secrets = state.scene.secrets.filter((s) => s.id !== id); });
+  // to: 'all' | 'none' | character id (toggles that character)
+  dm('dm:secret:show', ({ id, to }) => {
+    const s = state.scene.secrets.find((x) => x.id === id);
+    if (!s) return;
+    if (to === 'all') { s.shown = 'all'; log('narrate', `The party notices: ${s.text}`); } else if (to === 'none') s.shown = [];
+    else if (state.players[to]) { const cur = Array.isArray(s.shown) ? s.shown : []; s.shown = cur.includes(to) ? cur.filter((x) => x !== to) : [...cur, to]; }
   });
 
   // ----- combat -----
