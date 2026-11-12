@@ -15,6 +15,7 @@ const perception = require('../perception');
 const messages = require('../messages');
 const tracker = require('../tracker');
 const world = require('../world');
+const bulbs = require('../bulbs');
 const grid = require('../grid');
 const randomizer = require('../randomizer');
 const spells = require('../spells');
@@ -38,6 +39,7 @@ module.exports = function dmSockets(socket) {
     world.applyMood(mode);
     state.check = null;
     log('system', `— ${mode.toUpperCase()} —`);
+    void bulbs.sync(state);
   });
   dm('dm:scene', ({ title, text, theme, poi }) => {
     Object.assign(state.scene, {
@@ -89,8 +91,10 @@ module.exports = function dmSockets(socket) {
   dm('dm:phrase', (f) => { const p = world.phrase(f); if (p) state.handouts.push(p); });
   dm('dm:phrase:reveal', ({ id, on }) => { const p = state.handouts.find((h) => h.id === id && h.kind === 'phrase'); if (p) p.revealed = !!on; });
   dm('dm:mood', ({ mode, track }) => { if (['exploration', 'combat', 'social'].includes(mode)) world.setMood(mode, track); });
-  dm('dm:light', ({ light }) => world.setLight(light));
-  dm('dm:template', ({ key }) => world.applyTemplate(key));
+  dm('dm:light', ({ light }) => { world.setLight(light); void bulbs.sync(state); });
+  dm('dm:template', ({ key }) => { world.applyTemplate(key); void bulbs.sync(state); });
+  // Smart bulbs (item 10): toggling on pushes the current colour at once. Turning off leaves the bulbs as they are.
+  dm('dm:bulbs', ({ on }) => { state.bulbsOn = !!on; void bulbs.sync(state, { force: true }); });
 
   // ----- Phase 6: conditions, clocks, rests -----
   dm('dm:condition', ({ id, name, on }) => tracker.setCondition(id, name, !!on));
