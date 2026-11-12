@@ -19,12 +19,15 @@ export function addTab(id, label) {
   draw();
 }
 export function setBadge(id, n) {
+  const cur = tabs.find((x) => x.id === id);
+  if (cur && cur.badge === n) return;
   const t = tabs.find((x) => x.id === id);
   if (t && t.badge !== n) { t.badge = n; draw(); }
 }
 export function showTab(id) {
   if (!tabs.some((t) => t.id === id)) return;
   active = id;
+  if (id === 'inbox') { const t = tabs.find((x) => x.id === 'inbox'); if (t) t.badge = 0; }
   draw();
   for (const fn of subs) fn(id);
 }

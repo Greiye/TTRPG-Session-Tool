@@ -14,6 +14,7 @@ const rolls = require('../rolls');
 const perception = require('../perception');
 const messages = require('../messages');
 const tracker = require('../tracker');
+const world = require('../world');
 const spells = require('../spells');
 const saves = require('../saves');
 const { applySheet } = require('../sheet');
@@ -30,6 +31,7 @@ module.exports = function dmSockets(socket) {
   dm('dm:mode', ({ mode }) => {
     if (!['exploration', 'combat', 'social'].includes(mode)) return;
     state.mode = mode;
+    world.applyMood(mode);
     state.check = null;
     log('system', `— ${mode.toUpperCase()} —`);
   });
@@ -48,6 +50,14 @@ module.exports = function dmSockets(socket) {
     state.check = null;
     log('system', `Rules system: ${rules.get(id).name}.`);
   });
+  // ----- Phase 7: world and content -----
+  dm('dm:relation', ({ npc, charId, stance }) => world.relate(npc, charId, stance));
+  dm('dm:phrase', (f) => { const p = world.phrase(f); if (p) state.handouts.push(p); });
+  dm('dm:phrase:reveal', ({ id, on }) => { const p = state.handouts.find((h) => h.id === id && h.kind === 'phrase'); if (p) p.revealed = !!on; });
+  dm('dm:mood', ({ mode, track }) => { if (['exploration', 'combat', 'social'].includes(mode)) world.setMood(mode, track); });
+  dm('dm:light', ({ light }) => world.setLight(light));
+  dm('dm:template', ({ key }) => world.applyTemplate(key));
+
   // ----- Phase 6: conditions, clocks, rests -----
   dm('dm:condition', ({ id, name, on }) => tracker.setCondition(id, name, !!on));
   dm('dm:clock:add', (f) => { if (state.clocks.length < 20) tracker.addClock(f); });

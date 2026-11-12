@@ -46,13 +46,17 @@ const state = {
   handouts: [], // handouts, spoils and dialogue votes (src/messages.js)
   vote: null, // the active dialogue vote (item 12)
   clocks: [], // segment clocks (item 17), src/tracker.js
+  relations: {}, // NPC id -> character id -> stance (item 19, DM only)
+  moodMap: {}, // mode -> music track id (item 21)
   checkLib: [], // DM-made check presets
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
   room: null, // join code, set by session.js
+  // lighting preset is kept on the scene (src/world.js)
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
+  templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;

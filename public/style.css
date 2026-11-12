@@ -495,3 +495,21 @@ html[data-motion="reduce"] .boss-card { animation-duration: .001ms; }
 .dm-conds { display: flex; flex-wrap: wrap; gap: 4px; }
 .dm-conds .btn.on { background: #8a4b1a; color: #fff; border-color: #c67a33; }
 .clock-row { display: flex; gap: 4px; align-items: center; }
+
+/* ================= Phase 4 and 7: messages, shared handouts, mood ================= */
+.shared { position: absolute; right: 2cqw; top: 26cqw; width: 22cqw; display: flex; flex-direction: column; gap: 1cqw; z-index: 2; }
+.hand { background: rgb(20 14 22 / .85); border: 1px solid var(--gold); border-radius: .8cqw; padding: 1cqw 1.2cqw; font-size: calc(1.1cqw * var(--ts)); }
+.hand b { font-family: var(--display); color: var(--gold); }
+.hand p { margin: .4cqw 0 0; }
+.vote-tv span { display: flex; justify-content: space-between; }
+.vote-tv em { font-style: normal; color: var(--gold); font-weight: 700; }
+.glyphs { font-size: calc(22px * var(--ts)); letter-spacing: .2em; color: #c9b3ea; }
+.card.vote { border-color: var(--gold); }
+.card.vote .list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.claim-note { min-width: 0; }
+.light-night .stage-top, .light-night .stage-main { filter: brightness(.85); }
+.stage.light-night::before, .stage.light-dusk::before, .stage.light-dawn::before, .stage.light-torchlight::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.stage.light-night::before { background: rgb(10 20 60 / .35); }
+.stage.light-dusk::before { background: rgb(120 50 20 / .22); }
+.stage.light-dawn::before { background: rgb(255 170 90 / .18); }
+.stage.light-torchlight::before { background: radial-gradient(ellipse at 50% 30%, rgb(255 170 60 / .18), rgb(0 0 0 / .45)); }

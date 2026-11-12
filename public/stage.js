@@ -202,6 +202,8 @@
   function stage(root, s) {
     const prevEmo = root.querySelector('.vn-portrait')?.dataset.emo;
     root.className = `stage theme-${s.scene.theme} mode-${s.mode} ${s.backdrop?.image ? 'has-bd' : ''}`;
+    root.classList.add(`light-${s.scene.light || 'day'}`);
+    for (const l of ['day', 'dusk', 'night', 'dawn', 'torchlight']) if (l !== (s.scene.light || 'day')) root.classList.remove(`light-${l}`);
     const ui = layers(root, s);
     ui.innerHTML = `
       <header class="stage-top">
@@ -213,7 +215,7 @@
         <aside class="stage-log">${logFeed(s)}</aside>
       </main>
       <footer>${party(s)}</footer>
-      ${spotlightCard(s)}${bossCard(s)}${clocks(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}${clocks(s)}${shared(s)}`;
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
     Anim.hydrate(ui);
@@ -232,6 +234,14 @@
   }
   // Conditions (16): small chips under a combatant's name.
   const conds = (x) => (x?.conditions?.length ? `<em class="conds">${x.conditions.map((c) => esc(c)).join(', ')}</em>` : '');
+
+  // Shared handouts (Phase 4) and the open vote on the TV. Only items the group shared reach here.
+  function shared(s) {
+    const items = (s.handouts || []).filter((h) => h.kind === 'handout' && h.vis?.screen).slice(-2);
+    const v = s.vote;
+    if (!items.length && !(v && v.options)) return '';
+    return `<div class="shared">${items.map((h) => `<div class="hand"><b>${esc(h.title)}</b>${h.text ? `<p>${esc(h.text)}</p>` : ''}</div>`).join('')}${v && v.open ? `<div class="hand vote-tv"><b>The party votes</b>${v.options.map((o, i) => `<span>${esc(o)} <em>${v.counts?.[i] ?? 0}</em></span>`).join('')}</div>` : ''}</div>`;
+  }
 
   // Boss title card (item 7b): a short banner over the stage when a boss fight opens.
   function bossCard(s) {

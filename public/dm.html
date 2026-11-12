@@ -67,6 +67,29 @@
       <div id="party" class="list"></div>
     </div>
 
+    <div class="card" data-panel="exploration social">
+      <h3>Messages <span class="note">phones, the TV, and the vote</span></h3>
+      <input id="hoTitle" placeholder="Title"><textarea id="hoText" rows="2" placeholder="Handout text"></textarea>
+      <div class="row"><select id="hoTo" class="grow"><option value="all">All phones</option></select><button class="btn" data-act="handout">Send handout</button></div>
+      <div class="row"><input id="phLang" placeholder="Language (Elvish)" style="width:130px"><input id="phText" class="grow" placeholder="Phrase in that tongue"><button class="btn" data-act="phrase">Send phrase</button></div>
+      <div class="row"><input id="voteOpts" class="grow" placeholder="Options, comma separated (blank = Yes, No, Unsure)"><button class="btn primary" data-act="voteStart">Start vote</button><button class="btn" data-act="voteClose">Close</button><button class="btn" data-act="voteClear">Clear</button></div>
+      <div id="voteTally" class="note"></div>
+      <div class="row"><input id="spTitle" placeholder="Spoils title" style="width:140px"><input id="spItems" class="grow" placeholder="Gold 40, Dagger 1"><button class="btn" data-act="spoil">Drop spoils</button></div>
+      <div id="msgList" class="list"></div>
+    </div>
+    <div class="card" data-panel="exploration social combat">
+      <h3>Mood, light, templates</h3>
+      <div class="row"><span class="note">Music per mode</span></div>
+      <div class="row"><label class="note tight">Explore <select id="moodExp" class="grow"></select></label></div>
+      <div class="row"><label class="note tight">Combat <select id="moodCom" class="grow"></select></label></div>
+      <div class="row"><label class="note tight">Social <select id="moodSoc" class="grow"></select></label></div>
+      <div class="row"><label class="note tight">Light <select id="lightSel" style="width:auto"></select></label><select id="tplSel" class="grow"></select><button class="btn small" data-act="tpl">Load template</button></div>
+    </div>
+    <div class="card" data-panel="exploration social">
+      <h3>NPC relations <span class="note">DM only</span></h3>
+      <div class="row"><select id="relNpc" class="grow"></select></div>
+      <div id="relList" class="list"></div>
+    </div>
     <div class="card">
       <h3>Rests <span class="note">short and long</span></h3>
       <div class="row"><button class="btn" data-act="restShort">☕ Short rest</button><button class="btn" data-act="restLong">🛏 Long rest</button></div>
