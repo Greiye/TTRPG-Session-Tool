@@ -118,3 +118,11 @@ Layout:
 - `server.js`: wiring only. `src/`: `config`, `net` (LAN IPs), `tls` (HTTPS cert), `state` (live state + broadcast), `store` (saving), `visibility` (who sees what), `session` (room code, seats), `roster` (characters), `game` (combat flow), `dice`, `rules/` (5e, Daggerheart), `assets` + `media` (uploads), `entities` + `bundle` (Arthuria), `routes`, `sockets/` (player, dm, atmo).
 - `public/`: `stage.js` (TV renderer, shared), `anim.js`, `settings.js`, `atmo.js`, `audio.js`, `voice.js`; `js/client.js` (the one socket); `js/dm/*` and `js/play/*` feature modules.
 - `schema/`: JSON Schemas for the Arthuria bundle. `docs/decisions.md`: Phase 0 choices.
+
+
+## Running it without a Node install (packaging)
+
+- **Start script:** `./start.sh` (Mac/Linux) or `start.cmd` (Windows). Needs Node.js 20 or newer; installs packages on first run.
+- **Docker:** `docker build -t tavern-screen .`, then run it with the ports 3000 and 3443 published and `data/` and `uploads/` mounted so saves survive restarts.
+
+These are untested in this environment (no Docker here). Please try them and report what breaks.
