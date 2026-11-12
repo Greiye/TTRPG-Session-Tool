@@ -23,6 +23,7 @@ const saves = require('../saves');
 const shops = require('../shops');
 const { applySheet } = require('../sheet');
 const { saveRoster } = require('../roster');
+const legacy = require('../legacy');
 
 module.exports = function dmSockets(socket) {
   const { io } = hub;
@@ -313,6 +314,10 @@ module.exports = function dmSockets(socket) {
     if (c && !state.players[id]) { state.players[id] = c; log('system', `${c.name} joins the party.`); }
   });
   dm('dm:spotlight', ({ id }) => { if (roster[id]) game.spotlight(id, 'intro'); });
+  // Death and legacy (src/legacy.js): fall = leaves the party, memorial card on the TV.
+  dm('dm:char:fall', ({ id, cause, epitaph }) => legacy.fall(id, { cause, epitaph }));
+  dm('dm:char:revive', ({ id }) => legacy.revive(id));
+  dm('dm:memorial:clear', () => legacy.clearMemorial());
   // Whispers go only to that player's phone; the DM gets an ack saying whether it was delivered.
   socket.on('dm:whisper', ({ id, text } = {}, ack) => {
     if (socket.data.role !== 'dm') return;
