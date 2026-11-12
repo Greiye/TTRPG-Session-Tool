@@ -6,7 +6,6 @@ const { ROSTER_FILE } = require('./config');
 const rules = require('./rules');
 const { str, int } = require('./util');
 
-const PRIVATE_FIELDS = ['secret', 'hooks', 'socketId'];
 const roster = fs.existsSync(ROSTER_FILE) ? JSON.parse(fs.readFileSync(ROSTER_FILE, 'utf8')) : {};
 
 let saveTimer = null;
@@ -54,6 +53,5 @@ function applyEdits(c, f, isDm) {
   if (f.secret !== undefined) c.secret = str(f.secret, 2000);
   if (f.hooks !== undefined) c.hooks = str(f.hooks, 2000);
 }
-const publicChar = (c) => Object.fromEntries(Object.entries(c).filter(([k]) => !PRIVATE_FIELDS.includes(k)));
 
-module.exports = { roster, saveRoster, newCharacter, applyEdits, publicChar };
+module.exports = { roster, saveRoster, newCharacter, applyEdits };

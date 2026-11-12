@@ -7,8 +7,6 @@ let charId = localStorage.tavernChar;
 let cls = null;
 let S = null;
 let lastMode = null;
-const whisperKey = () => `tavernWhispers:${charId}`;
-const loadWhispers = () => { try { return JSON.parse(localStorage[whisperKey()] || '[]'); } catch { return []; } };
 
 let classKey = null;
 function renderClasses() {
@@ -78,18 +76,19 @@ function renderRoster() {
 }
 
 // ---------- whispers ----------
+// The server keeps each player's whispers (S.whispers holds only this player's); the event just pops one up.
 socket.on('whisper', (w) => {
-  const list = loadWhispers();
-  list.unshift(w);
-  localStorage[whisperKey()] = JSON.stringify(list.slice(0, 20));
   $('#whisperText').textContent = w.text;
   $('#whisperPop').hidden = false;
   navigator.vibrate?.([60, 60, 60]);
-  renderWhispers();
 });
 $('#whisperOk').onclick = () => { $('#whisperPop').hidden = true; };
+let whisperKey = '';
 function renderWhispers() {
-  const list = loadWhispers();
+  const list = (S?.whispers || []).filter((w) => w.to === charId).slice().reverse();
+  const key = charId + list.map((w) => w.id).join();
+  if (key === whisperKey) return; // keep the <details> open/closed state between renders
+  whisperKey = key;
   $('#whispers').innerHTML = list.length ? `<details class="card whispers"><summary>🤫 Whispers from the DM (${list.length})</summary>${list.map((w) => `<p>${esc(w.text)}</p>`).join('')}</details>` : '';
 }
 
@@ -163,6 +162,7 @@ function render() {
   $('#sayForm').hidden = S.mode === 'combat';
   $('#main').innerHTML = S.mode === 'combat' ? combatView(me) : S.mode === 'social' ? socialView(me) : exploreView(me);
   $('#log').innerHTML = logFeed(S, 6);
+  renderWhispers();
 }
 
 function checkPrompt(me) {

@@ -5,6 +5,7 @@ const { roster, newCharacter, applyEdits } = require('../roster');
 const { rollDice } = require('../dice');
 const { str } = require('../util');
 const game = require('../game');
+const { release } = require('../session');
 
 module.exports = function playerSockets(socket) {
   const { io } = hub;
@@ -16,7 +17,7 @@ module.exports = function playerSockets(socket) {
       if (!str(name, 24) || !sys().classes[cls]) return ack?.({ error: 'Pick a name and class.' });
       c = newCharacter({ name, cls, race, player }, state.system);
     }
-    if (c.socketId && c.socketId !== socket.id) io.to(c.socketId).emit('taken');
+    if (c.socketId && c.socketId !== socket.id) release(c);
     c.socketId = socket.id;
     socket.data.charId = c.id;
     if (!state.players[c.id]) {

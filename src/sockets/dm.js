@@ -8,6 +8,7 @@ const rules = require('../rules');
 const { roster, newCharacter, applyEdits } = require('../roster');
 const { str } = require('../util');
 const game = require('../game');
+const { release } = require('../session');
 
 module.exports = function dmSockets(socket) {
   const { io } = hub;
@@ -107,7 +108,7 @@ module.exports = function dmSockets(socket) {
   dm('dm:char:delete', ({ id }) => {
     const c = roster[id];
     if (!c) return;
-    if (c.socketId) io.to(c.socketId).emit('taken');
+    release(c);
     if (c.portrait) fs.rm(path.join(PORTRAIT_DIR, path.basename(c.portrait)), () => {});
     delete state.players[id];
     state.combat.order = state.combat.order.filter((o) => o.id !== id);
@@ -124,15 +125,18 @@ module.exports = function dmSockets(socket) {
     const c = roster[id];
     text = str(text, 500);
     if (!c || !text) return ack?.({ ok: false });
-    if (c.socketId) io.to(c.socketId).emit('whisper', { text, at: Date.now() });
+    const w = { id: nextId(), to: c.id, text, at: Date.now(), vis: { to: [c.id] } };
+    state.whispers.push(w);
+    if (state.whispers.length > 200) state.whispers.shift();
+    if (c.socketId) io.to(c.socketId).emit('whisper', w);
     ack?.({ ok: !!c.socketId });
+    broadcast();
   });
 
   dm('dm:kick', ({ id }) => {
     const p = state.players[id];
     if (!p) return;
-    if (p.socketId) io.to(p.socketId).emit('taken');
-    p.socketId = null;
+    release(p);
     delete state.players[id];
     state.combat.order = state.combat.order.filter((o) => o.id !== id);
     log('system', `${p.name} left the party.`);
