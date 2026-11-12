@@ -11,6 +11,7 @@ const saves = require('./saves');
 const { derived } = require('./sheet');
 const library = require('./library');
 const perception = require('./perception');
+const downtime = require('./downtime');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -60,6 +61,7 @@ const state = {
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
   suggestions: [], // { id, name, text, at, vis } from spectators, seen by DM and players (src/spectate.js)
   shops: [], // NPC shops with stock and prices (item 27, src/shops.js)
+  downtime: downtime.fresh(), // weekly downtime picks and results (src/downtime.js)
   factions: [], // faction reputation, DM sees numbers, phones see tiers (src/factions.js)
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
@@ -69,7 +71,7 @@ const state = {
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'factions', 'quiz', 'plans', 'journal');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'downtime', 'factions', 'journal');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
