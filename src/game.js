@@ -40,6 +40,7 @@ function advanceTurn() {
   const who = combatant(currentTurnId());
   if (who) log('combat', `${who.name}'s turn.`);
   if (who && !who.enemy) playTheme(who);
+  require('./grid').resetMoves();
 }
 function applyDamage(target, amount) {
   // Temporary hit points soak damage first; healing never touches them.
@@ -64,6 +65,7 @@ function startCombat() {
   const all = [...Object.values(state.players), ...c.enemies];
   c.order = all.map((x) => ({ id: x.id, init: sys().initiative(x) })).sort((a, b) => b.init - a.init);
   Object.assign(c, { active: true, round: 1, turn: 0 });
+  require('./grid').resetMoves();
   // Bosses get their title card as the fight opens.
   const boss = c.enemies.find((e) => e.boss && e.title);
   if (boss) state.bossCard = { id: boss.id, name: boss.name, title: boss.title, n: (state.bossCard?.n || 0) + 1 };
