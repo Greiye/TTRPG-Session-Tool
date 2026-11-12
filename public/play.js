@@ -3,7 +3,12 @@ const $ = (s) => document.querySelector(s);
 const { esc, hpBar, vn, logFeed, checkBanner } = Stage;
 // Classes and skill buttons come from the active rules system (S.rules), so 5e and Daggerheart share this UI.
 
+// Identity on this device: room code (from the QR), the character we sit in, and its device token.
+const urlRoom = new URLSearchParams(location.search).get('room');
+if (urlRoom) { localStorage.tavernRoom = urlRoom.toUpperCase(); history.replaceState(null, '', '/play'); }
+let room = localStorage.tavernRoom || '';
 let charId = localStorage.tavernChar;
+const token = () => localStorage[`tavernToken:${charId}`];
 let cls = null;
 let S = null;
 let lastMode = null;
@@ -25,20 +30,29 @@ $('#newBtn').onclick = () => { $('#newForm').hidden = false; $('#newBtn').hidden
 
 function showJoin(msg = '') {
   $('#joinErr').textContent = msg;
+  $('#roomForm').hidden = !!room;
   $('#joinView').hidden = false;
   $('#gameView').hidden = true;
   $('#profile').hidden = true;
   renderRoster();
 }
 
+const JOIN_ERRORS = { room: 'Wrong or old room code. Scan the QR on the TV again, or type the code shown there.' };
 function join(payload) {
-  socket.emit('join', payload, (res) => {
+  socket.emit('join', { room, ...payload }, (res) => {
     if (res.error) {
       if (res.error === 'gone') { localStorage.removeItem('tavernChar'); charId = null; return showJoin(); }
+      if (res.error === 'room') { room = ''; localStorage.removeItem('tavernRoom'); return showJoin(JOIN_ERRORS.room); }
+      if (res.error === 'in-use') {
+        if (confirm('Someone is already playing this character on another phone. Take over?')) return join({ ...payload, takeover: true });
+        return showJoin();
+      }
       $('#joinErr').textContent = res.error;
       return;
     }
     charId = localStorage.tavernChar = res.id;
+    localStorage[`tavernToken:${res.id}`] = res.token;
+    room = localStorage.tavernRoom = res.room;
     $('#joinView').hidden = true;
     $('#gameView').hidden = false;
     renderWhispers();
@@ -49,10 +63,19 @@ $('#joinBtn').onclick = () => join({ name: $('#name').value, cls, race: $('#race
 $('#roster').onclick = (e) => {
   const b = e.target.closest('[data-claim]');
   if (!b) return;
-  if (b.dataset.online === '1' && !confirm('Someone is already playing this character on another phone. Take over?')) return;
-  join({ id: b.dataset.claim });
+  const id = b.dataset.claim;
+  join({ id, token: localStorage[`tavernToken:${id}`] });
 };
-socket.on('connect', () => { if (charId) join({ id: charId }); });
+$('#roomForm').onsubmit = (e) => {
+  e.preventDefault();
+  const code = $('#roomIn').value.trim().toUpperCase();
+  socket.emit('room:check', { room: code }, ({ ok }) => {
+    if (!ok) return showJoin('That code doesn\'t match the one on the TV.');
+    room = localStorage.tavernRoom = code;
+    showJoin();
+  });
+};
+socket.on('connect', () => { if (charId && token()) join({ id: charId, token: token() }); else showJoin(); });
 socket.on('taken', () => showJoin('Your character was opened on another device, or the DM removed it.'));
 
 socket.on('state', (s) => {
@@ -73,6 +96,7 @@ function renderRoster() {
       ${c.player ? `<small class="muted">${esc(c.player)}</small>` : ''}${c.online ? '<em>in use</em>' : ''}
     </button>`).join('');
   if (!S.roster.length) { $('#newForm').hidden = false; $('#newBtn').hidden = true; }
+  $('#roomForm').hidden = !!room;
 }
 
 // ---------- whispers ----------

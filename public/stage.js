@@ -194,7 +194,7 @@
     ui.innerHTML = `
       <header class="stage-top">
         <div class="mode-pill">${MODE_ICON[s.mode]} ${s.mode}</div>
-        <div class="join"><img src="/qr.svg" alt="Join QR"><div><b>Join the party</b><code>${esc(s.joinUrl)}</code><small>${s.players.length} adventurer${s.players.length === 1 ? '' : 's'}</small></div></div>
+        <div class="join"><img src="/qr.svg?r=${esc(s.room)}" alt="Join QR"><div><b>Join the party</b><span class="room-code">Room <b>${esc(s.room)}</b></span><code>${esc(s.joinUrl.replace(/\/play\?room=.*/, '/j/' + s.room))}</code><small>${s.players.length} adventurer${s.players.length === 1 ? '' : 's'}</small></div></div>
       </header>
       <main class="stage-main">
         <section class="stage-center">${s.mode === 'social' ? vn(s) : s.mode === 'combat' ? combat(s) : exploration(s)}</section>

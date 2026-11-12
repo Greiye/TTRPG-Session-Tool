@@ -45,6 +45,7 @@ function viewState(base, viewer) {
   out.combat = { ...base.combat, enemies: base.combat.enemies.map((e) => strip(e, 'enemy', viewer)) };
   out.log = filterList(base.log, viewer);
   out.whispers = filterList(base.whispers, viewer);
+  if (viewer.role === 'dm') out.lan = require('./net').lanAddresses();
   return out;
 }
 

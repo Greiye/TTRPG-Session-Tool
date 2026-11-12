@@ -4,7 +4,8 @@ const { roster, saveRoster } = require('./roster');
 const { viewerOf, viewerKey, viewState } = require('./visibility');
 const rules = require('./rules');
 const { BUILTIN_SFX, scanLibrary } = require('./media');
-const { joinUrl } = require('./net');
+const net = require('./net');
+const { newRoomCode } = require('./session');
 const store = require('./store');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
@@ -41,6 +42,8 @@ const state = {
 
 let seq = 0;
 seq = store.restore(state, roster, store.load());
+if (!state.room) state.room = newRoomCode();
+net.setHost(state.settings.host);
 const snap = () => store.snapshot(state, seq);
 
 const nextId = () => ++seq;
@@ -56,7 +59,7 @@ function fullState() {
   const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const codms = [...io.sockets.sockets.values()].filter((x) => x.data.role === 'codm').length;
-  return { ...state, players, roster: cards, screens, codms, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), joinUrl: joinUrl() };
+  return { ...state, players, roster: cards, screens, codms, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), joinUrl: net.joinUrl(state.room) };
 }
 const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
 

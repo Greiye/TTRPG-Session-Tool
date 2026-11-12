@@ -8,7 +8,8 @@ const rules = require('../rules');
 const { roster, newCharacter, applyEdits } = require('../roster');
 const { str } = require('../util');
 const game = require('../game');
-const { release } = require('../session');
+const { release, newRoomCode } = require('../session');
+const net = require('../net');
 
 module.exports = function dmSockets(socket) {
   const { io } = hub;
@@ -131,6 +132,16 @@ module.exports = function dmSockets(socket) {
     if (c.socketId) io.to(c.socketId).emit('whisper', w);
     ack?.({ ok: !!c.socketId });
     broadcast();
+  });
+
+  // New room code: new phones need the new QR; phones already seated keep their device tokens.
+  dm('dm:room:new', () => { state.room = newRoomCode(); log('system', `New room code: ${state.room}.`); });
+  // Which network address goes into the QR (when the laptop has several adapters).
+  dm('dm:host', ({ host }) => {
+    const ok = !host || net.lanAddresses().some((a) => a.address === host);
+    if (!ok) return;
+    state.settings.host = host || null;
+    net.setHost(state.settings.host);
   });
 
   dm('dm:kick', ({ id }) => {
