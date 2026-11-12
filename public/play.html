@@ -32,7 +32,7 @@
       <div id="profAv"></div>
       <div class="prof-photo">
         <label class="btn">📷 Selfie<input type="file" accept="image/*" capture="user" id="camIn" hidden></label>
-        <label class="btn">🖼 Choose image<input type="file" accept="image/*" id="fileIn" hidden></label>
+        <label class="btn">🖼 Choose image<input type="file" accept="image/*,video/webm" id="fileIn" hidden></label>
         <small id="photoStatus" class="muted"></small>
       </div>
     </div>
@@ -61,6 +61,7 @@
   </section>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/anim.js"></script>
   <script src="/stage.js"></script>
   <script src="/play.js"></script>
 </body>

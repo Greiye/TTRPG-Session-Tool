@@ -1,8 +1,6 @@
 // DM-only events: modes, scene, checks, combat, NPC dialogue, characters.
-const fs = require('fs');
-const path = require('path');
 const hub = require('../hub');
-const { PORTRAIT_DIR } = require('../config');
+const { removeUrl } = require('../assets');
 const { state, log, nextId, broadcast, EMOTIONS, sys } = require('../state');
 const rules = require('../rules');
 const { roster, newCharacter, applyEdits } = require('../roster');
@@ -110,7 +108,7 @@ module.exports = function dmSockets(socket) {
     const c = roster[id];
     if (!c) return;
     release(c);
-    if (c.portrait) fs.rm(path.join(PORTRAIT_DIR, path.basename(c.portrait)), () => {});
+    removeUrl(c.portrait);
     delete state.players[id];
     state.combat.order = state.combat.order.filter((o) => o.id !== id);
     delete roster[id];

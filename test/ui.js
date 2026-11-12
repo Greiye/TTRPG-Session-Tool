@@ -51,6 +51,20 @@ const SHOTS = process.env.SHOTS;
   if (phAttr.join() !== 'xl,cb') errors.push('phone settings not applied: ' + phAttr);
   await dm.evaluate(() => socket.emit('dm:settings', { display: { palette: 'hc', motion: 'reduce' } }));
   await tv.waitForFunction(() => document.documentElement.dataset.palette === 'hc', null, { timeout: 3000 });
+  // Animated portrait: WebM upload renders as one persistent <video> on the TV across state updates.
+  const { spawnSync } = require('child_process');
+  if (spawnSync('ffmpeg', ['-version']).status === 0) {
+    const src = path.join(TMP, 'p.webm');
+    spawnSync('ffmpeg', ['-loglevel', 'error', '-f', 'lavfi', '-i', 'testsrc=size=320x320:rate=24', '-t', '1', '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', src]);
+    const id = await ph.evaluate(() => localStorage.tavernChar);
+    const r = await fetch(`${B}/api/portrait/${id}`, { method: 'POST', headers: { 'content-type': 'video/webm' }, body: fs.readFileSync(src) });
+    if (!r.ok) errors.push('webm portrait upload ' + r.status);
+    await tv.waitForSelector('.party video.av-pc', { timeout: 5000 });
+    await tv.evaluate(() => { window.__v = document.querySelector('.party video.av-pc'); });
+    await dm.evaluate(() => socket.emit('dm:narrate', { text: 're-render' }));
+    await tv.waitForTimeout(500);
+    if (!(await tv.evaluate(() => document.querySelector('.party video.av-pc') === window.__v))) errors.push('portrait video was recreated on re-render');
+  }
   if (SHOTS) for (const [n, p] of [['dm', dm], ['tv', tv], ['phone', ph]]) await p.screenshot({ path: `${SHOTS}/ui-${n}.png` });
   if (typeof global.extra === 'function') await global.extra({ dm, tv, ph, br, B });
   await br.close();

@@ -42,6 +42,11 @@ function applyEdits(c, f, isDm) {
   if (f.hue !== undefined) c.hue = int(f.hue, 0, 359, c.hue);
   if (f.catchphrase !== undefined) c.catchphrase = str(f.catchphrase, 120);
   if (f.backstory !== undefined) c.backstory = str(f.backstory, 2000);
+  // Animation profile (0e): scales speed and size of this character's on-screen moments.
+  if (f.anim && typeof f.anim === 'object') {
+    const n = (v, lo, hi, d) => { const x = Number(v); return Number.isFinite(x) ? Math.max(lo, Math.min(hi, x)) : d; };
+    c.anim = { speed: n(f.anim.speed, 0.5, 2, c.anim?.speed ?? 1), intensity: n(f.anim.intensity, 0, 2, c.anim?.intensity ?? 1) };
+  }
   if (!isDm) return;
   if (f.name !== undefined) c.name = str(f.name, 24) || c.name;
   const sys = rules.get(c.system);

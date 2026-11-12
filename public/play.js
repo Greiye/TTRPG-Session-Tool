@@ -96,6 +96,7 @@ function renderRoster() {
       <b>${esc(c.name)}</b><small>${esc([c.race, c.cls].filter(Boolean).join(' '))}${c.level > 1 ? ` ${c.level}` : ''}</small>
       ${c.player ? `<small class="muted">${esc(c.player)}</small>` : ''}${c.online ? '<em>in use</em>' : ''}
     </button>`).join('');
+  Anim.hydrate($('#roster'));
   if (!S.roster.length) { $('#newForm').hidden = false; $('#newBtn').hidden = true; }
   $('#roomForm').hidden = !!room;
 }
@@ -122,6 +123,7 @@ function openProfile() {
   const me = S.players.find((p) => p.id === charId);
   if (!me) return;
   $('#profAv').innerHTML = Stage.avatar(me, 'av-prof');
+  Anim.hydrate($('#profAv'));
   $('#pPlayer').value = me.player || '';
   $('#pRace').value = me.race || '';
   $('#pCatch').value = me.catchphrase || '';
@@ -161,11 +163,14 @@ async function uploadPhoto(input) {
   if (!file) return;
   $('#photoStatus').textContent = 'Uploading…';
   try {
-    const blob = await squareJpeg(file);
-    const res = await fetch(`/api/portrait/${charId}`, { method: 'POST', headers: { 'content-type': 'image/jpeg', 'x-socket-id': socket.id }, body: blob });
+    // Animated WebM portraits go up as-is; the server crops and re-encodes them.
+    const video = file.type === 'video/webm';
+    const blob = video ? file : await squareJpeg(file);
+    const res = await fetch(`/api/portrait/${charId}`, { method: 'POST', headers: { 'content-type': video ? 'video/webm' : 'image/jpeg', 'x-socket-id': socket.id }, body: blob });
     const out = await res.json();
     if (!res.ok) throw new Error(out.error);
-    $('#profAv').innerHTML = `<img class="av av-prof" src="${esc(out.url)}" alt="">`;
+    $('#profAv').innerHTML = Anim.media(out.url, 'av av-prof');
+    Anim.hydrate($('#profAv'));
     $('#photoStatus').textContent = 'Saved!';
   } catch (err) {
     $('#photoStatus').textContent = err.message;
@@ -182,6 +187,7 @@ function render() {
   lastMode = S.mode;
 
   $('#me').innerHTML = `${Stage.avatar(me, 'av-me')}<div class="me-info"><b>${esc(me.name)}</b><small class="muted">${esc([me.race, me.cls].filter(Boolean).join(' '))} · ${esc(S.rules.defenseLabel)} ${me.ac} · ${S.mode}</small></div><button class="btn small" id="profBtn">✎ Profile</button>${hpBar(me)}`;
+  Anim.hydrate($('#me'));
   $('#profBtn').onclick = openProfile;
   $('#say').placeholder = S.mode === 'social' ? 'Say something in character…' : 'What do you do?';
   $('#sayForm').hidden = S.mode === 'combat';

@@ -175,6 +175,7 @@ function renderChars() {
         ${atTable.has(c.id) ? '' : `<button class="btn small" data-seat="${c.id}" title="Add to table">➕</button>`}
       </div>
     </div>`).join('') || '<p class="note">No saved characters yet. Players create one when they join, or add them here.</p>';
+  Anim.hydrate($('#chars'));
 }
 
 function openChar(c) {
@@ -190,6 +191,7 @@ function openChar(c) {
   f.dmg.value = c ? `${v.dmg[0]}d${v.dmg[1]}${v.dmg[2] ? (v.dmg[2] > 0 ? '+' : '') + v.dmg[2] : ''}` : '';
   document.querySelectorAll('[data-skill]').forEach((i) => { i.value = v.skills[i.dataset.skill] ?? ''; });
   $('#charAv').innerHTML = Stage.avatar(v, 'av-dlg');
+  Anim.hydrate($('#charAv'));
   $('#charPhotoBtn').hidden = !c;
   $('#charDelete').hidden = !c;
   $('#charDlg').showModal();
@@ -218,7 +220,7 @@ $('#charPhoto').onchange = async (e) => {
   if (!file || !editing) return;
   const res = await fetch(`/api/portrait/${editing.id}`, { method: 'POST', headers: { 'content-type': file.type, 'x-dm-key': dmKey() }, body: file });
   const out = await res.json().catch(() => ({}));
-  if (res.ok) $('#charAv').innerHTML = `<img class="av av-dlg" src="${esc(out.url)}" alt="">`;
+  if (res.ok) { $('#charAv').innerHTML = Anim.media(out.url, 'av av-dlg'); Anim.hydrate($('#charAv')); }
   else alert(out.error || 'Upload failed');
 };
 
