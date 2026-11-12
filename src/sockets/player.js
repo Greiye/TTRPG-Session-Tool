@@ -1,9 +1,8 @@
 // Phone events: join/claim, profile, checks, actions, combat turns.
 const hub = require('../hub');
-const { state, log, broadcast } = require('../state');
+const { state, log, broadcast, sys } = require('../state');
 const { roster, newCharacter, applyEdits } = require('../roster');
-const { CLASSES } = require('../rules/dnd5e');
-const { d, rollDice, sign } = require('../dice');
+const { rollDice } = require('../dice');
 const { str } = require('../util');
 const game = require('../game');
 
@@ -14,8 +13,8 @@ module.exports = function playerSockets(socket) {
     let c = roster[id];
     if (!c) {
       if (id) return ack?.({ error: 'gone' });
-      if (!str(name, 24) || !CLASSES[cls]) return ack?.({ error: 'Pick a name and class.' });
-      c = newCharacter({ name, cls, race, player });
+      if (!str(name, 24) || !sys().classes[cls]) return ack?.({ error: 'Pick a name and class.' });
+      c = newCharacter({ name, cls, race, player }, state.system);
     }
     if (c.socketId && c.socketId !== socket.id) io.to(c.socketId).emit('taken');
     c.socketId = socket.id;
@@ -41,18 +40,18 @@ module.exports = function playerSockets(socket) {
     broadcast();
   });
 
-  socket.on('player:check', ({ skill } = {}) => {
+  socket.on('player:check', ({ skill, mode } = {}) => {
     const p = me();
-    if (!p || !(skill in p.skills)) return;
-    const r = d(20); const total = r + p.skills[skill];
+    if (!p || !sys().skills.includes(skill)) return;
     const chk = state.check;
-    if (r === 20) game.spotlight(p.id, 'nat20');
-    if (chk && chk.skill === skill && !chk.results[p.id]) {
-      const pass = total >= chk.dc;
-      chk.results[p.id] = { name: p.name, roll: r, total, pass };
-      log('check', `${p.name} ${skill}: d20(${r})${sign(p.skills[skill])} = ${total} ${pass ? 'SUCCESS' : 'FAIL'}`, { tone: pass ? 'good' : 'bad', roll: r });
+    const called = chk && chk.skill === skill && !chk.results[p.id];
+    const r = sys().check(p, skill, { dc: called ? chk.dc : undefined, mode });
+    if (r.crit) game.spotlight(p.id, 'nat20');
+    if (called) {
+      chk.results[p.id] = { name: p.name, roll: r.natural, total: r.total, pass: r.pass };
+      log('check', `${p.name} ${r.text} ${r.outcome}`, { tone: r.pass ? 'good' : 'bad', roll: r.natural });
     } else {
-      log('check', `${p.name} ${skill}: d20(${r})${sign(p.skills[skill])} = ${total}`, { roll: r });
+      log('check', `${p.name} ${r.text}${r.outcome ? ' ' + r.outcome : ''}`, { roll: r.natural });
     }
     broadcast();
   });
@@ -83,7 +82,7 @@ module.exports = function playerSockets(socket) {
     if (act === 'attack') {
       const t = state.combat.enemies.find((e) => e.id === target && e.hp > 0);
       if (!t) return;
-      game.attack(p, t, p.atk, p.dmg);
+      game.attack(p, t);
     } else if (['dodge', 'dash', 'help', 'hide'].includes(act)) {
       log('combat', `${p.name} takes the ${act[0].toUpperCase() + act.slice(1)} action.`);
     } else if (act === 'potion') {

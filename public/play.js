@@ -1,12 +1,7 @@
 const socket = io();
 const $ = (s) => document.querySelector(s);
 const { esc, hpBar, vn, logFeed, checkBanner } = Stage;
-const CLASS_INFO = {
-  Fighter: 'Tough frontliner · AC 17', Rogue: 'Sneaky, sharp tongue · AC 15', Wizard: 'Arcane blaster · AC 12',
-  Cleric: 'Healer, insightful · AC 18', Ranger: 'Tracker, archer · AC 15', Bard: 'Silver-tongued · AC 14',
-};
-const SOCIAL_SKILLS = ['Persuasion', 'Deception', 'Intimidation', 'Insight'];
-const EXPLORE_SKILLS = ['Perception', 'Investigation', 'Stealth', 'Survival', 'Athletics', 'Arcana'];
+// Classes and skill buttons come from the active rules system (S.rules), so 5e and Daggerheart share this UI.
 
 let charId = localStorage.tavernChar;
 let cls = null;
@@ -15,7 +10,13 @@ let lastMode = null;
 const whisperKey = () => `tavernWhispers:${charId}`;
 const loadWhispers = () => { try { return JSON.parse(localStorage[whisperKey()] || '[]'); } catch { return []; } };
 
-$('#classes').innerHTML = Object.entries(CLASS_INFO).map(([k, v]) => `<button class="cls" data-cls="${k}"><b>${k}</b><small>${v}</small></button>`).join('');
+let classKey = null;
+function renderClasses() {
+  const key = JSON.stringify(S.rules.classes);
+  if (key === classKey) return;
+  classKey = key;
+  $('#classes').innerHTML = Object.entries(S.rules.classes).map(([k, v]) => `<button class="cls" data-cls="${esc(k)}"><b>${esc(k)}</b><small>${esc(v)}</small></button>`).join('');
+}
 $('#classes').onclick = (e) => {
   const b = e.target.closest('[data-cls]');
   if (!b) return;
@@ -60,6 +61,7 @@ socket.on('state', (s) => {
   S = s;
   // Server restarted or DM removed us from the table: back to the picker.
   if (!$('#gameView').hidden && !s.players.some((p) => p.id === charId)) showJoin();
+  renderClasses();
   if (!$('#joinView').hidden) renderRoster();
   render();
 });
@@ -155,7 +157,7 @@ function render() {
   if (lastMode && lastMode !== S.mode && navigator.vibrate) navigator.vibrate(80);
   lastMode = S.mode;
 
-  $('#me').innerHTML = `${Stage.avatar(me, 'av-me')}<div class="me-info"><b>${esc(me.name)}</b><small class="muted">${esc([me.race, me.cls].filter(Boolean).join(' '))} · AC ${me.ac} · ${S.mode}</small></div><button class="btn small" id="profBtn">✎ Profile</button>${hpBar(me)}`;
+  $('#me').innerHTML = `${Stage.avatar(me, 'av-me')}<div class="me-info"><b>${esc(me.name)}</b><small class="muted">${esc([me.race, me.cls].filter(Boolean).join(' '))} · ${esc(S.rules.defenseLabel)} ${me.ac} · ${S.mode}</small></div><button class="btn small" id="profBtn">✎ Profile</button>${hpBar(me)}`;
   $('#profBtn').onclick = openProfile;
   $('#say').placeholder = S.mode === 'social' ? 'Say something in character…' : 'What do you do?';
   $('#sayForm').hidden = S.mode === 'combat';
@@ -168,24 +170,25 @@ function checkPrompt(me) {
   if (!c) return '';
   const done = c.results[me.id];
   return `${checkBanner(S)}
-    <button class="bigbtn" data-skill="${esc(c.skill)}" ${done ? 'disabled' : ''}>${done ? `Rolled ${done.total}` : `🎲 Roll ${esc(c.skill)} (${me.skills[c.skill] >= 0 ? '+' : ''}${me.skills[c.skill]})`}</button>`;
+    <button class="bigbtn" data-skill="${esc(c.skill)}" ${done ? 'disabled' : ''}>${done ? `Rolled ${done.total}` : `🎲 Roll ${esc(c.skill)} (${fmt(me.skills[c.skill])})`}</button>`;
 }
 
-const skillButtons = (me, list) => `<div class="grid3">${list.map((k) => `<button class="btn" data-skill="${k}">${k}<br><small class="muted">${me.skills[k] >= 0 ? '+' : ''}${me.skills[k]}</small></button>`).join('')}</div>`;
+const fmt = (n) => { n = n ?? 0; return n >= 0 ? `+${n}` : `${n}`; };
+const skillButtons = (me, list) => `<div class="grid3">${list.map((k) => `<button class="btn" data-skill="${esc(k)}">${esc(k)}<br><small class="muted">${fmt(me.skills[k])}</small></button>`).join('')}</div>`;
 
 function exploreView(me) {
   const sc = S.scene;
   return `<div class="card"><h3>${esc(sc.title)}</h3><p style="margin:0">${esc(sc.text)}</p></div>
     ${checkPrompt(me)}
     ${sc.poi.length ? `<div class="grid2">${sc.poi.map((p) => `<button class="btn" data-do="I investigate the ${esc(p.toLowerCase())}.">🔍 ${esc(p)}</button>`).join('')}</div>` : ''}
-    ${skillButtons(me, EXPLORE_SKILLS)}`;
+    ${skillButtons(me, S.rules.skillGroups.exploration)}`;
 }
 
 function socialView(me) {
   return `<div class="vn-mini">${vn(S, { compact: true })}</div>
     ${checkPrompt(me)}
     ${S.social.choices.length ? `<div class="list">${S.social.choices.map((c, i) => `<button class="btn" style="text-align:left;padding:12px" data-choice="${i}">💬 ${esc(c)}</button>`).join('')}</div>` : ''}
-    ${skillButtons(me, SOCIAL_SKILLS)}`;
+    ${skillButtons(me, S.rules.skillGroups.social)}`;
 }
 
 function combatView(me) {
