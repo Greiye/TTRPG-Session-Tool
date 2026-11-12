@@ -8,6 +8,24 @@ const { esc } = Stage;
 addTab('inbox', '✉ Inbox');
 const root = () => $('#tabInbox');
 let seen = new Set();
+const drafts = {}; // quiz answers typed but not saved yet, kept across re-renders
+
+// Recap quiz (src/quiz.js): questions, your own answers, and your marks once the DM has checked them.
+function quizHtml(q, c) {
+  if (!q) return '';
+  const rows = q.questions.map((x) => {
+    const saved = q.mine?.[x.id];
+    const val = drafts[x.id] ?? saved ?? '';
+    const mk = q.marks?.[x.id];
+    const tag = mk === true ? ' <span class="pass">✓ right</span>' : mk === false ? ' <span class="fail">✗ not quite</span>' : '';
+    return `<div class="item quiz-q"><p><b>${esc(x.text)}</b>${tag}</p>
+      <div class="row"><input class="grow" data-quiz-q="${esc(x.id)}" maxlength="300" placeholder="${q.open ? 'Your answer' : 'Quiz closed'}" value="${esc(val)}" ${q.open ? '' : 'disabled'}>
+      <button class="btn small" data-quiz-save="${esc(x.id)}" ${q.open ? '' : 'disabled'}>${saved ? 'Saved ✓' : 'Save'}</button></div></div>`;
+  }).join('');
+  return `<div class="card quiz"><h3>📝 Recap quiz${q.open ? '' : ' (closed)'}</h3>
+    <p class="note">What happened last session? Right answers earn inspiration to spend on a roll.</p>${rows}
+    <p class="note">✨ Inspiration: ${c.inspiration || 0}</p></div>`;
+}
 
 function render() {
   const S = state();
@@ -33,18 +51,33 @@ function render() {
     }
     return `<div class="card"><h3>📜 ${esc(h.title)}</h3>${h.text ? `<p>${esc(h.text)}</p>` : ''}${h.image ? `<img src="${esc(h.image)}" alt="" style="max-width:100%;border-radius:8px">` : ''}</div>`;
   }).join('');
-  root().innerHTML = voteHtml + body + (items.length || vote ? '' : '<p class="note" style="text-align:center">Nothing here yet. Handouts, phrases and spoils from the DM show up here.</p>');
+  const q = S.quiz;
+  const quizPending = q?.open ? q.questions.filter((x) => q.mine?.[x.id] === undefined).length : 0;
+  const quiz = quizHtml(q, c);
+  root().innerHTML = quiz + voteHtml + body + (items.length || vote || q ? '' : '<p class="note" style="text-align:center">Nothing here yet. Handouts, phrases and spoils from the DM show up here.</p>');
   // Badge: count new items since the tab was last opened.
   const fresh = items.filter((h) => !seen.has(h.id)).length + (vote?.open && vote.mine == null ? 1 : 0);
-  setBadge('inbox', tab() === 'inbox' ? 0 : fresh);
+  setBadge('inbox', tab() === 'inbox' ? 0 : fresh + quizPending);
   if (tab() === 'inbox') items.forEach((h) => seen.add(h.id));
 }
 onState(render);
 onTab((id) => { if (id === 'inbox') render(); });
 
+root().addEventListener('input', (e) => {
+  const q = e.target.dataset.quizQ;
+  if (q) drafts[q] = e.target.value;
+});
+
 root().addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b) return;
+  if (b.dataset.quizSave) {
+    const text = root().querySelector(`[data-quiz-q="${b.dataset.quizSave}"]`)?.value || '';
+    socket.emit('player:quiz:answer', { qid: b.dataset.quizSave, text });
+    delete drafts[b.dataset.quizSave];
+    navigator.vibrate?.(20);
+    return;
+  }
   if (b.dataset.vote != null) socket.emit('player:vote', { index: Number(b.dataset.vote) });
   else if (b.dataset.claim) {
     const note = root().querySelector(`[data-claim-note="${b.dataset.claim}"]`)?.value || '';

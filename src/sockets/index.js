@@ -33,8 +33,10 @@ module.exports = function sockets(io) {
 
     require('./player')(socket);
     require('./dm')(socket);
+    require('./plans')(socket);
     require('./atmo')(socket);
     require('./spectator')(socket);
+    require('./quiz')(socket);
   });
 };
 module.exports.guard = guard;

@@ -107,9 +107,9 @@ module.exports = function playerSockets(socket) {
     broadcast();
   });
   // The big "Roll" button on a roll call.
-  socket.on('player:answer', ({ mode } = {}) => {
+  socket.on('player:answer', ({ mode, inspire } = {}) => {
     const p = me();
-    const r = p && rolls.answer(p, mode);
+    const r = p && rolls.answer(p, mode, { inspire: !!inspire });
     if (!r) return;
     if (r.crit) game.spotlight(p.id, 'nat20');
     broadcast();

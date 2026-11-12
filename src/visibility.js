@@ -5,6 +5,7 @@
 //   undefined | 'all'        everyone
 //   'dm'                     DM only
 //   { to: [charId...], screen: bool }  the DM, those characters, and the TV if screen is true
+// Scene points of interest: covered names are replaced by null for everyone but the DM (sceneFor).
 // Field-level visibility: FIELD_RULES lists fields only the DM may see, per entity kind.
 
 const { PRIVATE: SHEET_PRIVATE } = require('./sheet');
@@ -37,6 +38,13 @@ function phraseFor(h, viewer, base) {
   const { text, ...rest } = h;
   return { ...rest, text: knows || h.revealed ? text : undefined, glyphs: h.glyphs, knows };
 }
+// Fog of war (7c): only the DM gets the names of covered points of interest. Everyone else gets null in
+// that slot, so the TV and phones can draw the right number of "???" tiles without holding the names.
+function sceneFor(scene, viewer) {
+  if (viewer.role === 'dm' || !Array.isArray(scene.poi)) return scene;
+  const open = new Set(scene.revealed || []);
+  return { ...scene, poi: scene.poi.map((p) => (open.has(p) ? p : null)) };
+}
 const viewerKey = (v) => `${v.role}:${v.charId || ''}`;
 
 function canSee(vis, viewer) {
@@ -68,7 +76,8 @@ function viewState(base, viewer) {
   out.suggestions = filterList(base.suggestions, viewer); // spectator suggestions: DM and players only (src/spectate.js)
   out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h));
   if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
-  if (base.scene) out.scene = { ...base.scene, secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
+  out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own
+  if (base.scene) out.scene = { ...sceneFor(base.scene, viewer), secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
   // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.
   if (base.check) {
     const targeted = !base.check.targets || viewer.role !== 'player' || base.check.targets.includes(viewer.charId);
@@ -81,7 +90,7 @@ function viewState(base, viewer) {
   // The room code is the join secret: only the DM and the TV (which displays it) get it.
   if (!['dm', 'screen', 'codm'].includes(viewer.role)) { delete out.room; delete out.joinUrl; }
   // Spectators watch the public table only: no secret-holding DM fields, no relations (above).
-  if (viewer.role !== 'dm') delete out.relations;
+  if (viewer.role !== 'dm') { delete out.relations; delete out.plans; } // plans hold DM notes
   // Shops: phones see open shops only, without the DM's import notes.
   out.shops = viewer.role === 'dm' ? base.shops : (base.shops || []).filter((s) => s.open).map(({ skipped, ...s }) => s);
   if (viewer.role === 'dm') {

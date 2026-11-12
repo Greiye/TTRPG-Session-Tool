@@ -22,6 +22,15 @@ const { ok, until } = h;
   ok(await until(() => dm.last.scene.revealed.length === 0), 'cover all hides every point again');
   dm.emit('dm:reveal', { poi: 'Old mill in the fog' });
   ok(await until(() => players[0].last.scene.revealed.includes('Old mill in the fog')), 'reveal reaches the phones');
+  const tv = await h.client();
+  tv.emit('screen:hello');
+  await until(() => tv.last?.scene);
+  for (const [who, s] of [['phone', players[0]], ['TV', tv]]) {
+    ok(JSON.stringify(s.last.scene.poi) === JSON.stringify([null, null, 'Old mill in the fog']), `${who} gets covered points as blanks`);
+    // 'Toppled shrine' was uncovered once above, so the log may name it; 'Cart tracks' never was.
+    ok(!/Toppled shrine|Cart tracks/.test(JSON.stringify(s.last.scene.poi)) && !JSON.stringify(s.last).includes('Cart tracks'), `${who} state holds no covered names`);
+  }
+  ok(dm.last.scene.poi.length === 3 && dm.last.scene.poi.every(Boolean), 'DM still gets every name');
 
   // Boss title cards (7b)
   dm.emit('dm:creature:save', { name: 'Terror of the Mill', side: 'enemy', hp: 60, ac: 15, boss: true, title: 'Terror of the Mill', attacks: [{ name: 'Claw', atk: 6, dmg: '2d8+4' }] });
