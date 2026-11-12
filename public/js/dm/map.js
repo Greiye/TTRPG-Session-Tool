@@ -39,7 +39,7 @@ onState((s) => {
     const r = s.roll;
     $('#rndTable').innerHTML = Object.entries(TABLES).map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join('');
     $('#rndOut').innerHTML = r
-      ? `<div class="item"><span><small class="muted">seed ${r.seed}</small></span></div>` + Object.entries(r.picks).map(([slot, label]) => `<div class="item rolled"><span><b>${esc(slot)}</b>: ${esc(label)}</span><button class="btn small" data-reroll="${esc(slot)}">Reroll</button></div>`).join('')
+      ? `<div class="item"><span><small class="muted">seed ${r.seed}</small></span></div>` + Object.entries(r.picks).map(([slot, label]) => `<div class="item rolled"><span>${r.art?.[slot] ? `<img class="rnd-art" src="${esc(r.art[slot])}" alt="">` : ''}<b>${esc(slot)}</b>: ${esc(label)}</span><span class="row"><button class="btn small" data-art="${esc(slot)}" data-label="${esc(label)}" title="Attach creature art">🖼</button>${r.art?.[slot] ? `<button class="btn small" data-art-clear="${esc(slot)}" data-label="${esc(label)}" title="Remove art">✕</button>` : ''}<button class="btn small" data-reroll="${esc(slot)}">Reroll</button></span></div>`).join('')
       : '<p class="note">Roll to get a creature.</p>';
     if (r && TABLES[r.table]) $('#rndTable').value = r.table;
   }
@@ -64,4 +64,25 @@ $('#dmMap').addEventListener('click', (e) => {
   else emit('dm:map:paint', { x, y, kind: tool === 'clear' ? null : tool });
 });
 $('#rndRoll').onclick = () => emit('dm:roll:creature', { table: $('#rndTable').value, seed: $('#rndSeed').value ? Number($('#rndSeed').value) : undefined });
-$('#rndOut').addEventListener('click', (e) => { const b = e.target.closest('[data-reroll]'); if (b) emit('dm:roll:creature', { table: state().roll.table, reroll: b.dataset.reroll }); });
+$('#rndOut').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-reroll]');
+  if (b) return emit('dm:roll:creature', { table: state().roll.table, reroll: b.dataset.reroll });
+  const clr = e.target.closest('[data-art-clear]');
+  if (clr) return emit('dm:rnd:art', { table: state().roll.table, slot: clr.dataset.artClear, label: clr.dataset.label, url: null });
+  const art = e.target.closest('[data-art]');
+  if (art) pickArt(state().roll.table, art.dataset.art, art.dataset.label);
+});
+// Upload one image as creature art and attach it to the pick (uses the creature asset kind).
+function pickArt(table, slot, label) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*,video/webm';
+  inp.onchange = async () => {
+    const file = inp.files[0];
+    if (!file) return;
+    const res = await fetch('/api/assets/creature', { method: 'POST', headers: { 'content-type': file.type, 'x-dm-key': dmKey() }, body: file });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) return alert(out.error || 'Upload failed');
+    emit('dm:rnd:art', { table, slot, label, url: out.url });
+  };
+  inp.click();
+}

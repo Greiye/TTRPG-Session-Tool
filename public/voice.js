@@ -34,7 +34,7 @@
   // Item 13: one STT interface, two engines (public/stt.js). The engine is picked in the settings row.
   function startRecognition() {
     const engine = $('#sttEngine')?.value || 'chrome';
-    recog = window.STT.create(engine, { model: $('#sttModel')?.value || '/models/vosk-small-en.zip' });
+    recog = window.STT.create(engine, { model: $('#sttModel')?.value || '/models/vosk-small-en.tar.gz' });
     recog.on('partial', (t) => { interim = t; paint(); caption(t); });
     recog.on('final', (t) => {
       interim = '';

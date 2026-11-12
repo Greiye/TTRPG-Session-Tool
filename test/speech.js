@@ -25,5 +25,15 @@ const { ok, until } = h;
   ok(/^# Recap/.test(recap) && /Get out of my inn!/.test(recap), 'recap is Markdown with the dialogue');
   const denied = await fetch(`${h.URL}/api/recap.md`, { headers: { 'x-forwarded-for': '203.0.113.9' } });
   ok(denied.status === 403 || denied.status === 200, 'recap route answers');
+  // Vosk (item 13): the model archive is served from MODEL_DIR; missing models are a plain 404.
+  const missing = await fetch(`${h.URL}/models/none.tar.gz`);
+  ok(missing.status === 404, 'missing speech model is a 404');
+  const fs = require('fs'); const path = require('path'); const { MODEL_DIR } = require('../src/config');
+  fs.mkdirSync(MODEL_DIR, { recursive: true });
+  const probe = path.join(MODEL_DIR, 'test-probe.tar.gz');
+  fs.writeFileSync(probe, 'probe');
+  const got = await fetch(`${h.URL}/models/test-probe.tar.gz`);
+  ok(got.status === 200 && (await got.text()) === 'probe', 'speech model is served from MODEL_DIR');
+  fs.rmSync(probe, { force: true });
   await h.done(srv);
 })().catch((e) => { console.error(e); process.exit(1); });

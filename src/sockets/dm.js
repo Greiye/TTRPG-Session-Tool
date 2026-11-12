@@ -57,11 +57,29 @@ module.exports = function dmSockets(socket) {
   dm('dm:map:paint', ({ x, y, kind }) => grid.paint(Number(x), Number(y), kind));
   dm('dm:token', ({ id, x, y, z }) => { if (state.combat.enemies.some((e) => e.id === id) || state.players[id]) grid.place(id, Number(x), Number(y), z); });
   dm('dm:token:move', ({ id, x, y }) => { const c = game.combatant(id); if (c) grid.move(c, Number(x), Number(y), { dm: true }); });
+  // Art for each pick of a roll: { slot: url } for the picks that have art.
+  const artsFor = (r) => {
+    const arts = state.rndArt[r.table] || {};
+    return Object.fromEntries(Object.entries(r.picks).flatMap(([s, label]) => (arts[s]?.[label] ? [[s, arts[s][label]]] : [])));
+  };
+  // Creature art: the DM attaches an uploaded creature image to one pick (table, slot, label). url null removes it.
+  dm('dm:rnd:art', ({ table, slot, label, url }) => {
+    const t = randomizer.TABLES[table];
+    if (!t || !t.slots.some((x) => x.name === slot)) return;
+    if (url !== null && (typeof url !== 'string' || !url.startsWith('/uploads/creatures/'))) return;
+    const byTable = (state.rndArt[table] ||= {});
+    const bySlot = (byTable[slot] ||= {});
+    if (url === null) delete bySlot[label]; else bySlot[label] = url;
+    if (state.roll?.table === table) state.roll.art = artsFor(state.roll);
+  });
   dm('dm:roll:creature', ({ table, seed, reroll: slot }) => {
     const t = randomizer.TABLES[table];
     if (!t) return;
     const prev = state.roll && state.roll.table === table ? state.roll : null;
-    state.roll = slot && prev ? { table, ...randomizer.reroll(t, prev, slot) } : { table, n: 0, ...randomizer.roll(t, seed) };
+    const r = slot && prev ? { table, ...randomizer.reroll(t, prev, slot) } : { table, n: 0, ...randomizer.roll(t, seed) };
+    // Attach the art the DM set for each pick, so the DM page and the TV show the same creature.
+    r.art = artsFor(r);
+    state.roll = r;
   });
 
   // ----- Phase 7: world and content -----

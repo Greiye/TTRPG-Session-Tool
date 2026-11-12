@@ -49,7 +49,23 @@ function render() {
       </div>
     </div>`).join('') || '<p class="note">No saved characters yet. Players create one when they join, or add them here.</p>';
   Anim.hydrate($('#chars'));
+  renderWhispers();
 }
+
+// Whispers (item 10): the DM sees all of them; the TV gets one only after the DM reveals it.
+function renderWhispers() {
+  const ws = (state()?.whispers || []).slice().reverse();
+  $('#whispers').innerHTML = ws.map((w) => {
+    const c = ROSTER.find((x) => x.id === w.to);
+    const shown = !!(w.vis && w.vis.screen);
+    return `<div class="item"><span><b>${esc(c?.name || w.to)}</b>: ${esc(w.text)}</span>
+      <button class="btn small ${shown ? 'on' : ''}" data-wshow="${esc(w.id)}" data-on="${shown ? '' : '1'}">${shown ? 'Hide from TV' : 'Show on TV'}</button></div>`;
+  }).join('') || '<p class="note">No whispers yet.</p>';
+}
+$('#whispers').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-wshow]');
+  if (b) socket.emit('dm:whisper:reveal', { id: b.dataset.wshow, on: b.dataset.on === '1' });
+});
 
 const skillInputs = () => $('#skillInputs').querySelectorAll('[data-skill]');
 const sheet = (sel) => $('#sheetInputs').querySelectorAll(sel);

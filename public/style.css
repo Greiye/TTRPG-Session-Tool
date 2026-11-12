@@ -563,3 +563,4 @@ html[data-motion="reduce"] .boss-card { animation-duration: .001ms; }
 .pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 180px; }
 .pad .btn { padding: 10px 0; }
 .rolled { display: grid; grid-template-columns: 1fr auto; gap: 4px; align-items: center; }
+.rnd-art { width: 36px; height: 36px; object-fit: cover; border-radius: 6px; margin-right: 6px; vertical-align: middle; }
