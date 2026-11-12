@@ -11,6 +11,21 @@ const CLASSES = {
   Bard: { blurb: 'Silver-tongued · AC 14', hp: 20, ac: 14, atk: 5, dmg: [1, 8, 3], init: 2, skills: { Athletics: 0, Perception: 2, Intimidation: 3, Insight: 3, Persuasion: 7, Deception: 6, Stealth: 2, Investigation: 1, Survival: 0, Arcana: 2 } },
 };
 const SKILLS = Object.keys(CLASSES.Fighter.skills);
+const ABILITIES = [['str', 'Strength'], ['dex', 'Dexterity'], ['con', 'Constitution'], ['int', 'Intelligence'], ['wis', 'Wisdom'], ['cha', 'Charisma']];
+const AB = ABILITIES.map((a) => a[0]);
+// Which ability drives each skill (used for labels and for creatures, which have no skill table).
+const SKILL_ABILITY = { Athletics: 'str', Stealth: 'dex', Perception: 'wis', Insight: 'wis', Survival: 'wis', Investigation: 'int', Arcana: 'int', Persuasion: 'cha', Deception: 'cha', Intimidation: 'cha' };
+// Sheet defaults per class at level 1: ability scores, save proficiencies, hit die, level-1 spell slots.
+const SHEET = {
+  Fighter: { ab: [16, 12, 15, 10, 13, 8], saves: ['str', 'con'], hd: 10, slots: {}, lang: ['Common'] },
+  Rogue: { ab: [10, 17, 13, 14, 12, 14], saves: ['dex', 'int'], hd: 8, slots: {}, lang: ['Common', "Thieves' Cant"] },
+  Wizard: { ab: [8, 14, 14, 17, 12, 10], saves: ['int', 'wis'], hd: 6, slots: { 1: 2 }, lang: ['Common', 'Elvish'] },
+  Cleric: { ab: [14, 10, 14, 10, 16, 12], saves: ['wis', 'cha'], hd: 8, slots: { 1: 2 }, lang: ['Common', 'Celestial'] },
+  Ranger: { ab: [12, 16, 14, 10, 15, 8], saves: ['str', 'dex'], hd: 10, slots: {}, lang: ['Common', 'Sylvan'] },
+  Bard: { ab: [8, 14, 13, 12, 10, 17], saves: ['dex', 'cha'], hd: 8, slots: { 1: 2 }, lang: ['Common', 'Elvish'] },
+};
+const mod = (score) => Math.floor(((score ?? 10) - 10) / 2);
+const profBonus = (level) => 2 + Math.floor(((level || 1) - 1) / 4);
 
 module.exports = {
   id: 'dnd5e',
@@ -23,6 +38,29 @@ module.exports = {
   },
   defenseLabel: 'AC',
   dcLabel: 'DC',
+  abilities: ABILITIES,
+  skillAbility: SKILL_ABILITY,
+  slotLevels: 9,
+  languages: ['Common', 'Dwarvish', 'Elvish', 'Giant', 'Gnomish', 'Goblin', 'Halfling', 'Orc', 'Abyssal', 'Celestial', 'Draconic', 'Deep Speech', 'Infernal', 'Primordial', 'Sylvan', 'Undercommon', "Thieves' Cant"],
+
+  // Character sheet fields (item 2). Kept separate from the combat stats so older saves upgrade cleanly.
+  sheetDefaults(cls) {
+    const s = SHEET[cls] || SHEET.Fighter;
+    return {
+      abilities: Object.fromEntries(AB.map((k, i) => [k, s.ab[i]])), saveProf: [...s.saves], speed: 30,
+      slots: Object.fromEntries(Object.entries(s.slots).map(([l, max]) => [l, { max, used: 0 }])),
+      hitDice: { die: s.hd, used: 0 }, languages: [...s.lang],
+    };
+  },
+  editSheet(c, f) {
+    if (f.abilities) for (const k of AB) if (f.abilities[k] !== undefined) c.abilities[k] = int(f.abilities[k], 1, 30, c.abilities[k]);
+    if (Array.isArray(f.saveProf)) c.saveProf = f.saveProf.filter((k) => AB.includes(k));
+    if (f.hitDie !== undefined) c.hitDice.die = int(f.hitDie, 4, 12, c.hitDice.die);
+  },
+  abilityMod: (c, ab) => mod(c.abilities?.[ab]),
+  prof: (c) => profBonus(c.level),
+  saveBonus: (c, ab) => (c.saves?.[ab] ?? mod(c.abilities?.[ab]) + ((c.saveProf || []).includes(ab) ? profBonus(c.level) : 0)),
+  passive: (c, skill) => 10 + (c.skills?.[skill] ?? mod(c.abilities?.[SKILL_ABILITY[skill]])),
 
   newStats(cls) {
     const c = CLASSES[cls];

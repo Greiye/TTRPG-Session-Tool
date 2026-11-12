@@ -10,7 +10,7 @@ const { state } = require('./state');
 const rules = require('./rules');
 const { MIME_EXT, KINDS, sniff } = require('./assets');
 
-const STAT_KEYS = ['hp', 'maxHp', 'ac', 'atk', 'dmg', 'init', 'skills', 'hope', 'fear'];
+const STAT_KEYS = ['hp', 'maxHp', 'ac', 'atk', 'dmg', 'init', 'skills', 'hope', 'fear', 'tempHp', 'abilities', 'saveProf', 'speed', 'slots', 'hitDice', 'languages', 'inventory', 'spells'];
 
 function fileFromUrl(url, files) {
   if (!url || !url.startsWith('/uploads/')) return undefined;
@@ -42,7 +42,8 @@ function exportBundle({ includeDmNotes = true } = {}) {
     if (!e.image) delete e.image;
     if (!includeDmNotes || !e.dmNotes) delete e.dmNotes;
   }
-  return { format: 'tavern-bundle', version: 1, exportedAt: new Date().toISOString(), source: 'tavern-screen', campaign: { name: state.scene.title, system: state.system }, entities: list, files };
+  return { format: 'tavern-bundle', version: 1, exportedAt: new Date().toISOString(), source: 'tavern-screen', campaign: { name: state.scene.title, system: state.system }, entities: list,
+    creatures: require('./creatures').lib.list(), spells: require('./spells').lib.list(), files };
 }
 
 // Import: upserts by stable ID (same ID = same record, newer import wins). Returns a summary.
@@ -83,6 +84,9 @@ function importBundle(bundle) {
     const r = upsert(copy, bundle.source || 'arthuria');
     if (r.error) out.skipped.push(`${e.id}: ${r.error}`); else out.entities++;
   }
+  for (const c of Object.values(roster)) require('./sheet').ensureSheet(c);
+  const lib = require('./srd').importJson({ monsters: bundle.creatures || [], spells: bundle.spells || [] });
+  out.creatures = lib.monsters; out.spells = lib.spells;
   saveRoster();
   return out;
 }

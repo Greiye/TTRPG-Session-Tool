@@ -22,6 +22,16 @@ module.exports = {
   skillGroups: { exploration: ['Agility', 'Instinct', 'Knowledge', 'Finesse', 'Strength'], social: ['Presence', 'Instinct'] },
   defenseLabel: 'Evasion',
   dcLabel: 'Difficulty',
+  abilities: [], // traits double as skills in Daggerheart
+  skillAbility: {},
+  slotLevels: 0,
+  languages: ['Common'],
+  sheetDefaults: () => ({ abilities: {}, saveProf: [], speed: 30, slots: {}, hitDice: { die: 0, used: 0 }, languages: ['Common'] }),
+  editSheet() {},
+  abilityMod: () => 0,
+  prof: () => 0,
+  saveBonus: (c, trait) => c.skills?.[trait] ?? 0,
+  passive: (c, trait) => 10 + (c.skills?.[trait] ?? 0),
 
   newStats(cls) {
     const c = CLASSES[cls];

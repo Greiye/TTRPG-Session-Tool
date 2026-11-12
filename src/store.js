@@ -7,6 +7,8 @@ const { DATA_DIR } = require('./config');
 
 const FILE = path.join(DATA_DIR, 'campaign.json');
 const VERSION = 1;
+// Later features register their own durable state keys here (clocks, map, handouts...).
+const EXTRA = [];
 
 function writeJson(file, data) {
   fs.writeFileSync(file + '.tmp', JSON.stringify(data, null, 2));
@@ -42,6 +44,7 @@ function snapshot(state, seq) {
     settings: state.settings,
     log: state.log,
     whispers: state.whispers,
+    ...Object.fromEntries(EXTRA.map((k) => [k, state[k]])),
   };
 }
 
@@ -49,7 +52,7 @@ function snapshot(state, seq) {
 function restore(state, roster, saved) {
   if (!saved || saved.version !== VERSION) return 0;
   const pick = (k) => { if (saved[k] !== undefined) state[k] = saved[k]; };
-  ['system', 'mode', 'room', 'scene', 'check', 'combat', 'social', 'log', 'whispers'].forEach(pick);
+  ['system', 'mode', 'room', 'scene', 'check', 'combat', 'social', 'log', 'whispers', ...EXTRA].forEach(pick);
   if (saved.settings) Object.assign(state.settings, saved.settings);
   state.players = {};
   for (const id of saved.party || []) if (roster[id]) state.players[id] = roster[id];
@@ -73,4 +76,4 @@ function flush(getSnapshot) {
   writeJson(FILE, getSnapshot());
 }
 
-module.exports = { FILE, VERSION, snapshot, restore, load: () => readJson(FILE), scheduleSave, flush, writeJson, readJson };
+module.exports = { EXTRA, FILE, VERSION, snapshot, restore, load: () => readJson(FILE), scheduleSave, flush, writeJson, readJson };

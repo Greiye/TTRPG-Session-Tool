@@ -17,6 +17,15 @@ onState((s) => {
   if (k !== skillsKey) {
     skillsKey = k;
     $('#skillInputs').innerHTML = s.rules.skills.map((x) => `<label class="fld">${esc(x)}<input type="number" data-skill="${esc(x)}" min="-5" max="20"></label>`).join('');
+    // Sheet fields (item 2): ability scores, speed, spell slots per level, languages.
+    $('#sheetInputs').innerHTML = `
+      ${s.rules.abilities.length ? `<div class="skills-grid" style="grid-template-columns:repeat(6,1fr)">${s.rules.abilities.map(([k, label]) => `<label class="fld">${esc(label.slice(0, 3).toUpperCase())}<input type="number" data-ab="${k}" min="1" max="30"></label>`).join('')}</div>` : ''}
+      <div class="row">
+        <label class="fld" style="width:70px">Speed<input type="number" data-sheet="speed" step="5"></label>
+        ${s.rules.slotLevels ? `<label class="fld grow">Spell slots <small>(per level, e.g. 4 3 2)</small><input data-sheet="slots" placeholder="none"></label>` : ''}
+        <label class="fld grow">Languages <small>(comma separated)</small><input data-sheet="languages" list="langList"></label>
+        <datalist id="langList">${s.rules.languages.map((l) => `<option>${esc(l)}</option>`).join('')}</datalist>
+      </div>`;
   }
   render();
 });
@@ -43,6 +52,7 @@ function render() {
 }
 
 const skillInputs = () => $('#skillInputs').querySelectorAll('[data-skill]');
+const sheet = (sel) => $('#sheetInputs').querySelectorAll(sel);
 function open(c) {
   const S = state();
   editing = c || null;
@@ -56,6 +66,12 @@ function open(c) {
   f.theme.value = v.theme || '';
   f.dmg.value = c ? `${v.dmg[0]}d${v.dmg[1]}${v.dmg[2] ? (v.dmg[2] > 0 ? '+' : '') + v.dmg[2] : ''}` : '';
   skillInputs().forEach((i) => { i.value = v.skills[i.dataset.skill] ?? ''; });
+  sheet('[data-ab]').forEach((i) => { i.value = v.abilities?.[i.dataset.ab] ?? ''; });
+  sheet('[data-sheet]').forEach((i) => {
+    const k = i.dataset.sheet;
+    i.value = k === 'speed' ? v.speed ?? '' : k === 'languages' ? (v.languages || []).join(', ')
+      : Array.from({ length: Math.max(0, ...Object.keys(v.slots || {}).map(Number)) }, (_, l) => v.slots[l + 1]?.max || 0).join(' ');
+  });
   $('#charAv').innerHTML = Stage.avatar(v, 'av-dlg');
   Anim.hydrate($('#charAv'));
   $('#charPhotoBtn').hidden = !c;
@@ -72,6 +88,13 @@ $('#charSave').onclick = () => {
   for (const k of FIELDS) if (f[k].value !== '' || TEXT_FIELDS.includes(k)) data[k] = f[k].value;
   data.skills = {};
   skillInputs().forEach((i) => { if (i.value !== '') data.skills[i.dataset.skill] = i.value; });
+  data.abilities = {};
+  sheet('[data-ab]').forEach((i) => { if (i.value !== '') data.abilities[i.dataset.ab] = i.value; });
+  sheet('[data-sheet]').forEach((i) => {
+    const k = i.dataset.sheet;
+    if (k === 'speed') { if (i.value !== '') data.speed = i.value; } else if (k === 'languages') data.languages = i.value.split(',').map((x) => x.trim()).filter(Boolean);
+    else { const max = i.value.trim().split(/[\s,/]+/).map(Number); data.slotMax = Object.fromEntries(Array.from({ length: 9 }, (_, l) => [l + 1, max[l] || 0])); }
+  });
   emit('dm:char:save', data);
   $('#charDlg').close();
 };

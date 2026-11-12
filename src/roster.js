@@ -5,8 +5,10 @@ const fs = require('fs');
 const { ROSTER_FILE } = require('./config');
 const rules = require('./rules');
 const { str, int } = require('./util');
+const { ensureSheet, applySheet } = require('./sheet');
 
 const roster = fs.existsSync(ROSTER_FILE) ? JSON.parse(fs.readFileSync(ROSTER_FILE, 'utf8')) : {};
+for (const c of Object.values(roster)) ensureSheet(c); // upgrade characters saved before sheets existed
 
 let saveTimer = null;
 function writeRoster() {
@@ -31,6 +33,7 @@ function newCharacter({ name, cls, race, player }, systemId) {
     ...sys.newStats(cls),
     hue: crypto.randomInt(360), portrait: null, catchphrase: '', backstory: '', theme: null, secret: '', hooks: '',
   };
+  ensureSheet(roster[id]);
   saveRoster();
   return roster[id];
 }
@@ -47,13 +50,13 @@ function applyEdits(c, f, isDm) {
     const n = (v, lo, hi, d) => { const x = Number(v); return Number.isFinite(x) ? Math.max(lo, Math.min(hi, x)) : d; };
     c.anim = { speed: n(f.anim.speed, 0.5, 2, c.anim?.speed ?? 1), intensity: n(f.anim.intensity, 0, 2, c.anim?.intensity ?? 1) };
   }
+  if (f.maxHp !== undefined && isDm) c.maxHp = int(f.maxHp, 1, 999, c.maxHp);
+  applySheet(c, f, isDm);
   if (!isDm) return;
   if (f.name !== undefined) c.name = str(f.name, 24) || c.name;
   const sys = rules.get(c.system);
   if (f.cls !== undefined && sys.classes[f.cls]) c.cls = f.cls;
   if (f.level !== undefined) c.level = int(f.level, 1, 20, c.level);
-  if (f.maxHp !== undefined) c.maxHp = int(f.maxHp, 1, 999, c.maxHp);
-  if (f.hp !== undefined) c.hp = int(f.hp, 0, c.maxHp, c.hp);
   c.hp = Math.min(c.hp, c.maxHp);
   sys.editStats(c, f);
   if (f.theme !== undefined) c.theme = f.theme ? str(f.theme, 80) : null;

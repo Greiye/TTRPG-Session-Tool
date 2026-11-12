@@ -138,11 +138,11 @@
     const turn = c.active ? c.order[c.turn]?.id : null;
     return `<div class="combat">
       <div class="init">${c.active ? `<span class="round">Round ${c.round}</span>` : '<span class="round">Combat (not started)</span>'}
-        ${c.order.map((o) => byId[o.id] ? `<span class="${o.id === turn ? 'now' : ''} ${byId[o.id].enemy ? 'en' : 'al'} ${byId[o.id].hp === 0 ? 'dead' : ''}">${byId[o.id].enemy ? '' : avatar(byId[o.id], 'av-chip')}${o.init} ${esc(byId[o.id].name)}</span>` : '').join('')}</div>
+        ${c.order.map((o) => byId[o.id] ? `<span class="${o.id === turn ? 'now' : ''} ${byId[o.id].enemy ? 'en' : 'al'} ${byId[o.id].hp === 0 ? 'dead' : ''}">${byId[o.id].side ? '' : avatar(byId[o.id], 'av-chip')}${o.init} ${esc(byId[o.id].name)}</span>` : '').join('')}</div>
       ${byId[turn] && !byId[turn].enemy ? `<div class="turn-card" style="${accent(byId[turn])}">${avatar(byId[turn], 'av-turn')}<div><small>Your move</small><b>${esc(byId[turn].name)}</b>${byId[turn].catchphrase ? `<q>${esc(byId[turn].catchphrase)}</q>` : ''}</div></div>` : ''}
       <div class="foes">${c.enemies.map((e) => `
-        <div class="foe ${e.hp === 0 ? 'dead' : ''} ${turn === e.id ? 'turn' : ''}">
-          <div class="foe-icon">${e.hp === 0 ? '💀' : '👹'}</div><b>${esc(e.name)}</b><small>AC ${e.ac}</small>${hpBar(e)}
+        <div class="foe side-${e.side || 'enemy'} ${e.hp === 0 ? 'dead' : ''} ${turn === e.id ? 'turn' : ''}">
+          <div class="foe-icon">${e.hp === 0 ? '💀' : e.image ? Anim.media(e.image, 'foe-art') : SIDE_ICON[e.side] || '👹'}</div><b>${esc(e.name)}</b><small>AC ${e.ac}</small>${hpBar(e)}
         </div>`).join('') || '<p class="muted">No enemies yet.</p>'}</div>
     </div>`;
   }
@@ -165,6 +165,7 @@
 
   // A TV opened remotely (/screen?key=DM_KEY) passes the key on so it may show the join QR.
   const KEY_QS = (() => { const k = new URLSearchParams(location.search).get('key'); return k ? `&key=${encodeURIComponent(k)}` : ''; })();
+  const SIDE_ICON = { enemy: '👹', ally: '🛡', neutral: '🕊' };
   const MODE_ICON = { exploration: '🧭', combat: '⚔️', social: '💬' };
 
   // Backdrop and effect layers persist across re-renders so videos and animations don't restart.

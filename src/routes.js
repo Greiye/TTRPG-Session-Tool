@@ -91,6 +91,24 @@ module.exports = function routes(app) {
     if (!dmOnly(req)) return res.sendStatus(403);
     res.attachment(`session-${stamp()}.md`).type('text/markdown').send(bundle.transcript());
   });
+  // ----- libraries (items 3, 3b): fetched over HTTP because they are too big to broadcast -----
+  const creatures = require('./creatures');
+  const spells = require('./spells');
+  const srd = require('./srd');
+  app.get('/api/creatures', (req, res) => (isDm(req) || dmOnly(req) ? res.json(creatures.lib.list()) : res.sendStatus(403)));
+  app.get('/api/spells', (_req, res) => res.json(spells.lib.list()));
+  app.post('/api/srd/import', express.json({ limit: '60mb' }), (req, res) => {
+    if (!isDm(req)) return res.sendStatus(403);
+    const out = srd.importJson(req.body, typeof req.query.source === 'string' ? req.query.source.slice(0, 60) : undefined);
+    broadcast();
+    res.json(out);
+  });
+  app.get('/api/srd/search', async (req, res) => {
+    if (!isDm(req) && !dmOnly(req)) return res.sendStatus(403);
+    try { res.json({ results: await srd.search(req.query.kind === 'spell' ? 'spell' : 'monster', req.query.q || '') }); } catch (e) {
+      res.status(502).json({ error: `Could not reach Open5e (${e.message}). The laptop needs internet for search; importing a JSON file works offline.` });
+    }
+  });
   app.get('/api/assets', (_req, res) => res.json(Object.fromEntries(Object.entries(assets.KINDS).map(([k, v]) => [k, { formats: v.ext, maxMB: v.maxBytes / assets.MB }]))));
 
   app.get('/codm-qr.svg', async (req, res) => {

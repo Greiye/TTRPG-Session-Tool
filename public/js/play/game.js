@@ -3,6 +3,7 @@ import { socket, $, onState, state } from '../client.js';
 import { me as id } from './identity.js';
 import { onShow, current } from './nav.js';
 import { openProfile } from './profile.js';
+import { tab, onTab } from './tabs.js';
 import exploreView from './views/explore.js';
 import socialView from './views/social.js';
 import combatView from './views/combat.js';
@@ -22,13 +23,14 @@ function render() {
   Anim.hydrate($('#me'));
   $('#profBtn').onclick = openProfile;
   $('#say').placeholder = S.mode === 'social' ? 'Say something in character…' : 'What do you do?';
-  $('#sayForm').hidden = S.mode === 'combat';
+  $('#sayForm').hidden = S.mode === 'combat' || tab() !== 'play';
   $('#main').innerHTML = (VIEWS[S.mode] || exploreView)(S, c);
   Anim.hydrate($('#main'));
   $('#log').innerHTML = logFeed(S, 6);
 }
 onState(render);
 onShow((v) => { if (v === 'game') render(); });
+onTab(render);
 
 $('#gameView').addEventListener('click', (e) => {
   const b = e.target.closest('button');
