@@ -29,6 +29,7 @@ function pcEntity(c, files) {
     system: c.system || rules.DEFAULT, cls: c.cls, race: c.race, level: c.level, player: c.player, catchphrase: c.catchphrase || '', hue: c.hue,
     stats: Object.fromEntries(STAT_KEYS.filter((k) => c[k] !== undefined).map((k) => [k, c[k]])),
     ...(c.anim ? { anim: c.anim } : {}),
+    ...(c.death ? { status: 'dead', death: { ...c.death } } : { status: 'alive' }),
     ...(c.portrait ? { image: fileFromUrl(c.portrait, files) } : {}),
     source: 'tavern-screen',
   };
@@ -73,6 +74,9 @@ function importBundle(bundle) {
         player: e.player ?? c.player ?? '', catchphrase: e.catchphrase ?? c.catchphrase ?? '', hue: e.hue ?? c.hue ?? 40, backstory: e.body ?? c.backstory ?? '' });
       if (e.stats) for (const k of STAT_KEYS) if (e.stats[k] !== undefined) c[k] = e.stats[k];
       if (e.anim) c.anim = e.anim;
+      // Death record (legacy.js): 'dead' sets it, 'alive' clears it, a missing status leaves it alone.
+      if (e.status === 'dead' && e.death) c.death = { at: e.death.at, cause: e.death.cause || '', epitaph: e.death.epitaph || '', session: e.death.session || '' };
+      else if (e.status === 'alive') delete c.death;
       const img = saveFile(e.image);
       if (img) c.portrait = img;
       out.characters++;

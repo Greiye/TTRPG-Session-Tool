@@ -29,6 +29,7 @@ const state = {
   },
   players: Object.create(null), // character id -> roster entry, for characters at the table this session
   spotlight: null, // { id, kind: 'intro' | 'nat20' } shown briefly on the TV
+  memorial: null, // { id, name, cause, epitaph, n, ... } memorial card on the TV after a death (src/legacy.js)
   bossCard: null, // { id, name, title, n } boss title card on the TV (item 7b); n changes per showing
   check: null, // { skill, dc, results: { token: {...} } }
   combat: { active: false, round: 0, turn: 0, order: [], enemies: [] },
@@ -84,7 +85,7 @@ function log(kind, text, extra = {}) {
 function fullState() {
   const { io } = hub;
   const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId, derived: derived(p) }));
-  const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId }));
+  const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId, dead: !!c.death }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const codms = [...io.sockets.sockets.values()].filter((x) => x.data.role === 'codm').length;
   const spectators = [...io.sockets.sockets.values()].filter((x) => x.data.spectator).length;
