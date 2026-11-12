@@ -46,6 +46,23 @@ module.exports = function dmSockets(socket) {
     state.check = null;
     log('system', `Rules system: ${rules.get(id).name}.`);
   });
+  // ----- Phase 3: fog of war (7c) and boss title cards (7b) -----
+  // Points of interest start hidden on the TV and phones; the DM uncovers them one at a time.
+  dm('dm:reveal', ({ poi, all, hide }) => {
+    if (all) { state.scene.revealed = hide ? [] : [...state.scene.poi]; return; }
+    if (!state.scene.poi.includes(poi)) return;
+    const cur = new Set(state.scene.revealed);
+    if (hide) cur.delete(poi); else cur.add(poi);
+    state.scene.revealed = state.scene.poi.filter((p) => cur.has(p));
+    if (!hide) log('narrate', `Uncovered: ${poi}.`);
+  });
+  dm('dm:boss:card', ({ id }) => {
+    const e = state.combat.enemies.find((x) => x.id === id);
+    if (!e) return;
+    state.bossCard = { id: e.id, name: e.name, title: e.title || '', n: (state.bossCard?.n || 0) + 1 };
+  });
+  dm('dm:boss:clear', () => { state.bossCard = null; });
+
   dm('dm:narrate', ({ text }) => { if (text) log('narrate', String(text).slice(0, 400)); });
   // ----- roll calls, dice, check presets (Phase 2) -----
   dm('dm:check', ({ skill, dc }) => { if (!skill) rolls.clear(); else rolls.call({ kind: 'skill', key: skill, dc }); }); // older clients

@@ -26,6 +26,8 @@ onState((s) => {
     </div>`).join('');
 
   // The DM plays creatures of every side. Enemies aim at the party and its allies; allies aim at enemies.
+  // Boss title cards: one button per boss in the encounter.
+  $('#bossBtns').innerHTML = s.combat.enemies.filter((e) => e.boss).map((e) => `<button class="btn small" data-boss="${esc(e.id)}">👑 Title card: ${esc(e.name)}</button>`).join('');
   const foe = s.combat.enemies.find((e) => e.id === turn);
   if (foe?.id !== atkFor) { atkFor = foe?.id; atkIdx = 0; }
   const targets = !foe ? [] : foe.side === 'enemy'
@@ -48,6 +50,7 @@ onClick('act', (act) => actions[act]?.());
 onClick('hp', (id, b) => emit('dm:hp', { id, delta: Number(b.dataset.d) }));
 onClick('kick', (id) => confirm('Remove this player?') && emit('dm:kick', { id }));
 onClick('rm', (id) => emit('dm:enemy:remove', { id }));
+onClick('boss', (id) => emit('dm:boss:card', { id }));
 onClick('atk', (target) => emit('dm:enemy:attack', { target, attack: atkIdx }));
 onClick('atk-pick', (i, b) => { atkIdx = Number(i); b.parentElement.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); });
 
