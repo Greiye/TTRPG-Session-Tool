@@ -16,6 +16,7 @@ import './quiz.js';
 import './tracker.js';
 import './world.js';
 import './shops.js';
+import './downtime.js';
 import './map.js';
 import './gamepad.js';
 import './suggestions.js';
