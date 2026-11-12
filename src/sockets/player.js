@@ -17,6 +17,7 @@ module.exports = function playerSockets(socket) {
     let c = roster[id];
     if (!c && id) return ack?.({ error: 'gone' });
     if (c) {
+      if (c.death) return ack?.({ error: 'fallen' }); // a fallen character stays on the memorial until the DM revives them
       const err = session.claimError(state, c, { token, room, takeover }, socket);
       if (err) return ack?.({ error: err });
       if (!(token && token === c.token)) c.token = session.newToken();

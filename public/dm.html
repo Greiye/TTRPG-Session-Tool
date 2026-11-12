@@ -76,6 +76,10 @@
       <div id="quizList" class="list"></div>
     </div>
     <div class="card" data-panel="exploration social">
+      <h3>Party journal <span class="note">phone notes: clues, NPCs, places</span></h3>
+      <div id="journalList" class="list"></div>
+    </div>
+    <div class="card" data-panel="exploration social">
       <h3>Messages <span class="note">phones, the TV, and the vote</span></h3>
       <input id="hoTitle" placeholder="Title"><textarea id="hoText" rows="2" placeholder="Handout text"></textarea>
       <div class="row"><select id="hoTo" class="grow"><option value="all">All phones</option></select><button class="btn" data-act="handout">Send handout</button></div>
@@ -92,6 +96,7 @@
       <div class="row"><label class="note tight">Combat <select id="moodCom" class="grow"></select></label></div>
       <div class="row"><label class="note tight">Social <select id="moodSoc" class="grow"></select></label></div>
       <div class="row"><label class="note tight">Light <select id="lightSel" style="width:auto"></select></label><select id="tplSel" class="grow"></select><button class="btn small" data-act="tpl">Load template</button></div>
+      <div class="row"><label class="note tight"><input type="checkbox" id="bulbOn"> Smart bulbs follow light and combat</label><small class="muted" id="bulbInfo"></small></div>
     </div>
     <div class="card" data-panel="exploration social">
       <h3>NPC relations <span class="note">DM only</span></h3>

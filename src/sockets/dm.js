@@ -15,6 +15,7 @@ const perception = require('../perception');
 const messages = require('../messages');
 const tracker = require('../tracker');
 const world = require('../world');
+const bulbs = require('../bulbs');
 const grid = require('../grid');
 const randomizer = require('../randomizer');
 const spells = require('../spells');
@@ -23,6 +24,7 @@ const shops = require('../shops');
 const factions = require('../factions');
 const { applySheet } = require('../sheet');
 const { saveRoster } = require('../roster');
+const legacy = require('../legacy');
 
 module.exports = function dmSockets(socket) {
   const { io } = hub;
@@ -38,6 +40,7 @@ module.exports = function dmSockets(socket) {
     world.applyMood(mode);
     state.check = null;
     log('system', `— ${mode.toUpperCase()} —`);
+    void bulbs.sync(state);
   });
   dm('dm:scene', ({ title, text, theme, poi }) => {
     Object.assign(state.scene, {
@@ -89,8 +92,10 @@ module.exports = function dmSockets(socket) {
   dm('dm:phrase', (f) => { const p = world.phrase(f); if (p) state.handouts.push(p); });
   dm('dm:phrase:reveal', ({ id, on }) => { const p = state.handouts.find((h) => h.id === id && h.kind === 'phrase'); if (p) p.revealed = !!on; });
   dm('dm:mood', ({ mode, track }) => { if (['exploration', 'combat', 'social'].includes(mode)) world.setMood(mode, track); });
-  dm('dm:light', ({ light }) => world.setLight(light));
-  dm('dm:template', ({ key }) => world.applyTemplate(key));
+  dm('dm:light', ({ light }) => { world.setLight(light); void bulbs.sync(state); });
+  dm('dm:template', ({ key }) => { world.applyTemplate(key); void bulbs.sync(state); });
+  // Smart bulbs (item 10): toggling on pushes the current colour at once. Turning off leaves the bulbs as they are.
+  dm('dm:bulbs', ({ on }) => { state.bulbsOn = !!on; void bulbs.sync(state, { force: true }); });
 
   // ----- Phase 6: conditions, clocks, rests -----
   dm('dm:condition', ({ id, name, on }) => tracker.setCondition(id, name, !!on));
@@ -337,6 +342,10 @@ module.exports = function dmSockets(socket) {
     if (c && !state.players[id]) { state.players[id] = c; log('system', `${c.name} joins the party.`); }
   });
   dm('dm:spotlight', ({ id }) => { if (roster[id]) game.spotlight(id, 'intro'); });
+  // Death and legacy (src/legacy.js): fall = leaves the party, memorial card on the TV.
+  dm('dm:char:fall', ({ id, cause, epitaph }) => legacy.fall(id, { cause, epitaph }));
+  dm('dm:char:revive', ({ id }) => legacy.revive(id));
+  dm('dm:memorial:clear', () => legacy.clearMemorial());
   // Whispers go only to that player's phone; the DM gets an ack saying whether it was delivered.
   socket.on('dm:whisper', ({ id, text } = {}, ack) => {
     if (socket.data.role !== 'dm') return;

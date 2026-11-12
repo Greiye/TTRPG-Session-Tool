@@ -29,6 +29,7 @@ const state = {
   },
   players: Object.create(null), // character id -> roster entry, for characters at the table this session
   spotlight: null, // { id, kind: 'intro' | 'nat20' } shown briefly on the TV
+  memorial: null, // { id, name, cause, epitaph, n, ... } memorial card on the TV after a death (src/legacy.js)
   bossCard: null, // { id, name, title, n } boss title card on the TV (item 7b); n changes per showing
   check: null, // { skill, dc, results: { token: {...} } }
   combat: { active: false, round: 0, turn: 0, order: [], enemies: [] },
@@ -54,6 +55,7 @@ const state = {
   plans: [], // imported session plans, DM only (src/plan.js)
   rndArt: {}, // table -> slot -> label -> creature art url (item 26 art, uploaded by the DM)
   checkLib: [], // DM-made check presets
+  journal: [], // party journal: phone notes, newest first (src/journal.js)
   quiz: null, // recap quiz: questions, phone answers and DM marks (src/quiz.js)
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
   suggestions: [], // { id, name, text, at, vis } from spectators, seen by DM and players (src/spectate.js)
@@ -62,10 +64,12 @@ const state = {
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
+  bulbsOn: false, // smart bulbs follow the lighting (item 10, src/bulbs.js); off by default, DM toggle only
+  bulbsTargets: 0, // how many bulbs are configured (count only; addresses and keys stay on the server)
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'factions', 'quiz', 'plans');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'factions', 'quiz', 'plans', 'journal');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -86,11 +90,12 @@ function log(kind, text, extra = {}) {
 function fullState() {
   const { io } = hub;
   const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId, derived: derived(p) }));
-  const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId }));
+  const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId, dead: !!c.death }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const codms = [...io.sockets.sockets.values()].filter((x) => x.data.role === 'codm').length;
   const spectators = [...io.sockets.sockets.values()].filter((x) => x.data.spectator).length;
-  return { ...state, players, roster: cards, screens, codms, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
+  const bulbsTargets = require('./bulbs').targets().length;
+  return { ...state, bulbsTargets, players, roster: cards, screens, codms, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
 }
 const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
 

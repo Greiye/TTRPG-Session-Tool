@@ -235,10 +235,12 @@
         <aside class="stage-log">${logFeed(s)}</aside>
       </main>
       <footer>${party(s)}</footer>
-      ${spotlightCard(s)}${bossCard(s)}${clocks(s)}${shared(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}`;
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
     Anim.hydrate(ui);
+    const mc = ui.querySelector('.memorial');
+    if (mc && mc.dataset.n !== root.dataset.memN) { root.dataset.memN = mc.dataset.n; Anim.once(mc, `mem:${mc.dataset.n}`, 'pop'); }
     const bc = ui.querySelector('.boss-card');
     if (bc && bc.dataset.n !== root.dataset.bossN) { root.dataset.bossN = bc.dataset.n; Anim.once(bc, `boss:${bc.dataset.n}`, 'pop'); }
     if (s.spotlight) {
@@ -261,6 +263,20 @@
     const v = s.vote;
     if (!items.length && !(v && v.options)) return '';
     return `<div class="shared">${items.map((h) => `<div class="hand"><b>${esc(h.title)}</b>${h.text ? `<p>${esc(h.text)}</p>` : ''}</div>`).join('')}${v && v.open ? `<div class="hand vote-tv"><b>The party votes</b>${v.options.map((o, i) => `<span>${esc(o)} <em>${v.counts?.[i] ?? 0}</em></span>`).join('')}</div>` : ''}</div>`;
+  }
+
+  // Memorial card (legacy.js): shown on the TV after a character falls, until the DM dismisses it.
+  function memorialCard(s) {
+    const m = s.memorial;
+    if (!m) return '';
+    return `<div class="memorial" data-n="${m.n}" style="${accent(m)}">
+      <div class="mem-kicker">In memory of</div>
+      ${avatar(m, 'av-mem')}
+      <h2>${esc(m.name)}</h2>
+      <p class="mem-sub">${esc([m.race, m.cls].filter(Boolean).join(' '))} · level ${m.level}</p>
+      ${m.cause ? `<p class="mem-cause">${esc(m.cause)}</p>` : ''}
+      ${m.epitaph ? `<blockquote>“${esc(m.epitaph)}”</blockquote>` : ''}
+    </div>`;
   }
 
   // Boss title card (item 7b): a short banner over the stage when a boss fight opens.

@@ -37,6 +37,7 @@ module.exports = function sockets(io) {
     require('./atmo')(socket);
     require('./spectator')(socket);
     require('./quiz')(socket);
+    require('./journal')(socket);
   });
 };
 module.exports.guard = guard;
