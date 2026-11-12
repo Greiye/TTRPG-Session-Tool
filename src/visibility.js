@@ -80,6 +80,8 @@ function viewState(base, viewer) {
   // The room code is the join secret: only the DM and the TV (which displays it) get it.
   if (!['dm', 'screen', 'codm'].includes(viewer.role)) { delete out.room; delete out.joinUrl; }
   if (viewer.role !== 'dm') delete out.relations;
+  // Shops: phones see open shops only, without the DM's import notes.
+  out.shops = viewer.role === 'dm' ? base.shops : (base.shops || []).filter((s) => s.open).map(({ skipped, ...s }) => s);
   if (viewer.role === 'dm') {
     out.lan = require('./net').lanAddresses();
     out.entities = Object.values(require('./entities').entities); // world library (Arthuria), DM only for now

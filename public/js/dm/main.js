@@ -15,6 +15,7 @@ import './rolls.js';
 import './quiz.js';
 import './tracker.js';
 import './world.js';
+import './shops.js';
 import './map.js';
 import './gamepad.js';
 
