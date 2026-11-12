@@ -6,6 +6,7 @@ const rules = require('../rules');
 const { roster, newCharacter, applyEdits } = require('../roster');
 const { str } = require('../util');
 const game = require('../game');
+const entities = require('../entities');
 const { release, newRoomCode } = require('../session');
 const net = require('../net');
 
@@ -150,6 +151,15 @@ module.exports = function dmSockets(socket) {
     state.settings.host = host || null;
     net.setHost(state.settings.host);
   });
+
+  // ----- world entities (NPCs, locations, factions, events, lore) shared with Arthuria -----
+  socket.on('dm:entity:save', (e = {}, ack) => {
+    if (socket.data.role !== 'dm') return;
+    const r = entities.upsert(e);
+    ack?.(r.error ? { error: r.error } : { id: r.entity.id });
+    if (!r.error) broadcast();
+  });
+  dm('dm:entity:delete', ({ id }) => { entities.remove(id); });
 
   dm('dm:kick', ({ id }) => {
     const p = state.players[id];

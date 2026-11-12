@@ -5,13 +5,14 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test/rules.js && node test/visibility.js && node test/assets.js && node test/smoke.js",
+    "test": "node test/rules.js && node test/visibility.js && node test/assets.js && node test/bundle.js && node test/smoke.js",
     "test:ui": "node test/ui.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ajv": "^8.17.1",
     "express": "^4.22.3",
     "qrcode": "^1.5.4",
     "selfsigned": "^2.4.1",

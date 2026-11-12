@@ -15,11 +15,25 @@ The console prints:
 |---|---|---|
 | `http://localhost:3000/dm` | DM (laptop) | Controls + live preview of the TV. Localhost is auto-authorized as DM. |
 | `http://localhost:3000/screen` | TV | Presentation only. Drag to the TV, double-click for fullscreen. If the TV just mirrors the laptop, use `/dm` alone. |
-| `http://<lan-ip>:3000/play` | Players | Encoded in the QR on the TV. |
-| `http://<lan-ip>:3000/codm?key=YYYY` | Co-DM (phone/tablet) | Private QR under **Co-DM → Invite** on the DM page. Atmosphere only. |
-| `http://<lan-ip>:3000/dm?key=XXXX` | DM from another device | Key printed at startup (or set `DM_KEY`). |
+| `https://<lan-ip>:3443/play?room=ABCD` | Players | Encoded in the QR on the TV. Short link: `/j/ABCD`. |
+| `https://<lan-ip>:3443/codm?key=YYYY` | Co-DM (phone/tablet) | Private QR under **Co-DM → Invite** on the DM page. Atmosphere only. |
+| `https://<lan-ip>:3443/dm?key=XXXX` | DM from another device | Key printed at startup (or set `DM_KEY`). |
 
-Env: `PORT`, `DM_KEY`, `CODM_KEY`, `PUBLIC_HOST` (override the IP in the QR if auto-detect picks the wrong adapter). Allow Node through the OS firewall on first run.
+Env: `PORT` (3000), `HTTPS_PORT` (3443), `HTTPS=0` (turn HTTPS off), `HTTPS_CERT` + `HTTPS_KEY` (use your own certificate, e.g. from mkcert), `DM_KEY`, `CODM_KEY`, `PUBLIC_HOST` (force the address in the QR), `DATA_DIR`, `UPLOAD_DIR`. Allow Node through the OS firewall on first run (both ports).
+
+### Joining, room codes and reconnects
+
+- The TV shows a 4-letter **room code** next to the QR. Phones need it to sit down, so old tabs and neighbours can't walk in. **New code** in the DM top bar makes a fresh one; phones already seated keep playing.
+- A phone that drops (screen lock, Wi-Fi blip, server restart) gets its seat back by itself. Opening a character that another phone is using asks before taking it over.
+- **Join address** in the DM top bar picks which network adapter's IP goes into the QR, if the laptop has several (Wi-Fi, Ethernet, VPN, WSL).
+
+### HTTPS and the certificate warning
+
+Phones connect over HTTPS so the microphone can work on them. On first start the server makes a certificate for this laptop. Each phone shows a one-time "connection not private" warning: tap **Advanced → Proceed**. To get rid of the warning, open `http://<lan-ip>:3000/tavern-cert.crt` on the phone and install it (iPhone: Settings → General → VPN & Device Management, then Settings → General → About → Certificate Trust Settings). Or use mkcert and set `HTTPS_CERT`/`HTTPS_KEY`.
+
+### Display settings
+
+The ⚙ button on phones and the DM page sets text size, a color-blind safe or high-contrast palette, and reduced motion for that device. The DM's ⚙ also sets the TV for the whole table.
 
 ## Pillars
 
@@ -68,7 +82,39 @@ DM page → Social → **Live voice**:
 - Swap `startRecognition()` in `public/voice.js` for a real STT service (Whisper, Deepgram, etc.) later.
 - Mic access requires a secure context, so open the DM page as `http://localhost`, not the LAN IP.
 
-## Notes
+## Rules systems
 
-- State is in memory; restarting the server clears the session. Phones auto-rejoin after a refresh.
-- Files: `server.js` (state, rules, dice, sockets), `public/stage.js` (shared TV/VN renderer + portrait), `public/dm.js`, `public/voice.js`, `public/play.js`, `public/style.css`.
+D&D 5e by default. **Rules** in the DM top bar switches to **Daggerheart (preview)**: duality dice (Hope/Fear), traits instead of skills, Evasion instead of AC. New rules systems are one file in `src/rules/`.
+
+## Campaign data and Arthuria
+
+The **Campaign data** card on the DM page exports one `.tavern.json` file with characters, NPCs, places, factions, events and lore (portraits embedded), imports one back, and downloads the session transcript as Markdown. Format: [docs/arthuria-format.md](docs/arthuria-format.md).
+
+## Saving
+
+Everything is saved as you play: the table (scene, mode, combat, NPC dialogue, log, whispers, backdrop, music) in `data/campaign.json`, characters in `data/characters.json`, world entries in `data/entities.json`. Restarting the server picks up where you left off. To back up or move a campaign, copy `data/` and `uploads/`, or use **Export bundle**.
+
+## Uploads
+
+| Kind | Formats | Max |
+|---|---|---|
+| Backdrop | PNG, JPG, WebP, GIF, MP4, WebM | 60 MB |
+| Music / SFX | MP3, OGG, WAV, M4A, AAC, FLAC | 40 MB |
+| Portrait | PNG, JPG, WebP, GIF, **animated WebM** | 12 MB |
+| Creature art | PNG, JPG, WebP, GIF, animated WebM | 20 MB |
+| Map | PNG, JPG, WebP | 25 MB |
+
+If ffmpeg is installed, animated WebM portraits are cropped square and re-encoded small (256 px, creatures 384 px) with transparency kept. Without ffmpeg they're stored as uploaded.
+
+## Development
+
+```bash
+npm test          # rules, visibility, uploads, Arthuria bundle, end-to-end socket test
+npm run test:ui   # browser test (Playwright): DM, TV and phone pages, settings, animated portraits
+```
+
+Layout:
+
+- `server.js`: wiring only. `src/`: `config`, `net` (LAN IPs), `tls` (HTTPS cert), `state` (live state + broadcast), `store` (saving), `visibility` (who sees what), `session` (room code, seats), `roster` (characters), `game` (combat flow), `dice`, `rules/` (5e, Daggerheart), `assets` + `media` (uploads), `entities` + `bundle` (Arthuria), `routes`, `sockets/` (player, dm, atmo).
+- `public/`: `stage.js` (TV renderer, shared), `anim.js`, `settings.js`, `atmo.js`, `audio.js`, `voice.js`; `js/client.js` (the one socket); `js/dm/*` and `js/play/*` feature modules.
+- `schema/`: JSON Schemas for the Arthuria bundle. `docs/decisions.md`: Phase 0 choices.

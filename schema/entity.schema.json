@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tavern-screen.local/schema/v1/entity.schema.json",
+  "title": "Entity (NPC, location, faction, event, lore entry, player character)",
+  "type": "object",
+  "$ref": "common.schema.json#/$defs/base",
+  "unevaluatedProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "npc"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "race": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "mood": {
+            "enum": [
+              "neutral",
+              "happy",
+              "angry",
+              "sad",
+              "fearful",
+              "surprised",
+              "suspicious",
+              "smug"
+            ]
+          },
+          "hue": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 359
+          },
+          "faction": {
+            "$ref": "common.schema.json#/$defs/ref"
+          },
+          "location": {
+            "$ref": "common.schema.json#/$defs/ref"
+          },
+          "knows": {
+            "description": "What this NPC knows (DM-facing).",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "maxItems": 100
+          },
+          "statblock": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "location"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "region": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "parent": {
+            "$ref": "common.schema.json#/$defs/ref"
+          },
+          "map": {
+            "$ref": "common.schema.json#/$defs/file"
+          },
+          "theme": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "poi": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 30
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "faction"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "goals": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/ref"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "event"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "when": {
+            "description": "In-world date text, free form.",
+            "type": "string",
+            "maxLength": 120
+          },
+          "session": {
+            "description": "Real-world session date.",
+            "type": "string",
+            "format": "date"
+          },
+          "where": {
+            "$ref": "common.schema.json#/$defs/ref"
+          },
+          "who": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/ref"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "lore"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "secret": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "pc"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "system": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "cls": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "race": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          },
+          "player": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "catchphrase": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "hue": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 359
+          },
+          "stats": {
+            "description": "Rules-system stat fields (hp, ac, skills...).",
+            "type": "object"
+          },
+          "anim": {
+            "type": "object",
+            "properties": {
+              "speed": {
+                "type": "number"
+              },
+              "intensity": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "description": "Each type adds its own fields (allOf/if/then below). Unknown fields are rejected."
+}
