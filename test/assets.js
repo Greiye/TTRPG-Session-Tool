@@ -9,7 +9,7 @@ const B = `http://127.0.0.1:${PORT}`;
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'tavern-as-'));
 const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082', 'hex');
 (async () => {
-  const srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_DIR: TMP + '/d', UPLOAD_DIR: TMP + '/u' }, stdio: ['ignore', 'pipe', 'inherit'] });
+  const srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, HTTPS_PORT: PORT + 1000, DATA_DIR: TMP + '/d', UPLOAD_DIR: TMP + '/u' }, stdio: ['ignore', 'pipe', 'inherit'] });
   await new Promise((r) => srv.stdout.on('data', (d) => /running/.test(d) && r()));
   const post = (url, body, type, headers = {}) => fetch(B + url, { method: 'POST', body, headers: { 'content-type': type, ...headers } });
   let r = await post('/api/assets/map?name=Cave', png, 'image/png');
