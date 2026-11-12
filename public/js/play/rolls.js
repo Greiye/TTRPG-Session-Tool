@@ -18,19 +18,20 @@ onState((s) => {
   if (!box) { box = document.createElement('div'); box.id = 'callBox'; box.className = 'card call-box'; host.prepend(box); }
   const bonus = chk.kind === 'skill' ? c.skills?.[chk.key] : chk.kind === 'save' ? c.derived?.saves?.[chk.key] : c.derived?.mods?.[chk.key];
   const label = chk.label;
-  const key = `${chk.id}:${!!done}`;
+  const key = `${chk.id}:${!!done}:${c.inspiration || 0}`;
   if (key === lastCall) return;
   lastCall = key;
   box.innerHTML = done
     ? `<h3>${esc(label)}</h3><p class="note">You rolled ${done.roll}${done.total !== undefined ? ` → ${done.total}` : ''}. Waiting for the others…</p>`
     : `<h3>DM calls: ${esc(label)}</h3>
        <p class="note">${chk.hideDc ? 'The DC is secret.' : `${esc(s.rules.dcLabel)} ${chk.dc}`}${chk.mode ? ` · ${chk.mode === 'adv' ? 'advantage' : 'disadvantage'}` : ''}</p>
-       <button class="bigbtn" data-answer="1">🎲 Roll ${esc(label)} (${bonus >= 0 ? '+' : ''}${bonus ?? 0})</button>`;
+       <button class="bigbtn" data-answer="1">🎲 Roll ${esc(label)} (${bonus >= 0 ? '+' : ''}${bonus ?? 0})</button>
+       ${c.inspiration > 0 && chk.mode !== 'dis' ? `<button class="btn" data-answer="1" data-inspire="1">✨ Roll with inspiration (${c.inspiration} left, advantage)</button>` : ''}`;
 });
 
 $('#main').addEventListener('click', (e) => {
   const b = e.target.closest('[data-answer]');
-  if (b) { socket.emit('player:answer', {}); navigator.vibrate?.(40); }
+  if (b) { socket.emit('player:answer', { inspire: !!b.dataset.inspire }); navigator.vibrate?.(40); }
 });
 
 // Dice box: any expression, plus advantage on a d20 when the box is set to it.

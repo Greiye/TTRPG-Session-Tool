@@ -68,6 +68,13 @@
     </div>
 
     <div class="card" data-panel="exploration social">
+      <h3>Recap quiz <span class="note" id="quizStatus">no quiz</span></h3>
+      <p class="note">One per line: question | answer. Phones get the questions; you mark each answer. Right answers give inspiration.</p>
+      <textarea id="quizText" rows="4" placeholder="Who runs the inn? | Mirela&#10;Where did the cart go? | The old mill"></textarea>
+      <div class="row"><button class="btn primary" id="quizStart">Start quiz</button><button class="btn" id="quizClose">Close</button><button class="btn" id="quizClear">Clear</button></div>
+      <div id="quizList" class="list"></div>
+    </div>
+    <div class="card" data-panel="exploration social">
       <h3>Messages <span class="note">phones, the TV, and the vote</span></h3>
       <input id="hoTitle" placeholder="Title"><textarea id="hoText" rows="2" placeholder="Handout text"></textarea>
       <div class="row"><select id="hoTo" class="grow"><option value="all">All phones</option></select><button class="btn" data-act="handout">Send handout</button></div>
