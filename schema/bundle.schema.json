@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tavern-screen.local/schema/v1/bundle.schema.json",
+  "title": "Campaign bundle: one JSON file carrying entities, characters, and their image files",
+  "type": "object",
+  "required": ["format", "version", "entities"],
+  "properties": {
+    "format": { "const": "tavern-bundle" },
+    "version": { "const": 1 },
+    "exportedAt": { "type": "string", "format": "date-time" },
+    "source": { "enum": ["tavern-screen", "arthuria"] },
+    "campaign": { "type": "object", "properties": { "name": { "type": "string" }, "system": { "type": "string" } } },
+    "entities": { "type": "array", "items": { "$ref": "entity.schema.json" }, "maxItems": 20000 },
+    "files": { "description": "Bundle path -> base64 file contents.", "type": "object", "propertyNames": { "$ref": "common.schema.json#/$defs/file" }, "additionalProperties": { "type": "string", "contentEncoding": "base64" } }
+  },
+  "additionalProperties": false
+}

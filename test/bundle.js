@@ -1,0 +1,57 @@
+// Arthuria exchange: entity validation, bundle export -> import round trip, transcript.
+const { spawn } = require('child_process');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const assert = require('assert');
+const { io } = require('socket.io-client');
+const PORT = 3600 + Math.floor(Math.random() * 90);
+const B = `http://127.0.0.1:${PORT}`;
+const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082', 'hex');
+const boot = (dir) => new Promise((r) => {
+  const p = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, HTTPS: '0', DATA_DIR: dir + '/d', UPLOAD_DIR: dir + '/u' }, stdio: ['ignore', 'pipe', 'inherit'] });
+  p.stdout.on('data', (d) => /running/.test(d) && r(p));
+});
+const stop = (p) => new Promise((r) => { p.on('exit', r); p.kill(); });
+(async () => {
+  const A = fs.mkdtempSync(path.join(os.tmpdir(), 'tav-b1-'));
+  const Z = fs.mkdtempSync(path.join(os.tmpdir(), 'tav-b2-'));
+  let srv = await boot(A);
+  const s = io(B, { transports: ['websocket'], forceNew: true });
+  await new Promise((r) => s.on('connect', r));
+  const call = (ev, d) => new Promise((r) => s.emit(ev, d, r));
+  assert((await call('dm:auth', {})).ok);
+  const bad = await call('dm:entity:save', { type: 'npc', name: '' });
+  assert(bad.error, 'empty name rejected');
+  const bad2 = await call('dm:entity:save', { type: 'npc', name: 'X', mood: 'furious' });
+  assert(bad2.error, 'unknown mood rejected');
+  const loc = await call('dm:entity:save', { type: 'location', name: 'Old Mill', poi: ['Waterwheel'] });
+  const npc = await call('dm:entity:save', { type: 'npc', name: 'Mirela', mood: 'suspicious', location: loc.id, dmNotes: 'Smuggler', knows: ['The cart went to the mill'] });
+  assert(/^npc_/.test(npc.id) && /^location_/.test(loc.id));
+  const tok = await call('join', { name: 'Thorn', cls: 'Fighter', room: (await (await fetch(B + '/api/join-info')).json()).room });
+  await fetch(`${B}/api/portrait/${tok.id}`, { method: 'POST', headers: { 'content-type': 'image/png' }, body: png });
+  s.emit('dm:mode', { mode: 'social' });
+  s.emit('dm:say', { text: 'Who sent you?' });
+  s.emit('player:action', { text: 'The baron did.' });
+  await new Promise((r) => setTimeout(r, 900));
+  const md = await (await fetch(B + '/api/transcript.md')).text();
+  assert(/## Social/.test(md) && /\*\*Mirela the Innkeeper\*\*: Who sent you\?/.test(md) && /\*\*Thorn\*\*: The baron did\./.test(md), md);
+  const bundle = await (await fetch(B + '/api/export')).json();
+  assert.strictEqual(bundle.entities.length, 3);
+  const pc = bundle.entities.find((e) => e.type === 'pc');
+  assert(pc.image && bundle.files[pc.image], 'portrait embedded');
+  s.close();
+  await stop(srv);
+  // Fresh server imports the bundle.
+  srv = await boot(Z);
+  const r = await (await fetch(B + '/api/import', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(bundle) })).json();
+  assert.deepStrictEqual([r.entities, r.characters, r.skipped.length], [2, 1, 0], JSON.stringify(r));
+  const again = await (await fetch(B + '/api/export')).json();
+  assert.deepStrictEqual(again.entities.map((e) => e.id).sort(), bundle.entities.map((e) => e.id).sort(), 'stable IDs survive round trip');
+  assert(again.entities.find((e) => e.type === 'pc').image, 'portrait survives round trip');
+  const evil = await fetch(B + '/api/import', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ format: 'tavern-bundle', version: 1, entities: [{ id: '../../etc', type: 'npc', name: 'x' }] }) });
+  assert.strictEqual(evil.status, 400, 'bad IDs rejected');
+  await stop(srv);
+  for (const d of [A, Z]) fs.rmSync(d, { recursive: true, force: true });
+  console.log('bundle: all passed');
+})().catch((e) => { console.error(e); process.exit(1); });

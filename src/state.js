@@ -83,7 +83,7 @@ function broadcast() {
   });
 }
 // Save immediately on shutdown so the last change is never lost.
-for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { store.flush(snap); saveRoster.flush?.(); process.exit(0); });
+for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { store.flush(snap); saveRoster.flush?.(); require('./entities').flush(); process.exit(0); });
 
 module.exports = { state, log, nextId, fullState, stateFor, broadcast, EMOTIONS, EFFECTS };
 

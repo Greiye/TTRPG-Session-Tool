@@ -49,6 +49,16 @@
     </div>
 
     <div class="card">
+      <h3>Campaign data <span class="note" id="dataStatus"></span></h3>
+      <div class="row">
+        <a class="btn small" id="exportBtn" download>⬇ Export bundle</a>
+        <label class="btn small">⬆ Import bundle<input type="file" accept=".json,application/json" id="importIn" hidden></label>
+        <a class="btn small" id="transcriptBtn" download>📜 Session transcript</a>
+      </div>
+      <p class="note">One file with characters, NPCs, places and lore (plus portraits) for Arthuria or another laptop. The transcript is Markdown.</p>
+    </div>
+
+    <div class="card">
       <h3>Party <button class="btn small danger" data-act="reset" title="Clears log, enemies, heals party">Reset session</button></h3>
       <div id="party" class="list"></div>
     </div>

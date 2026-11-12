@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tavern-screen.local/schema/v1/common.schema.json",
+  "title": "Shared definitions",
+  "$defs": {
+    "id": {
+      "description": "Stable ID: '<type>_<key>'. Never reused or changed once issued, so Arthuria and Tavern Screen can match records across exports.",
+      "type": "string",
+      "pattern": "^(npc|location|faction|event|lore|pc)_[A-Za-z0-9-]{4,40}$"
+    },
+    "ref": { "description": "Reference to another entity by stable ID.", "$ref": "#/$defs/id" },
+    "file": { "description": "Path inside the bundle's files map, e.g. 'portraits/abc.webm'.", "type": "string", "pattern": "^[a-z]+/[\\w.-]+$" },
+    "tags": { "type": "array", "items": { "type": "string", "maxLength": 40 }, "maxItems": 30 },
+    "base": {
+      "type": "object",
+      "required": ["id", "type", "name"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "enum": ["npc", "location", "faction", "event", "lore", "pc"] },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "summary": { "type": "string", "maxLength": 500 },
+        "body": { "description": "Markdown.", "type": "string", "maxLength": 50000 },
+        "dmNotes": { "description": "DM-only. Never shown to players or the TV.", "type": "string", "maxLength": 20000 },
+        "tags": { "$ref": "#/$defs/tags" },
+        "image": { "$ref": "#/$defs/file" },
+        "links": { "description": "Related entities.", "type": "array", "items": { "type": "object", "required": ["to"], "properties": { "to": { "$ref": "#/$defs/ref" }, "rel": { "type": "string", "maxLength": 60 } }, "additionalProperties": false }, "maxItems": 200 },
+        "source": { "description": "Which app last wrote this record.", "enum": ["tavern-screen", "arthuria"] },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

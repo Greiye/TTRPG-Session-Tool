@@ -73,6 +73,24 @@ module.exports = function routes(app) {
     if (!require('fs').existsSync(CERT)) return res.sendStatus(404);
     res.type('application/x-x509-ca-cert').sendFile(CERT);
   });
+  // ----- Arthuria data exchange (0l) -----
+  const bundle = require('./bundle');
+  const stamp = () => new Date().toISOString().slice(0, 10);
+  app.get('/api/export', (req, res) => {
+    if (!dmOnly(req)) return res.sendStatus(403);
+    res.attachment(`campaign-${stamp()}.tavern.json`).json(bundle.exportBundle({ includeDmNotes: req.query.notes !== '0' }));
+  });
+  app.post('/api/import', express.json({ limit: '200mb' }), (req, res) => {
+    if (!isDm(req)) return res.sendStatus(403);
+    const out = bundle.importBundle(req.body);
+    if (out.error) return res.status(400).json(out);
+    broadcast();
+    res.json(out);
+  });
+  app.get('/api/transcript.md', (req, res) => {
+    if (!dmOnly(req)) return res.sendStatus(403);
+    res.attachment(`session-${stamp()}.md`).type('text/markdown').send(bundle.transcript());
+  });
   app.get('/api/assets', (_req, res) => res.json(Object.fromEntries(Object.entries(assets.KINDS).map(([k, v]) => [k, { formats: v.ext, maxMB: v.maxBytes / assets.MB }]))));
 
   app.get('/codm-qr.svg', async (req, res) => {
