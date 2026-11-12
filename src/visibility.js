@@ -28,6 +28,14 @@ function spoilFor(h, viewer) {
   const { claims, ...rest } = h;
   return { ...rest, mine: viewer.role === 'player' ? claims[viewer.charId] || null : null, claimCount: Object.keys(claims).length };
 }
+// A phrase shows its words only to a character who knows the language, or once the DM reveals it.
+function phraseFor(h, viewer, base) {
+  if (viewer.role === 'dm') return h;
+  const c = viewer.role === 'player' ? base.players.find((p) => p.id === viewer.charId) : null;
+  const knows = !!c && (c.languages || []).includes(h.lang);
+  const { text, ...rest } = h;
+  return { ...rest, text: knows || h.revealed ? text : undefined, glyphs: h.glyphs, knows };
+}
 const viewerKey = (v) => `${v.role}:${v.charId || ''}`;
 
 function canSee(vis, viewer) {
@@ -56,7 +64,7 @@ function viewState(base, viewer) {
   out.log = filterList(base.log, viewer);
   out.rolls = filterList(base.rolls, viewer);
   out.whispers = filterList(base.whispers, viewer);
-  out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h));
+  out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h));
   if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
   if (base.scene) out.scene = { ...base.scene, secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
   // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.
@@ -70,6 +78,7 @@ function viewState(base, viewer) {
   }
   // The room code is the join secret: only the DM and the TV (which displays it) get it.
   if (!['dm', 'screen', 'codm'].includes(viewer.role)) { delete out.room; delete out.joinUrl; }
+  if (viewer.role !== 'dm') delete out.relations;
   if (viewer.role === 'dm') {
     out.lan = require('./net').lanAddresses();
     out.entities = Object.values(require('./entities').entities); // world library (Arthuria), DM only for now
