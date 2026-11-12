@@ -16,7 +16,10 @@ onState((s) => {
       $(sel).innerHTML = `<option value="">— none —</option>` + s.audio.library.map((t) => `<option value="${esc(t.id)}" ${t.id === cur ? 'selected' : ''}>${esc(t.name)}</option>`).join('');
     }
     $('#hoTo').innerHTML = '<option value="all">All phones</option>' + s.players.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+    $('#objWho').innerHTML = s.players.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('') || '<option value="">No one in the party</option>';
   }
+  // Secret objectives (item 9): the DM sees them all; reveal sends one to every phone and the TV.
+  $('#objList').innerHTML = (s.objectives || []).slice().reverse().map((o) => `<div class="item"><span>🎯 <b>${esc(o.title)}</b> <small class="muted">${esc(o.name)} · ${o.revealed ? 'revealed to the table' : 'secret'}</small></span><span class="row"><button class="btn small ${o.revealed ? 'on' : ''}" data-obj-reveal="${esc(o.id)}" title="Show to all phones and the TV">Reveal</button><button class="btn small danger" data-obj-del="${esc(o.id)}">✕</button></span></div>`).join('');
   $('#lightSel').innerHTML = LIGHTS.map((l) => `<option ${(s.scene.light || 'day') === l ? 'selected' : ''}>${l}</option>`).join('');
   $('#bulbOn').checked = !!s.bulbsOn;
   $('#bulbInfo').textContent = s.bulbsTargets ? `${s.bulbsTargets} bulb(s) configured` : 'No bulbs configured (BULBS_* env vars)';
@@ -49,6 +52,12 @@ $('#lightSel').onchange = (e) => emit('dm:light', { light: e.target.value });
 $('#bulbOn').onchange = (e) => emit('dm:bulbs', { on: e.target.checked });
 $('#relNpc').onchange = () => { relKey = null; };
 $('#relList').addEventListener('click', (e) => { const b = e.target.closest('[data-rel]'); if (b) emit('dm:relation', { npc: $('#relNpc').value, charId: b.dataset.rel, stance: b.dataset.stance }); });
+$('#objList').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.objReveal) emit('dm:objective:reveal', { id: b.dataset.objReveal, on: !b.classList.contains('on') });
+  else if (b.dataset.objDel) emit('dm:objective:remove', { id: b.dataset.objDel });
+});
 $('#msgList').addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b) return;
@@ -60,6 +69,7 @@ $('#msgList').addEventListener('click', (e) => {
 });
 onClick('act', (a) => {
   if (a === 'handout') { const title = $('#hoTitle').value.trim(); const text = $('#hoText').value.trim(); if (title || text) { const to = $('#hoTo').value; emit('dm:handout', { title, text, to: to === 'all' ? 'all' : [to] }); $('#hoTitle').value = ''; $('#hoText').value = ''; } }
+  if (a === 'objective') { const charId = $('#objWho').value; const title = $('#objTitle').value.trim(); if (charId && title) { emit('dm:objective', { charId, title, text: $('#objText').value.trim() }); $('#objTitle').value = ''; $('#objText').value = ''; } }
   if (a === 'phrase') { const text = $('#phText').value.trim(); const lang = $('#phLang').value.trim(); if (text && lang) { emit('dm:phrase', { lang, text }); $('#phText').value = ''; } }
   if (a === 'voteStart') emit('dm:vote:start', { options: $('#voteOpts').value.split(',').map((x) => x.trim()).filter(Boolean) });
   if (a === 'voteClose') emit('dm:vote:close', {});

@@ -36,6 +36,9 @@ function render() {
   const voteHtml = vote ? `<div class="card vote"><h3>${vote.open ? 'The party votes' : 'Vote closed'}</h3>
       <div class="list">${vote.options.map((o, i) => `<button class="btn ${vote.mine === i ? 'primary' : ''}" data-vote="${i}" ${vote.open ? '' : 'disabled'}>${esc(o)}</button>`).join('')}</div>
       <p class="note">${vote.mine != null ? 'Tap another option to change your vote.' : 'Tap an option to vote.'}</p></div>` : '';
+  // Secret objectives (item 9): the server only sends yours, plus any the DM has revealed.
+  const objs = S.objectives || [];
+  const objHtml = objs.map((o) => `<div class="card objective"><h3>🎯 ${esc(o.title)}</h3>${o.text ? `<p>${esc(o.text)}</p>` : ''}<p class="note">${o.revealed ? 'Revealed to the table by the DM.' : 'Secret. Only you see this.'}</p></div>`).join('');
   const body = items.map((h) => {
     if (h.kind === 'spoil') {
       const mine = h.mine;
@@ -54,11 +57,11 @@ function render() {
   const q = S.quiz;
   const quizPending = q?.open ? q.questions.filter((x) => q.mine?.[x.id] === undefined).length : 0;
   const quiz = quizHtml(q, c);
-  root().innerHTML = quiz + voteHtml + body + (items.length || vote || q ? '' : '<p class="note" style="text-align:center">Nothing here yet. Handouts, phrases and spoils from the DM show up here.</p>');
+  root().innerHTML = objHtml + quiz + voteHtml + body + (items.length || objs.length || vote || q ? '' : '<p class="note" style="text-align:center">Nothing here yet. Handouts, phrases and spoils from the DM show up here.</p>');
   // Badge: count new items since the tab was last opened.
-  const fresh = items.filter((h) => !seen.has(h.id)).length + (vote?.open && vote.mine == null ? 1 : 0);
+  const fresh = items.filter((h) => !seen.has(h.id)).length + objs.filter((o) => !seen.has(o.id)).length + (vote?.open && vote.mine == null ? 1 : 0);
   setBadge('inbox', tab() === 'inbox' ? 0 : fresh + quizPending);
-  if (tab() === 'inbox') items.forEach((h) => seen.add(h.id));
+  if (tab() === 'inbox') { items.forEach((h) => seen.add(h.id)); objs.forEach((o) => seen.add(o.id)); }
 }
 onState(render);
 onTab((id) => { if (id === 'inbox') render(); });

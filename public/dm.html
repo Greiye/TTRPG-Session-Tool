@@ -83,6 +83,10 @@
       <h3>Messages <span class="note">phones, the TV, and the vote</span></h3>
       <input id="hoTitle" placeholder="Title"><textarea id="hoText" rows="2" placeholder="Handout text"></textarea>
       <div class="row"><select id="hoTo" class="grow"><option value="all">All phones</option></select><button class="btn" data-act="handout">Send handout</button></div>
+      <div class="row"><select id="objWho" style="width:140px"></select><input id="objTitle" class="grow" maxlength="80" placeholder="Secret objective"></div>
+      <textarea id="objText" rows="2" maxlength="600" placeholder="Details only their phone sees (optional)"></textarea>
+      <div class="row"><button class="btn" data-act="objective">Give secret objective</button></div>
+      <div id="objList" class="list"></div>
       <div class="row"><input id="phLang" placeholder="Language (Elvish)" style="width:130px"><input id="phText" class="grow" placeholder="Phrase in that tongue"><button class="btn" data-act="phrase">Send phrase</button></div>
       <div class="row"><input id="voteOpts" class="grow" placeholder="Options, comma separated (blank = Yes, No, Unsure)"><button class="btn primary" data-act="voteStart">Start vote</button><button class="btn" data-act="voteClose">Close</button><button class="btn" data-act="voteClear">Clear</button></div>
       <div id="voteTally" class="note"></div>
