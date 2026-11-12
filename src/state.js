@@ -11,6 +11,7 @@ const saves = require('./saves');
 const { derived } = require('./sheet');
 const library = require('./library');
 const perception = require('./perception');
+const plan = require('./plan');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -88,7 +89,7 @@ function fullState() {
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const codms = [...io.sockets.sockets.values()].filter((x) => x.data.role === 'codm').length;
   const spectators = [...io.sockets.sockets.values()].filter((x) => x.data.spectator).length;
-  return { ...state, players, roster: cards, screens, codms, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
+  return { ...state, plans: plan.withDanger(state.plans, state), players, roster: cards, screens, codms, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
 }
 const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
 

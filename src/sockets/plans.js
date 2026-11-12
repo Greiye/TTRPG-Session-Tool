@@ -46,6 +46,7 @@ module.exports = function planSockets(socket) {
   dm('dm:plan:encounter', ({ plan: planId, index }) => {
     const e = item(find(planId), 'encounters', index);
     if (!e) return { error: 'Encounter not found.' };
-    plan.launchEncounter(state, e, { nextId, log });
+    const { difficulty } = plan.launchEncounter(state, e, { nextId, log });
+    return { difficulty };
   });
 };

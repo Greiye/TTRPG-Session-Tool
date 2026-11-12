@@ -24,6 +24,50 @@ const SHEET = {
   Ranger: { ab: [12, 16, 14, 10, 15, 8], saves: ['str', 'dex'], hd: 10, slots: {}, lang: ['Common', 'Sylvan'] },
   Bard: { ab: [8, 14, 13, 12, 10, 17], saves: ['dex', 'cha'], hd: 8, slots: { 1: 2 }, lang: ['Common', 'Elvish'] },
 };
+// Encounter difficulty (DMG ch. 3). Per-character XP thresholds by level: [easy, medium, hard, deadly].
+const XP_THRESHOLDS = [[25, 50, 75, 100], [50, 100, 150, 200], [75, 150, 225, 400], [125, 250, 375, 500], [250, 500, 750, 1100],
+  [300, 600, 900, 1400], [350, 750, 1100, 1700], [450, 900, 1400, 2100], [550, 1100, 1600, 2400], [600, 1200, 1900, 2800],
+  [800, 1600, 2400, 3600], [1000, 2000, 3000, 4500], [1100, 2200, 3400, 5100], [1250, 2500, 3800, 5700], [1400, 2800, 4300, 6400],
+  [1600, 3200, 4800, 7200], [2000, 3900, 5900, 8800], [2100, 4200, 6300, 9500], [2400, 4900, 7300, 10900], [2800, 5700, 8700, 12700]];
+// XP per challenge rating (DMG table).
+const CR_XP = { '0': 10, '1/8': 25, '1/4': 50, '1/2': 100, 1: 200, 2: 450, 3: 700, 4: 1100, 5: 1800, 6: 2300, 7: 2900, 8: 3900, 9: 5000, 10: 5900,
+  11: 7200, 12: 8400, 13: 10000, 14: 11500, 15: 13000, 16: 15000, 17: 18000, 18: 20000, 19: 22000, 20: 25000 };
+const CR_KEYS = Object.keys(CR_XP);
+// Rough CR from a foe's hit points, for foes whose plan line has no `cr:` key (DMG monster statistics, low CRs).
+// Upper hp bound per CR. Anything above the last band is treated as CR 10 and flagged as estimated.
+const HP_BANDS = [[6, '0'], [35, '1/8'], [49, '1/4'], [70, '1/2'], [85, '1'], [100, '2'], [115, '3'], [130, '4'], [145, '5'], [160, '6'], [175, '7'], [190, '8'], [205, '9'], [220, '10']];
+const estimateCr = (hp) => (HP_BANDS.find(([max]) => hp <= max) || [0, '10'])[1];
+const MULT = [1, 1.5, 2, 2.5, 3, 4]; // by foe count: 1, 2, 3-6, 7-10, 11-14, 15+
+const multiplier = (n, party) => {
+  let i = n <= 1 ? 0 : n === 2 ? 1 : n <= 6 ? 2 : n <= 10 ? 3 : n <= 14 ? 4 : 5;
+  if (party < 3) i = Math.min(MULT.length - 1, i + 1); // small parties: one step harder
+  else if (party > 5) i = Math.max(0, i - 1); // large parties: one step easier
+  return MULT[i];
+};
+const RATINGS = ['trivial', 'easy', 'medium', 'hard', 'deadly'];
+// foes: [{ name, count, hp, cr? }]. partyLevels: one level per character at the table.
+function difficulty(partyLevels, foes) {
+  const levels = (partyLevels || []).map((l) => Math.min(20, Math.max(1, Math.round(Number(l)) || 1)));
+  if (!levels.length) return null;
+  const totals = [0, 0, 0, 0];
+  for (const l of levels) XP_THRESHOLDS[l - 1].forEach((t, i) => { totals[i] += t; });
+  let raw = 0, count = 0, estimated = false;
+  for (const f of foes) {
+    const n = Math.max(0, Number(f.count) || 0);
+    if (!n) continue;
+    let cr = f.cr && CR_XP[f.cr] !== undefined ? f.cr : null;
+    if (!cr) { cr = estimateCr(Number(f.hp) || 0); estimated = true; }
+    raw += CR_XP[cr] * n;
+    count += n;
+  }
+  const xp = Math.round(raw * multiplier(count, levels.length));
+  // Rating is the highest threshold the adjusted XP reaches.
+  let rating = 'trivial';
+  totals.forEach((t, i) => { if (xp >= t) rating = RATINGS[i + 1]; });
+  return { rating, xp, raw, foes: count, party: levels.length, thresholds: { easy: totals[0], medium: totals[1], hard: totals[2], deadly: totals[3] }, estimated };
+}
+const normalizeCr = (v) => (CR_KEYS.includes(String(v).trim()) ? String(v).trim() : null);
+
 const mod = (score) => Math.floor(((score ?? 10) - 10) / 2);
 const profBonus = (level) => 2 + Math.floor(((level || 1) - 1) / 4);
 
@@ -94,6 +138,10 @@ module.exports = {
   dcLadder: [['Very easy', 5], ['Easy', 10], ['Medium', 15], ['Hard', 20], ['Very hard', 25], ['Nearly impossible', 30]],
 
   initiative: (x) => d20().natural + (x.init || 0),
+
+  // Encounter danger for the party (see src/rules/index.js). Returns null when there is no party.
+  difficulty,
+  normalizeCr,
 
   attack(attacker, target, { mode } = {}) {
     const r = d20(mode);
