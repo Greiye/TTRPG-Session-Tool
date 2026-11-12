@@ -33,7 +33,7 @@ const state = {
   check: null, // { skill, dc, results: { token: {...} } }
   combat: { active: false, round: 0, turn: 0, order: [], enemies: [] },
   social: {
-    npc: { name: 'Mirela the Innkeeper', emotion: 'neutral', hue: 28 },
+    npc: { name: 'Mirela the Innkeeper', emotion: 'neutral', hue: 28, faction: null }, // faction: its mood follows that faction's reputation
     line: { speaker: 'Mirela the Innkeeper', text: 'Welcome, travelers. Mind the mud on my floors.', emotion: 'neutral' },
     choices: [],
     caption: '',
@@ -58,19 +58,21 @@ const state = {
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
   suggestions: [], // { id, name, text, at, vis } from spectators, seen by DM and players (src/spectate.js)
   shops: [], // NPC shops with stock and prices (item 27, src/shops.js)
+  factions: [], // faction reputation, DM sees numbers, phones see tiers (src/factions.js)
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'factions', 'quiz', 'plans');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
 seq = store.restore(state, roster, store.load());
 if (!state.room) state.room = newRoomCode();
 state.scene.secrets ??= [];
+state.factions ??= [];
 net.setHost(state.settings.host);
 const snap = () => store.snapshot(state, seq);
 

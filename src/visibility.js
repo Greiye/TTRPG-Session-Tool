@@ -57,6 +57,14 @@ function canSee(vis, viewer) {
   return false;
 }
 
+// A shop as a phone sees it: prices after its faction's multiplier, and the faction's standing.
+const priced = ({ skipped, ...shop }, base) => {
+  const F = require('./factions');
+  const mult = F.multFor(base, shop);
+  const f = shop.faction && F.find(base, shop.faction);
+  return { ...shop, standing: f ? F.tierOf(f.rep).label : null, items: shop.items.map((i) => ({ ...i, price: require('./shops').unitCp(i, mult) / 100 })) };
+};
+
 const strip = (obj, kind, viewer) => {
   let hidden = viewer.role === 'dm' ? ['socketId', 'token'] : FIELD_RULES[kind];
   // A player's own sheet is theirs to see; everyone else gets the public card.
@@ -92,7 +100,9 @@ function viewState(base, viewer) {
   // Spectators watch the public table only: no secret-holding DM fields, no relations (above).
   if (viewer.role !== 'dm') { delete out.relations; delete out.plans; } // plans hold DM notes
   // Shops: phones see open shops only, without the DM's import notes.
-  out.shops = viewer.role === 'dm' ? base.shops : (base.shops || []).filter((s) => s.open).map(({ skipped, ...s }) => s);
+  // Phones see the faction-adjusted prices and the standing, never the reputation number (src/factions.js).
+  out.factions = (base.factions || []).map((f) => require('./factions').view(f, viewer.role === 'dm'));
+  out.shops = viewer.role === 'dm' ? base.shops : (base.shops || []).filter((s) => s.open).map((s) => priced(s, base));
   if (viewer.role === 'dm') {
     out.lan = require('./net').lanAddresses();
     out.entities = Object.values(require('./entities').entities); // world library (Arthuria), DM only for now
