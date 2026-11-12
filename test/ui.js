@@ -42,6 +42,15 @@ const SHOTS = process.env.SHOTS;
   await dm.evaluate(() => socket.emit('dm:mode', { mode: 'social' }));
   await tv.waitForSelector('.vn', { timeout: 5000 });
   await dm.waitForTimeout(800);
+  // Settings: phone picks large text + color-blind palette; DM sets TV to high contrast.
+  await ph.click('.settings-btn');
+  await ph.click('label:has(input[name="me-text"][value="xl"])');
+  await ph.click('label:has(input[name="me-palette"][value="cb"])');
+  await ph.keyboard.press('Escape');
+  const phAttr = await ph.evaluate(() => [document.documentElement.dataset.text, document.documentElement.dataset.palette]);
+  if (phAttr.join() !== 'xl,cb') errors.push('phone settings not applied: ' + phAttr);
+  await dm.evaluate(() => socket.emit('dm:settings', { display: { palette: 'hc', motion: 'reduce' } }));
+  await tv.waitForFunction(() => document.documentElement.dataset.palette === 'hc', null, { timeout: 3000 });
   if (SHOTS) for (const [n, p] of [['dm', dm], ['tv', tv], ['phone', ph]]) await p.screenshot({ path: `${SHOTS}/ui-${n}.png` });
   if (typeof global.extra === 'function') await global.extra({ dm, tv, ph, br, B });
   await br.close();

@@ -1,4 +1,5 @@
 const socket = io();
+Settings.mount();
 const $ = (s) => document.querySelector(s);
 const { esc, hpBar, vn, logFeed, checkBanner } = Stage;
 // Classes and skill buttons come from the active rules system (S.rules), so 5e and Daggerheart share this UI.

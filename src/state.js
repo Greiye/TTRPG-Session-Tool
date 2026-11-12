@@ -27,7 +27,7 @@ const state = {
   combat: { active: false, round: 0, turn: 0, order: [], enemies: [] },
   social: {
     npc: { name: 'Mirela the Innkeeper', emotion: 'neutral', hue: 28 },
-    line: { speaker: 'npc', text: 'Welcome, travelers. Mind the mud on my floors.', emotion: 'neutral' },
+    line: { speaker: 'Mirela the Innkeeper', text: 'Welcome, travelers. Mind the mud on my floors.', emotion: 'neutral' },
     choices: [],
     caption: '',
   },
@@ -37,7 +37,7 @@ const state = {
   log: [],
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
   room: null, // join code, set by session.js
-  settings: {}, // table-wide display settings (TV), see 0c
+  settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
 };
 
 let seq = 0;

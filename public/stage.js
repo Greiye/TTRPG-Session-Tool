@@ -56,6 +56,7 @@
     if (tw.key !== key) {
       clearInterval(tw.timer);
       Object.assign(tw, { key, text, i: 0 });
+      if (window.Settings?.reducedMotion()) { tw.i = text.length; return esc(text); }
       tw.timer = setInterval(() => {
         tw.i = Math.min(tw.text.length, tw.i + 1);
         document.querySelectorAll(`[data-tw="${id}"]`).forEach((el) => (el.textContent = tw.text.slice(0, tw.i)));
