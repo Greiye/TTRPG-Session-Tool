@@ -2,6 +2,14 @@
 // Parsing and launching happen on the server (src/plan.js); this card only lists and sends.
 import { $, emit, call, mount, onState, state } from '../client.js';
 
+const RATING_LABEL = { trivial: 'Trivial', easy: 'Easy', medium: 'Medium', hard: 'Hard', deadly: 'Deadly' };
+// Badge for the party's danger on an encounter. Hard and Deadly use the warning colour.
+const danger = (d) => {
+  if (!d) return '';
+  const cls = d.rating === 'deadly' || d.rating === 'hard' ? 'warn' : 'note';
+  const est = d.estimated ? ' (CR estimated)' : '';
+  return ` <span class="${cls}" title="${d.xp} XP adjusted vs ${d.thresholds.deadly} deadly for ${d.party} PC(s)${est}">${RATING_LABEL[d.rating]}${est}</span>`;
+};
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 mount(`
@@ -34,7 +42,7 @@ function render(plans) {
         <div class="plan-item"><span class="grow"><b>NPC:</b> ${esc(n.name)}${n.emotion ? ` <span class="note">${esc(n.emotion)}</span>` : ''}${n.launched ? ' <span class="note">✓ used</span>' : ''}${n.line ? `<br><span class="note">“${esc(n.line).slice(0, 120)}”</span>` : ''}</span>
           <button class="btn small" data-plan-act="npc" data-plan="${esc(p.id)}" data-index="${i}">Use NPC</button></div>`).join('')}
       ${p.encounters.map((e, i) => `
-        <div class="plan-item"><span class="grow"><b>Encounter:</b> ${esc(e.title)}${e.launched ? ' <span class="note">✓ added</span>' : ''}<br><span class="note">${e.foes.map((f) => `${f.count}× ${esc(f.name)}`).join(', ')}</span></span>
+        <div class="plan-item"><span class="grow"><b>Encounter:</b> ${esc(e.title)}${danger(e.difficulty)}${e.launched ? ' <span class="note">✓ added</span>' : ''}<br><span class="note">${e.foes.map((f) => `${f.count}× ${esc(f.name)}`).join(', ')}</span></span>
           <button class="btn small" data-plan-act="encounter" data-plan="${esc(p.id)}" data-index="${i}">Add foes</button></div>`).join('')}
       <div class="row"><button class="btn small danger" data-plan-act="remove" data-plan="${esc(p.id)}">Remove plan</button></div>
     </details>`).join('');
@@ -49,6 +57,10 @@ $('#planList').addEventListener('click', async (ev) => {
   if (act === 'remove') {
     if (confirm('Remove this plan from the DM page? Items already launched stay live.')) emit('dm:plan:remove', { plan: id });
     return;
+  }
+  if (act === 'encounter') {
+    const e = (state.plans || []).find((p) => p.id === id)?.encounters?.[Number(index)];
+    if (e?.difficulty?.rating === 'deadly' && !confirm(`${e.title} is Deadly for this party (${e.difficulty.xp} XP adjusted, deadly at ${e.difficulty.thresholds.deadly}). Add the foes anyway?`)) return;
   }
   const ev2 = { scene: 'dm:plan:scene', npc: 'dm:plan:npc', encounter: 'dm:plan:encounter' }[act];
   if (ev2) { const res = await call(ev2, { plan: id, index: Number(index) }); if (res?.error) status(res.error); }

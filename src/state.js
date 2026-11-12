@@ -11,6 +11,7 @@ const saves = require('./saves');
 const { derived } = require('./sheet');
 const library = require('./library');
 const perception = require('./perception');
+const plan = require('./plan');
 const downtime = require('./downtime');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
@@ -97,7 +98,7 @@ function fullState() {
   const codms = [...io.sockets.sockets.values()].filter((x) => x.data.role === 'codm').length;
   const spectators = [...io.sockets.sockets.values()].filter((x) => x.data.spectator).length;
   const bulbsTargets = require('./bulbs').targets().length;
-  return { ...state, bulbsTargets, players, roster: cards, screens, codms, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
+  return { ...state, bulbsTargets, plans: plan.withDanger(state.plans, state), players, roster: cards, screens, codms, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
 }
 const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
 

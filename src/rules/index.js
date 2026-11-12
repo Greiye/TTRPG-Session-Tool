@@ -13,6 +13,8 @@
 //   abilities, sheetDefaults(cls), editSheet(c, f), abilityMod, prof, saveBonus(c, ab), passive(c, skill)   character sheet (item 2)
 //   initiative(x)                -> number
 //   attack(attacker, target, {mode}) -> {natural, hit, crit, damage, text}
+//   difficulty(levels, foes)     -> {rating, xp, ...} or null (no party, or system has no encounter guide)
+//   normalizeCr(v)               -> valid challenge rating string or null (optional)
 const systems = {
   dnd5e: require('./dnd5e'),
   daggerheart: require('./daggerheart'),
@@ -29,4 +31,10 @@ const describe = (id) => {
     classes: Object.fromEntries(Object.entries(s.classes).map(([k, v]) => [k, v.blurb])) };
 };
 
-module.exports = { get, list, describe, DEFAULT };
+// Encounter danger for a party. levels: one level per character; foes: [{ name, count, hp, cr? }].
+const difficulty = (id, levels, foes) => (get(id).difficulty ? get(id).difficulty(levels, foes) : null);
+
+// Challenge ratings are a 5e term; other systems return null here, so no cr is kept.
+const normalizeCr = (v) => get(DEFAULT).normalizeCr?.(v) ?? null;
+
+module.exports = { get, list, describe, difficulty, normalizeCr, DEFAULT };

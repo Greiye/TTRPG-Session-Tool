@@ -28,6 +28,7 @@ module.exports = {
   languages: ['Common'],
   sheetDefaults: () => ({ abilities: {}, saveProf: [], speed: 30, slots: {}, hitDice: { die: 0, used: 0 }, languages: ['Common'] }),
   editSheet() {},
+  difficulty: () => null, // no encounter guide yet
   abilityMod: () => 0,
   prof: () => 0,
   saveBonus: (c, trait) => c.skills?.[trait] ?? 0,
