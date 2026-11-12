@@ -108,4 +108,40 @@ function transcript({ title } = {}) {
   return lines.join('\n').replace(/\n{3,}/g, '\n\n') + '\n';
 }
 
-module.exports = { exportBundle, importBundle, transcript, validateEntity };
+// Visual-novel script (item 14): scene headers, speakers, emotions as stage directions, actions as
+// stage directions in italics. Good for captions, for a cinematic re-read, or a podcast script.
+function script({ title } = {}) {
+  const out = [`# ${title || state.scene.title}`, '', `*Script, exported ${new Date().toLocaleDateString()}*`, ''];
+  for (const l of state.log) {
+    if (l.vis && l.vis !== 'all') continue;
+    const mode = l.kind === 'system' && l.text.match(/^— (\w+) —$/);
+    if (mode) { out.push('', `## ${mode[1][0]}${mode[1].slice(1).toLowerCase()}`, ''); continue; }
+    if (l.kind === 'narrate') out.push(`[${l.text}]`, '');
+    else if (l.kind === 'npc') out.push(`${l.who.toUpperCase()}${l.emotion && l.emotion !== 'neutral' ? ` (${l.emotion})` : ''}`, `${l.text}`, '');
+    else if (l.kind === 'say') out.push(`${l.who.toUpperCase()}`, `${l.text}`, '');
+    else if (l.kind === 'action') out.push(`*${l.who} ${l.text.replace(/^I /, '').replace(/[.!?]+$/, '')}.*`, '');
+    else if (l.kind === 'combat' || l.kind === 'check') out.push(`*${l.text}*`, '');
+  }
+  return out.join('\n').replace(/\n{3,}/g, '\n\n') + '\n';
+}
+
+// Session recap (item 14b): a short Markdown recap for Arthuria. Dialogue and combat in order,
+// with the outcome of each fight and the rolls that mattered. Private entries stay out.
+function recap({ title } = {}) {
+  const lines = [`# Recap: ${title || state.scene.title}`, ''];
+  const combat = [];
+  let inFight = false;
+  for (const l of state.log) {
+    if (l.vis && l.vis !== 'all') continue;
+    if (/^Roll initiative!/.test(l.text)) { inFight = true; combat.push('', '### Combat', ''); }
+    if (l.kind === 'npc') lines.push(`- **${l.who}** says: "${l.text}"`);
+    else if (l.kind === 'say') lines.push(`- **${l.who}**: "${l.text}"`);
+    else if (l.kind === 'narrate') lines.push(`- ${l.text}`);
+    else if (l.kind === 'combat' && inFight) combat.push(`- ${l.text}`);
+    else if (l.kind === 'check' && l.tone) lines.push(`- _${l.text}_`);
+    if (/Combat ends|Victory/.test(l.text)) inFight = false;
+  }
+  return [...lines, ...combat, ''].join('\n').replace(/\n{3,}/g, '\n\n');
+}
+
+module.exports = { exportBundle, importBundle, transcript, script, recap, validateEntity };

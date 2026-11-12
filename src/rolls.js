@@ -56,7 +56,12 @@ function record(entry, { pop = true } = {}) {
   }
   return e;
 }
-const d20Dice = (r) => (r.dice || [r.natural]).map((v) => ({ sides: r.sides || 20, value: v, kept: r.sides === 12 || v === r.natural }));
+// Mark exactly one kept die: with advantage both dice can show the same number, so index, not value.
+const d20Dice = (r) => {
+  const dice = r.dice || [r.natural];
+  const keep = r.sides === 12 ? -1 : Math.max(0, dice.indexOf(r.natural));
+  return dice.map((v, i) => ({ sides: r.sides || 20, value: v, kept: r.sides === 12 || i === keep }));
+};
 
 // ----- roll calls -----
 function call({ kind = 'skill', key, dc, targets, mode, hideDc, pass, fail, preset } = {}) {

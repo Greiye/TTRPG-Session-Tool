@@ -5,6 +5,8 @@ import { dmKey } from './auth.js';
 const qs = dmKey() ? `?key=${encodeURIComponent(dmKey())}` : '';
 $('#exportBtn').href = `/api/export${qs}`;
 $('#transcriptBtn').href = `/api/transcript.md${qs}`;
+$('#scriptBtn').href = `/api/script.md${qs}`;
+$('#recapBtn').href = `/api/recap.md${qs}`;
 $('#importIn').onchange = async (e) => {
   const file = e.target.files[0];
   e.target.value = '';

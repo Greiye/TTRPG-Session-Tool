@@ -53,7 +53,9 @@
       <div class="row">
         <a class="btn small" id="exportBtn" download>⬇ Export bundle</a>
         <label class="btn small">⬆ Import bundle<input type="file" accept=".json,application/json" id="importIn" hidden></label>
-        <a class="btn small" id="transcriptBtn" download>📜 Session transcript</a>
+        <a class="btn small" id="transcriptBtn" download>📜 Transcript</a>
+        <a class="btn small" id="scriptBtn" download>🎬 Script</a>
+        <a class="btn small" id="recapBtn" download>📰 Recap</a>
       </div>
       <p class="note">One file with characters, NPCs, places and lore (plus portraits) for Arthuria or another laptop. The transcript is Markdown.</p>
       <div class="row"><input id="saveName" class="grow" placeholder="Save point name, e.g. Before the vault"><button class="btn small" id="saveBtn">💾 Save point</button></div>
@@ -184,7 +186,8 @@
     </div>
     <div class="card" data-panel="social">
       <h3>Live voice <span><span id="recDot" class="rec-dot"></span></span></h3>
-      <p class="note">Placeholder for live speech-to-text. Records your mic and transcribes with the browser's speech engine (Chrome/Edge) when available.</p>
+      <p class="note">Records your mic and transcribes live. Browser engine needs Chrome or Edge. Local model works offline: place a Vosk model .zip at <code>/models/vosk-small-en.zip</code> on the laptop.</p>
+      <div class="row"><label class="note tight">Engine <select id="sttEngine" style="width:auto"><option value="chrome">Browser (Chrome)</option><option value="vosk">Local model (Vosk)</option></select></label><input id="sttModel" value="/models/vosk-small-en.zip" class="grow" title="Vosk model URL"></div>
       <div id="voiceBox" class="voice-box"><span class="interim">Press Record and speak in character…</span></div>
       <label class="chk"><input type="checkbox" id="liveCaption" checked> Show live caption on TV</label>
       <label class="chk"><input type="checkbox" id="autoSay"> Auto-speak each finished sentence as the NPC</label>
@@ -292,6 +295,7 @@
   <script src="/audio.js"></script>
   <script src="/atmo.js"></script>
   <script type="module" src="/js/dm/main.js"></script>
+  <script src="/stt.js"></script>
   <script src="/voice.js"></script>
 </body>
 </html>
