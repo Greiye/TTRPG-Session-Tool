@@ -13,6 +13,7 @@ const creatures = require('../creatures');
 const rolls = require('../rolls');
 const perception = require('../perception');
 const messages = require('../messages');
+const tracker = require('../tracker');
 const spells = require('../spells');
 const saves = require('../saves');
 const { applySheet } = require('../sheet');
@@ -47,6 +48,13 @@ module.exports = function dmSockets(socket) {
     state.check = null;
     log('system', `Rules system: ${rules.get(id).name}.`);
   });
+  // ----- Phase 6: conditions, clocks, rests -----
+  dm('dm:condition', ({ id, name, on }) => tracker.setCondition(id, name, !!on));
+  dm('dm:clock:add', (f) => { if (state.clocks.length < 20) tracker.addClock(f); });
+  dm('dm:clock:fill', ({ id, delta }) => tracker.fillClock(id, delta));
+  dm('dm:clock:remove', ({ id }) => { state.clocks = state.clocks.filter((k) => k.id !== id); });
+  dm('dm:rest', ({ kind }) => tracker.rest(kind === 'long' ? 'long' : 'short'));
+
   // ----- Phase 4: messages -----
   dm('dm:handout', (f) => { const m = messages.handout(f, 'h' + nextId(), roster); if (m.text || m.image) state.handouts.push(m); if (state.handouts.length > 80) state.handouts.shift(); });
   dm('dm:spoil', (f) => { const m = messages.spoil(f, 'p' + nextId()); if (m) state.handouts.push(m); });

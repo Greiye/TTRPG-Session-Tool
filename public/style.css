@@ -482,3 +482,16 @@ html[data-motion="reduce"] .rollpop.tumble, html[data-motion="reduce"] .rollpop.
 .boss-card p { font-style: italic; font-size: calc(1.6cqw * var(--ts)); margin: 0; }
 @keyframes bc-in { 0% { opacity: 0; transform: scaleX(.6); } 15%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 html[data-motion="reduce"] .boss-card { animation-duration: .001ms; }
+
+/* ================= Phase 6: conditions, clocks ================= */
+.conds { display: block; font-style: normal; font-size: calc(.8cqw * var(--ts)); color: #ffd79a; }
+.clocks { position: absolute; left: 2cqw; bottom: 16cqw; display: flex; gap: 2cqw; z-index: 2; }
+.clock { display: flex; flex-direction: column; align-items: center; gap: .4cqw; background: rgb(0 0 0 / .45); border-radius: .8cqw; padding: .6cqw; }
+.clock small { font-size: calc(1cqw * var(--ts)); }
+.pie { width: 6cqw; height: 6cqw; border-radius: 50%; border: .2cqw solid var(--gold); display: grid; grid-template-columns: repeat(var(--n), 1fr); overflow: hidden; background: #2a2030; }
+.pie i { border-right: .15cqw solid #120d14; background: transparent; }
+.pie i.on { background: var(--gold); }
+.pie i:last-child { border-right: 0; }
+.dm-conds { display: flex; flex-wrap: wrap; gap: 4px; }
+.dm-conds .btn.on { background: #8a4b1a; color: #fff; border-color: #c67a33; }
+.clock-row { display: flex; gap: 4px; align-items: center; }

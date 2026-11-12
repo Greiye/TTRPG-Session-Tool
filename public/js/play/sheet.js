@@ -45,6 +45,7 @@ function render() {
         <p class="note">${esc([s.school, s.time, s.range, s.components, s.duration].filter(Boolean).join(' · '))}</p><p>${esc(s.text)}</p>${s.higher ? `<p class="note">${esc(s.higher)}</p>` : ''}<button class="btn small danger" data-spell-del="${esc(s.id)}">Forget</button></details>`).join('') || '<p class="note">No spells on your sheet yet.</p>'}
       <form class="row" id="spellForm"><input id="spellAdd" class="grow" list="spellList" placeholder="Add a spell by name"><datalist id="spellList">${spells.items.filter((s) => !(c.spells || []).includes(s.id)).map((s) => `<option value="${esc(s.name)}">`).join('')}</datalist><button class="btn">Add</button></form>
     </div>` : ''}
+    ${(c.conditions || []).length ? `<div class="card"><h3>Conditions</h3><div class="chips">${c.conditions.map((x) => `<span class="chip"><b>${esc(x)}</b></span>`).join('')}</div><p class="note">The DM sets these.</p></div>` : ''}
     <div class="card"><h3>Languages</h3><div class="chips">${(c.languages || []).map((l) => `<span class="chip"><b>${esc(l)}</b></span>`).join('') || '<span class="note">None</span>'}</div><p class="note">The DM sets the languages you know.</p></div>
     <div class="card"><h3>Notes</h3><textarea id="sheetNotes" rows="4" maxlength="4000" placeholder="Private notes. Only you and the DM can read these.">${esc(c.notes || '')}</textarea></div>`;
 }
