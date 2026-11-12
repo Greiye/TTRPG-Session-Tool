@@ -76,7 +76,7 @@
   function avatar(p, cls = '') {
     if (!p) return '';
     return p.portrait
-      ? `<img class="av ${cls}" src="${esc(p.portrait)}" alt="" style="--hue:${p.hue ?? 40}">`
+      ? Anim.media(p.portrait, `av ${cls}`, `--hue:${p.hue ?? 40}`)
       : `<span class="av ${cls}" style="--hue:${p.hue ?? 40}">${portrait('neutral', p.hue ?? 40)}</span>`;
   }
   const accent = (p) => `--hue:${p.hue ?? 40}`;
@@ -205,6 +205,11 @@
       ${spotlightCard(s)}`;
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
+    Anim.hydrate(ui);
+    if (s.spotlight) {
+      const who = s.players.find((x) => x.id === s.spotlight.id);
+      Anim.once(ui.querySelector('.sp-card'), `${s.spotlight.id}:${s.spotlight.kind}`, s.spotlight.kind === 'nat20' ? 'bounce' : 'pop', who);
+    }
   }
 
   window.Stage = { stage, vn, portrait, avatar, hpBar, logFeed, checkBanner, esc, EMO };

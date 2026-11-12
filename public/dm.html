@@ -155,7 +155,7 @@
       <div class="dlg-grid">
         <div class="dlg-av">
           <div id="charAv"></div>
-          <label class="btn small" id="charPhotoBtn">Upload portrait<input type="file" accept="image/*" id="charPhoto" hidden></label>
+          <label class="btn small" id="charPhotoBtn">Upload portrait<input type="file" accept="image/*,video/webm" id="charPhoto" hidden></label>
           <label class="fld">Color<input type="range" min="0" max="359" name="hue"></label>
         </div>
         <div class="dlg-fields">
@@ -194,6 +194,7 @@
   </dialog>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/anim.js"></script>
   <script src="/stage.js"></script>
   <script src="/audio.js"></script>
   <script src="/atmo.js"></script>

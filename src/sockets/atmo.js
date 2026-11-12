@@ -1,8 +1,7 @@
 // Atmosphere events, shared by the DM and co-DM: backdrops, overlay effects, music, SFX.
-const fs = require('fs');
 const path = require('path');
 const hub = require('../hub');
-const { UPLOAD_DIR } = require('../config');
+const { removeUrl } = require('../assets');
 const { state, broadcast, EFFECTS } = require('../state');
 const { BUILTIN_SFX } = require('../media');
 
@@ -23,7 +22,7 @@ module.exports = function atmoSockets(socket) {
     audio.library = audio.library.filter((b) => b !== item);
     if (bd.image?.id === id) bd.image = null;
     if (audio.music?.id === id) Object.assign(audio, { music: null, playing: false });
-    fs.rm(path.join(UPLOAD_DIR, path.basename(id)), () => {});
+    removeUrl(`/uploads/${path.basename(id)}`);
   });
   atmo('atmo:effect', ({ effect, on }) => {
     if (!EFFECTS.includes(effect)) return;
