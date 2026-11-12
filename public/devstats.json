@@ -1,0 +1,14 @@
+{
+  "_about": "Edit per version. Estimates are marked estimate: true. Null means not measured yet. The TV pop-up reads this file. Value = hours x rateUsd.",
+  "rateUsd": 85,
+  "versions": {
+    "1.1.0": {
+      "date": "2026-11-12",
+      "hours": 120,
+      "hoursEstimate": true,
+      "tokens": null,
+      "tokensEstimate": true,
+      "notes": "Estimate covers the build from phase 0 through the current PRs (about 88 commits)."
+    }
+  }
+}

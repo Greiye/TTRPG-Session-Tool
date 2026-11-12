@@ -6,9 +6,20 @@
   <title>Tavern Screen — TV</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/settings.js"></script>
+  <style>
+    .tv-ver { position: fixed; right: 12px; bottom: 8px; font: 13px/1 system-ui, sans-serif; color: #8a8478; background: none; border: 0; cursor: pointer; z-index: 50; }
+    .tv-stats { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.7); z-index: 60; }
+    .tv-stats[hidden] { display: none; }
+    .tv-stats .box { background: #1b1420; color: #f4ead5; border: 1px solid #6b5a3a; border-radius: 12px; padding: 28px 32px; min-width: 420px; font: 18px/1.5 system-ui, sans-serif; }
+    .tv-stats h2 { margin: 0 0 12px; font-size: 24px; }
+    .tv-stats td { padding: 4px 16px 4px 0; }
+    .tv-stats .est { color: #c9a86a; font-size: 14px; }
+  </style>
 </head>
 <body class="tv">
   <div class="stage-wrap"><div id="stage" class="stage"></div></div>
+  <button class="tv-ver" id="tvVer" title="Project stats">v…</button>
+  <div class="tv-stats" id="tvStats" hidden><div class="box" id="tvStatsBox"></div></div>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/anim.js"></script>
   <script src="/stage.js"></script>
@@ -22,6 +33,30 @@
     AudioOut.init(socket); // the TV is the speaker
     socket.on('rollpop', (p) => RollPop.show(p)); // roll popups (item 5)
     socket.on('rollpop:skip', () => RollPop.hide());
+    // Version label and project stats pop-up (stats live in public/devstats.json).
+    const tvStats = document.getElementById('tvStats');
+    const fmt = (n) => (n == null ? 'not measured' : Number(n).toLocaleString());
+    async function loadStats() {
+      try {
+        const [{ version }, d] = await Promise.all([fetch('/api/version').then(r => r.json()), fetch('/devstats.json').then(r => r.json())]);
+        document.getElementById('tvVer').textContent = 'v' + version;
+        const v = d.versions[version] || {};
+        const val = v.hours != null ? Math.round(v.hours * d.rateUsd) : null;
+        const est = (flag) => (flag ? ' <span class="est">(estimate)</span>' : '');
+        document.getElementById('tvStatsBox').innerHTML = `<h2>Project stats · v${version}</h2>
+          <table>
+            <tr><td>Time spent</td><td>${fmt(v.hours)} hours${est(v.hoursEstimate)}</td></tr>
+            <tr><td>Development value</td><td>${val == null ? 'not measured' : '$' + val.toLocaleString() + ' at $' + d.rateUsd + '/h'}${est(v.hoursEstimate)}</td></tr>
+            <tr><td>Token usage</td><td>${fmt(v.tokens)}${v.tokens != null ? est(v.tokensEstimate) : ''}</td></tr>
+          </table>
+          <p class="est">${v.notes || ''}</p>
+          <p class="est">Click anywhere to close.</p>`;
+        return true;
+      } catch (e) { document.getElementById('tvVer').textContent = 'v?'; return false; }
+    }
+    loadStats().then((ok) => { if (ok) { tvStats.hidden = false; setTimeout(() => { tvStats.hidden = true; }, 12000); } });
+    document.getElementById('tvVer').addEventListener('click', (e) => { e.stopPropagation(); loadStats().then(() => { tvStats.hidden = false; }); });
+    tvStats.addEventListener('click', () => { tvStats.hidden = true; });
     // Double-click for fullscreen on the TV.
     document.addEventListener('dblclick', () => document.documentElement.requestFullscreen?.());
   </script>
