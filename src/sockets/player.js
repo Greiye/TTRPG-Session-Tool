@@ -49,6 +49,22 @@ module.exports = function playerSockets(socket) {
     broadcast();
   });
 
+  // Phase 4: a character votes on the dialogue wheel (one vote each; changing it is allowed while open).
+  socket.on('player:vote', ({ index } = {}) => {
+    const p = me();
+    const v = state.vote;
+    if (!p || !v || !v.open || !v.options[index]) return;
+    v.votes[p.id] = Number(index);
+    broadcast();
+  });
+  // Spoils: a character asks for an item (a claim). Others can still claim; the DM awards.
+  socket.on('player:claim', ({ id, note } = {}) => {
+    const p = me();
+    const m = state.handouts.find((h) => h.id === id && h.kind === 'spoil');
+    if (!p || !m || m.awarded) return;
+    m.claims[p.id] = { name: p.name, note: str(note, 120), at: Date.now() };
+    broadcast();
+  });
   // Sheet upkeep from the phone: HP, temp HP, spell slots, hit dice, inventory, notes, spell list.
   socket.on('player:sheet', (patch = {}) => {
     const c = me();

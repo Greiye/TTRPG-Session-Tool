@@ -43,13 +43,15 @@ const state = {
   audio: { library: lib.audio, music: null, playing: false, volume: 0.6, sfxVolume: 0.9, builtins: BUILTIN_SFX },
   log: [],
   rolls: [], // dice log (src/rolls.js)
+  handouts: [], // handouts, spoils and dialogue votes (src/messages.js)
+  vote: null, // the active dialogue vote (item 12)
   checkLib: [], // DM-made check presets
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
   room: null, // join code, set by session.js
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
 };
 
-store.EXTRA.push('rolls', 'checkLib');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;

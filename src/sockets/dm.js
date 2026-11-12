@@ -12,6 +12,7 @@ const net = require('../net');
 const creatures = require('../creatures');
 const rolls = require('../rolls');
 const perception = require('../perception');
+const messages = require('../messages');
 const spells = require('../spells');
 const saves = require('../saves');
 const { applySheet } = require('../sheet');
@@ -46,6 +47,33 @@ module.exports = function dmSockets(socket) {
     state.check = null;
     log('system', `Rules system: ${rules.get(id).name}.`);
   });
+  // ----- Phase 4: messages -----
+  dm('dm:handout', (f) => { const m = messages.handout(f, 'h' + nextId(), roster); if (m.text || m.image) state.handouts.push(m); if (state.handouts.length > 80) state.handouts.shift(); });
+  dm('dm:spoil', (f) => { const m = messages.spoil(f, 'p' + nextId()); if (m) state.handouts.push(m); });
+  dm('dm:spoil:award', ({ id, charId }) => {
+    const m = state.handouts.find((h) => h.id === id && h.kind === 'spoil');
+    if (!m || !roster[charId]) return;
+    m.awarded = charId;
+    log('system', `${roster[charId].name} gets the spoils: ${m.items.map((i) => `${i.qty}× ${i.name}`).join(', ')}.`);
+  });
+  dm('dm:handout:remove', ({ id }) => { state.handouts = state.handouts.filter((h) => h.id !== id); });
+  // Share a handout or whisper with the TV (the group decides what goes on the big screen).
+  dm('dm:share', ({ id, on }) => {
+    const h = state.handouts.find((x) => x.id === id);
+    if (h && typeof h.vis === 'object') h.vis = { ...h.vis, screen: !!on };
+  });
+  // Whispers only reach the TV once the DM reveals them.
+  dm('dm:whisper:reveal', ({ id, on }) => {
+    const w = state.whispers.find((x) => x.id === id);
+    if (w) w.vis = { to: [w.to], screen: !!on };
+  });
+  dm('dm:vote:start', ({ options }) => {
+    state.vote = messages.vote(options, 'v' + nextId());
+    log('system', 'The party votes on the next line.', { tone: 'call' });
+  });
+  dm('dm:vote:close', () => { if (state.vote) state.vote.open = false; });
+  dm('dm:vote:clear', () => { state.vote = null; });
+
   // ----- Phase 3: fog of war (7c) and boss title cards (7b) -----
   // Points of interest start hidden on the TV and phones; the DM uncovers them one at a time.
   dm('dm:reveal', ({ poi, all, hide }) => {

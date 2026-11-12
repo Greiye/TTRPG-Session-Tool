@@ -22,13 +22,19 @@ function viewerOf(socket) {
   if (d.screen) return { role: 'screen' };
   return { role: 'guest' };
 }
+// A spoil shows each character only their own claim, plus the DM's full view.
+function spoilFor(h, viewer) {
+  if (viewer.role === 'dm') return h;
+  const { claims, ...rest } = h;
+  return { ...rest, mine: viewer.role === 'player' ? claims[viewer.charId] || null : null, claimCount: Object.keys(claims).length };
+}
 const viewerKey = (v) => `${v.role}:${v.charId || ''}`;
 
 function canSee(vis, viewer) {
   if (viewer.role === 'dm' || vis === undefined || vis === null || vis === 'all') return true;
   if (vis === 'dm') return false;
   if (typeof vis === 'object') {
-    if (viewer.role === 'player' && (vis.to || []).includes(viewer.charId)) return true;
+    if (viewer.role === 'player' && ((vis.to || []).includes(viewer.charId) || (vis.to || []).includes('*'))) return true; // '*' = every phone
     if ((viewer.role === 'screen' || viewer.role === 'codm') && vis.screen) return true;
   }
   return false;
@@ -50,6 +56,8 @@ function viewState(base, viewer) {
   out.log = filterList(base.log, viewer);
   out.rolls = filterList(base.rolls, viewer);
   out.whispers = filterList(base.whispers, viewer);
+  out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h));
+  if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
   if (base.scene) out.scene = { ...base.scene, secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
   // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.
   if (base.check) {
