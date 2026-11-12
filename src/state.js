@@ -54,13 +54,14 @@ const state = {
   rndArt: {}, // table -> slot -> label -> creature art url (item 26 art, uploaded by the DM)
   checkLib: [], // DM-made check presets
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
+  shops: [], // NPC shops with stock and prices (item 27, src/shops.js)
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'shops');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
