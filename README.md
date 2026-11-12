@@ -59,6 +59,17 @@ Characters are saved to `data/characters.json`, and portraits go to `uploads/por
 
 To back up or move your party, copy `data/` and `uploads/`.
 
+## DM controller
+
+Plug a gamepad into the laptop and press any button with the `/dm` tab in front; its name appears next to "Live mode". It needs a pad the browser reports in the Standard Gamepad layout (Xbox, PlayStation, most USB pads). Other devices show "layout not supported" and are ignored.
+
+| Button | Action |
+|---|---|
+| LB / RB | Previous / next live mode |
+| A, B, X, Y | Social: emotions 1-4. Combat: A = next turn |
+| D-pad up / down | Social: previous / next emotion |
+| Start | Speak the line in the dialogue box |
+
 ## Co-DM & atmosphere
 
 A co-DM runs the mood while the DM runs the game. On the DM page, **Co-DM → Invite** shows a private QR (don't put it on the TV). The co-DM page has the same atmosphere controls the DM has, at the bottom of the DM panel, and nothing else: it can't change modes, HP, combat or NPCs.
@@ -110,7 +121,7 @@ If ffmpeg is installed, animated WebM portraits are cropped square and re-encode
 
 ```bash
 npm test          # rules, visibility, uploads, Arthuria bundle, end-to-end socket test
-npm run test:ui   # browser test (Playwright): DM, TV and phone pages, settings, animated portraits
+npm run test:ui   # browser tests (Playwright): DM, TV and phone pages, settings, animated portraits, simulated gamepad
 ```
 
 Layout:

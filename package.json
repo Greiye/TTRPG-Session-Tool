@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "node test/rules.js && node test/visibility.js && node test/assets.js && node test/bundle.js && node test/smoke.js && node test/data.js && node test/rolls.js && node test/tv.js && node test/messages.js && node test/speech.js && node test/turns.js && node test/world.js && node test/map.js",
-    "test:ui": "node test/ui.js"
+    "test:ui": "node test/ui.js && node test/gamepad.js"
   },
   "keywords": [],
   "author": "",
