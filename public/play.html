@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#120d14">
+  <title>Tavern Screen — Player</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="phone">
+  <section id="joinView">
+    <h1>Who are you?</h1>
+    <p id="joinErr" class="err"></p>
+    <div id="roster" class="roster"></div>
+    <button id="newBtn" class="btn" style="width:100%;margin-top:10px">+ New character</button>
+    <div id="newForm" class="card" hidden style="margin-top:10px">
+      <input id="name" maxlength="24" placeholder="Character name" autocomplete="off">
+      <div class="row"><input id="race" maxlength="24" placeholder="Race (e.g. Half-Elf)" class="grow"><input id="player" maxlength="24" placeholder="Your name" class="grow"></div>
+      <div id="classes" class="classes"></div>
+      <button id="joinBtn" class="bigbtn">Enter</button>
+    </div>
+  </section>
+
+  <section id="profile" class="profile" hidden>
+    <div class="row"><h1 class="grow" style="text-align:left">Your character</h1><button class="btn" id="profClose">✕</button></div>
+    <div class="prof-top">
+      <div id="profAv"></div>
+      <div class="prof-photo">
+        <label class="btn">📷 Selfie<input type="file" accept="image/*" capture="user" id="camIn" hidden></label>
+        <label class="btn">🖼 Choose image<input type="file" accept="image/*" id="fileIn" hidden></label>
+        <small id="photoStatus" class="muted"></small>
+      </div>
+    </div>
+    <label class="fld">Played by<input id="pPlayer" maxlength="24"></label>
+    <label class="fld">Race<input id="pRace" maxlength="24"></label>
+    <label class="fld">Catchphrase <small class="muted">(shown on the TV when you crit)</small><input id="pCatch" maxlength="120" placeholder="&quot;Stand behind me!&quot;"></label>
+    <label class="fld">Backstory<textarea id="pBack" rows="5" maxlength="2000" placeholder="Where you came from, who you lost, what you want…"></textarea></label>
+    <label class="fld">Color<input id="pHue" type="range" min="0" max="359"></label>
+    <button class="bigbtn" id="profSave">Save</button>
+  </section>
+
+  <div id="whisperPop" class="whisper-pop" hidden>
+    <div class="card"><h3>🤫 The DM whispers to you</h3><p id="whisperText"></p><button class="bigbtn" id="whisperOk">Got it</button></div>
+  </div>
+
+  <section id="gameView" hidden>
+    <div id="me" class="me"></div>
+    <div id="whispers"></div>
+    <div id="main" style="display:flex;flex-direction:column;gap:12px;margin-top:12px"></div>
+    <h3 class="muted" style="font-family:var(--display);font-size:13px;letter-spacing:.1em;margin:18px 0 6px">RECENT</h3>
+    <div id="log"></div>
+    <form id="sayForm" class="sayform">
+      <input id="say" class="grow" maxlength="200" placeholder="What do you do?" autocomplete="off">
+      <button class="btn primary">Send</button>
+    </form>
+  </section>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/stage.js"></script>
+  <script src="/play.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#120d14">
+  <title>Tavern Screen — Co-DM</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="codm">
+  <div class="dm-bar"><h1>🎻 Co-DM · Atmosphere</h1></div>
+  <p id="denied" class="err" hidden>This link is missing a valid co-DM key. Ask the DM to show you the co-DM QR.</p>
+  <div id="ui" hidden>
+    <div class="stage-wrap"><div id="stage" class="stage"></div></div>
+    <div id="atmo" class="atmo" style="margin-top:14px"></div>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/stage.js"></script>
+  <script src="/atmo.js"></script>
+  <script>
+    const socket = io();
+    const key = new URLSearchParams(location.search).get('key') || '';
+    const render = Atmo.mount(document.getElementById('atmo'), { emit: (ev, d = {}) => socket.emit(ev, d), key: () => key });
+    socket.on('connect', () => socket.emit('dm:auth', { key }, ({ ok }) => {
+      document.getElementById('ui').hidden = !ok;
+      document.getElementById('denied').hidden = ok;
+    }));
+    socket.on('state', (s) => {
+      Stage.stage(document.getElementById('stage'), s);
+      render(s);
+    });
+  </script>
+</body>
+</html>

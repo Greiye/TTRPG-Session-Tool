@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tavern Screen — DM</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="dm">
+  <div class="dm-left">
+    <div class="dm-bar">
+      <h2>🐉 Tavern Screen · DM</h2>
+      <a href="/screen" target="_blank">Open TV screen ↗</a>
+      <span class="note">Drag that window to the TV, double-click for fullscreen.</span>
+    </div>
+    <div class="stage-wrap"><div id="stage" class="stage"></div></div>
+    <div class="card">
+      <h3>Narrate <span class="note">Enter to post to the TV log</span></h3>
+      <div class="row"><input id="narrate" class="grow" placeholder="The door creaks open…"><button class="btn" data-act="narrate">Post</button></div>
+    </div>
+  </div>
+
+  <div class="dm-right">
+    <div id="auth" class="card" hidden>
+      <h3>DM key</h3>
+      <p class="note">You're not on the host laptop. Enter the key printed in the server console.</p>
+      <div class="row"><input id="key" class="grow"><button class="btn primary" id="authBtn">Unlock</button></div>
+    </div>
+
+    <div class="card">
+      <h3>Live mode</h3>
+      <div class="modes">
+        <button class="btn" data-mode="exploration">🧭 Explore</button>
+        <button class="btn" data-mode="combat">⚔️ Combat</button>
+        <button class="btn" data-mode="social">💬 Social</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Co-DM <span><span id="codmCount" class="note"></span> <button class="btn small" id="codmToggle">Invite</button></span></h3>
+      <div id="codmInvite" class="codm-invite" hidden>
+        <img id="codmQr" alt="Co-DM QR">
+        <div><p class="note">Your co-DM scans this to run music, sound effects and backdrops from their phone. Don't show it on the TV.</p><code id="codmUrl"></code></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Party <button class="btn small danger" data-act="reset" title="Clears log, enemies, heals party">Reset session</button></h3>
+      <div id="party" class="list"></div>
+    </div>
+
+    <div class="card">
+      <h3>Characters <button class="btn small" id="charNew">+ New</button></h3>
+      <div id="chars" class="chars"></div>
+    </div>
+
+    <!-- EXPLORATION -->
+    <div class="card" data-panel="exploration">
+      <h3>Scene</h3>
+      <input id="sceneTitle" placeholder="Scene title">
+      <textarea id="sceneText" rows="3" placeholder="Read-aloud description"></textarea>
+      <div class="row">
+        <select id="sceneTheme" class="grow">
+          <option>forest</option><option>dungeon</option><option>tavern</option><option>castle</option><option>cave</option><option>desert</option><option>night</option>
+        </select>
+      </div>
+      <input id="scenePoi" placeholder="Points of interest, comma separated">
+      <button class="btn primary" data-act="scene">Update scene</button>
+    </div>
+    <div class="card" data-panel="exploration social">
+      <h3>Call for a check</h3>
+      <div class="row">
+        <select id="checkSkill" class="grow"></select>
+        <input id="checkDc" type="number" value="13" style="width:70px" title="DC">
+        <button class="btn primary" data-act="check">Call</button>
+        <button class="btn" data-act="checkClear">Clear</button>
+      </div>
+    </div>
+
+    <!-- COMBAT -->
+    <div class="card" data-panel="combat">
+      <h3>Encounter</h3>
+      <div class="row">
+        <button class="btn primary" data-act="combatStart">Roll initiative</button>
+        <button class="btn" data-act="combatNext">Next turn ▸</button>
+        <button class="btn danger" data-act="combatEnd">End</button>
+      </div>
+      <div id="enemyTurn"></div>
+      <div id="enemies" class="list"></div>
+    </div>
+    <div class="card" data-panel="combat">
+      <h3>Add enemy</h3>
+      <div class="row">
+        <button class="btn small" data-preset="Goblin,7,15,4,2">Goblin</button>
+        <button class="btn small" data-preset="Wolf,11,13,4,2">Wolf</button>
+        <button class="btn small" data-preset="Skeleton,13,13,4,2">Skeleton</button>
+        <button class="btn small" data-preset="Orc,15,13,5,3">Orc</button>
+        <button class="btn small" data-preset="Ogre,59,11,6,4">Ogre</button>
+      </div>
+      <div class="row">
+        <input id="enName" class="grow" placeholder="Name">
+        <input id="enHp" type="number" placeholder="HP" style="width:60px">
+        <input id="enAc" type="number" placeholder="AC" style="width:60px">
+        <input id="enAtk" type="number" placeholder="+Hit" style="width:60px">
+        <input id="enDmg" type="number" placeholder="+Dmg" style="width:60px">
+        <button class="btn" data-act="enemyAdd">Add</button>
+      </div>
+    </div>
+
+    <!-- SOCIAL -->
+    <div class="card" data-panel="social">
+      <h3>NPC</h3>
+      <div class="row">
+        <input id="npcName" class="grow" placeholder="NPC name">
+        <input id="npcHue" type="range" min="0" max="359" style="width:110px" title="Palette">
+      </div>
+      <h3>Emotion <span class="note">keys 1–8</span></h3>
+      <div id="emotions" class="emotions"></div>
+    </div>
+    <div class="card" data-panel="social">
+      <h3>Dialogue</h3>
+      <textarea id="line" rows="2" placeholder="Type the NPC's line. Enter to speak, Shift+Enter for newline."></textarea>
+      <button class="btn primary" data-act="say">Speak as NPC</button>
+    </div>
+    <div class="card" data-panel="social">
+      <h3>Live voice <span><span id="recDot" class="rec-dot"></span></span></h3>
+      <p class="note">Placeholder for live speech-to-text. Records your mic and transcribes with the browser's speech engine (Chrome/Edge) when available.</p>
+      <div id="voiceBox" class="voice-box"><span class="interim">Press Record and speak in character…</span></div>
+      <label class="chk"><input type="checkbox" id="liveCaption" checked> Show live caption on TV</label>
+      <label class="chk"><input type="checkbox" id="autoSay"> Auto-speak each finished sentence as the NPC</label>
+      <div class="row">
+        <button class="btn primary" id="recBtn">● Record</button>
+        <button class="btn" id="voiceSend">Send transcript as line</button>
+        <button class="btn" id="voiceClear">Clear</button>
+      </div>
+      <div id="voiceStatus" class="note"></div>
+      <div id="recordings" class="recordings"></div>
+    </div>
+    <div class="card" data-panel="social">
+      <h3>Player choices</h3>
+      <input class="choice" placeholder="Choice 1"><input class="choice" placeholder="Choice 2">
+      <input class="choice" placeholder="Choice 3"><input class="choice" placeholder="Choice 4">
+      <div class="row"><button class="btn primary" data-act="choices">Push to phones</button><button class="btn" data-act="choicesClear">Clear</button></div>
+    </div>
+    <div id="atmo"></div>
+  </div>
+
+  <dialog id="charDlg" class="char-dlg">
+    <form method="dialog" id="charForm">
+      <div class="row"><h3 class="grow" id="charTitle">Character</h3><button class="btn" value="cancel" formnovalidate>✕</button></div>
+      <div class="dlg-grid">
+        <div class="dlg-av">
+          <div id="charAv"></div>
+          <label class="btn small" id="charPhotoBtn">Upload portrait<input type="file" accept="image/*" id="charPhoto" hidden></label>
+          <label class="fld">Color<input type="range" min="0" max="359" name="hue"></label>
+        </div>
+        <div class="dlg-fields">
+          <div class="row">
+            <label class="fld grow">Name<input name="name" maxlength="24" required></label>
+            <label class="fld grow">Played by<input name="player" maxlength="24"></label>
+          </div>
+          <div class="row">
+            <label class="fld grow">Race<input name="race" maxlength="24"></label>
+            <label class="fld grow">Class<select name="cls"></select></label>
+            <label class="fld" style="width:64px">Level<input name="level" type="number" min="1" max="20"></label>
+          </div>
+          <div class="row">
+            <label class="fld" style="width:64px">HP<input name="hp" type="number"></label>
+            <label class="fld" style="width:64px">Max<input name="maxHp" type="number"></label>
+            <label class="fld" style="width:64px">AC<input name="ac" type="number"></label>
+            <label class="fld" style="width:64px">+Hit<input name="atk" type="number"></label>
+            <label class="fld" style="width:80px">Damage<input name="dmg" placeholder="1d8+3"></label>
+            <label class="fld" style="width:64px">Init<input name="init" type="number"></label>
+          </div>
+          <div class="skills-grid" id="skillInputs"></div>
+        </div>
+      </div>
+      <label class="fld">Catchphrase<input name="catchphrase" maxlength="120"></label>
+      <label class="fld">Turn theme <small>(plays when their combat turn starts, an intro, or a crit)</small><select name="theme"></select></label>
+      <label class="fld">Backstory <small>(the player can edit this too)</small><textarea name="backstory" rows="3" maxlength="2000"></textarea></label>
+      <label class="fld">🪝 Plot hooks <small>(DM only)</small><textarea name="hooks" rows="2" maxlength="2000" placeholder="Their missing sister, the debt to the Thieves Guild…"></textarea></label>
+      <label class="fld">🔒 Secrets <small>(DM only)</small><textarea name="secret" rows="2" maxlength="2000"></textarea></label>
+      <div class="row">
+        <button class="btn danger" id="charDelete" type="button">Delete</button>
+        <span class="grow"></span>
+        <button class="btn" value="cancel" formnovalidate>Cancel</button>
+        <button class="btn primary" id="charSave" type="button">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/stage.js"></script>
+  <script src="/audio.js"></script>
+  <script src="/atmo.js"></script>
+  <script src="/dm.js"></script>
+  <script src="/voice.js"></script>
+</body>
+</html>
