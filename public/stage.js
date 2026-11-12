@@ -114,9 +114,17 @@
       </div>`).join('')}</div>`;
   }
 
+  // Only entries new since the last render slide in; re-rendering the whole log must not replay old animations.
+  let logSeen = null;
   function logFeed(s, n = 9) {
-    return `<ul class="log">${s.log.slice(-n).map((l) => `
-      <li class="k-${l.kind} ${l.tone ? 't-' + l.tone : ''}">${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${l.roll === 20 ? '<em class="nat">NAT 20</em> ' : l.roll === 1 ? '<em class="nat one">NAT 1</em> ' : ''}${esc(l.text)}</li>`).join('')}</ul>`;
+    const shown = s.log.slice(-n);
+    const first = !logSeen;
+    const seen = logSeen || new Set();
+    const fresh = (l) => !first && !seen.has(l.id);
+    shown.forEach((l) => seen.add(l.id));
+    logSeen = seen;
+    return `<ul class="log">${shown.map((l) => `
+      <li class="k-${l.kind} ${l.tone ? 't-' + l.tone : ''} ${fresh(l) ? 'new' : ''}">${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${l.roll === 20 ? '<em class="nat">NAT 20</em> ' : l.roll === 1 ? '<em class="nat one">NAT 1</em> ' : ''}${esc(l.text)}</li>`).join('')}</ul>`;
   }
 
   function checkBanner(s) {

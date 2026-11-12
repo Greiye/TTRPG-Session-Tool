@@ -91,7 +91,8 @@ code { font-family: ui-monospace, Menlo, monospace; }
 .stage-log { min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
 
 .log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .45em; font-size: .78em; }
-.log li { background: rgb(0 0 0 / .4); border-left: 3px solid var(--line); padding: .35em .6em; border-radius: 0 .4em .4em 0; animation: slidein .4s ease-out; }
+.log li { background: rgb(0 0 0 / .4); border-left: 3px solid var(--line); padding: .35em .6em; border-radius: 0 .4em .4em 0; }
+.log li.new { animation: slidein .4s ease-out; }
 .log .k-narrate { border-color: var(--gold); font-style: italic; }
 .log .k-npc { border-color: #c79bff; }
 .log .k-say { border-color: #8fc6ff; }
@@ -574,3 +575,6 @@ html[data-motion="reduce"] .boss-card { animation-duration: .001ms; }
 .memorial blockquote { margin: .5cqw 0 0; max-width: 60cqw; font-family: var(--display); font-size: calc(1.8cqw * var(--ts)); font-style: italic; }
 .memorial .av-mem { width: 12cqw; height: 12cqw; filter: grayscale(1) brightness(.8); }
 html[data-motion="reduce"] .memorial { animation-duration: .001ms; }
+
+/* Action log hidden per screen (Display settings > Action log) */
+html[data-log="hide"] .stage-log, html[data-log="hide"] #log { display: none; }
