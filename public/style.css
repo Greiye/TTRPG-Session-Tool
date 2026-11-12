@@ -513,3 +513,53 @@ html[data-motion="reduce"] .boss-card { animation-duration: .001ms; }
 .stage.light-dusk::before { background: rgb(120 50 20 / .22); }
 .stage.light-dawn::before { background: rgb(255 170 90 / .18); }
 .stage.light-torchlight::before { background: radial-gradient(ellipse at 50% 30%, rgb(255 170 60 / .18), rgb(0 0 0 / .45)); }
+
+/* ================= Phase 8: map, tokens, randomizer ================= */
+.bmap { position: relative; width: 100%; max-height: 100%; background: #1a1220; border: 1px solid var(--line); border-radius: .8cqw; overflow: hidden; }
+.bmap > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.bmap .grid { position: absolute; inset: 0; background-image: linear-gradient(to right, rgb(255 255 255 / .12) 1px, transparent 1px), linear-gradient(to bottom, rgb(255 255 255 / .12) 1px, transparent 1px); }
+.bmap i { position: absolute; display: block; }
+.bmap .t-difficult { background: rgb(120 90 30 / .45); }
+.bmap .t-wall { background: rgb(0 0 0 / .8); }
+.tok { position: absolute; display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 700; border-radius: 50%; border: .2cqw solid #fff; box-shadow: 0 0 .6cqw #000; transition: left .4s, top .4s; }
+.tok span { font-size: calc(1.4cqw * var(--ts)); text-shadow: 0 0 .3cqw #000; }
+.tok.side-player { background: #2a6e9e; }
+.tok.side-enemy { background: #8a2a2a; }
+.tok.side-ally { background: #2a7e4a; }
+.tok.side-neutral { background: #6a6a6a; }
+.tok.now { box-shadow: 0 0 1.4cqw var(--gold); }
+.tok.down { opacity: .35; }
+.tok .z { position: absolute; top: -1cqw; right: -1cqw; font-style: normal; font-size: calc(.9cqw * var(--ts)); background: #000; border-radius: .5cqw; padding: 0 .3cqw; }
+.dm-map { display: grid; gap: 0; width: 100%; aspect-ratio: 20 / 14; border: 1px solid var(--line); cursor: crosshair; background: #1a1220; user-select: none; }
+.dm-map div { border: 1px solid rgb(255 255 255 / .06); }
+.dm-map div.t-difficult { background: rgb(120 90 30 / .5); }
+.dm-map div.t-wall { background: #000; }
+.dm-map div.has { background: rgb(42 110 158 / .7); font-size: 10px; text-align: center; }
+.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 180px; }
+.pad .btn { padding: 10px 0; }
+.rolled { display: grid; grid-template-columns: 1fr auto; gap: 4px; align-items: center; }
+
+/* ================= Phase 8: map, tokens, randomizer ================= */
+.bmap { position: relative; width: 100%; background: #1a1220; border: 1px solid var(--line); border-radius: .8cqw; overflow: hidden; }
+.bmap > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.bmap .grid { position: absolute; inset: 0; background-image: linear-gradient(to right, rgb(255 255 255 / .12) 1px, transparent 1px), linear-gradient(to bottom, rgb(255 255 255 / .12) 1px, transparent 1px); }
+.bmap i { position: absolute; display: block; }
+.bmap .t-difficult { background: rgb(120 90 30 / .45); }
+.bmap .t-wall { background: rgb(0 0 0 / .8); }
+.tok { position: absolute; display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 700; border-radius: 50%; border: .2cqw solid #fff; box-shadow: 0 0 .6cqw #000; transition: left .4s, top .4s; }
+.tok span { font-size: calc(1.4cqw * var(--ts)); text-shadow: 0 0 .3cqw #000; }
+.tok.side-player { background: #2a6e9e; }
+.tok.side-enemy { background: #8a2a2a; }
+.tok.side-ally { background: #2a7e4a; }
+.tok.side-neutral { background: #6a6a6a; }
+.tok.now { box-shadow: 0 0 1.4cqw var(--gold); }
+.tok.down { opacity: .35; }
+.tok .z { position: absolute; top: -1cqw; right: -1cqw; font-style: normal; font-size: calc(.9cqw * var(--ts)); background: #000; border-radius: .5cqw; padding: 0 .3cqw; }
+.dm-map { display: grid; width: 100%; aspect-ratio: 20 / 14; border: 1px solid var(--line); cursor: crosshair; background: #1a1220; user-select: none; }
+.dm-map div { border: 1px solid rgb(255 255 255 / .06); font-size: 10px; display: flex; align-items: center; justify-content: center; }
+.dm-map div.t-difficult { background: rgb(120 90 30 / .5); }
+.dm-map div.t-wall { background: #000; }
+.dm-map div.has { background: rgb(42 110 158 / .7); }
+.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 180px; }
+.pad .btn { padding: 10px 0; }
+.rolled { display: grid; grid-template-columns: 1fr auto; gap: 4px; align-items: center; }

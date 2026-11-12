@@ -140,7 +140,26 @@
     </div>`;
   }
 
+  // Battle map (24, 25): the uploaded map under a grid, tokens by tile, fliers shown with height.
+  function battleMap(s) {
+    const m = s.map;
+    const all = [...s.players, ...s.combat.enemies];
+    const byId = Object.fromEntries(all.map((x) => [x.id, x]));
+    const turn = s.combat.active ? s.combat.order[s.combat.turn]?.id : null;
+    const tiles = [];
+    for (const [k, kind] of Object.entries(m.terrain || {})) { const [x, y] = k.split(',').map(Number); tiles.push(`<i class="t-${kind}" style="left:${(100 * x) / m.cols}%;top:${(100 * y) / m.rows}%;width:${100 / m.cols}%;height:${100 / m.rows}%"></i>`); }
+    const toks = Object.entries(s.tokens || {}).filter(([id]) => byId[id]).map(([id, t]) => {
+      const c = byId[id];
+      const side = c.side ? c.side : c.enemy ? 'enemy' : 'player';
+      return `<div class="tok side-${side} ${turn === id ? 'now' : ''} ${c.hp === 0 ? 'down' : ''}" style="left:${(100 * t.x) / m.cols}%;top:${(100 * t.y) / m.rows}%;width:${100 / m.cols}%;height:${100 / m.rows}%">
+        <span>${esc((c.name || '?')[0])}</span>${t.z ? `<em class="z">↑${t.z}</em>` : ''}</div>`;
+    }).join('');
+    return `<div class="bmap" style="aspect-ratio:${m.cols} / ${m.rows}">${m.image ? `<img src="${esc(m.image)}" alt="">` : ''}
+      <div class="grid" style="background-size:${100 / m.cols}% ${100 / m.rows}%"></div>${tiles}${toks}</div>`;
+  }
+
   function combat(s) {
+    if (s.map) return `<div class="combat">${battleMap(s)}</div>`;
     const c = s.combat;
     const byId = Object.fromEntries([...s.players, ...c.enemies].map((x) => [x.id, x]));
     const turn = c.active ? c.order[c.turn]?.id : null;

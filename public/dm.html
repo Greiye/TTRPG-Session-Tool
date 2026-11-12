@@ -32,7 +32,7 @@
     </div>
 
     <div class="card">
-      <h3>Live mode</h3>
+      <h3>Live mode <span class="note" id="padStatus"></span></h3>
       <div class="modes">
         <button class="btn" data-mode="exploration">🧭 Explore</button>
         <button class="btn" data-mode="combat">⚔️ Combat</button>
@@ -183,6 +183,31 @@
       <div id="enemyTurn"></div>
       <div id="bossBtns" class="row"></div>
       <div id="enemies" class="list"></div>
+    </div>
+    <div class="card" data-panel="combat">
+      <h3>Battle map <span class="note">click a tile to place or paint</span></h3>
+      <div class="row">
+        <label class="btn small">⬆ Map image<input type="file" accept="image/*" id="mapFile" hidden></label>
+        <input id="mapCols" type="number" min="4" max="60" value="20" style="width:64px" title="Columns">
+        <input id="mapRows" type="number" min="4" max="40" value="14" style="width:64px" title="Rows">
+        <button class="btn small" id="mapSet">Set grid</button>
+      </div>
+      <div class="row">
+        <select id="mapTool" style="width:auto"><option value="place">Place token</option><option value="difficult">Paint difficult</option><option value="wall">Paint wall</option><option value="clear">Clear tile</option></select>
+        <select id="mapToken" class="grow"></select>
+        <label class="note tight">Height <input id="mapZ" type="number" min="0" max="10" value="0" style="width:56px"></label>
+      </div>
+      <div id="dmMap" class="dm-map"></div>
+      <p class="note" id="mapInfo"></p>
+    </div>
+    <div class="card" data-panel="combat">
+      <h3>Creature randomizer <span class="note">seed locks a result</span></h3>
+      <div class="row">
+        <select id="rndTable" class="grow"></select>
+        <input id="rndSeed" placeholder="seed (optional)" style="width:110px">
+        <button class="btn primary" id="rndRoll">Roll</button>
+      </div>
+      <div id="rndOut" class="list"></div>
     </div>
     <div class="card" data-panel="combat">
       <h3>Creatures <span><button class="btn small" id="crNew">+ New</button> <button class="btn small" id="crImportBtn">Import</button></span></h3>

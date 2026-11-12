@@ -15,6 +15,8 @@ const perception = require('../perception');
 const messages = require('../messages');
 const tracker = require('../tracker');
 const world = require('../world');
+const grid = require('../grid');
+const randomizer = require('../randomizer');
 const spells = require('../spells');
 const saves = require('../saves');
 const { applySheet } = require('../sheet');
@@ -50,6 +52,18 @@ module.exports = function dmSockets(socket) {
     state.check = null;
     log('system', `Rules system: ${rules.get(id).name}.`);
   });
+  // ----- Phase 8: map, tokens, randomizer -----
+  dm('dm:map', (f) => { grid.setMap(f); });
+  dm('dm:map:paint', ({ x, y, kind }) => grid.paint(Number(x), Number(y), kind));
+  dm('dm:token', ({ id, x, y, z }) => { if (state.combat.enemies.some((e) => e.id === id) || state.players[id]) grid.place(id, Number(x), Number(y), z); });
+  dm('dm:token:move', ({ id, x, y }) => { const c = game.combatant(id); if (c) grid.move(c, Number(x), Number(y), { dm: true }); });
+  dm('dm:roll:creature', ({ table, seed, reroll: slot }) => {
+    const t = randomizer.TABLES[table];
+    if (!t) return;
+    const prev = state.roll && state.roll.table === table ? state.roll : null;
+    state.roll = slot && prev ? { table, ...randomizer.reroll(t, prev, slot) } : { table, n: 0, ...randomizer.roll(t, seed) };
+  });
+
   // ----- Phase 7: world and content -----
   dm('dm:relation', ({ npc, charId, stance }) => world.relate(npc, charId, stance));
   dm('dm:phrase', (f) => { const p = world.phrase(f); if (p) state.handouts.push(p); });

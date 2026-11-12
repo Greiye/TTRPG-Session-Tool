@@ -65,6 +65,14 @@ module.exports = function playerSockets(socket) {
     m.claims[p.id] = { name: p.name, note: str(note, 120), at: Date.now() };
     broadcast();
   });
+  // Phase 8: a character moves on its turn, within its speed (see src/grid.js).
+  socket.on('player:move', ({ x, y } = {}, ack) => {
+    const p = me();
+    if (!p || game.currentTurnId() !== p.id) return ack?.({ error: 'Wait for your turn.' });
+    const r = require('../grid').move(p, Number(x), Number(y));
+    ack?.(r);
+    broadcast();
+  });
   // Sheet upkeep from the phone: HP, temp HP, spell slots, hit dice, inventory, notes, spell list.
   socket.on('player:sheet', (patch = {}) => {
     const c = me();

@@ -5,6 +5,7 @@ import './game.js';
 import './sheet.js';
 import './rolls.js';
 import './messages.js';
+import './combatmap.js';
 import './profile.js';
 import './whispers.js';
 
