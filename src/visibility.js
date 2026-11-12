@@ -1,7 +1,7 @@
 // One rule for who sees what. Every state broadcast goes through viewState(), per viewer.
 //
 // Viewers: dm, codm (atmosphere helper), player (one character), screen (the TV), guest (unjoined phone).
-// Item-level visibility, the `vis` field on any list item (log entries, whispers, handouts, later spoils):
+// Item-level visibility, the `vis` field on any list item (log entries, whispers, handouts, objectives, spoils):
 //   undefined | 'all'        everyone
 //   'dm'                     DM only
 //   { to: [charId...], screen: bool }  the DM, those characters, and the TV if screen is true
@@ -73,6 +73,7 @@ function viewState(base, viewer) {
   out.log = filterList(base.log, viewer);
   out.rolls = filterList(base.rolls, viewer);
   out.whispers = filterList(base.whispers, viewer);
+  out.objectives = filterList(base.objectives, viewer); // secret objectives: the owner's phone and the DM until revealed (src/objectives.js)
   out.suggestions = filterList(base.suggestions, viewer); // spectator suggestions: DM and players only (src/spectate.js)
   out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h));
   if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };

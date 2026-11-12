@@ -20,6 +20,7 @@ const randomizer = require('../randomizer');
 const spells = require('../spells');
 const saves = require('../saves');
 const shops = require('../shops');
+const objectives = require('../objectives');
 const { applySheet } = require('../sheet');
 const { saveRoster } = require('../roster');
 
@@ -107,6 +108,14 @@ module.exports = function dmSockets(socket) {
     m.awarded = charId;
     log('system', `${roster[charId].name} gets the spoils: ${m.items.map((i) => `${i.qty}× ${i.name}`).join(', ')}.`);
   });
+  // Secret objectives (item 9): the DM gives one to a character; only that phone sees it until revealed.
+  dm('dm:objective', (f) => {
+    if (state.objectives.length >= objectives.MAX_OBJECTIVES) return;
+    const o = objectives.create(f, 'o' + nextId(), roster);
+    if (o) state.objectives.push(o);
+  });
+  dm('dm:objective:reveal', ({ id, on }) => objectives.setRevealed(state.objectives, id, on));
+  dm('dm:objective:remove', ({ id }) => { state.objectives = state.objectives.filter((o) => o.id !== id); });
   dm('dm:handout:remove', ({ id }) => { state.handouts = state.handouts.filter((h) => h.id !== id); });
   // NPC shops (item 27): import a CSV or Markdown list; the server parses it and answers with any skipped rows.
   socket.on('dm:shop:import', (f = {}, ack) => {
