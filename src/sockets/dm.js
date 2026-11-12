@@ -134,6 +134,15 @@ module.exports = function dmSockets(socket) {
     broadcast();
   });
 
+  // Table-wide display settings, used by the TV (phones and the DM laptop keep their own).
+  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'] };
+  dm('dm:settings', ({ display }) => {
+    if (!display) return;
+    const cur = state.settings.display || {};
+    for (const [k, vals] of Object.entries(DISPLAY)) if (vals.includes(display[k])) cur[k] = display[k];
+    state.settings.display = cur;
+  });
+
   // New room code: new phones need the new QR; phones already seated keep their device tokens.
   dm('dm:room:new', () => { state.room = newRoomCode(); log('system', `New room code: ${state.room}.`); });
   // Which network address goes into the QR (when the laptop has several adapters).

@@ -7,6 +7,7 @@ const emit = (ev, data = {}) => socket.emit(ev, data);
 window.dmEmit = emit;
 
 let S = null;
+Settings.mount({ table: { get: () => S?.settings.display || {}, set: (display) => emit('dm:settings', { display }) } });
 let filled = false;
 
 // ---------- auth: localhost is trusted, otherwise ?key= ----------

@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#120d14">
   <title>Tavern Screen — Co-DM</title>
   <link rel="stylesheet" href="/style.css">
+  <script src="/settings.js"></script>
 </head>
 <body class="codm">
   <div class="dm-bar"><h1>🎻 Co-DM · Atmosphere</h1></div>
@@ -19,6 +20,7 @@
   <script src="/atmo.js"></script>
   <script>
     const socket = io();
+    Settings.mount();
     const key = new URLSearchParams(location.search).get('key') || '';
     const render = Atmo.mount(document.getElementById('atmo'), { emit: (ev, d = {}) => socket.emit(ev, d), key: () => key });
     socket.on('connect', () => socket.emit('dm:auth', { key }, ({ ok }) => {
