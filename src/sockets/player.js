@@ -48,6 +48,14 @@ module.exports = function playerSockets(socket) {
     broadcast();
   });
 
+  // Sheet upkeep from the phone: HP, temp HP, spell slots, hit dice, inventory, notes, spell list.
+  socket.on('player:sheet', (patch = {}) => {
+    const c = me();
+    if (!c) return;
+    require('../sheet').applySheet(c, patch || {}, false);
+    broadcast();
+  });
+
   socket.on('player:check', ({ skill, mode } = {}) => {
     const p = me();
     if (!p || !sys().skills.includes(skill)) return;
@@ -88,7 +96,7 @@ module.exports = function playerSockets(socket) {
     const p = me();
     if (!p || game.currentTurnId() !== p.id || p.hp <= 0) return;
     if (act === 'attack') {
-      const t = state.combat.enemies.find((e) => e.id === target && e.hp > 0);
+      const t = state.combat.enemies.find((e) => e.id === target && e.hp > 0 && e.side !== 'ally');
       if (!t) return;
       game.attack(p, t);
     } else if (['dodge', 'dash', 'help', 'hide'].includes(act)) {

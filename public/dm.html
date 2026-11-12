@@ -56,6 +56,8 @@
         <a class="btn small" id="transcriptBtn" download>📜 Session transcript</a>
       </div>
       <p class="note">One file with characters, NPCs, places and lore (plus portraits) for Arthuria or another laptop. The transcript is Markdown.</p>
+      <div class="row"><input id="saveName" class="grow" placeholder="Save point name, e.g. Before the vault"><button class="btn small" id="saveBtn">💾 Save point</button></div>
+      <div id="saves" class="list"></div>
     </div>
 
     <div class="card">
@@ -103,14 +105,17 @@
       <div id="enemies" class="list"></div>
     </div>
     <div class="card" data-panel="combat">
-      <h3>Add enemy</h3>
-      <div class="row">
-        <button class="btn small" data-preset="Goblin,7,15,4,2">Goblin</button>
-        <button class="btn small" data-preset="Wolf,11,13,4,2">Wolf</button>
-        <button class="btn small" data-preset="Skeleton,13,13,4,2">Skeleton</button>
-        <button class="btn small" data-preset="Orc,15,13,5,3">Orc</button>
-        <button class="btn small" data-preset="Ogre,59,11,6,4">Ogre</button>
+      <h3>Creatures <span><button class="btn small" id="crNew">+ New</button> <button class="btn small" id="crImportBtn">Import</button></span></h3>
+      <input id="crSearch" placeholder="Search stat blocks…">
+      <div id="crList" class="list cr-list"></div>
+      <div id="crImport" hidden>
+        <p class="note">Load monsters and spells from an SRD or Open5e JSON file, or search Open5e (needs internet on this laptop).</p>
+        <div class="row"><label class="btn small">⬆ JSON file<input type="file" accept=".json,application/json" id="srdFile" hidden></label>
+          <input id="srdQ" class="grow" placeholder="Search Open5e, e.g. dragon"><select id="srdKind" style="width:auto"><option value="monster">Monsters</option><option value="spell">Spells</option></select><button class="btn small" id="srdGo">Search</button></div>
+        <div id="srdStatus" class="note"></div>
+        <div id="srdResults" class="list"></div>
       </div>
+      <h3>Quick add <span class="note">not saved to the library</span></h3>
       <div class="row">
         <input id="enName" class="grow" placeholder="Name">
         <input id="enHp" type="number" placeholder="HP" style="width:60px">
@@ -187,6 +192,7 @@
             <label class="fld" style="width:64px">Init<input name="init" type="number"></label>
           </div>
           <div class="skills-grid" id="skillInputs"></div>
+          <div id="sheetInputs"></div>
         </div>
       </div>
       <label class="fld">Catchphrase<input name="catchphrase" maxlength="120"></label>
@@ -199,6 +205,41 @@
         <span class="grow"></span>
         <button class="btn" value="cancel" formnovalidate>Cancel</button>
         <button class="btn primary" id="charSave" type="button">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="crDlg" class="char-dlg">
+    <form method="dialog" id="crForm">
+      <div class="row"><h3 class="grow" id="crTitle">Creature</h3><button class="btn" value="cancel" formnovalidate>✕</button></div>
+      <div class="row">
+        <label class="fld grow">Name<input name="name" maxlength="60" required></label>
+        <label class="fld" style="width:110px">Side<select name="side"><option value="enemy">Enemy</option><option value="ally">Ally</option><option value="neutral">Neutral</option></select></label>
+        <label class="fld" style="width:150px">Type<input name="kind" maxlength="60" placeholder="Large beast"></label>
+        <label class="fld" style="width:60px">CR<input name="cr" maxlength="8"></label>
+      </div>
+      <div class="row">
+        <label class="fld" style="width:70px">HP<input name="hp" type="number" min="1"></label>
+        <label class="fld" style="width:60px">AC<input name="ac" type="number"></label>
+        <label class="fld" style="width:60px">Init<input name="init" type="number"></label>
+        <label class="fld" style="width:70px">Speed<input name="walk" type="number" step="5"></label>
+        <label class="fld" style="width:70px">Fly<input name="fly" type="number" step="5"></label>
+        <label class="fld" style="width:70px">Swim<input name="swim" type="number" step="5"></label>
+        <label class="fld" style="width:70px">Climb<input name="climb" type="number" step="5"></label>
+      </div>
+      <label class="fld">Attacks <small>(one per line: Name | +hit | damage | type | range)</small><textarea name="attacks" rows="3" placeholder="Bite | +4 | 2d4+2 | piercing | reach 5 ft."></textarea></label>
+      <label class="fld">Traits and other actions <small>(one per line: Name: what it does)</small><textarea name="traits" rows="3"></textarea></label>
+      <label class="fld">DM notes<textarea name="notes" rows="2" maxlength="2000"></textarea></label>
+      <div class="row">
+        <label class="chk"><input type="checkbox" name="boss"> Boss</label>
+        <label class="fld grow">Boss title <small>(shown on the TV title card)</small><input name="title" maxlength="80" placeholder="Terror of the Mill"></label>
+        <label class="btn small" id="crArtBtn">Upload art<input type="file" accept="image/*,video/webm" id="crArt" hidden></label>
+      </div>
+      <div class="row">
+        <button class="btn danger" id="crDelete" type="button">Delete</button>
+        <span class="grow"></span>
+        <button class="btn" value="cancel" formnovalidate>Cancel</button>
+        <button class="btn primary" id="crSave" type="button">Save</button>
       </div>
     </form>
   </dialog>

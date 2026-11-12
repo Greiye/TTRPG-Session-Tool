@@ -34,3 +34,32 @@ export function onClick(attr, fn, root = document) {
     fn(b.dataset[key], b, ev);
   });
 }
+
+// Feature modules add their own cards and dialogs, so the HTML pages stay small.
+export function mount(html, before = '#atmo') {
+  const t = document.createElement('template');
+  t.innerHTML = html.trim();
+  const el = t.content.firstElementChild;
+  const anchor = before && document.querySelector(before);
+  if (anchor) anchor.before(el); else document.body.append(el);
+  return el;
+}
+// Libraries (creatures, spells) are fetched over HTTP and refetched when their version in the state changes.
+const libs = {};
+export function library(name, { headers } = {}) {
+  if (libs[name]) return libs[name];
+  const lib = (libs[name] = { items: [], version: 0, subs: [], byId: (id) => lib.items.find((x) => x.id === id), onChange: (fn) => { lib.subs.push(fn); if (lib.version) fn(lib.items); } });
+  onState(async (s) => {
+    const v = s.lib?.[name];
+    if (!v || v === lib.version || lib.loading === v) return;
+    lib.loading = v;
+    try {
+      const res = await fetch(`/api/${name}`, { headers: typeof headers === 'function' ? headers() : headers });
+      if (!res.ok) return;
+      lib.items = await res.json();
+      lib.version = v;
+      for (const fn of lib.subs) fn(lib.items);
+    } finally { lib.loading = null; }
+  });
+  return lib;
+}

@@ -9,6 +9,7 @@
 //   editStats(c, fields)         DM stat edits, validated per system
 //   bonus(c, skill)              modifier shown on buttons
 //   check(c, skill, {dc, mode})  -> {natural, total, pass, crit, text, outcome}
+//   abilities, sheetDefaults(cls), editSheet(c, f), abilityMod, prof, saveBonus(c, ab), passive(c, skill)   character sheet (item 2)
 //   initiative(x)                -> number
 //   attack(attacker, target, {mode}) -> {natural, hit, crit, damage, text}
 const systems = {
@@ -23,6 +24,7 @@ const list = () => Object.values(systems).map(({ id, name }) => ({ id, name }));
 const describe = (id) => {
   const s = get(id);
   return { id: s.id, name: s.name, skills: s.skills, skillGroups: s.skillGroups, defenseLabel: s.defenseLabel, dcLabel: s.dcLabel,
+    abilities: s.abilities, skillAbility: s.skillAbility, slotLevels: s.slotLevels, languages: s.languages,
     classes: Object.fromEntries(Object.entries(s.classes).map(([k, v]) => [k, v.blurb])) };
 };
 

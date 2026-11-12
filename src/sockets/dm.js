@@ -9,6 +9,11 @@ const game = require('../game');
 const entities = require('../entities');
 const { release, newRoomCode } = require('../session');
 const net = require('../net');
+const creatures = require('../creatures');
+const spells = require('../spells');
+const saves = require('../saves');
+const { applySheet } = require('../sheet');
+const { saveRoster } = require('../roster');
 
 module.exports = function dmSockets(socket) {
   const { io } = hub;
@@ -46,13 +51,45 @@ module.exports = function dmSockets(socket) {
   });
 
   // ----- combat -----
-  dm('dm:enemy:add', ({ name, hp, ac, atk, dmg }) => {
-    hp = Math.max(1, Number(hp) || 10);
-    state.combat.enemies.push({
-      id: 'e' + nextId(), name: String(name || 'Goblin').slice(0, 24), hp, maxHp: hp,
-      ac: Number(ac) || 12, atk: Number(atk) || 4, dmg: [1, 6, Number(dmg) || 2], enemy: true,
-    });
+  // Numbered names when the same creature is added more than once: Goblin, Goblin 2, Goblin 3.
+  const uniqueName = (base) => {
+    const taken = new Set(state.combat.enemies.map((e) => e.name));
+    if (!taken.has(base)) return base;
+    let n = 2;
+    while (taken.has(`${base} ${n}`)) n++;
+    return `${base} ${n}`;
+  };
+  // Quick one-off combatant typed into the encounter card (not saved to the library).
+  dm('dm:enemy:add', ({ name, hp, ac, atk, dmg, side }) => {
+    const block = creatures.normalize({ name: name || 'Goblin', hp: Number(hp) || 10, ac: Number(ac) || 12, side,
+      attacks: [{ name: 'Attack', atk: Number(atk) || 4, dmg: /d/i.test(String(dmg)) ? dmg : `1d6+${Number(dmg) || 2}` }] });
+    state.combat.enemies.push(creatures.spawn(block, { id: 'e' + nextId(), name: String(name || 'Goblin').slice(0, 24) }));
   });
+  // ----- creature library (stat blocks) -----
+  socket.on('dm:creature:save', (f = {}, ack) => {
+    if (socket.data.role !== 'dm') return;
+    const c = creatures.upsert(f);
+    ack?.({ id: c.id });
+    broadcast();
+  });
+  dm('dm:creature:delete', ({ id }) => { const c = creatures.lib.get(id); if (c) { removeUrl(c.image); creatures.lib.remove(id); } });
+  dm('dm:creature:spawn', ({ id, count, side }) => {
+    const block = creatures.lib.get(id);
+    if (!block) return;
+    for (let i = 0; i < Math.max(1, Math.min(12, Number(count) || 1)); i++) {
+      const c = creatures.spawn(creatures.SIDES.includes(side) ? { ...block, side } : block, { id: 'e' + nextId(), name: uniqueName(block.name) });
+      state.combat.enemies.push(c);
+      // Joining a fight in progress: roll initiative and slot in.
+      if (state.combat.active) {
+        state.combat.order.push({ id: c.id, init: sys().initiative(c) });
+        const cur = state.combat.order[state.combat.turn]?.id;
+        state.combat.order.sort((a, b) => b.init - a.init);
+        state.combat.turn = Math.max(0, state.combat.order.findIndex((o) => o.id === cur));
+      }
+    }
+  });
+  socket.on('dm:spell:save', (f = {}, ack) => { if (socket.data.role !== 'dm') return; ack?.({ id: spells.upsert(f).id }); broadcast(); });
+  dm('dm:spell:delete', ({ id }) => { spells.lib.remove(id); });
   dm('dm:enemy:remove', ({ id }) => {
     state.combat.enemies = state.combat.enemies.filter((e) => e.id !== id);
     state.combat.order = state.combat.order.filter((o) => o.id !== id);
@@ -63,10 +100,11 @@ module.exports = function dmSockets(socket) {
     log('combat', 'Combat ends.');
   });
   dm('dm:combat:next', () => game.advanceTurn());
-  dm('dm:enemy:attack', ({ target }) => {
+  // The DM plays every creature: enemies, allies and neutrals. `attack` picks one from the stat block.
+  dm('dm:enemy:attack', ({ target, attack, mode }) => {
     const e = game.combatant(game.currentTurnId());
-    const t = state.players[target];
-    if (e?.enemy && t && e.hp > 0) { game.attack(e, t); game.advanceTurn(); }
+    const t = game.combatant(target);
+    if (e && !state.players[e.id] && t && t !== e && e.hp > 0) { game.attack(creatures.withAttack(e, Number(attack) || 0), t, { mode }); game.advanceTurn(); }
   });
   dm('dm:hp', ({ id, delta }) => {
     const t = game.combatant(id);
@@ -104,6 +142,31 @@ module.exports = function dmSockets(socket) {
       c = newCharacter(f, state.system);
     }
     applyEdits(c, f, true);
+  });
+  // Sheet edits from the DM (HP, slots, inventory, abilities, languages...). Same patch shape as the phone.
+  dm('dm:sheet', ({ id, ...patch }) => { const c = roster[id]; if (c) { applySheet(c, patch, true); saveRoster(); } });
+
+  // ----- save points (item 1) -----
+  socket.on('dm:save:create', ({ name } = {}, ack) => {
+    if (socket.data.role !== 'dm') return;
+    const chars = Object.fromEntries(Object.entries(roster).map(([id, { socketId, token, ...c }]) => [id, c]));
+    const id = saves.create(name, { campaign: require('../state').snapshot(), characters: chars });
+    ack?.({ id });
+    broadcast();
+  });
+  dm('dm:save:delete', ({ id }) => { saves.remove(id); });
+  dm('dm:save:load', ({ id }) => {
+    const s = saves.read(id);
+    if (!s?.campaign) return;
+    // Characters go back to how they were; phones stay seated where the character still exists.
+    for (const [cid, c] of Object.entries(roster)) if (!s.characters?.[cid]) { release(c); delete roster[cid]; }
+    for (const [cid, c] of Object.entries(s.characters || {})) {
+      const { socketId, token } = roster[cid] || {};
+      roster[cid] = Object.assign(roster[cid] || {}, JSON.parse(JSON.stringify(c)), { socketId, token });
+    }
+    require('../state').loadSnapshot(JSON.parse(JSON.stringify(s.campaign)));
+    saveRoster();
+    log('system', `Loaded save point "${s.name}".`);
   });
   dm('dm:char:delete', ({ id }) => {
     const c = roster[id];
