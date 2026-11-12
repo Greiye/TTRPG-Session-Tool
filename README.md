@@ -59,6 +59,11 @@ Characters are saved to `data/characters.json`, and portraits go to `uploads/por
 
 To back up or move your party, copy `data/` and `uploads/`.
 
+## Shops (NPC merchants)
+- DM card "Shops": paste or choose a price list (CSV, `;`-separated, or a Markdown table). Columns: name, price, stock, note. Price takes `gp`, `sp` or `cp` (default gp). Blank stock means unlimited. A header row is optional.
+- Phones get a 🛒 Shops tab with open shops. Buying spends the character's gold and adds the item to the pack. Gold is private to the owner and the DM, and the DM sets it under "Party gold".
+- Closing a shop hides it from phones. Shops are saved with the campaign.
+
 ## DM controller
 
 Plug a gamepad into the laptop and press any button with the `/dm` tab in front; its name appears next to "Live mode". It needs a pad the browser reports in the Standard Gamepad layout (Xbox, PlayStation, most USB pads). Other devices show "layout not supported" and are ignored.
