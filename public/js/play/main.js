@@ -10,5 +10,6 @@ import './profile.js';
 import './whispers.js';
 import './spectate.js';
 import './shops.js';
+import './journal.js';
 
 Settings.mount();
