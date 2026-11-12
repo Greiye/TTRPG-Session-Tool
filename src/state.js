@@ -1,6 +1,7 @@
 // Live game state, the log, and the broadcast loop.
 const hub = require('./hub');
-const { roster, saveRoster, publicChar } = require('./roster');
+const { roster, saveRoster } = require('./roster');
+const { viewerOf, viewerKey, viewState } = require('./visibility');
 const rules = require('./rules');
 const { BUILTIN_SFX, scanLibrary } = require('./media');
 const { joinUrl } = require('./net');
@@ -32,6 +33,7 @@ const state = {
   backdrop: { image: null, effects: [], library: lib.backdrops },
   audio: { library: lib.audio, music: null, playing: false, volume: 0.6, sfxVolume: 0.9, builtins: BUILTIN_SFX },
   log: [],
+  whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
 };
 
 let seq = 0;
@@ -41,26 +43,36 @@ function log(kind, text, extra = {}) {
   if (state.log.length > 80) state.log.shift();
 }
 
-function publicState() {
+// Full snapshot. Never sent as-is: stateFor() filters it per viewer (see visibility.js).
+function fullState() {
   const { io } = hub;
-  const players = Object.values(state.players).map((p) => ({ ...publicChar(p), online: !!p.socketId }));
+  const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId }));
   const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const codms = [...io.sockets.sockets.values()].filter((x) => x.data.role === 'codm').length;
   return { ...state, players, roster: cards, screens, codms, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), joinUrl: joinUrl() };
 }
+const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
+
 let pending = false;
 function broadcast() {
   if (pending) return;
   pending = true;
   setImmediate(() => {
     pending = false;
-    hub.io.emit('state', publicState());
+    const base = fullState();
+    const cache = new Map();
+    for (const socket of hub.io.sockets.sockets.values()) {
+      const v = viewerOf(socket);
+      const k = viewerKey(v);
+      if (!cache.has(k)) cache.set(k, viewState(base, v));
+      socket.emit('state', cache.get(k));
+    }
     hub.io.to('dms').emit('dm:roster', Object.values(roster).map(({ socketId, ...c }) => ({ ...c, online: !!socketId })));
     saveRoster();
   });
 }
 
-module.exports = { state, log, nextId, publicState, broadcast, EMOTIONS, EFFECTS };
+module.exports = { state, log, nextId, fullState, stateFor, broadcast, EMOTIONS, EFFECTS };
 
 module.exports.sys = () => rules.get(state.system);

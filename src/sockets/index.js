@@ -1,11 +1,11 @@
 // Socket wiring: every connection gets the state, then role-gated handlers.
 const { DM_KEY, CODM_KEY } = require('../config');
 const { isLocalAddr } = require('../net');
-const { publicState, broadcast } = require('../state');
+const { stateFor, broadcast } = require('../state');
 
 module.exports = function sockets(io) {
   io.on('connection', (socket) => {
-    socket.emit('state', publicState());
+    socket.emit('state', stateFor(socket));
 
     // TV pages announce themselves so the DM laptop knows whether it should output audio.
     socket.on('screen:hello', () => { socket.data.screen = true; broadcast(); });
