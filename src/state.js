@@ -55,13 +55,14 @@ const state = {
   checkLib: [], // DM-made check presets
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
   suggestions: [], // { id, name, text, at, vis } from spectators, seen by DM and players (src/spectate.js)
+  shops: [], // NPC shops with stock and prices (item 27, src/shops.js)
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;

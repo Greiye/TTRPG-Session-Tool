@@ -19,6 +19,7 @@ const grid = require('../grid');
 const randomizer = require('../randomizer');
 const spells = require('../spells');
 const saves = require('../saves');
+const shops = require('../shops');
 const { applySheet } = require('../sheet');
 const { saveRoster } = require('../roster');
 
@@ -107,6 +108,19 @@ module.exports = function dmSockets(socket) {
     log('system', `${roster[charId].name} gets the spoils: ${m.items.map((i) => `${i.qty}× ${i.name}`).join(', ')}.`);
   });
   dm('dm:handout:remove', ({ id }) => { state.handouts = state.handouts.filter((h) => h.id !== id); });
+  // NPC shops (item 27): import a CSV or Markdown list; the server parses it and answers with any skipped rows.
+  socket.on('dm:shop:import', (f = {}, ack) => {
+    if (socket.data.role !== 'dm') return;
+    if (state.shops.length >= shops.MAX_SHOPS) return ack?.({ error: 'Too many shops. Remove one first.' });
+    const r = shops.create(f || {}, 's' + nextId());
+    if (r.error) return ack?.(r);
+    state.shops.push(r.shop);
+    log('system', `${r.shop.name} opens${r.shop.npc ? ` (${r.shop.npc})` : ''} with ${r.shop.items.length} items.`);
+    broadcast();
+    ack?.({ ok: true, id: r.shop.id, items: r.shop.items.length, skipped: r.shop.skipped });
+  });
+  dm('dm:shop:open', ({ id, open }) => { const s = state.shops.find((x) => x.id === id); if (s) s.open = !!open; });
+  dm('dm:shop:remove', ({ id }) => { state.shops = state.shops.filter((s) => s.id !== id); });
   // Share a handout or whisper with the TV (the group decides what goes on the big screen).
   dm('dm:share', ({ id, on }) => {
     const h = state.handouts.find((x) => x.id === id);

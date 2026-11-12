@@ -4,9 +4,10 @@
 const crypto = require('crypto');
 const rules = require('./rules');
 const { str, int } = require('./util');
+const { clampGold } = require('./shops');
 
 // Fields only the owner and the DM see (other phones and the TV get the public card).
-const PRIVATE = ['abilities', 'saveProf', 'slots', 'hitDice', 'inventory', 'notes', 'spells', 'derived'];
+const PRIVATE = ['abilities', 'saveProf', 'slots', 'hitDice', 'inventory', 'notes', 'spells', 'derived', 'gold'];
 
 // Bring any character (new, imported, or saved before sheets existed) up to the current shape.
 function ensureSheet(c) {
@@ -15,6 +16,7 @@ function ensureSheet(c) {
   for (const [k, v] of Object.entries(d)) if (c[k] === undefined) c[k] = v;
   c.tempHp ??= 0;
   c.inventory ??= [];
+  c.gold = clampGold(c.gold); // spent at NPC shops (src/shops.js); the DM sets it
   c.spells ??= [];
   c.notes ??= '';
   c.conditions ??= [];
@@ -57,6 +59,7 @@ function applySheet(c, f, isDm) {
   }
   if (Array.isArray(f.spells)) c.spells = [...new Set(f.spells.map((x) => str(x, 80)).filter(Boolean))].slice(0, 200);
   if (!isDm) return;
+  if (f.gold !== undefined) c.gold = clampGold(f.gold, c.gold);
   if (f.speed !== undefined) c.speed = int(f.speed, 0, 300, c.speed);
   if (Array.isArray(f.languages)) c.languages = [...new Set(f.languages.map((x) => str(x, 30)).filter(Boolean))].slice(0, 30);
   if (f.slotMax) {

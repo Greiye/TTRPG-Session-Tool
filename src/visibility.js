@@ -82,6 +82,8 @@ function viewState(base, viewer) {
   if (!['dm', 'screen', 'codm'].includes(viewer.role)) { delete out.room; delete out.joinUrl; }
   // Spectators watch the public table only: no secret-holding DM fields, no relations (above).
   if (viewer.role !== 'dm') delete out.relations;
+  // Shops: phones see open shops only, without the DM's import notes.
+  out.shops = viewer.role === 'dm' ? base.shops : (base.shops || []).filter((s) => s.open).map(({ skipped, ...s }) => s);
   if (viewer.role === 'dm') {
     out.lan = require('./net').lanAddresses();
     out.entities = Object.values(require('./entities').entities); // world library (Arthuria), DM only for now

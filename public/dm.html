@@ -91,6 +91,16 @@
       <div class="row"><select id="relNpc" class="grow"></select></div>
       <div id="relList" class="list"></div>
     </div>
+    <div class="card" data-panel="exploration social">
+      <h3>Shops <span class="note">NPC merchants · phones buy with gold</span></h3>
+      <div class="row"><input id="shName" placeholder="Shop name" style="width:150px"><input id="shNpc" class="grow" placeholder="Merchant (NPC name)"></div>
+      <div class="row"><input id="shFile" type="file" accept=".csv,.tsv,.md,.txt" class="grow" aria-label="Price list file"></div>
+      <textarea id="shText" rows="4" placeholder="Name,Price,Stock,Note&#10;Rope (50 ft),1 gp,10,&#10;Healing potion,50 gp,3,&#10;&#10;Or a Markdown table: | Item | Price | Stock |"></textarea>
+      <div class="row"><button class="btn primary" id="shImport">Import shop</button><span id="shStatus" class="note"></span></div>
+      <div id="shList" class="list"></div>
+      <h3>Party gold <span class="note">the DM sets it; phones spend it in shops</span></h3>
+      <div id="goldList" class="list"></div>
+    </div>
     <div class="card">
       <h3>Rests <span class="note">short and long</span></h3>
       <div class="row"><button class="btn" data-act="restShort">☕ Short rest</button><button class="btn" data-act="restLong">🛏 Long rest</button></div>
