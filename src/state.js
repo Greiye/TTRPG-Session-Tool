@@ -1,7 +1,7 @@
 // Live game state, the log, and the broadcast loop.
 const hub = require('./hub');
 const { roster, saveRoster, publicChar } = require('./roster');
-const { CLASSES } = require('./rules/dnd5e');
+const rules = require('./rules');
 const { BUILTIN_SFX, scanLibrary } = require('./media');
 const { joinUrl } = require('./net');
 
@@ -10,6 +10,7 @@ const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'bloo
 
 const lib = scanLibrary();
 const state = {
+  system: rules.DEFAULT, // rules adapter id, see src/rules
   mode: 'exploration', // exploration | combat | social
   scene: {
     title: 'The Sunken Crossroads',
@@ -46,7 +47,7 @@ function publicState() {
   const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const codms = [...io.sockets.sockets.values()].filter((x) => x.data.role === 'codm').length;
-  return { ...state, players, roster: cards, screens, codms, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(CLASSES), joinUrl: joinUrl() };
+  return { ...state, players, roster: cards, screens, codms, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), joinUrl: joinUrl() };
 }
 let pending = false;
 function broadcast() {
@@ -61,3 +62,5 @@ function broadcast() {
 }
 
 module.exports = { state, log, nextId, publicState, broadcast, EMOTIONS, EFFECTS };
+
+module.exports.sys = () => rules.get(state.system);

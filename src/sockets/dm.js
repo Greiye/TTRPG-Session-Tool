@@ -3,9 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const hub = require('../hub');
 const { PORTRAIT_DIR } = require('../config');
-const { state, log, nextId, broadcast, EMOTIONS } = require('../state');
+const { state, log, nextId, broadcast, EMOTIONS, sys } = require('../state');
+const rules = require('../rules');
 const { roster, newCharacter, applyEdits } = require('../roster');
-const { CLASSES } = require('../rules/dnd5e');
 const { str } = require('../util');
 const game = require('../game');
 
@@ -30,6 +30,12 @@ module.exports = function dmSockets(socket) {
       theme: String(theme ?? state.scene.theme),
       poi: Array.isArray(poi) ? poi.map((s) => String(s).slice(0, 60)).filter(Boolean).slice(0, 8) : state.scene.poi,
     });
+  });
+  dm('dm:system', ({ id }) => {
+    if (!rules.list().some((x) => x.id === id) || id === state.system) return;
+    state.system = id;
+    state.check = null;
+    log('system', `Rules system: ${rules.get(id).name}.`);
   });
   dm('dm:narrate', ({ text }) => { if (text) log('narrate', String(text).slice(0, 400)); });
   dm('dm:check', ({ skill, dc }) => {
@@ -59,7 +65,7 @@ module.exports = function dmSockets(socket) {
   dm('dm:enemy:attack', ({ target }) => {
     const e = game.combatant(game.currentTurnId());
     const t = state.players[target];
-    if (e?.enemy && t && e.hp > 0) { game.attack(e, t, e.atk, e.dmg); game.advanceTurn(); }
+    if (e?.enemy && t && e.hp > 0) { game.attack(e, t); game.advanceTurn(); }
   });
   dm('dm:hp', ({ id, delta }) => {
     const t = game.combatant(id);
@@ -93,8 +99,8 @@ module.exports = function dmSockets(socket) {
   dm('dm:char:save', (f) => {
     let c = roster[f.id];
     if (!c) {
-      if (!str(f.name, 24) || !CLASSES[f.cls]) return;
-      c = newCharacter(f);
+      if (!str(f.name, 24) || !sys().classes[f.cls]) return;
+      c = newCharacter(f, state.system);
     }
     applyEdits(c, f, true);
   });

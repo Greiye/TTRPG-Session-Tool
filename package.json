@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test/smoke.js"
+    "test": "node test/rules.js && node test/smoke.js",
+    "test:ui": "node test/ui.js"
   },
   "keywords": [],
   "author": "",

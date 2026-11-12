@@ -2,7 +2,7 @@ const socket = io();
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
 const { esc, hpBar, EMO } = Stage;
-const SKILLS = ['Perception', 'Investigation', 'Stealth', 'Survival', 'Athletics', 'Arcana', 'Insight', 'Persuasion', 'Deception', 'Intimidation'];
+let SKILLS = [];
 const emit = (ev, data = {}) => socket.emit(ev, data);
 window.dmEmit = emit;
 
@@ -16,7 +16,6 @@ $('#authBtn').onclick = () => socket.emit('dm:auth', { key: $('#key').value.trim
   if (ok) localStorage.dmKey = $('#key').value.trim();
 });
 
-$('#checkSkill').innerHTML = SKILLS.map((s) => `<option>${s}</option>`).join('');
 $('#emotions').innerHTML = Object.entries(EMO).map(([k, e], i) => `<button class="btn" data-emo="${k}" title="${i + 1}"><span>${e.icon}</span>${e.label}</button>`).join('');
 
 const dmKey = () => new URLSearchParams(location.search).get('key') || localStorage.dmKey || '';
@@ -25,8 +24,25 @@ const renderAtmo = Atmo.mount($('#atmo'), { emit, key: dmKey });
 AudioOut.init(socket, { isOutput: (s) => !s || !s.screens });
 
 // ---------- render ----------
+// Skill lists and the system picker follow the active rules adapter.
+let rulesKey = null;
+function renderRules(s) {
+  const key = s.rules.id + s.rules.skills.join();
+  if (key === rulesKey) return;
+  rulesKey = key;
+  SKILLS = s.rules.skills;
+  $('#checkSkill').innerHTML = SKILLS.map((k) => `<option>${esc(k)}</option>`).join('');
+  $('#skillInputs').innerHTML = SKILLS.map((k) => `<label class="fld">${esc(k)}<input type="number" data-skill="${esc(k)}" min="-5" max="20"></label>`).join('');
+  $('#system').innerHTML = s.systems.map((x) => `<option value="${x.id}" ${x.id === s.rules.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('');
+}
+$('#system').onchange = (e) => {
+  if (confirm('Switch rules system? Checks and new characters will use it.')) emit('dm:system', { id: e.target.value });
+  else e.target.value = S.rules.id;
+};
+
 socket.on('state', (s) => {
   S = s;
+  renderRules(s);
   Stage.stage($('#stage'), s);
 
   if (!filled) {
@@ -125,7 +141,6 @@ $('#codmToggle').onclick = () => { $('#codmInvite').hidden = !$('#codmInvite').h
 let ROSTER = [];
 let editing = null;
 const BUILTIN_THEMES = { thunder: 'Thunder', hit: 'Sword hit', magic: 'Spell', roar: 'Roar', bell: 'Bell' };
-$('#skillInputs').innerHTML = SKILLS.map((k) => `<label class="fld">${k}<input type="number" data-skill="${k}" min="-5" max="20"></label>`).join('');
 
 socket.on('dm:roster', (list) => { ROSTER = list; renderChars(); });
 
