@@ -8,6 +8,7 @@ const { esc } = Stage;
 const ERR = {
   room: 'Wrong or old room code. Scan the QR on the TV again, or type the code shown there.',
   taken: 'Your character was opened on another device, or the DM removed it.',
+  fallen: 'Your character has fallen. Rest in peace, and thanks for playing.',
 };
 let cls = null;
 let classKey = null;
@@ -22,6 +23,7 @@ function join(payload) {
   socket.emit('join', { room: me.room, ...payload }, (res) => {
     if (res.error === 'gone') { me.charId = null; return showJoin(); }
     if (res.error === 'room') { me.room = ''; return showJoin(ERR.room); }
+    if (res.error === 'fallen') { me.charId = null; return showJoin(ERR.fallen); }
     if (res.error === 'in-use') {
       if (confirm('Someone is already playing this character on another phone. Take over?')) return join({ ...payload, takeover: true });
       return showJoin();
@@ -93,3 +95,4 @@ socket.on('connect', () => {
   if (id && me.tokenFor(id)) join({ id, token: me.tokenFor(id) }); else showJoin();
 });
 socket.on('taken', () => showJoin(ERR.taken));
+socket.on('fallen', () => { me.charId = null; showJoin(ERR.fallen); });

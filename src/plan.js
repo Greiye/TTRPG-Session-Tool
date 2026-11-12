@@ -5,7 +5,8 @@
 //   ## Scene: Name                       paragraphs = read-aloud text, "- " bullets = points of interest
 //   ## NPC: Name                         "- emotion: happy", "- hue: 28", "- line: ...", "- choice: ..." (max 4),
 //                                        other bullets and paragraphs = DM notes
-//   ## Encounter: Name                    "- 3x Goblin (hp 7, ac 15, atk 4, dmg 1d6+2, side enemy)"
+//   ## Encounter: Name                    "- 3x Goblin (hp 7, ac 15, atk 4, dmg 1d6+2, side enemy, cr 1/4)"
+//                                        cr is optional; without it the danger check estimates it from hp.
 //
 // Only this module knows the Markdown shape. Launch functions take the live state and mutate it;
 // the socket layer (src/sockets/plans.js) calls them and broadcasts.
@@ -52,7 +53,7 @@ function parseFoe(text) {
   if (!m) return null;
   const name = clip(m[3], 40);
   if (!/[a-z]/i.test(name)) return null;
-  const f = { name, count: Math.min(12, Number(m[1] || m[2]) || 1), hp: 10, ac: 12, atk: 3, dmg: '1d6+2', side: 'enemy' };
+  const f = { name, count: Math.min(12, Number(m[1] || m[2]) || 1), hp: 10, ac: 12, atk: 3, dmg: '1d6+2', side: 'enemy', cr: null };
   for (const part of String(m[4] || '').split(',')) {
     const [k, ...rest] = part.trim().split(/\s+/);
     const v = rest.join(' ');
@@ -63,6 +64,7 @@ function parseFoe(text) {
       case 'atk': f.atk = Number(v.replace('+', '')) || 0; break;
       case 'dmg': if (/\d/.test(v)) f.dmg = clip(v, 20); break;
       case 'side': if (SIDES.includes(v.toLowerCase())) f.side = v.toLowerCase(); break;
+      case 'cr': f.cr = rules.normalizeCr(v); break;
     }
   }
   return f;
@@ -106,6 +108,19 @@ function parsePlan(md) {
     }
   }
   return plan;
+}
+
+// ----- danger check: party levels against the encounter's foes (rules adapter decides the math) -----
+
+// Levels of the characters at the table. Only the 5e adapter reads them; others return null.
+const partyLevels = (state) => Object.values(state.players || {}).map((c) => c.level || 1);
+function encounterDanger(state, item) {
+  const foes = item.foes.map((f) => ({ name: f.name, count: f.count, hp: f.hp, cr: f.cr }));
+  return rules.difficulty(state.system, partyLevels(state), foes);
+}
+// Copy of the plans with a `difficulty` on each encounter, computed from the live party. DM only.
+function withDanger(plans, state) {
+  return plans.map((p) => ({ ...p, encounters: p.encounters.map((e) => ({ ...e, difficulty: encounterDanger(state, e) })) }));
 }
 
 const counts = (p) => ({ scenes: p.scenes.length, npcs: p.npcs.length, encounters: p.encounters.length });
@@ -162,8 +177,9 @@ function launchEncounter(state, item, { nextId, log }) {
     }
   }
   item.launched = true;
-  log('combat', `Encounter: ${item.title} (${added} foes).`);
-  return added;
+  const danger = encounterDanger(state, item);
+  log('combat', `Encounter: ${item.title} (${added} foes${danger ? `, ${danger.rating}` : ''}).`);
+  return { added, difficulty: danger };
 }
 
-module.exports = { parsePlan, launchScene, launchNpc, launchEncounter, counts, EMOTIONS, LIMITS };
+module.exports = { parsePlan, launchScene, launchNpc, launchEncounter, encounterDanger, withDanger, counts, EMOTIONS, LIMITS };

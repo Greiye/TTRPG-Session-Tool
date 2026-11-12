@@ -21,6 +21,8 @@ onState((s) => {
   // Secret objectives (item 9): the DM sees them all; reveal sends one to every phone and the TV.
   $('#objList').innerHTML = (s.objectives || []).slice().reverse().map((o) => `<div class="item"><span>🎯 <b>${esc(o.title)}</b> <small class="muted">${esc(o.name)} · ${o.revealed ? 'revealed to the table' : 'secret'}</small></span><span class="row"><button class="btn small ${o.revealed ? 'on' : ''}" data-obj-reveal="${esc(o.id)}" title="Show to all phones and the TV">Reveal</button><button class="btn small danger" data-obj-del="${esc(o.id)}">✕</button></span></div>`).join('');
   $('#lightSel').innerHTML = LIGHTS.map((l) => `<option ${(s.scene.light || 'day') === l ? 'selected' : ''}>${l}</option>`).join('');
+  $('#bulbOn').checked = !!s.bulbsOn;
+  $('#bulbInfo').textContent = s.bulbsTargets ? `${s.bulbsTargets} bulb(s) configured` : 'No bulbs configured (BULBS_* env vars)';
   const tk = JSON.stringify(s.templates || {});
   if (tk !== tplKey && s.templates) { tplKey = tk; $('#tplSel').innerHTML = Object.entries(s.templates).map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join(''); }
   // Messages
@@ -47,6 +49,7 @@ onState((s) => {
 
 for (const [sel, mode] of MODES) $(sel).onchange = (e) => emit('dm:mood', { mode, track: e.target.value || null });
 $('#lightSel').onchange = (e) => emit('dm:light', { light: e.target.value });
+$('#bulbOn').onchange = (e) => emit('dm:bulbs', { on: e.target.checked });
 $('#relNpc').onchange = () => { relKey = null; };
 $('#relList').addEventListener('click', (e) => { const b = e.target.closest('[data-rel]'); if (b) emit('dm:relation', { npc: $('#relNpc').value, charId: b.dataset.rel, stance: b.dataset.stance }); });
 $('#objList').addEventListener('click', (e) => {

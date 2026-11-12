@@ -21,7 +21,8 @@ function render() {
   const shops = S.shops || [];
   root().innerHTML = `
     <div class="card"><h3>Your gold</h3><div class="chips"><span class="chip"><b>${gp(c.gold)} gp</b></span></div></div>
-    ${shops.map((s) => `<div class="card"><h3>${esc(s.name)} ${s.npc ? `<span class="note">${esc(s.npc)}</span>` : ''}</h3>
+    ${(S.factions || []).length ? `<div class="card"><h3>Standing</h3><div class="chips">${S.factions.map((f) => `<span class="chip">${esc(f.name)} <small class="muted">${esc(f.label)}</small></span>`).join('')}</div></div>` : ''}
+    ${shops.map((s) => `<div class="card"><h3>${esc(s.name)} ${s.npc ? `<span class="note">${esc(s.npc)}</span>` : ''}${s.standing ? ` <span class="note">${esc(s.standing)}</span>` : ''}</h3>
       <div class="list">${s.items.map((i) => `<div class="inv"><span><b>${esc(i.name)}</b> <small class="muted">${gp(i.price)} gp${i.stock === null ? '' : ` · ${i.stock} left`}${i.note ? ` · ${esc(i.note)}` : ''}</small></span>
         <span class="row"><input type="number" min="1" max="${i.stock ?? 999}" value="1" data-qty aria-label="Quantity of ${esc(i.name)}" style="width:56px"><button class="btn small" data-buy="${esc(s.id)}|${esc(i.id)}" ${i.stock === 0 ? 'disabled' : ''}>Buy</button></span></div>`).join('') || '<p class="note">Nothing for sale.</p>'}</div>
     </div>`).join('') || '<div class="card"><p class="note">No shop is open right now. Your DM opens shops when you reach a merchant.</p></div>'}
