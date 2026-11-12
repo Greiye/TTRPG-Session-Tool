@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test/rules.js && node test/visibility.js && node test/assets.js && node test/bundle.js && node test/smoke.js && node test/data.js && node test/rolls.js && node test/tv.js && node test/messages.js && node test/speech.js && node test/turns.js && node test/world.js && node test/map.js && node test/shops.js",
+    "test": "node test/rules.js && node test/visibility.js && node test/assets.js && node test/bundle.js && node test/smoke.js && node test/data.js && node test/rolls.js && node test/tv.js && node test/messages.js && node test/speech.js && node test/turns.js && node test/world.js && node test/map.js && node test/log-redaction.js && node test/hardening.js && node test/shops.js",
     "test:ui": "node test/ui.js"
   },
   "keywords": [],

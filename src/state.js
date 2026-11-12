@@ -27,7 +27,7 @@ const state = {
     secrets: [], // perception-gated items (src/perception.js)
     revealed: [], // fog of war: POI names the party has uncovered (item 7c)
   },
-  players: {}, // character id -> roster entry, for characters at the table this session
+  players: Object.create(null), // character id -> roster entry, for characters at the table this session
   spotlight: null, // { id, kind: 'intro' | 'nat20' } shown briefly on the TV
   bossCard: null, // { id, name, title, n } boss title card on the TV (item 7b); n changes per showing
   check: null, // { skill, dc, results: { token: {...} } }

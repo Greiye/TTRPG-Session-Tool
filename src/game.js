@@ -56,7 +56,13 @@ function applyDamage(target, amount) {
 function attack(attacker, target, opts) {
   const r = sys().attack(attacker, target, opts);
   if (attacker.attackName) r.text = r.text.replace(' attacks ', ` attacks (${attacker.attackName}) `);
-  log('combat', r.text, { tone: r.hit ? 'good' : 'bad', roll: r.natural });
+  if (state.combat.enemies.includes(attacker)) {
+    // Creature bonuses and damage dice are DM-only (see FIELD_RULES in visibility.js). Phones and the TV
+    // get the outcome; the DM keeps the full breakdown.
+    const outcome = r.hit ? `${r.crit ? 'CRIT' : 'HIT'} for ${r.damage}` : 'MISS';
+    log('combat', `${attacker.name} attacks ${target.name}: ${outcome}.`, { tone: r.hit ? 'bad' : 'good', roll: r.natural });
+    log('combat', r.text, { tone: r.hit ? 'bad' : 'good', roll: r.natural, vis: 'dm' });
+  } else log('combat', r.text, { tone: r.hit ? 'good' : 'bad', roll: r.natural });
   if (r.crit && !attacker.enemy) spotlight(attacker.id, 'nat20');
   if (r.hit) applyDamage(target, r.damage);
 }
