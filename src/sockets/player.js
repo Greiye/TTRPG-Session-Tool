@@ -5,28 +5,35 @@ const { roster, newCharacter, applyEdits } = require('../roster');
 const { rollDice } = require('../dice');
 const { str } = require('../util');
 const game = require('../game');
-const { release } = require('../session');
+const session = require('../session');
 
 module.exports = function playerSockets(socket) {
   const { io } = hub;
-  // Claim a saved character (by id) or create a new one. Claiming from a new phone takes it over.
-  socket.on('join', ({ id, name, cls, race, player } = {}, ack) => {
+  // Claim a saved character (by id) or create a new one. See session.js for the rules.
+  socket.on('join', ({ id, name, cls, race, player, room, token, takeover } = {}, ack) => {
     let c = roster[id];
-    if (!c) {
-      if (id) return ack?.({ error: 'gone' });
+    if (!c && id) return ack?.({ error: 'gone' });
+    if (c) {
+      const err = session.claimError(state, c, { token, room, takeover }, socket);
+      if (err) return ack?.({ error: err });
+      if (!(token && token === c.token)) c.token = session.newToken();
+    } else {
+      if (!session.sameRoom(state, room)) return ack?.({ error: 'room' });
       if (!str(name, 24) || !sys().classes[cls]) return ack?.({ error: 'Pick a name and class.' });
       c = newCharacter({ name, cls, race, player }, state.system);
+      c.token = session.newToken();
     }
-    if (c.socketId && c.socketId !== socket.id) release(c);
-    c.socketId = socket.id;
-    socket.data.charId = c.id;
+    session.seat(c, socket);
     if (!state.players[c.id]) {
       state.players[c.id] = c;
       log('system', `${c.name} the ${c.race ? c.race + ' ' : ''}${c.cls} joined the party.`);
     }
-    ack?.({ id: c.id, socketId: socket.id });
+    ack?.({ id: c.id, token: c.token, room: state.room, socketId: socket.id });
     broadcast();
   });
+
+  // Room code check before showing the character picker.
+  socket.on('room:check', ({ room } = {}, ack) => ack?.({ ok: session.sameRoom(state, room) }));
 
   // A socket only acts for a character while it holds the claim.
   const me = () => {

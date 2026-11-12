@@ -19,6 +19,7 @@ module.exports = function routes(app) {
     app.get(`/${page}`, (_req, res) => res.sendFile(path.join(PUBLIC_DIR, `${page}.html`)));
   }
   app.use('/uploads', express.static(UPLOAD_DIR));
+  const dmOnly = (req) => isLocalAddr(req.socket.remoteAddress) || req.query.key === DM_KEY;
 
   // Images/videos go to the backdrop library, audio to the music/SFX library. DM or co-DM only.
   app.post('/api/media', express.raw({ type: Object.keys(MEDIA_TYPES), limit: '60mb' }), (req, res) => {
@@ -57,7 +58,6 @@ module.exports = function routes(app) {
     res.json({ url: c.portrait });
   });
 
-  const dmOnly = (req) => isLocalAddr(req.socket.remoteAddress) || req.query.key === DM_KEY;
   app.get('/codm-qr.svg', async (req, res) => {
     if (!dmOnly(req)) return res.sendStatus(403);
     res.type('image/svg+xml').send(await QRCode.toString(codmUrl(), { type: 'svg', margin: 1, color: QR_COLORS }));
@@ -67,6 +67,10 @@ module.exports = function routes(app) {
     res.json({ url: codmUrl() });
   });
   app.get('/qr.svg', async (_req, res) => {
-    res.type('image/svg+xml').send(await QRCode.toString(joinUrl(), { type: 'svg', margin: 1, color: QR_COLORS }));
+    res.set('cache-control', 'no-store');
+    res.type('image/svg+xml').send(await QRCode.toString(joinUrl(state.room), { type: 'svg', margin: 1, color: QR_COLORS }));
   });
+  // Short link to type by hand: http://<ip>:3000/j/ABCD
+  app.get(['/j/:room', '/join/:room'], (req, res) => res.redirect(`/play?room=${encodeURIComponent(req.params.room.toUpperCase())}`));
+  app.get('/api/join-info', (req, res) => (dmOnly(req) ? res.json({ room: state.room, url: joinUrl(state.room) }) : res.sendStatus(403)));
 };

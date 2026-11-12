@@ -39,6 +39,10 @@ const stop = (p) => new Promise((res) => { p.on('exit', res); p.kill(); });
   const a = await client();
   const ja = await call(a, 'join', { name: 'Thorn', cls: 'Fighter', race: 'Dwarf', player: 'Mike', room });
   ok(ja.id, 'player creates character');
+  const x = await client();
+  ok((await call(x, 'join', { name: 'Intruder', cls: 'Fighter', room: 'ZZZZ' })).error === 'room', 'wrong room code is refused');
+  ok((await call(x, 'join', { id: ja.id, room })).error === 'in-use', 'claiming a seat in use needs takeover');
+  x.close();
   const b = await client();
   const jb = await call(b, 'join', { name: 'Vex', cls: 'Rogue', room });
   ok(jb.id, 'second player joins');
@@ -86,6 +90,8 @@ const stop = (p) => new Promise((res) => { p.on('exit', res); p.kill(); });
   const ja2 = await call(a2, 'join', { id: ja.id, token, room });
   ok(ja2.id === ja.id, 'phone reconnects to its character');
 
+  ok(!JSON.stringify(dm.last.players).includes(token), 'device tokens never broadcast');
+
   // Persistence across restart (0i).
   await wait(800);
   for (const s of [dm, tv, a2, b]) s.close();
@@ -96,6 +102,10 @@ const stop = (p) => new Promise((res) => { p.on('exit', res); p.kill(); });
   await wait(200);
   ok(dm2.last.mode === 'social' && dm2.last.social.line.text === 'Get out of my inn!', 'campaign state survives restart');
   ok(dm2.last.players.some((p) => p.id === ja.id), 'party at table survives restart');
+  ok(dm2.last.room === room, 'room code survives restart');
+  const a3 = await client();
+  ok((await call(a3, 'join', { id: ja.id, token })).id === ja.id, 'device token reclaims seat after restart');
+  a3.close();
 
   dm2.close();
   await stop(srv);

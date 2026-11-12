@@ -40,9 +40,22 @@ $('#system').onchange = (e) => {
   else e.target.value = S.rules.id;
 };
 
+// Room code and which network address the QR points at.
+let lanKey = null;
+function renderJoin(s) {
+  $('#roomCode').textContent = s.room;
+  const key = JSON.stringify([s.lan, s.settings.host]);
+  if (key === lanKey || !s.lan) return;
+  lanKey = key;
+  $('#hostSel').innerHTML = '<option value="">Auto</option>' + s.lan.map((a) => `<option value="${esc(a.address)}" ${a.address === s.settings.host ? 'selected' : ''}>${esc(a.address)} (${esc(a.name)}${a.virtual ? ', virtual' : ''})</option>`).join('');
+}
+$('#roomNew').onclick = () => confirm('Make a new room code? Phones that are already seated keep playing.') && emit('dm:room:new');
+$('#hostSel').onchange = (e) => emit('dm:host', { host: e.target.value });
+
 socket.on('state', (s) => {
   S = s;
   renderRules(s);
+  renderJoin(s);
   Stage.stage($('#stage'), s);
 
   if (!filled) {

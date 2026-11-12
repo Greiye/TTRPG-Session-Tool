@@ -8,11 +8,12 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
   const tvCtx = await br.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   const dm = await dmCtx.newPage(); await dm.goto(B + '/dm');
   const tv = await tvCtx.newPage(); await tv.goto(B + '/screen');
+  const { room } = await (await fetch(B + '/api/join-info')).json();
   const phones = [];
   const party = [['Thorn', 'Fighter', 'Dwarf', 'Mike'], ['Vex', 'Rogue', 'Tiefling', 'Sam']];
   for (const [name, cls, race, player] of party) {
     const ctx = await br.newContext({ ...devices['iPhone 13'] });
-    const p = await ctx.newPage(); await p.goto(B + '/play');
+    const p = await ctx.newPage(); await p.goto(B + '/play?room=' + room);
     await p.waitForTimeout(800); if (await p.isVisible('#newBtn')) await p.click('#newBtn'); await p.fill('#name', name); await p.fill('#race', race); await p.fill('#player', player);
     await p.click(`[data-cls="${cls}"]`); await p.click('#joinBtn'); phones.push(p);
   }

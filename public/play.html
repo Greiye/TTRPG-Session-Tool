@@ -11,6 +11,10 @@
   <section id="joinView">
     <h1>Who are you?</h1>
     <p id="joinErr" class="err"></p>
+    <form id="roomForm" class="card row" hidden>
+      <input id="roomIn" class="grow" maxlength="4" placeholder="Room code on the TV" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.2em">
+      <button class="btn primary">Go</button>
+    </form>
     <div id="roster" class="roster"></div>
     <button id="newBtn" class="btn" style="width:100%;margin-top:10px">+ New character</button>
     <div id="newForm" class="card" hidden style="margin-top:10px">
