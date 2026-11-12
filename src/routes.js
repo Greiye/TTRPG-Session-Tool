@@ -109,6 +109,14 @@ module.exports = function routes(app) {
       res.status(502).json({ error: `Could not reach Open5e (${e.message}). The laptop needs internet for search; importing a JSON file works offline.` });
     }
   });
+  app.get('/api/script.md', (req, res) => {
+    if (!dmOnly(req)) return res.sendStatus(403);
+    res.attachment(`script-${stamp()}.md`).type('text/markdown').send(bundle.script());
+  });
+  app.get('/api/recap.md', (req, res) => {
+    if (!dmOnly(req)) return res.sendStatus(403);
+    res.attachment(`recap-${stamp()}.md`).type('text/markdown').send(bundle.recap());
+  });
   app.get('/api/assets', (_req, res) => res.json(Object.fromEntries(Object.entries(assets.KINDS).map(([k, v]) => [k, { formats: v.ext, maxMB: v.maxBytes / assets.MB }]))));
 
   app.get('/codm-qr.svg', async (req, res) => {

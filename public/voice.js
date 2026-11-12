@@ -4,7 +4,6 @@
   const $ = (s) => document.querySelector(s);
   const box = $('#voiceBox');
   const status = (t) => { $('#voiceStatus').textContent = t; };
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   let recorder = null;
   let chunks = [];
@@ -14,7 +13,7 @@
   let recording = false;
   let lastCaption = 0;
 
-  if (!SR) status('Speech-to-text not supported in this browser (use Chrome or Edge). Audio recording still works.');
+  if (!window.STT?.available().chrome) status('Chrome or Edge is needed for live captions in the browser engine; a local model works in any browser.');
   if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) status('Recording needs a secure context: open the DM page via http://localhost on the host laptop.');
 
   function paint() {
@@ -32,27 +31,19 @@
     window.dmEmit('dm:caption', { text });
   }
 
+  // Item 13: one STT interface, two engines (public/stt.js). The engine is picked in the settings row.
   function startRecognition() {
-    if (!SR) return;
-    recog = new SR();
-    recog.continuous = true;
-    recog.interimResults = true;
-    recog.lang = navigator.language || 'en-US';
-    recog.onresult = (e) => {
+    const engine = $('#sttEngine')?.value || 'chrome';
+    recog = window.STT.create(engine, { model: $('#sttModel')?.value || '/models/vosk-small-en.zip' });
+    recog.on('partial', (t) => { interim = t; paint(); caption(t); });
+    recog.on('final', (t) => {
       interim = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const r = e.results[i];
-        if (r.isFinal) {
-          const t = r[0].transcript.trim();
-          finalText += (finalText ? ' ' : '') + t;
-          if ($('#autoSay').checked && t) window.dmEmit('dm:say', { text: t });
-        } else interim += r[0].transcript;
-      }
-      paint();
-      caption(interim);
-    };
-    recog.onerror = (e) => status(`Speech engine: ${e.error}`);
-    recog.onend = () => { if (recording) recog.start(); }; // engine stops after silence; keep it alive
+      finalText += (finalText ? ' ' : '') + t;
+      if ($('#autoSay').checked && t) window.dmEmit('dm:say', { text: t });
+      paint(); caption('');
+    });
+    recog.on('status', (t) => status(t));
+    if (!recog.engine) { status('Speech-to-text is not available in this browser. Use Chrome or Edge, or a local model.'); return; }
     recog.start();
   }
 
@@ -68,7 +59,7 @@
       startRecognition();
       $('#recBtn').textContent = '■ Stop';
       $('#recDot').classList.add('live');
-      status(SR ? 'Recording + transcribing…' : 'Recording (no live transcription in this browser)…');
+      status('Recording…');
     } catch (err) {
       status(`Mic unavailable: ${err.message}`);
     }
