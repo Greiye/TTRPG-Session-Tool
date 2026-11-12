@@ -17,16 +17,16 @@ $('#shImport').onclick = async () => {
   const text = $('#shText').value.trim();
   const status = $('#shStatus');
   if (!text) { status.textContent = 'Paste a list or choose a file first.'; return; }
-  const r = await call('dm:shop:import', { name: $('#shName').value.trim(), npc: $('#shNpc').value.trim(), text });
+  const r = await call('dm:shop:import', { name: $('#shName').value.trim(), npc: $('#shNpc').value.trim(), faction: $('#shFaction').value || null, text });
   if (r?.error) { status.textContent = r.error; return; }
   status.textContent = `Imported ${r.items} items.${r.skipped?.length ? ` Skipped ${r.skipped.length}: ${r.skipped.join('; ')}` : ''}`;
-  if (!r.skipped?.length) { $('#shText').value = ''; $('#shFile').value = ''; $('#shName').value = ''; $('#shNpc').value = ''; }
+  if (!r.skipped?.length) { $('#shText').value = ''; $('#shFile').value = ''; $('#shName').value = ''; $('#shNpc').value = ''; $('#shFaction').value = ''; }
 };
 
 onState((s) => {
   const shops = s.shops || [];
   $('#shList').innerHTML = shops.map((x) => `<div class="item"><span><b>${esc(x.name)}</b> <small class="muted">${esc(x.npc || 'no merchant named')} · ${x.items.length} item${x.items.length === 1 ? '' : 's'}${x.items.filter((i) => i.stock === 0).length ? ` · ${x.items.filter((i) => i.stock === 0).length} sold out` : ''}</small></span>
-    <span class="row"><button class="btn small ${x.open ? 'on' : ''}" data-shop-open="${esc(x.id)}" data-open="${x.open ? 0 : 1}">${x.open ? 'Open' : 'Closed'}</button><button class="btn small danger" data-shop-del="${esc(x.id)}" aria-label="Remove ${esc(x.name)}">✕</button></span></div>`).join('')
+    <span class="row"><select class="small" data-shop-fac="${esc(x.id)}" aria-label="Faction for ${esc(x.name)}" title="Faction whose standing sets these prices">${(s.factions || []).map((f) => `<option value="${esc(f.id)}" ${x.faction === f.id ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}<option value="" ${x.faction ? '' : 'selected'}>No faction</option></select><button class="btn small ${x.open ? 'on' : ''}" data-shop-open="${esc(x.id)}" data-open="${x.open ? 0 : 1}">${x.open ? 'Open' : 'Closed'}</button><button class="btn small danger" data-shop-del="${esc(x.id)}" aria-label="Remove ${esc(x.name)}">✕</button></span></div>`).join('')
     || '<p class="note">No shops yet. Paste a price list above.</p>';
 
   // Gold inputs keep the DM's typing: only redraw when the party changes or nothing is being typed.
@@ -45,6 +45,10 @@ $('#shList').addEventListener('click', (e) => {
   if (!b) return;
   if (b.dataset.shopOpen) emit('dm:shop:open', { id: b.dataset.shopOpen, open: b.dataset.open === '1' });
   else if (b.dataset.shopDel && confirm('Remove this shop?')) emit('dm:shop:remove', { id: b.dataset.shopDel });
+});
+$('#shList').addEventListener('change', (e) => {
+  const sel = e.target.closest('[data-shop-fac]');
+  if (sel) emit('dm:shop:faction', { id: sel.dataset.shopFac, faction: sel.value || null });
 });
 $('#goldList').addEventListener('click', (e) => {
   const b = e.target.closest('[data-gold-set]');

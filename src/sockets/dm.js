@@ -21,6 +21,7 @@ const randomizer = require('../randomizer');
 const spells = require('../spells');
 const saves = require('../saves');
 const shops = require('../shops');
+const factions = require('../factions');
 const { applySheet } = require('../sheet');
 const { saveRoster } = require('../roster');
 const legacy = require('../legacy');
@@ -119,10 +120,33 @@ module.exports = function dmSockets(socket) {
     if (state.shops.length >= shops.MAX_SHOPS) return ack?.({ error: 'Too many shops. Remove one first.' });
     const r = shops.create(f || {}, 's' + nextId());
     if (r.error) return ack?.(r);
+    r.shop.faction = factions.find(state, r.shop.faction) ? r.shop.faction : null;
     state.shops.push(r.shop);
     log('system', `${r.shop.name} opens${r.shop.npc ? ` (${r.shop.npc})` : ''} with ${r.shop.items.length} items.`);
     broadcast();
     ack?.({ ok: true, id: r.shop.id, items: r.shop.items.length, skipped: r.shop.skipped });
+  });
+  // Faction reputation (src/factions.js): the DM moves the numbers; mood and prices follow.
+  socket.on('dm:faction:add', (f = {}, ack) => {
+    if (socket.data.role !== 'dm') return ack?.({ error: 'DM only.' });
+    const r = factions.create(state, f || {}, factions.newId());
+    if (r.error) return ack?.(r);
+    state.factions.push(r.faction);
+    log('system', `${r.faction.name} now tracks its standing with the party (${factions.tierOf(r.faction.rep).label}).`);
+    broadcast();
+    ack?.({ ok: true, id: r.faction.id });
+  });
+  dm('dm:faction:shift', ({ id, delta }) => {
+    const r = factions.shift(state, id, delta);
+    if (r.error || !r.from || r.from.id === r.to.id) return broadcast();
+    log('system', `${r.faction.name} turns ${r.to.label.toLowerCase()} toward the party.${r.moodChanged ? ` ${state.social.npc.name} shows ${r.to.mood}.` : ''}`);
+    broadcast();
+  });
+  dm('dm:faction:remove', ({ id }) => { factions.remove(state, id); broadcast(); });
+  dm('dm:shop:faction', ({ id, faction }) => {
+    const s = state.shops.find((x) => x.id === id);
+    if (s) s.faction = factions.find(state, faction) ? faction : null;
+    broadcast();
   });
   dm('dm:shop:open', ({ id, open }) => { const s = state.shops.find((x) => x.id === id); if (s) s.open = !!open; });
   dm('dm:shop:remove', ({ id }) => { state.shops = state.shops.filter((s) => s.id !== id); });
@@ -244,9 +268,13 @@ module.exports = function dmSockets(socket) {
   });
 
   // ----- social -----
-  dm('dm:npc', ({ name, hue }) => {
+  dm('dm:npc', ({ name, hue, faction }) => {
     if (name) state.social.npc.name = String(name).slice(0, 40);
     if (hue !== undefined) state.social.npc.hue = Number(hue) % 360;
+    if (faction !== undefined) {
+      state.social.npc.faction = factions.find(state, faction) ? faction : null;
+      factions.applyMood(state); // the NPC's mood follows its faction at once
+    }
   });
   dm('dm:emotion', ({ emotion }) => {
     if (!EMOTIONS.includes(emotion)) return;
