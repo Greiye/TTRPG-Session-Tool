@@ -78,7 +78,7 @@ function viewState(base, viewer) {
   }
   // The room code is the join secret: only the DM and the TV (which displays it) get it.
   if (!['dm', 'screen', 'codm'].includes(viewer.role)) { delete out.room; delete out.joinUrl; }
-  if (viewer.role !== 'dm') delete out.relations;
+  if (viewer.role !== 'dm') { delete out.relations; delete out.plans; } // plans hold DM notes
   if (viewer.role === 'dm') {
     out.lan = require('./net').lanAddresses();
     out.entities = Object.values(require('./entities').entities); // world library (Arthuria), DM only for now
