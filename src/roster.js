@@ -7,7 +7,9 @@ const rules = require('./rules');
 const { str, int } = require('./util');
 const { ensureSheet, applySheet } = require('./sheet');
 
-const roster = fs.existsSync(ROSTER_FILE) ? JSON.parse(fs.readFileSync(ROSTER_FILE, 'utf8')) : {};
+const { readJson } = require('./store');
+// Null-prototype map: a character id such as "constructor" or "__proto__" must never resolve to a built-in.
+const roster = Object.assign(Object.create(null), readJson(ROSTER_FILE) || {}); // a corrupt file is kept as *.corrupt-<time>, not a crash
 for (const c of Object.values(roster)) ensureSheet(c); // upgrade characters saved before sheets existed
 
 let saveTimer = null;

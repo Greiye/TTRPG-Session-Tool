@@ -10,7 +10,7 @@ const { writeJson, readJson } = require('./store');
 
 const FILE = path.join(DATA_DIR, 'entities.json');
 const TYPES = ['npc', 'location', 'faction', 'event', 'lore'];
-const entities = readJson(FILE) || {};
+const entities = Object.assign(Object.create(null), readJson(FILE) || {}); // null prototype: ids can't hit built-ins
 
 const ajv = new Ajv2020({ allErrors: true, strict: false, validateFormats: false });
 for (const f of ['common', 'entity', 'bundle']) ajv.addSchema(JSON.parse(fs.readFileSync(path.join(ROOT, 'schema', `${f}.schema.json`), 'utf8')));

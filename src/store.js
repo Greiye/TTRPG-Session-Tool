@@ -54,7 +54,7 @@ function restore(state, roster, saved) {
   const pick = (k) => { if (saved[k] !== undefined) state[k] = saved[k]; };
   ['system', 'mode', 'room', 'scene', 'check', 'combat', 'social', 'log', 'whispers', ...EXTRA].forEach(pick);
   if (saved.settings) Object.assign(state.settings, saved.settings);
-  state.players = {};
+  state.players = Object.create(null);
   for (const id of saved.party || []) if (roster[id]) state.players[id] = roster[id];
   state.combat.order = (state.combat.order || []).filter((o) => state.players[o.id] || state.combat.enemies.some((e) => e.id === o.id));
   const bd = saved.backdrop || {};
@@ -64,6 +64,17 @@ function restore(state, roster, saved) {
   state.audio.music = state.audio.library.find((t) => t.id === au.music) || null;
   Object.assign(state.audio, { playing: !!(state.audio.music && au.playing), volume: au.volume ?? state.audio.volume, sfxVolume: au.sfxVolume ?? state.audio.sfxVolume });
   return saved.seq || 0;
+}
+
+// A save from another version is never silently overwritten: keep a copy first, then start fresh.
+function load() {
+  const saved = readJson(FILE);
+  if (saved && saved.version !== VERSION) {
+    const copy = `${FILE}.v${saved.version}-${Date.now()}.bak`;
+    fs.copyFileSync(FILE, copy);
+    console.warn(`  campaign.json is version ${saved.version}, expected ${VERSION}. Kept a copy at ${path.basename(copy)}; starting fresh.`);
+  }
+  return saved;
 }
 
 let timer = null;
@@ -76,4 +87,4 @@ function flush(getSnapshot) {
   writeJson(FILE, getSnapshot());
 }
 
-module.exports = { EXTRA, FILE, VERSION, snapshot, restore, load: () => readJson(FILE), scheduleSave, flush, writeJson, readJson };
+module.exports = { EXTRA, FILE, VERSION, snapshot, restore, load, scheduleSave, flush, writeJson, readJson };
