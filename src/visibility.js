@@ -45,6 +45,8 @@ function viewState(base, viewer) {
   out.combat = { ...base.combat, enemies: base.combat.enemies.map((e) => strip(e, 'enemy', viewer)) };
   out.log = filterList(base.log, viewer);
   out.whispers = filterList(base.whispers, viewer);
+  // The room code is the join secret: only the DM and the TV (which displays it) get it.
+  if (!['dm', 'screen', 'codm'].includes(viewer.role)) { delete out.room; delete out.joinUrl; }
   if (viewer.role === 'dm') out.lan = require('./net').lanAddresses();
   return out;
 }

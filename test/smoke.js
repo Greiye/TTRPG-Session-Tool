@@ -15,7 +15,7 @@ let failures = 0;
 const ok = (cond, msg) => { console.log(`${cond ? '  ok  ' : '  FAIL'} ${msg}`); if (!cond) failures++; };
 
 function boot() {
-  const p = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, PORT, DATA_DIR: path.join(TMP, 'data'), UPLOAD_DIR: path.join(TMP, 'uploads'), DM_KEY: 'dmkey', CODM_KEY: 'codmkey' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const p = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, PORT, DATA_DIR: path.join(TMP, 'data'), UPLOAD_DIR: path.join(TMP, 'uploads'), DM_KEY: 'dmkey', CODM_KEY: 'codmkey', HTTPS_PORT: PORT + 1000 }, stdio: ['ignore', 'pipe', 'pipe'] });
   p.stderr.on('data', (d) => process.stderr.write(d));
   return new Promise((res) => p.stdout.on('data', (d) => { if (/running/.test(d)) res(p); }));
 }
@@ -106,6 +106,17 @@ const stop = (p) => new Promise((res) => { p.on('exit', res); p.kill(); });
   const a3 = await client();
   ok((await call(a3, 'join', { id: ja.id, token })).id === ja.id, 'device token reclaims seat after restart');
   a3.close();
+
+  // HTTPS (0g): the phone page and sockets work over TLS with the generated certificate.
+  const https = require('https');
+  const agent = new https.Agent({ rejectUnauthorized: false });
+  const page = await new Promise((res, rej) => https.get(`https://127.0.0.1:${PORT + 1000}/play`, { agent }, (r) => { let b = ''; r.on('data', (d) => (b += d)); r.on('end', () => res({ status: r.statusCode, b })); }).on('error', rej));
+  ok(page.status === 200 && /joinView/.test(page.b), 'phone page served over HTTPS');
+  const sec = io(`https://127.0.0.1:${PORT + 1000}`, { transports: ['websocket'], rejectUnauthorized: false, forceNew: true });
+  ok(await new Promise((res) => { sec.on('state', (st) => res(!!st.room === false && Array.isArray(st.players))); setTimeout(() => res(false), 3000); }), 'socket works over HTTPS (guest sees no room code)');
+  sec.close();
+  const crt = await fetch(`${URL}/tavern-cert.crt`);
+  ok(crt.ok && /BEGIN CERTIFICATE/.test(await crt.text()), 'certificate downloadable for phones');
 
   dm2.close();
   await stop(srv);

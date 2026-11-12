@@ -67,6 +67,12 @@ module.exports = function routes(app) {
     if (err.type === 'entity.too.large') return res.status(413).json({ error: 'File too big.' });
     next(err);
   });
+  // The HTTPS certificate, so a phone can trust it and skip the warning (see README).
+  app.get('/tavern-cert.crt', (_req, res) => {
+    const { CERT } = require('./tls');
+    if (!require('fs').existsSync(CERT)) return res.sendStatus(404);
+    res.type('application/x-x509-ca-cert').sendFile(CERT);
+  });
   app.get('/api/assets', (_req, res) => res.json(Object.fromEntries(Object.entries(assets.KINDS).map(([k, v]) => [k, { formats: v.ext, maxMB: v.maxBytes / assets.MB }]))));
 
   app.get('/codm-qr.svg', async (req, res) => {
@@ -77,7 +83,9 @@ module.exports = function routes(app) {
     if (!dmOnly(req)) return res.sendStatus(403);
     res.json({ url: codmUrl() });
   });
-  app.get('/qr.svg', async (_req, res) => {
+  // The join QR carries the room code, so only the laptop (or a TV opened with ?key=) may fetch it.
+  app.get('/qr.svg', async (req, res) => {
+    if (!dmOnly(req)) return res.sendStatus(403);
     res.set('cache-control', 'no-store');
     res.type('image/svg+xml').send(await QRCode.toString(joinUrl(state.room), { type: 'svg', margin: 1, color: QR_COLORS }));
   });
