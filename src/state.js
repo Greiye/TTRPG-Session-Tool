@@ -5,6 +5,7 @@ const { viewerOf, viewerKey, viewState } = require('./visibility');
 const rules = require('./rules');
 const { BUILTIN_SFX, scanLibrary } = require('./media');
 const { joinUrl } = require('./net');
+const store = require('./store');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -34,9 +35,14 @@ const state = {
   audio: { library: lib.audio, music: null, playing: false, volume: 0.6, sfxVolume: 0.9, builtins: BUILTIN_SFX },
   log: [],
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
+  room: null, // join code, set by session.js
+  settings: {}, // table-wide display settings (TV), see 0c
 };
 
 let seq = 0;
+seq = store.restore(state, roster, store.load());
+const snap = () => store.snapshot(state, seq);
+
 const nextId = () => ++seq;
 function log(kind, text, extra = {}) {
   state.log.push({ id: ++seq, t: Date.now(), kind, text, ...extra });
@@ -70,8 +76,11 @@ function broadcast() {
     }
     hub.io.to('dms').emit('dm:roster', Object.values(roster).map(({ socketId, ...c }) => ({ ...c, online: !!socketId })));
     saveRoster();
+    store.scheduleSave(snap);
   });
 }
+// Save immediately on shutdown so the last change is never lost.
+for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { store.flush(snap); saveRoster.flush?.(); process.exit(0); });
 
 module.exports = { state, log, nextId, fullState, stateFor, broadcast, EMOTIONS, EFFECTS };
 

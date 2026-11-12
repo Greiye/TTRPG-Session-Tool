@@ -9,17 +9,19 @@ const { str, int } = require('./util');
 const roster = fs.existsSync(ROSTER_FILE) ? JSON.parse(fs.readFileSync(ROSTER_FILE, 'utf8')) : {};
 
 let saveTimer = null;
+function writeRoster() {
+  const out = Object.fromEntries(Object.entries(roster).map(([id, c]) => {
+    const { socketId, ...rest } = c;
+    return [id, rest];
+  }));
+  fs.writeFileSync(ROSTER_FILE + '.tmp', JSON.stringify(out, null, 2));
+  fs.renameSync(ROSTER_FILE + '.tmp', ROSTER_FILE);
+}
 function saveRoster() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    const out = Object.fromEntries(Object.entries(roster).map(([id, c]) => {
-      const { socketId, ...rest } = c;
-      return [id, rest];
-    }));
-    fs.writeFileSync(ROSTER_FILE + '.tmp', JSON.stringify(out, null, 2));
-    fs.renameSync(ROSTER_FILE + '.tmp', ROSTER_FILE);
-  }, 500);
+  saveTimer = setTimeout(writeRoster, 500);
 }
+saveRoster.flush = () => { clearTimeout(saveTimer); writeRoster(); };
 
 function newCharacter({ name, cls, race, player }, systemId) {
   const sys = rules.get(systemId);
