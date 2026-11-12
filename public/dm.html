@@ -119,6 +119,11 @@
       </div>
     </div>
     <div class="card" data-panel="exploration">
+      <h3>Fog of war <span class="note">uncover points of interest on the TV</span></h3>
+      <div id="fogList" class="row"></div>
+      <div class="row"><button class="btn small" data-act="fogAll">Uncover all</button><button class="btn small" data-act="fogHide">Cover all</button></div>
+    </div>
+    <div class="card" data-panel="exploration">
       <h3>Hidden details <span class="note">perception-gated</span></h3>
       <div class="row"><input id="secText" class="grow" placeholder="A loose stone hides a key."><select id="secSkill" style="width:auto"></select><input id="secDc" type="number" value="13" style="width:64px" title="DC"><button class="btn" id="secAdd">Add</button></div>
       <div id="secList" class="list"></div>
@@ -137,6 +142,7 @@
         <button class="btn danger" data-act="combatEnd">End</button>
       </div>
       <div id="enemyTurn"></div>
+      <div id="bossBtns" class="row"></div>
       <div id="enemies" class="list"></div>
     </div>
     <div class="card" data-panel="combat">

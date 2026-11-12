@@ -64,7 +64,7 @@ function spawn(block, { id, name, hp } = {}) {
     id, ref: block.id, name: name || block.name, side: block.side, enemy: block.side === 'enemy',
     hp: max, maxHp: max, ac: block.ac, init: block.init, speed: block.speed,
     atk: first.atk, dmg: dmgTriple(first.dmg), attacks: block.attacks, traits: block.traits,
-    notes: block.notes, image: block.image, boss: block.boss, title: block.title, cr: block.cr, conditions: [],
+    notes: block.notes, image: block.image, boss: block.boss, title: block.title, cr: block.cr, conditions: [], traits: block.traits,
   };
 }
 // Use one named attack for an adapter roll.

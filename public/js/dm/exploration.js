@@ -20,9 +20,18 @@ onState((s) => {
   }
 });
 
+// Fog of war (7c): one toggle per point of interest.
+onState((s) => {
+  const open = new Set(s.scene.revealed || []);
+  $('#fogList').innerHTML = s.scene.poi.map((p) => `<button class="btn small ${open.has(p) ? 'on' : ''}" data-fog="${esc(p)}">${open.has(p) ? '👁' : '☁'} ${esc(p)}</button>`).join('') || '<span class="note">Add points of interest to the scene.</span>';
+});
+$('#fogList').addEventListener('click', (e) => { const b = e.target.closest('[data-fog]'); if (b) emit('dm:reveal', { poi: b.dataset.fog, hide: b.classList.contains('on') }); });
+
 const narrate = () => { emit('dm:narrate', { text: $('#narrate').value }); $('#narrate').value = ''; };
 const actions = {
   narrate,
+  fogAll: () => emit('dm:reveal', { all: true }),
+  fogHide: () => emit('dm:reveal', { all: true, hide: true }),
   scene: () => emit('dm:scene', { title: $('#sceneTitle').value, text: $('#sceneText').value, theme: $('#sceneTheme').value, poi: $('#scenePoi').value.split(',').map((x) => x.trim()) }),
   check: () => emit('dm:check', { skill: $('#checkSkill').value, dc: $('#checkDc').value }),
   checkClear: () => emit('dm:check', { skill: null }),

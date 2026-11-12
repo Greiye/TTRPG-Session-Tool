@@ -66,6 +66,11 @@
     return esc(tw.text.slice(0, tw.i));
   }
 
+  // Enemy health as pips (item 7b): no numbers on the TV, so the table can't read exact HP.
+  function pips(c) {
+    const n = 5; const filled = c.hp <= 0 ? 0 : Math.max(1, Math.ceil((n * c.hp) / c.maxHp));
+    return `<div class="pips-hp" aria-label="${c.hp <= 0 ? 'down' : `${filled} of ${n} health`}">${Array.from({ length: n }, (_, i) => `<i class="${i < filled ? 'on' : ''}"></i>`).join('')}</div>`;
+  }
   function hpBar(c) {
     const pct = Math.round((100 * c.hp) / c.maxHp);
     const tone = pct > 50 ? 'ok' : pct > 20 ? 'warn' : 'crit';
@@ -122,12 +127,15 @@
       <div class="check-res">${res.map((r) => `<span class="${r.pass ? 'pass' : 'fail'}">${esc(r.name)} ${r.total}</span>`).join('') || '<span class="wait">Roll on your phone!</span>'}</div></div>`;
   }
 
+  // Fog of war (item 7c): POIs the party has not uncovered show as fog.
   function exploration(s) {
     const sc = s.scene;
+    const open = new Set(sc.revealed || []);
+    const poi = sc.poi.map((p) => (open.has(p) ? `<span>🔍 ${esc(p)}</span>` : '<span class="fog">☁ ???</span>')).join('');
     return `<div class="explore">
       <h1>${esc(sc.title)}</h1>
       <p class="scene-text">${esc(sc.text)}</p>
-      <div class="poi">${sc.poi.map((p) => `<span>🔍 ${esc(p)}</span>`).join('')}</div>
+      <div class="poi">${poi}</div>
       ${checkBanner(s)}
     </div>`;
   }
@@ -142,7 +150,7 @@
       ${byId[turn] && !byId[turn].enemy ? `<div class="turn-card" style="${accent(byId[turn])}">${avatar(byId[turn], 'av-turn')}<div><small>Your move</small><b>${esc(byId[turn].name)}</b>${byId[turn].catchphrase ? `<q>${esc(byId[turn].catchphrase)}</q>` : ''}</div></div>` : ''}
       <div class="foes">${c.enemies.map((e) => `
         <div class="foe side-${e.side || 'enemy'} ${e.hp === 0 ? 'dead' : ''} ${turn === e.id ? 'turn' : ''}">
-          <div class="foe-icon">${e.hp === 0 ? '💀' : e.image ? Anim.media(e.image, 'foe-art') : SIDE_ICON[e.side] || '👹'}</div><b>${esc(e.name)}</b><small>AC ${e.ac}</small>${hpBar(e)}
+          <div class="foe-icon">${e.hp === 0 ? '💀' : e.image ? Anim.media(e.image, 'foe-art') : SIDE_ICON[e.side] || '👹'}</div><b>${esc(e.name)}</b><small>AC ${e.ac}</small>${pips(e)}
         </div>`).join('') || '<p class="muted">No enemies yet.</p>'}</div>
     </div>`;
   }
@@ -205,14 +213,23 @@
         <aside class="stage-log">${logFeed(s)}</aside>
       </main>
       <footer>${party(s)}</footer>
-      ${spotlightCard(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}`;
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
     Anim.hydrate(ui);
+    const bc = ui.querySelector('.boss-card');
+    if (bc && bc.dataset.n !== root.dataset.bossN) { root.dataset.bossN = bc.dataset.n; Anim.once(bc, `boss:${bc.dataset.n}`, 'pop'); }
     if (s.spotlight) {
       const who = s.players.find((x) => x.id === s.spotlight.id);
       Anim.once(ui.querySelector('.sp-card'), `${s.spotlight.id}:${s.spotlight.kind}`, s.spotlight.kind === 'nat20' ? 'bounce' : 'pop', who);
     }
+  }
+
+  // Boss title card (item 7b): a short banner over the stage when a boss fight opens.
+  function bossCard(s) {
+    const b = s.bossCard;
+    if (!b || !s.combat.active) return '';
+    return `<div class="boss-card" data-n="${b.n}"><div class="bc-kicker">A boss appears</div><h2>${esc(b.name)}</h2>${b.title ? `<p>${esc(b.title)}</p>` : ''}</div>`;
   }
 
   window.Stage = { stage, vn, portrait, avatar, hpBar, logFeed, checkBanner, esc, EMO };

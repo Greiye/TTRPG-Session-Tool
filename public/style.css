@@ -470,3 +470,15 @@ html[data-motion="reduce"] .rollpop.tumble, html[data-motion="reduce"] .rollpop.
 .call-box { border-color: var(--gold); }
 .roll-box { display: flex; gap: 6px; }
 .roll-box input { flex: 1; }
+
+/* ================= Phase 3: TV enemy pips, boss cards, fog ================= */
+.pips-hp { display: flex; gap: .25cqw; margin-top: .3cqw; }
+.pips-hp i { flex: 1; height: .9cqw; border-radius: 99px; background: #3b1a1a; border: 1px solid #6b2a2a; }
+.pips-hp i.on { background: linear-gradient(90deg, var(--hp-ok)); border-color: transparent; }
+.poi .fog { opacity: .7; filter: blur(.2px); border-style: dashed; }
+.boss-card { position: absolute; left: 0; right: 0; top: 34%; text-align: center; z-index: 3; pointer-events: none; background: linear-gradient(90deg, transparent, rgb(0 0 0 / .8) 20%, rgb(0 0 0 / .8) 80%, transparent); padding: 2cqw 0; animation: bc-in 3.5s ease both; }
+.boss-card .bc-kicker { font-family: var(--display); letter-spacing: .3em; text-transform: uppercase; color: var(--bad); font-size: calc(1.1cqw * var(--ts)); }
+.boss-card h2 { font-family: var(--display); font-size: calc(4.2cqw * var(--ts)); margin: .4cqw 0; color: var(--gold); text-shadow: 0 .4cqw 2cqw #000; }
+.boss-card p { font-style: italic; font-size: calc(1.6cqw * var(--ts)); margin: 0; }
+@keyframes bc-in { 0% { opacity: 0; transform: scaleX(.6); } 15%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+html[data-motion="reduce"] .boss-card { animation-duration: .001ms; }
