@@ -86,10 +86,20 @@ function rollFor(p, kind, key, opts) {
   return kind === 'save' ? s.save(p, key, opts) : kind === 'ability' ? s.ability(p, key, opts) : s.check(p, key, opts);
 }
 // A player answers the active roll call. Returns the result or null if they have nothing to roll.
-function answer(p, mode) {
+// Inspiration (recap quiz, src/quiz.js): one point turns a roll into advantage. It cannot override
+// disadvantage, and it is wasted when advantage is already set, so those cases spend nothing.
+function spendInspiration(p, mode) {
+  if (mode || !(p.inspiration > 0)) return null;
+  p.inspiration -= 1;
+  log('check', `${p.name} spends inspiration for advantage.`, { tone: 'call' });
+  return 'adv';
+}
+function answer(p, mode, { inspire } = {}) {
   const chk = state.check;
   if (!chk || !isTarget(chk, p.id) || chk.results[p.id]) return null;
-  const r = rollFor(p, chk.kind, chk.key, { dc: chk.dc, mode: chk.mode || (MODES.includes(mode) ? mode : undefined) });
+  let m = chk.mode || (MODES.includes(mode) ? mode : undefined);
+  if (inspire) m = spendInspiration(p, m) || m;
+  const r = rollFor(p, chk.kind, chk.key, { dc: chk.dc, mode: m });
   chk.results[p.id] = { name: p.name, roll: r.natural, total: r.total, pass: r.pass, crit: r.crit };
   log('check', `${p.name} ${r.text}${chk.hideDc ? '' : ` ${r.outcome}`}`, { tone: r.pass ? 'good' : 'bad', roll: r.sides === 12 ? undefined : r.natural });
   record({ who: p.name, whoId: p.id, hue: p.hue, label: chk.label, dice: d20Dice(r), mod: r.mod, total: r.total, natural: r.natural, dc: chk.dc, outcome: r.pass ? 'pass' : 'fail', crit: r.crit, fumble: r.fumble, mode: r.mode, call: chk.id });
@@ -131,4 +141,4 @@ function savePreset(f) {
 }
 const removePreset = (id) => { state.checkLib = state.checkLib.filter((p) => p.id !== id); };
 
-module.exports = { KINDS, PRESETS, describe, record, call, clear, isTarget, answer, free, expr, savePreset, removePreset, labelFor, broadcast };
+module.exports = { KINDS, PRESETS, describe, record, call, clear, isTarget, answer, spendInspiration, free, expr, savePreset, removePreset, labelFor, broadcast };

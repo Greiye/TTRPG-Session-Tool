@@ -34,6 +34,7 @@ module.exports = function sockets(io) {
     require('./player')(socket);
     require('./dm')(socket);
     require('./atmo')(socket);
+    require('./quiz')(socket);
   });
 };
 module.exports.guard = guard;

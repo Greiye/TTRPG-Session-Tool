@@ -53,6 +53,7 @@ const state = {
   roll: null, // last creature randomizer result (item 26)
   rndArt: {}, // table -> slot -> label -> creature art url (item 26 art, uploaded by the DM)
   checkLib: [], // DM-made check presets
+  quiz: null, // recap quiz: questions, phone answers and DM marks (src/quiz.js)
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
@@ -60,7 +61,7 @@ const state = {
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'quiz');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;

@@ -12,6 +12,7 @@ import './data.js';
 import './creatures.js';
 import './saves.js';
 import './rolls.js';
+import './quiz.js';
 import './tracker.js';
 import './world.js';
 import './map.js';
