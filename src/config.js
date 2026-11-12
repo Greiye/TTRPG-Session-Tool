@@ -16,6 +16,8 @@ const config = {
   PUBLIC_DIR: path.join(ROOT, 'public'),
   DATA_DIR: path.resolve(process.env.DATA_DIR || path.join(ROOT, 'data')),
   UPLOAD_DIR: path.resolve(process.env.UPLOAD_DIR || path.join(ROOT, 'uploads')),
+  // Local speech models (Vosk, item 13). Put the DM's model archive here; served at /models/<file>.
+  MODEL_DIR: path.resolve(process.env.MODEL_DIR || path.join(ROOT, 'models')),
 };
 config.PORTRAIT_DIR = path.join(config.UPLOAD_DIR, 'portraits');
 config.ROSTER_FILE = path.join(config.DATA_DIR, 'characters.json');

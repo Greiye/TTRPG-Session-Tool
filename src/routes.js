@@ -2,7 +2,7 @@
 const express = require('express');
 const path = require('path');
 const QRCode = require('qrcode');
-const { PUBLIC_DIR, UPLOAD_DIR, DM_KEY, CODM_KEY } = require('./config');
+const { PUBLIC_DIR, UPLOAD_DIR, MODEL_DIR, DM_KEY, CODM_KEY } = require('./config');
 const { joinUrl, codmUrl, isLocalAddr } = require('./net');
 const { state, broadcast } = require('./state');
 const { roster } = require('./roster');
@@ -19,6 +19,8 @@ module.exports = function routes(app) {
   }
   // Upload filenames are unique per upload, so browsers may cache them forever.
   app.use('/uploads', express.static(UPLOAD_DIR, { immutable: true, maxAge: '365d' }));
+  // Speech models for the offline (Vosk) engine. Only files in MODEL_DIR are served; nothing else.
+  app.use('/models', express.static(MODEL_DIR, { maxAge: '1d', dotfiles: 'deny', index: false }));
   const dmOnly = (req) => isLocalAddr(req.socket.remoteAddress) || req.query.key === DM_KEY;
 
   // One upload endpoint for every asset kind (see assets.js). Body is the raw file; content-type says what it is.

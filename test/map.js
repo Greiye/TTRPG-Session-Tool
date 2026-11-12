@@ -46,5 +46,18 @@ const { ok, until } = h;
   dm.emit('dm:roll:creature', { table: 'patron', reroll: 'Coat' });
   ok(await until(() => dm.last.roll.n === 1), 'DM rerolls one slot');
   ok(dm.last.roll.picks.Build === before.Build && dm.last.roll.picks.Quirk === before.Quirk, 'other slots are kept on reroll');
+  // Creature art (26): a pick with art shows it on the DM page and the TV; only creature uploads are accepted.
+  const url = '/uploads/creatures/x.png';
+  dm.emit('dm:rnd:art', { table: 'patron', slot: 'Quirk', label: dm.last.roll.picks.Quirk, url });
+  ok(await until(() => dm.last.roll.art?.Quirk === url), 'art attaches to the picked label');
+  dm.emit('dm:rnd:art', { table: 'patron', slot: 'Quirk', label: dm.last.roll.picks.Quirk, url: 'https://evil.example/x.png' });
+  await new Promise((r) => setTimeout(r, 100));
+  ok(dm.last.roll.art?.Quirk === url, 'art from outside the creature uploads is refused');
+  const lbl = dm.last.roll.picks.Build;
+  dm.emit('dm:rnd:art', { table: 'patron', slot: 'Build', label: lbl, url });
+  ok(await until(() => dm.last.roll.art?.Build === url), 'a second piece of art attaches');
+  dm.emit('dm:roll:creature', { table: 'patron', reroll: 'Build' });
+  ok(await until(() => dm.last.roll.n === 2), 'reroll with art still works');
+  ok((dm.last.roll.picks.Build === lbl) === (dm.last.roll.art?.Build === url), 'art stays only with its label after a reroll');
   await h.done(srv);
 })().catch((e) => { console.error(e); process.exit(1); });

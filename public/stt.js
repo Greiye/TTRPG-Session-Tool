@@ -1,7 +1,7 @@
 // Speech-to-text behind one interface (item 13). Two engines:
 //   chrome  the browser's Web Speech API (Chrome and Edge; needs internet on the device; secure origin)
 //   vosk    a local model in the browser (vosk-browser, WebAssembly). Runs offline. The DM supplies
-//           the model: a Vosk model .zip served from the laptop (see docs/decisions.md, item 13).
+//           the model: a Vosk model archive (.tar.gz) served from the laptop at /models/ (see docs/decisions.md, item 13).
 // Interface:  const s = STT.create(engine, { model, lang });  s.on('partial'|'final'|'status', fn);
 //             s.start(); s.stop(); s.engine
 (() => {
@@ -35,7 +35,7 @@
     };
   }
 
-  // Loads vosk-browser once, then a model from `model` (a URL, e.g. /models/vosk-small-en.zip).
+  // Loads vosk-browser once, then a model from `model` (a URL, e.g. /models/vosk-small-en.tar.gz).
   let voskLib = null;
   function loadScript(src) {
     return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('could not load vosk-browser')); document.head.append(s); });

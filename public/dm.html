@@ -107,6 +107,8 @@
     <div class="card">
       <h3>Characters <button class="btn small" id="charNew">+ New</button></h3>
       <div id="chars" class="chars"></div>
+      <h4>Whispers <span class="note">only the phone sees them until you show them on the TV</span></h4>
+      <div id="whispers" class="list"></div>
     </div>
 
     <!-- EXPLORATION -->
@@ -248,8 +250,8 @@
     </div>
     <div class="card" data-panel="social">
       <h3>Live voice <span><span id="recDot" class="rec-dot"></span></span></h3>
-      <p class="note">Records your mic and transcribes live. Browser engine needs Chrome or Edge. Local model works offline: place a Vosk model .zip at <code>/models/vosk-small-en.zip</code> on the laptop.</p>
-      <div class="row"><label class="note tight">Engine <select id="sttEngine" style="width:auto"><option value="chrome">Browser (Chrome)</option><option value="vosk">Local model (Vosk)</option></select></label><input id="sttModel" value="/models/vosk-small-en.zip" class="grow" title="Vosk model URL"></div>
+      <p class="note">Records your mic and transcribes live. Browser engine needs Chrome or Edge. Local model works offline: put a Vosk model archive (<code>.tar.gz</code>, as vosk-browser loads it) in the laptop's <code>models/</code> folder (or <code>MODEL_DIR</code>) as <code>vosk-small-en.tar.gz</code>.</p>
+      <div class="row"><label class="note tight">Engine <select id="sttEngine" style="width:auto"><option value="chrome">Browser (Chrome)</option><option value="vosk">Local model (Vosk)</option></select></label><input id="sttModel" value="/models/vosk-small-en.tar.gz" class="grow" title="Vosk model URL"></div>
       <div id="voiceBox" class="voice-box"><span class="interim">Press Record and speak in character…</span></div>
       <label class="chk"><input type="checkbox" id="liveCaption" checked> Show live caption on TV</label>
       <label class="chk"><input type="checkbox" id="autoSay"> Auto-speak each finished sentence as the NPC</label>
