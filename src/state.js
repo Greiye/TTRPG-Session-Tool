@@ -54,6 +54,7 @@ const state = {
   plans: [], // imported session plans, DM only (src/plan.js)
   rndArt: {}, // table -> slot -> label -> creature art url (item 26 art, uploaded by the DM)
   checkLib: [], // DM-made check presets
+  journal: [], // party journal: phone notes, newest first (src/journal.js)
   quiz: null, // recap quiz: questions, phone answers and DM marks (src/quiz.js)
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
   suggestions: [], // { id, name, text, at, vis } from spectators, seen by DM and players (src/spectate.js)
@@ -66,7 +67,7 @@ const state = {
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'bulbsOn');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'journal');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
