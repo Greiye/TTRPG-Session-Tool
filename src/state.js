@@ -51,6 +51,7 @@ const state = {
   map: null, // { image, cols, rows, terrain } battle map (item 24, src/grid.js)
   tokens: {}, // id -> { x, y, z } on the map
   roll: null, // last creature randomizer result (item 26)
+  plans: [], // imported session plans, DM only (src/plan.js)
   rndArt: {}, // table -> slot -> label -> creature art url (item 26 art, uploaded by the DM)
   checkLib: [], // DM-made check presets
   quiz: null, // recap quiz: questions, phone answers and DM marks (src/quiz.js)
@@ -62,7 +63,7 @@ const state = {
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'shops', 'quiz');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'shops', 'quiz', 'plans');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;

@@ -33,6 +33,7 @@ module.exports = function sockets(io) {
 
     require('./player')(socket);
     require('./dm')(socket);
+    require('./plans')(socket);
     require('./atmo')(socket);
     require('./quiz')(socket);
   });
