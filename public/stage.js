@@ -130,8 +130,9 @@
   // Fog of war (item 7c): POIs the party has not uncovered show as fog.
   function exploration(s) {
     const sc = s.scene;
+    // The server sends null for a covered point unless the viewer is the DM.
     const open = new Set(sc.revealed || []);
-    const poi = sc.poi.map((p) => (open.has(p) ? `<span>🔍 ${esc(p)}</span>` : '<span class="fog">☁ ???</span>')).join('');
+    const poi = sc.poi.map((p) => (p !== null && open.has(p) ? `<span>🔍 ${esc(p)}</span>` : '<span class="fog">☁ ???</span>')).join('');
     return `<div class="explore">
       <h1>${esc(sc.title)}</h1>
       <p class="scene-text">${esc(sc.text)}</p>

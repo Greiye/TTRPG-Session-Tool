@@ -13,4 +13,13 @@ assert(vd.players[0].secret === 's' && !('token' in vd.players[0]) && !('socketI
 assert(!('atk' in va.combat.enemies[0]) && vd.combat.enemies[0].atk === 5);
 assert(va.log.length === 1 && vd.log.length === 2);
 assert(va.whispers.length === 1 && vb.whispers.length === 0);
+// Fog of war: covered point-of-interest names reach the DM only.
+const fog = { ...base, system: 'dnd5e', scene: { title: 't', poi: ['Shrine', 'Tracks', 'Mill'], revealed: ['Tracks'], secrets: [] } };
+for (const v of [a, tv, g, { role: 'codm' }]) {
+  const sc = viewState(fog, v).scene;
+  assert.deepStrictEqual(sc.poi, [null, 'Tracks', null]);
+  assert(!/Shrine|Mill/.test(JSON.stringify(viewState(fog, v))));
+}
+assert.deepStrictEqual(viewState(fog, dm).scene.poi, ['Shrine', 'Tracks', 'Mill']);
+assert.deepStrictEqual(fog.scene.poi, ['Shrine', 'Tracks', 'Mill']); // the filter does not touch the live state
 console.log('visibility: all passed');
