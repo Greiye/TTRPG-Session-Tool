@@ -35,6 +35,7 @@ module.exports = function sockets(io) {
     require('./dm')(socket);
     require('./plans')(socket);
     require('./atmo')(socket);
+    require('./spectator')(socket);
     require('./quiz')(socket);
   });
 };

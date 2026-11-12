@@ -37,7 +37,7 @@ function view(scene, viewer, sys, players) {
   }
   const pub = ({ id, text }) => ({ id, text });
   if (viewer.role === 'player') { const c = players.find((p) => p.id === viewer.charId); return c ? list.filter((s) => canSee(sys, c, s)).map(pub) : []; }
-  if (viewer.role === 'screen' || viewer.role === 'codm') return list.filter((s) => s.shown === 'all').map(pub);
+  if (['screen', 'codm', 'spectator'].includes(viewer.role)) return list.filter((s) => s.shown === 'all').map(pub);
   return [];
 }
 

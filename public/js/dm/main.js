@@ -18,6 +18,7 @@ import './world.js';
 import './shops.js';
 import './map.js';
 import './gamepad.js';
+import './suggestions.js';
 import './plans.js';
 
 window.dmEmit = emit; // used by voice.js (classic script)
