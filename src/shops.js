@@ -79,21 +79,24 @@ function create(f, id) {
   if (!items.length) return { error: 'No items found. Use a CSV or Markdown table with a name and a price column.' };
   return {
     shop: {
-      id, npc: str(f.npc, 60), name: str(f.name, 60) || 'Shop', open: true,
+      id, npc: str(f.npc, 60), name: str(f.name, 60) || 'Shop', open: true, faction: f.faction || null,
       items: items.map((x, i) => ({ ...x, id: `${id}-${i + 1}` })), skipped: skipped.slice(0, 20), at: Date.now(),
     },
   };
 }
 
+// Price after a faction's multiplier (src/factions.js), in whole copper.
+const unitCp = (item, mult = 1) => Math.round(item.price * mult * 100);
+
 // A character buys qty of an item. Changes the shop stock, the character's gold and inventory.
-// Returns { item, qty, cost } or { error }; nothing changes on error.
-function buy(shop, c, itemId, qty) {
+// mult is the faction price multiplier. Returns { item, qty, cost } or { error }; nothing changes on error.
+function buy(shop, c, itemId, qty, mult = 1) {
   if (!shop.open) return { error: `${shop.name} is closed right now.` };
   const item = shop.items.find((i) => i.id === itemId);
   if (!item) return { error: 'That item is not for sale here.' };
   const n = int(qty, 1, 999, 1);
   if (item.stock !== null && item.stock < n) return { error: item.stock ? `Only ${item.stock} left.` : 'Sold out.' };
-  const costCp = Math.round(item.price * 100) * n;
+  const costCp = unitCp(item, mult) * n;
   const haveCp = Math.round((c.gold || 0) * 100);
   if (haveCp < costCp) return { error: `Not enough gold: ${(costCp / 100).toFixed(2)} gp needed, you have ${(c.gold || 0).toFixed(2)} gp.` };
   const owned = c.inventory.find((x) => x.name.toLowerCase() === item.name.toLowerCase());
@@ -105,4 +108,4 @@ function buy(shop, c, itemId, qty) {
   return { item, qty: n, cost: costCp / 100 };
 }
 
-module.exports = { money, clampGold, parseList, create, buy, MAX_SHOPS };
+module.exports = { money, clampGold, parseList, create, buy, unitCp, MAX_SHOPS };
