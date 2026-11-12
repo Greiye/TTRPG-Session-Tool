@@ -18,6 +18,8 @@ onState((s) => {
     $('#hoTo').innerHTML = '<option value="all">All phones</option>' + s.players.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
   }
   $('#lightSel').innerHTML = LIGHTS.map((l) => `<option ${(s.scene.light || 'day') === l ? 'selected' : ''}>${l}</option>`).join('');
+  $('#bulbOn').checked = !!s.bulbsOn;
+  $('#bulbInfo').textContent = s.bulbsTargets ? `${s.bulbsTargets} bulb(s) configured` : 'No bulbs configured (BULBS_* env vars)';
   const tk = JSON.stringify(s.templates || {});
   if (tk !== tplKey && s.templates) { tplKey = tk; $('#tplSel').innerHTML = Object.entries(s.templates).map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join(''); }
   // Messages
@@ -44,6 +46,7 @@ onState((s) => {
 
 for (const [sel, mode] of MODES) $(sel).onchange = (e) => emit('dm:mood', { mode, track: e.target.value || null });
 $('#lightSel').onchange = (e) => emit('dm:light', { light: e.target.value });
+$('#bulbOn').onchange = (e) => emit('dm:bulbs', { on: e.target.checked });
 $('#relNpc').onchange = () => { relKey = null; };
 $('#relList').addEventListener('click', (e) => { const b = e.target.closest('[data-rel]'); if (b) emit('dm:relation', { npc: $('#relNpc').value, charId: b.dataset.rel, stance: b.dataset.stance }); });
 $('#msgList').addEventListener('click', (e) => {

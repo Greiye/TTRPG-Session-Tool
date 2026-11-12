@@ -46,6 +46,9 @@ function render() {
         <button class="btn small" data-spot="${c.id}" title="Spotlight on TV" ${atTable.has(c.id) ? '' : 'disabled'}>⭐</button>
         <button class="btn small" data-whisper="${c.id}" title="Whisper to their phone" ${c.online ? '' : 'disabled'}>🤫</button>
         ${atTable.has(c.id) ? '' : `<button class="btn small" data-seat="${c.id}" title="Add to table">➕</button>`}
+        ${c.death
+          ? `${S?.memorial?.id === c.id ? `<button class="btn small" data-memclear="${c.id}" title="Dismiss the memorial card on the TV">🕯</button>` : ''}<button class="btn small" data-revive="${c.id}" title="Revive (brings back to the roster, not the party)">↺</button>`
+          : `<button class="btn small danger" data-fall="${c.id}" title="Mark as fallen: memorial card on the TV, leaves the party">☠</button>`}
       </div>
     </div>`).join('') || '<p class="note">No saved characters yet. Players create one when they join, or add them here.</p>';
   Anim.hydrate($('#chars'));
@@ -131,6 +134,15 @@ $('#chars').addEventListener('click', (e) => {
   if (!b) return;
   const d = b.dataset;
   if (d.edit) open(ROSTER.find((c) => c.id === d.edit));
+  else if (d.fall) {
+    const c = ROSTER.find((x) => x.id === d.fall);
+    const cause = prompt(`How did ${c.name} fall? (shown on the TV, optional)`, '');
+    if (cause === null) return;
+    const epitaph = prompt('A line for the memorial card (optional):', '') ?? '';
+    if (confirm(`${c.name} has fallen. Show the memorial card on the TV?`)) emit('dm:char:fall', { id: c.id, cause, epitaph });
+  }
+  else if (d.revive) { if (confirm('Revive this character?')) emit('dm:char:revive', { id: d.revive }); }
+  else if (d.memclear) emit('dm:memorial:clear', {});
   else if (d.spot) emit('dm:spotlight', { id: d.spot });
   else if (d.seat) emit('dm:char:add', { id: d.seat });
   else if (d.whisper) {

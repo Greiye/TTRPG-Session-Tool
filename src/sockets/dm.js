@@ -15,13 +15,16 @@ const perception = require('../perception');
 const messages = require('../messages');
 const tracker = require('../tracker');
 const world = require('../world');
+const bulbs = require('../bulbs');
 const grid = require('../grid');
 const randomizer = require('../randomizer');
 const spells = require('../spells');
 const saves = require('../saves');
 const shops = require('../shops');
+const factions = require('../factions');
 const { applySheet } = require('../sheet');
 const { saveRoster } = require('../roster');
+const legacy = require('../legacy');
 
 module.exports = function dmSockets(socket) {
   const { io } = hub;
@@ -37,6 +40,7 @@ module.exports = function dmSockets(socket) {
     world.applyMood(mode);
     state.check = null;
     log('system', `— ${mode.toUpperCase()} —`);
+    void bulbs.sync(state);
   });
   dm('dm:scene', ({ title, text, theme, poi }) => {
     Object.assign(state.scene, {
@@ -88,8 +92,10 @@ module.exports = function dmSockets(socket) {
   dm('dm:phrase', (f) => { const p = world.phrase(f); if (p) state.handouts.push(p); });
   dm('dm:phrase:reveal', ({ id, on }) => { const p = state.handouts.find((h) => h.id === id && h.kind === 'phrase'); if (p) p.revealed = !!on; });
   dm('dm:mood', ({ mode, track }) => { if (['exploration', 'combat', 'social'].includes(mode)) world.setMood(mode, track); });
-  dm('dm:light', ({ light }) => world.setLight(light));
-  dm('dm:template', ({ key }) => world.applyTemplate(key));
+  dm('dm:light', ({ light }) => { world.setLight(light); void bulbs.sync(state); });
+  dm('dm:template', ({ key }) => { world.applyTemplate(key); void bulbs.sync(state); });
+  // Smart bulbs (item 10): toggling on pushes the current colour at once. Turning off leaves the bulbs as they are.
+  dm('dm:bulbs', ({ on }) => { state.bulbsOn = !!on; void bulbs.sync(state, { force: true }); });
 
   // ----- Phase 6: conditions, clocks, rests -----
   dm('dm:condition', ({ id, name, on }) => tracker.setCondition(id, name, !!on));
@@ -114,10 +120,33 @@ module.exports = function dmSockets(socket) {
     if (state.shops.length >= shops.MAX_SHOPS) return ack?.({ error: 'Too many shops. Remove one first.' });
     const r = shops.create(f || {}, 's' + nextId());
     if (r.error) return ack?.(r);
+    r.shop.faction = factions.find(state, r.shop.faction) ? r.shop.faction : null;
     state.shops.push(r.shop);
     log('system', `${r.shop.name} opens${r.shop.npc ? ` (${r.shop.npc})` : ''} with ${r.shop.items.length} items.`);
     broadcast();
     ack?.({ ok: true, id: r.shop.id, items: r.shop.items.length, skipped: r.shop.skipped });
+  });
+  // Faction reputation (src/factions.js): the DM moves the numbers; mood and prices follow.
+  socket.on('dm:faction:add', (f = {}, ack) => {
+    if (socket.data.role !== 'dm') return ack?.({ error: 'DM only.' });
+    const r = factions.create(state, f || {}, factions.newId());
+    if (r.error) return ack?.(r);
+    state.factions.push(r.faction);
+    log('system', `${r.faction.name} now tracks its standing with the party (${factions.tierOf(r.faction.rep).label}).`);
+    broadcast();
+    ack?.({ ok: true, id: r.faction.id });
+  });
+  dm('dm:faction:shift', ({ id, delta }) => {
+    const r = factions.shift(state, id, delta);
+    if (r.error || !r.from || r.from.id === r.to.id) return broadcast();
+    log('system', `${r.faction.name} turns ${r.to.label.toLowerCase()} toward the party.${r.moodChanged ? ` ${state.social.npc.name} shows ${r.to.mood}.` : ''}`);
+    broadcast();
+  });
+  dm('dm:faction:remove', ({ id }) => { factions.remove(state, id); broadcast(); });
+  dm('dm:shop:faction', ({ id, faction }) => {
+    const s = state.shops.find((x) => x.id === id);
+    if (s) s.faction = factions.find(state, faction) ? faction : null;
+    broadcast();
   });
   dm('dm:shop:open', ({ id, open }) => { const s = state.shops.find((x) => x.id === id); if (s) s.open = !!open; });
   dm('dm:shop:remove', ({ id }) => { state.shops = state.shops.filter((s) => s.id !== id); });
@@ -239,9 +268,13 @@ module.exports = function dmSockets(socket) {
   });
 
   // ----- social -----
-  dm('dm:npc', ({ name, hue }) => {
+  dm('dm:npc', ({ name, hue, faction }) => {
     if (name) state.social.npc.name = String(name).slice(0, 40);
     if (hue !== undefined) state.social.npc.hue = Number(hue) % 360;
+    if (faction !== undefined) {
+      state.social.npc.faction = factions.find(state, faction) ? faction : null;
+      factions.applyMood(state); // the NPC's mood follows its faction at once
+    }
   });
   dm('dm:emotion', ({ emotion }) => {
     if (!EMOTIONS.includes(emotion)) return;
@@ -309,6 +342,10 @@ module.exports = function dmSockets(socket) {
     if (c && !state.players[id]) { state.players[id] = c; log('system', `${c.name} joins the party.`); }
   });
   dm('dm:spotlight', ({ id }) => { if (roster[id]) game.spotlight(id, 'intro'); });
+  // Death and legacy (src/legacy.js): fall = leaves the party, memorial card on the TV.
+  dm('dm:char:fall', ({ id, cause, epitaph }) => legacy.fall(id, { cause, epitaph }));
+  dm('dm:char:revive', ({ id }) => legacy.revive(id));
+  dm('dm:memorial:clear', () => legacy.clearMemorial());
   // Whispers go only to that player's phone; the DM gets an ack saying whether it was delivered.
   socket.on('dm:whisper', ({ id, text } = {}, ack) => {
     if (socket.data.role !== 'dm') return;

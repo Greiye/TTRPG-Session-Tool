@@ -57,6 +57,14 @@ function canSee(vis, viewer) {
   return false;
 }
 
+// A shop as a phone sees it: prices after its faction's multiplier, and the faction's standing.
+const priced = ({ skipped, ...shop }, base) => {
+  const F = require('./factions');
+  const mult = F.multFor(base, shop);
+  const f = shop.faction && F.find(base, shop.faction);
+  return { ...shop, standing: f ? F.tierOf(f.rep).label : null, items: shop.items.map((i) => ({ ...i, price: require('./shops').unitCp(i, mult) / 100 })) };
+};
+
 const strip = (obj, kind, viewer) => {
   let hidden = viewer.role === 'dm' ? ['socketId', 'token'] : FIELD_RULES[kind];
   // A player's own sheet is theirs to see; everyone else gets the public card.
@@ -77,6 +85,8 @@ function viewState(base, viewer) {
   out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h));
   if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
   out.downtime = require('./downtime').viewFor(base.downtime, viewer); // phones see their own pick and result
+  // Party journal: phones and the DM only (src/journal.js).
+  out.journal = ['dm', 'player'].includes(viewer.role) ? base.journal || [] : null;
   out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own
   if (base.scene) out.scene = { ...sceneFor(base.scene, viewer), secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
   // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.
@@ -93,7 +103,9 @@ function viewState(base, viewer) {
   // Spectators watch the public table only: no secret-holding DM fields, no relations (above).
   if (viewer.role !== 'dm') { delete out.relations; delete out.plans; } // plans hold DM notes
   // Shops: phones see open shops only, without the DM's import notes.
-  out.shops = viewer.role === 'dm' ? base.shops : (base.shops || []).filter((s) => s.open).map(({ skipped, ...s }) => s);
+  // Phones see the faction-adjusted prices and the standing, never the reputation number (src/factions.js).
+  out.factions = (base.factions || []).map((f) => require('./factions').view(f, viewer.role === 'dm'));
+  out.shops = viewer.role === 'dm' ? base.shops : (base.shops || []).filter((s) => s.open).map((s) => priced(s, base));
   if (viewer.role === 'dm') {
     out.lan = require('./net').lanAddresses();
     out.entities = Object.values(require('./entities').entities); // world library (Arthuria), DM only for now

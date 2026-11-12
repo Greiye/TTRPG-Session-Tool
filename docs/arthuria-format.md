@@ -26,6 +26,7 @@ Type-specific fields:
 - **event**: `when` (in-world date text), `session` (real date), `where`, `who[]`
 - **lore**: `category`, `secret`
 - **pc**: `system`, `cls`, `race`, `level`, `player`, `catchphrase`, `hue`, `stats` (rules-system fields), `anim`
+  - `status`: `alive` or `dead`. A fallen character is `dead` and keeps a `death` record: `at` (date-time, required), `cause`, `epitaph` and `session` (short text). Import sets, clears or leaves the death record by `status` (a missing `status` changes nothing).
 
 Unknown fields are rejected, so typos surface at import time.
 
