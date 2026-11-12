@@ -7,9 +7,11 @@
 //   { to: [charId...], screen: bool }  the DM, those characters, and the TV if screen is true
 // Field-level visibility: FIELD_RULES lists fields only the DM may see, per entity kind.
 
+const { PRIVATE: SHEET_PRIVATE } = require('./sheet');
+
 const FIELD_RULES = {
   character: ['secret', 'hooks', 'socketId', 'token'],
-  enemy: ['atk', 'dmg', 'notes'],
+  enemy: ['atk', 'dmg', 'notes', 'attacks', 'traits', 'ref', 'init'],
 };
 
 function viewerOf(socket) {
@@ -33,7 +35,9 @@ function canSee(vis, viewer) {
 }
 
 const strip = (obj, kind, viewer) => {
-  const hidden = viewer.role === 'dm' ? ['socketId', 'token'] : FIELD_RULES[kind];
+  let hidden = viewer.role === 'dm' ? ['socketId', 'token'] : FIELD_RULES[kind];
+  // A player's own sheet is theirs to see; everyone else gets the public card.
+  if (kind === 'character' && viewer.role !== 'dm' && viewer.charId !== obj.id) hidden = [...hidden, ...SHEET_PRIVATE];
   return Object.fromEntries(Object.entries(obj).filter(([k]) => !hidden.includes(k)));
 };
 const filterList = (list, viewer) => (list || []).filter((x) => canSee(x.vis, viewer));
@@ -50,6 +54,7 @@ function viewState(base, viewer) {
   if (viewer.role === 'dm') {
     out.lan = require('./net').lanAddresses();
     out.entities = Object.values(require('./entities').entities); // world library (Arthuria), DM only for now
+    out.saves = require('./saves').list();
   }
   return out;
 }

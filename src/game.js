@@ -20,6 +20,7 @@ function playTheme(c) {
   }
 }
 
+const foes = () => state.combat.enemies.filter((e) => e.enemy);
 function combatant(id) {
   return state.players[id] || state.combat.enemies.find((e) => e.id === id);
 }
@@ -41,14 +42,19 @@ function advanceTurn() {
   if (who && !who.enemy) playTheme(who);
 }
 function applyDamage(target, amount) {
+  // Temporary hit points soak damage first; healing never touches them.
+  if (amount > 0 && target.tempHp) { const soak = Math.min(target.tempHp, amount); target.tempHp -= soak; amount -= soak; }
+  const was = target.hp;
   target.hp = Math.max(0, Math.min(target.maxHp, target.hp - amount));
+  if (was === 0 || amount <= 0) return;
   if (target.hp === 0) log('combat', `${target.name} is down!`, { tone: 'bad' });
-  if (state.combat.active && state.combat.enemies.length && state.combat.enemies.every((e) => e.hp === 0)) {
+  if (state.combat.active && foes().length && foes().every((e) => e.hp === 0)) {
     log('combat', 'All enemies defeated. Victory!', { tone: 'good' });
   }
 }
 function attack(attacker, target, opts) {
   const r = sys().attack(attacker, target, opts);
+  if (attacker.attackName) r.text = r.text.replace(' attacks ', ` attacks (${attacker.attackName}) `);
   log('combat', r.text, { tone: r.hit ? 'good' : 'bad', roll: r.natural });
   if (r.crit && !attacker.enemy) spotlight(attacker.id, 'nat20');
   if (r.hit) applyDamage(target, r.damage);

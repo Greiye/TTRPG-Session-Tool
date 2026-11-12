@@ -12,7 +12,7 @@ export default function combatView(S, me) {
   }).join('')}</div>`;
   if (me.hp === 0) return `<div class="card"><p class="turn-banner" style="color:var(--bad)">You are down</p><p class="muted" style="text-align:center">Hope a cleric is nearby.</p></div>${order}`;
   if (turnId !== me.id) return `<div class="card"><p style="text-align:center;font-size:calc(18px * var(--ts))">${esc(who?.name || '…')}'s turn</p></div>${order}`;
-  const foes = c.enemies.filter((e) => e.hp > 0);
+  const foes = c.enemies.filter((e) => e.hp > 0 && e.side !== 'ally');
   return `<p class="turn-banner">YOUR TURN</p>
     <div class="card"><h3>Attack (+${me.atk}, ${me.dmg[0]}d${me.dmg[1]}+${me.dmg[2]})</h3>
       <div class="grid2">${foes.map((e) => `<button class="btn primary" data-attack="${e.id}">🗡 ${esc(e.name)}<br><small>${esc(def)} ${e.ac} · ${e.hp}hp</small></button>`).join('') || '<span class="muted">No targets</span>'}</div></div>

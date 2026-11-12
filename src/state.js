@@ -7,6 +7,9 @@ const { BUILTIN_SFX, scanLibrary } = require('./media');
 const net = require('./net');
 const { newRoomCode } = require('./session');
 const store = require('./store');
+const saves = require('./saves');
+const { derived } = require('./sheet');
+const library = require('./library');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -40,6 +43,8 @@ const state = {
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
 };
 
+saves.backupOnStart();
+require('./srd').seed();
 let seq = 0;
 seq = store.restore(state, roster, store.load());
 if (!state.room) state.room = newRoomCode();
@@ -55,11 +60,11 @@ function log(kind, text, extra = {}) {
 // Full snapshot. Never sent as-is: stateFor() filters it per viewer (see visibility.js).
 function fullState() {
   const { io } = hub;
-  const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId }));
+  const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId, derived: derived(p) }));
   const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const codms = [...io.sockets.sockets.values()].filter((x) => x.data.role === 'codm').length;
-  return { ...state, players, roster: cards, screens, codms, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), joinUrl: net.joinUrl(state.room) };
+  return { ...state, players, roster: cards, screens, codms, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
 }
 const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
 
@@ -83,8 +88,15 @@ function broadcast() {
   });
 }
 // Save immediately on shutdown so the last change is never lost.
-for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { store.flush(snap); saveRoster.flush?.(); require('./entities').flush(); process.exit(0); });
+for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { store.flush(snap); saveRoster.flush?.(); require('./entities').flush(); library.flushAll(); process.exit(0); });
 
 module.exports = { state, log, nextId, fullState, stateFor, broadcast, EMOTIONS, EFFECTS };
 
 module.exports.sys = () => rules.get(state.system);
+// Replace the live campaign with a saved snapshot (save points). Phones keep the current room code.
+module.exports.loadSnapshot = (saved) => {
+  const room = state.room;
+  seq = Math.max(seq, store.restore(state, roster, saved));
+  state.room = room;
+};
+module.exports.snapshot = snap;
