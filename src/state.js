@@ -45,13 +45,14 @@ const state = {
   rolls: [], // dice log (src/rolls.js)
   handouts: [], // handouts, spoils and dialogue votes (src/messages.js)
   vote: null, // the active dialogue vote (item 12)
+  clocks: [], // segment clocks (item 17), src/tracker.js
   checkLib: [], // DM-made check presets
   whispers: [], // { id, to: charId, text, at, vis } private DM -> player messages
   room: null, // join code, set by session.js
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;

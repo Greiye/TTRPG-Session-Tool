@@ -68,6 +68,20 @@
     </div>
 
     <div class="card">
+      <h3>Rests <span class="note">short and long</span></h3>
+      <div class="row"><button class="btn" data-act="restShort">☕ Short rest</button><button class="btn" data-act="restLong">🛏 Long rest</button></div>
+    </div>
+    <div class="card">
+      <h3>Conditions <span class="note">on players and creatures in the encounter</span></h3>
+      <select id="condWho"></select>
+      <div id="condBtns" class="dm-conds"></div>
+    </div>
+    <div class="card">
+      <h3>Clocks <span class="note">countdowns on the TV</span></h3>
+      <div class="row"><input id="clockName" class="grow" placeholder="The ritual completes"><input id="clockSegs" type="number" min="2" max="12" value="4" style="width:64px" title="Segments"><button class="btn small" id="clockAdd">Add</button></div>
+      <div id="clockList" class="list"></div>
+    </div>
+    <div class="card">
       <h3>Characters <button class="btn small" id="charNew">+ New</button></h3>
       <div id="chars" class="chars"></div>
     </div>

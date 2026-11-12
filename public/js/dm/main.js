@@ -12,6 +12,7 @@ import './data.js';
 import './creatures.js';
 import './saves.js';
 import './rolls.js';
+import './tracker.js';
 
 window.dmEmit = emit; // used by voice.js (classic script)
 Settings.mount({ table: { get: () => state()?.settings.display || {}, set: (display) => emit('dm:settings', { display }) } });

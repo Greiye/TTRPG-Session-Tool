@@ -146,7 +146,7 @@
     const turn = c.active ? c.order[c.turn]?.id : null;
     return `<div class="combat">
       <div class="init">${c.active ? `<span class="round">Round ${c.round}</span>` : '<span class="round">Combat (not started)</span>'}
-        ${c.order.map((o) => byId[o.id] ? `<span class="${o.id === turn ? 'now' : ''} ${byId[o.id].enemy ? 'en' : 'al'} ${byId[o.id].hp === 0 ? 'dead' : ''}">${byId[o.id].side ? '' : avatar(byId[o.id], 'av-chip')}${o.init} ${esc(byId[o.id].name)}</span>` : '').join('')}</div>
+        ${c.order.map((o) => byId[o.id] ? `<span class="${o.id === turn ? 'now' : ''} ${byId[o.id].enemy ? 'en' : 'al'} ${byId[o.id].hp === 0 ? 'dead' : ''}">${byId[o.id].side ? '' : avatar(byId[o.id], 'av-chip')}${o.init} ${esc(byId[o.id].name)}${conds(byId[o.id])}</span>` : '').join('')}</div>
       ${byId[turn] && !byId[turn].enemy ? `<div class="turn-card" style="${accent(byId[turn])}">${avatar(byId[turn], 'av-turn')}<div><small>Your move</small><b>${esc(byId[turn].name)}</b>${byId[turn].catchphrase ? `<q>${esc(byId[turn].catchphrase)}</q>` : ''}</div></div>` : ''}
       <div class="foes">${c.enemies.map((e) => `
         <div class="foe side-${e.side || 'enemy'} ${e.hp === 0 ? 'dead' : ''} ${turn === e.id ? 'turn' : ''}">
@@ -213,7 +213,7 @@
         <aside class="stage-log">${logFeed(s)}</aside>
       </main>
       <footer>${party(s)}</footer>
-      ${spotlightCard(s)}${bossCard(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}${clocks(s)}`;
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
     Anim.hydrate(ui);
@@ -224,6 +224,14 @@
       Anim.once(ui.querySelector('.sp-card'), `${s.spotlight.id}:${s.spotlight.kind}`, s.spotlight.kind === 'nat20' ? 'bounce' : 'pop', who);
     }
   }
+
+  // Segment clocks (17): a pie of segments on the TV, filled as the DM advances them.
+  function clocks(s) {
+    if (!s.clocks?.length) return '';
+    return `<div class="clocks">${s.clocks.map((k) => `<div class="clock"><small>${esc(k.name)}</small><div class="pie" style="--n:${k.segments}">${Array.from({ length: k.segments }, (_, i) => `<i class="${i < k.filled ? 'on' : ''}"></i>`).join('')}</div></div>`).join('')}</div>`;
+  }
+  // Conditions (16): small chips under a combatant's name.
+  const conds = (x) => (x?.conditions?.length ? `<em class="conds">${x.conditions.map((c) => esc(c)).join(', ')}</em>` : '');
 
   // Boss title card (item 7b): a short banner over the stage when a boss fight opens.
   function bossCard(s) {
