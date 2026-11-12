@@ -59,6 +59,11 @@ Characters are saved to `data/characters.json`, and portraits go to `uploads/por
 
 To back up or move your party, copy `data/` and `uploads/`.
 
+## Shops (NPC merchants)
+- DM card "Shops": paste or choose a price list (CSV, `;`-separated, or a Markdown table). Columns: name, price, stock, note. Price takes `gp`, `sp` or `cp` (default gp). Blank stock means unlimited. A header row is optional.
+- Phones get a 🛒 Shops tab with open shops. Buying spends the character's gold and adds the item to the pack. Gold is private to the owner and the DM, and the DM sets it under "Party gold".
+- Closing a shop hides it from phones. Shops are saved with the campaign.
+
 ## Co-DM & atmosphere
 
 A co-DM runs the mood while the DM runs the game. On the DM page, **Co-DM → Invite** shows a private QR (don't put it on the TV). The co-DM page has the same atmosphere controls the DM has, at the bottom of the DM panel, and nothing else: it can't change modes, HP, combat or NPCs.
