@@ -444,3 +444,29 @@ body.phone .settings-btn { bottom: 76px; }
 .foe.side-ally { background: rgb(0 30 50 / .55); border-color: #2a5a7b; }
 .foe.side-neutral { background: rgb(40 40 40 / .55); border-color: #6b6b6b; }
 .foe-art { width: 5cqw; height: 5cqw; object-fit: contain; }
+
+/* ================= Phase 2: roll calls, dice log, popups ================= */
+.roll-log .item { grid-template-columns: 1fr; }
+.call-tgt { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 99px; padding: 2px 8px; font-size: calc(13px * var(--ts)); }
+.call-tgt.on { border-color: var(--gold); }
+.dc-chip { font-size: calc(12px * var(--ts)); }
+.rollpop { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 60; pointer-events: none; text-align: center; font-family: var(--display); }
+.rollpop[hidden] { display: none; }
+.rollpop .big { font-size: calc(72px * var(--ts)); font-weight: 800; line-height: 1; text-shadow: 0 4px 18px #000; }
+.rollpop .what { font-size: calc(18px * var(--ts)); text-shadow: 0 2px 8px #000; }
+.rollpop.pass .big { color: var(--good); }
+.rollpop.fail .big, .rollpop.fumble .big { color: var(--bad); }
+.rollpop.crit .big { color: var(--gold); }
+.rollpop .dice { display: inline-flex; gap: 8px; margin-bottom: 6px; }
+.rollpop .dice span { background: rgb(0 0 0 / .6); border: 2px solid var(--line); border-radius: 10px; padding: 4px 12px; font-size: calc(28px * var(--ts)); }
+.rollpop .dice span.off { opacity: .35; }
+.rollpop.tumble { animation: rp-tumble .9s ease-out both; }
+.rollpop.slam { animation: rp-slam .7s cubic-bezier(.2,.9,.3,1.3) both; }
+.rollpop.flip { animation: rp-flip .8s ease-out both; }
+@keyframes rp-tumble { 0% { transform: translate(-50%,-160%) rotate(-40deg); opacity: 0; } 60% { transform: translate(-50%,-50%) rotate(8deg); opacity: 1; } 100% { transform: translate(-50%,-50%) rotate(0); opacity: 1; } }
+@keyframes rp-slam { 0% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; } 100% { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+@keyframes rp-flip { 0% { transform: translate(-50%,-50%) rotateX(90deg); opacity: 0; } 100% { transform: translate(-50%,-50%) rotateX(0); opacity: 1; } }
+html[data-motion="reduce"] .rollpop.tumble, html[data-motion="reduce"] .rollpop.slam, html[data-motion="reduce"] .rollpop.flip { animation: none; }
+.call-box { border-color: var(--gold); }
+.roll-box { display: flex; gap: 6px; }
+.roll-box input { flex: 1; }

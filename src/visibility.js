@@ -48,7 +48,18 @@ function viewState(base, viewer) {
   out.players = base.players.map((p) => strip(p, 'character', viewer));
   out.combat = { ...base.combat, enemies: base.combat.enemies.map((e) => strip(e, 'enemy', viewer)) };
   out.log = filterList(base.log, viewer);
+  out.rolls = filterList(base.rolls, viewer);
   out.whispers = filterList(base.whispers, viewer);
+  if (base.scene) out.scene = { ...base.scene, secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
+  // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.
+  if (base.check) {
+    const targeted = !base.check.targets || viewer.role !== 'player' || base.check.targets.includes(viewer.charId);
+    if (!targeted) out.check = null;
+    else {
+      out.check = { ...base.check };
+      if (viewer.role !== 'dm') { delete out.check.outcome; if (base.check.hideDc) delete out.check.dc; }
+    }
+  }
   // The room code is the join secret: only the DM and the TV (which displays it) get it.
   if (!['dm', 'screen', 'codm'].includes(viewer.role)) { delete out.room; delete out.joinUrl; }
   if (viewer.role === 'dm') {

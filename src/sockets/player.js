@@ -6,6 +6,7 @@ const { rollDice } = require('../dice');
 const { str } = require('../util');
 const game = require('../game');
 const session = require('../session');
+const rolls = require('../rolls');
 
 module.exports = function playerSockets(socket) {
   const { io } = hub;
@@ -56,20 +57,31 @@ module.exports = function playerSockets(socket) {
     broadcast();
   });
 
-  socket.on('player:check', ({ skill, mode } = {}) => {
+  // Tapping a skill, save or ability: answers the DM's roll call if it matches, else it is a free roll.
+  socket.on('player:check', ({ skill, kind = 'skill', key = skill, mode } = {}) => {
     const p = me();
-    if (!p || !sys().skills.includes(skill)) return;
+    if (!p) return;
     const chk = state.check;
-    const called = chk && chk.skill === skill && !chk.results[p.id];
-    const r = sys().check(p, skill, { dc: called ? chk.dc : undefined, mode });
+    const called = chk && chk.kind === kind && chk.key === key && rolls.isTarget(chk, p.id) && !chk.results[p.id];
+    const r = called ? rolls.answer(p, mode) : rolls.free(p, kind, key, mode);
+    if (!r) return;
     if (r.crit) game.spotlight(p.id, 'nat20');
-    if (called) {
-      chk.results[p.id] = { name: p.name, roll: r.natural, total: r.total, pass: r.pass };
-      log('check', `${p.name} ${r.text} ${r.outcome}`, { tone: r.pass ? 'good' : 'bad', roll: r.natural });
-    } else {
-      log('check', `${p.name} ${r.text}${r.outcome ? ' ' + r.outcome : ''}`, { roll: r.natural });
-    }
     broadcast();
+  });
+  // The big "Roll" button on a roll call.
+  socket.on('player:answer', ({ mode } = {}) => {
+    const p = me();
+    const r = p && rolls.answer(p, mode);
+    if (!r) return;
+    if (r.crit) game.spotlight(p.id, 'nat20');
+    broadcast();
+  });
+  // Free dice: "2d6+3", "d20" with advantage, etc.
+  socket.on('player:roll', ({ expr, label, mode } = {}, ack) => {
+    const p = me();
+    const r = p && rolls.expr(p, expr, { label, mode });
+    ack?.(r ? { total: r.total } : { error: 'Could not read that. Try 2d6+3 or d20.' });
+    if (r) broadcast();
   });
 
   socket.on('player:action', ({ text } = {}) => {

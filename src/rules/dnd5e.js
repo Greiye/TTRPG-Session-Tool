@@ -80,15 +80,18 @@ module.exports = {
 
   bonus: (c, skill) => c.skills?.[skill] ?? 0,
 
-  // Ability/skill check. dc optional. mode: 'adv' | 'dis' | undefined.
-  check(c, skill, { dc, mode } = {}) {
+  // Any d20 test: label + modifier. dc optional. mode: 'adv' | 'dis' | undefined.
+  test(label, mod, { dc, mode } = {}) {
     const r = d20(mode);
-    const mod = c.skills?.[skill] ?? 0;
     const total = r.natural + mod;
     const pass = dc == null ? null : total >= dc;
     const dice = r.mode ? `d20${r.mode === 'adv' ? '↑' : '↓'}(${r.dice.join(',')})` : `d20(${r.natural})`;
-    return { natural: r.natural, total, pass, crit: r.natural === 20, text: `${skill}: ${dice}${sign(mod)} = ${total}`, outcome: pass == null ? null : pass ? 'SUCCESS' : 'FAIL' };
+    return { natural: r.natural, dice: r.dice, sides: 20, mod, total, pass, crit: r.natural === 20, fumble: r.natural === 1, mode: r.mode, text: `${label}: ${dice}${sign(mod)} = ${total}`, outcome: pass == null ? null : pass ? 'SUCCESS' : 'FAIL' };
   },
+  check(c, skill, opts) { return this.test(skill, c.skills?.[skill] ?? mod(c.abilities?.[SKILL_ABILITY[skill]]), opts); },
+  save(c, ab, opts) { return this.test(`${ABILITIES.find((a) => a[0] === ab)?.[1] || ab} save`, this.saveBonus(c, ab), opts); },
+  ability(c, ab, opts) { return this.test(`${ABILITIES.find((a) => a[0] === ab)?.[1] || ab} check`, mod(c.abilities?.[ab]), opts); },
+  dcLadder: [['Very easy', 5], ['Easy', 10], ['Medium', 15], ['Hard', 20], ['Very hard', 25], ['Nearly impossible', 30]],
 
   initiative: (x) => d20().natural + (x.init || 0),
 
