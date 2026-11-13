@@ -62,6 +62,7 @@ const state = {
   quiz: null, // recap quiz: questions, phone answers and DM marks (src/quiz.js)
   suggestions: [], // { id, name, text, at, vis } from spectators, seen by DM and players (src/spectate.js)
   objectives: [], // secret player objectives { id, charId, name, title, text, revealed, vis } (src/objectives.js)
+  pendingPlace: [], // creature ids added to the map that must be placed before anything else (phase 2 combat)
   shops: [], // NPC shops with stock and prices (item 27, src/shops.js)
   downtime: downtime.fresh(), // weekly downtime picks and results (src/downtime.js)
   camp: camp.fresh(), // camp: TV image, phone votes for short or long rest and downtime notes (src/camp.js)
@@ -74,7 +75,7 @@ const state = {
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
