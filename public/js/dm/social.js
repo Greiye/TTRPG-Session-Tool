@@ -26,7 +26,9 @@ onState((s) => {
     $('#npcName').value = s.social.npc.name;
     $('#npcHue').value = s.social.npc.hue;
     s.social.choices.forEach((c, i) => { $$('.choice')[i].value = c; });
+    drawStyle(s);
   }
+  drawGloss(s);
   $$('[data-emo]').forEach((b) => b.classList.toggle('on', b.dataset.emo === s.social.npc.emotion));
   drawCast(s);
   sprites(s);
@@ -46,7 +48,25 @@ async function castAdd() {
   if (r?.ok) $('#castName').value = '';
 }
 
-const say = () => { emit('dm:say', { text: $('#line').value }); $('#line').value = ''; };
+// Phase D: a line in a tongue is scrambled on the phones and TV until the DM glosses it for someone.
+let glossKey = null;
+function drawGloss(s) {
+  const line = s.social.line || {};
+  const g = line.gloss || [];
+  const key = JSON.stringify([line.lang || '', g, s.players.map((p) => p.id + p.name)]);
+  if (key === glossKey) return;
+  glossKey = key;
+  $('#glossBtns').innerHTML = line.lang
+    ? `<button class="btn small ${g.includes('*') ? 'on' : ''}" data-gloss="*">Gloss for everyone</button>` + s.players.map((p) => `<button class="btn small ${g.includes(p.id) ? 'on' : ''}" data-gloss="${esc(p.id)}">Gloss for ${esc(p.name)}</button>`).join('')
+    : '<span class="note">Give a line a tongue to scramble it for everyone but those who know it.</span>';
+}
+function drawStyle(s) {
+  const st = s.social.npc.style || { font: 'serif', color: 'ivory' };
+  $('#npcFont').value = st.font;
+  $('#npcColor').value = st.color;
+}
+
+const say = () => { emit('dm:say', { text: $('#line').value, lang: $('#lineLang').value }); $('#line').value = ''; };
 // Sprites: the emotion buttons drive the speaker, or a chosen character's sprite state.
 function sprites(s) {
   const sel = $('#emoTarget');
@@ -90,6 +110,16 @@ onClick('emo', (emotion) => {
 $('#line').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); say(); } });
 $('#npcName').addEventListener('change', (e) => emit('dm:npc', { name: e.target.value }));
 $('#npcHue').addEventListener('input', (e) => emit('dm:npc', { hue: Number(e.target.value) }));
+const styleChanged = () => emit('dm:npc', { style: { font: $('#npcFont').value, color: $('#npcColor').value } });
+$('#npcFont').addEventListener('change', styleChanged);
+$('#npcColor').addEventListener('change', styleChanged);
+$('#glossBtns').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-gloss]');
+  if (!b) return;
+  const to = b.dataset.gloss;
+  const g = state()?.social.line.gloss || [];
+  emit('dm:gloss', { to, on: !g.includes(to) });
+});
 
 // Number keys 1-8 switch emotions while not typing.
 document.addEventListener('keydown', (e) => {
