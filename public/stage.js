@@ -364,6 +364,10 @@
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
     Anim.hydrate(ui);
+    // A handout the group shares to the TV unfolds once, when it first appears.
+    const arrived = [...ui.querySelectorAll('.shared .hand[data-hid]')].filter((el) => !root.dataset.shownHid?.split(',').includes(el.dataset.hid));
+    if (root.dataset.shownHid !== undefined) arrived.forEach((el) => Anim.play(el, 'unfold', null));
+    root.dataset.shownHid = [...ui.querySelectorAll('.shared .hand[data-hid]')].map((el) => el.dataset.hid).join(',');
     const mc = ui.querySelector('.memorial');
     if (mc && mc.dataset.n !== root.dataset.memN) { root.dataset.memN = mc.dataset.n; Anim.once(mc, `mem:${mc.dataset.n}`, 'pop'); }
     const bc = ui.querySelector('.boss-card');
@@ -388,7 +392,7 @@
     const objs = (s.objectives || []).filter((o) => o.revealed && o.vis?.screen).slice(-2); // secret objectives the DM revealed (item 9)
     const v = s.vote;
     if (!items.length && !objs.length && !(v && v.options)) return '';
-    return `<div class="shared">${objs.map((o) => `<div class="hand objective-tv"><b>🎯 ${esc(o.name)}: ${esc(o.title)}</b>${o.text ? `<p>${esc(o.text)}</p>` : ''}</div>`).join('')}${items.map((h) => `<div class="hand"><b>${esc(h.title)}</b>${h.text ? `<p>${esc(h.text)}</p>` : ''}</div>`).join('')}${v && v.open ? `<div class="hand vote-tv"><b>The party votes</b>${v.options.map((o, i) => `<span>${esc(o)} <em>${v.counts?.[i] ?? 0}</em></span>`).join('')}</div>` : ''}</div>`;
+    return `<div class="shared">${objs.map((o) => `<div class="hand objective-tv"><b>🎯 ${esc(o.name)}: ${esc(o.title)}</b>${o.text ? `<p>${esc(o.text)}</p>` : ''}</div>`).join('')}${items.map((h) => `<div class="hand" data-hid="${esc(h.id)}"><b>${esc(h.title)}</b>${h.text ? `<p>${esc(h.text)}</p>` : ''}</div>`).join('')}${v && v.open ? `<div class="hand vote-tv"><b>The party votes</b>${v.options.map((o, i) => `<span>${esc(o)} <em>${v.counts?.[i] ?? 0}</em></span>`).join('')}</div>` : ''}</div>`;
   }
 
   // Camp (src/camp.js): an image over the stage while the DM has camp open, with the vote count so far.

@@ -27,6 +27,9 @@ function quizHtml(q, c) {
     <p class="note">✨ Inspiration: ${c.inspiration || 0}</p></div>`;
 }
 
+const shownHandouts = new Set(); // handout ids already animated on this phone
+let primed = false;
+
 function render() {
   const S = state();
   const c = S?.players.find((p) => p.id === me.charId);
@@ -39,7 +42,7 @@ function render() {
   // Secret objectives (item 9): the server only sends yours, plus any the DM has revealed.
   const objs = S.objectives || [];
   const objHtml = objs.map((o) => `<div class="card objective"><h3>🎯 ${esc(o.title)}</h3>${o.text ? `<p>${esc(o.text)}</p>` : ''}<p class="note">${o.revealed ? 'Revealed to the table by the DM.' : 'Secret. Only you see this.'}</p></div>`).join('');
-  const body = items.map((h) => {
+  const item = (h) => {
     if (h.kind === 'spoil') {
       const mine = h.mine;
       return `<div class="card"><h3>🎁 ${esc(h.title)}</h3>
@@ -53,11 +56,18 @@ function render() {
       return `<div class="card"><h3>🔤 ${esc(h.lang)}</h3><p class="${h.text === undefined ? 'glyphs' : ''}">${esc(t)}</p>${h.knows || h.text !== undefined ? '' : '<p class="note">You don\'t know this tongue.</p>'}</div>`;
     }
     return `<div class="card"><h3>📜 ${esc(h.title)}</h3>${h.text ? `<p>${esc(h.text)}</p>` : ''}${h.image ? `<img src="${esc(h.image)}" alt="" style="max-width:100%;border-radius:8px">` : ''}</div>`;
-  }).join('');
+  };
+  const body = items.map((h) => `<div class="hwrap" data-hid="${esc(h.id)}">${item(h)}</div>`).join('');
   const q = S.quiz;
   const quizPending = q?.open ? q.questions.filter((x) => q.mine?.[x.id] === undefined).length : 0;
   const quiz = quizHtml(q, c);
   root().innerHTML = objHtml + quiz + voteHtml + body + (items.length || objs.length || vote || q ? '' : '<p class="note" style="text-align:center">Nothing here yet. Handouts, phrases and spoils from the DM show up here.</p>');
+  // A handout that just arrived unfolds like paper. Items already on screen (and the first load) stay still.
+  const wraps = [...root().querySelectorAll('.hwrap[data-hid]')];
+  const arrived = wraps.filter((el) => !shownHandouts.has(el.dataset.hid));
+  wraps.forEach((el) => shownHandouts.add(el.dataset.hid));
+  if (primed) arrived.forEach((el) => window.Anim?.play(el, 'unfold', c));
+  primed = true;
   // Badge: count new items since the tab was last opened.
   const fresh = items.filter((h) => !seen.has(h.id)).length + objs.filter((o) => !seen.has(o.id)).length + (vote?.open && vote.mine == null ? 1 : 0);
   setBadge('inbox', tab() === 'inbox' ? 0 : fresh + quizPending);

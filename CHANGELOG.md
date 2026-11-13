@@ -5,6 +5,11 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- Initiative spotlight on phones: your turn buzzes and glows with a "Your turn" tag; the next in order gets a short "on deck" buzz. Reduce motion keeps the glow still.
+- Handouts unfold like paper when they arrive on a phone or on the TV (new items only; the first load stays still).
+- Rest rules per class (`src/rests.js`): Warlock pact slots refill on a short rest; Wizard Arcane Recovery returns up to half the level in slot levels; Fighter, Cleric, Druid and Paladin features refill on the rest they name; Lay on Hands waits for a long rest.
+- Short rest hit dice: players set how many to spend in the camp pop-up. Each die heals a roll of its die plus CON, and the log shows the rolls.
+- Class feature uses (Wild Shape, Channel Divinity, Lay on Hands points) show on the owner's phone sheet.
 - World map (Phase G): the DM uploads a map picture and places towns and sites on it. Phones vote where to go, one vote each, and a strict majority of the seated party sends the party there (the DM closes a vote, or overrides it at any time). Travel takes a set number of real seconds, and the party token glides along the line on the TV and the phones. Flavour cards come up while travelling: the DM's own cards first, then a weighted auto table the DM can edit or switch off. The DM can veto any card after it shows, and reveal lore on it. Place info is shown to the table only once the DM reveals it. Phones can comment on cards. The DM can show the map on the TV. Code: `src/worldmap.js` (rules), `src/sockets/worldmap.js` (events and timer), `public/worldmap.js` (shared drawing).
 - TV moments (phase H), driven from a new "TV moments" tab in the DM's Scene group:
   - Scene transitions: fade, wipe or ink across the TV. A new scene title also fades and shows a chapter card.
