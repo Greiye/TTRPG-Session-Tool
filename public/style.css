@@ -777,7 +777,7 @@ html[data-motion="reduce"] .die3d .cube { animation: none; }
 .pz-card.solved { border-color: #e8c77a; box-shadow: 0 0 4cqw rgb(232 199 122 / .45); }
 .web-tv { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgb(0 0 0 / .72); }
 .web-tv svg { width: 88%; height: auto; max-height: 86%; }
-.web-tv .web-kicker { position: absolute; top: 2.5cqw; left: 0; right: 0; text-align: center; color: #c9a86a; font-size: 1.8cqw; letter-spacing: .2em; text-transform: uppercase; }
+.web-tv .web-kicker { position: absolute; bottom: 3cqw; left: 0; right: 0; text-align: center; color: #c9a86a; font-size: 1.8cqw; letter-spacing: .2em; text-transform: uppercase; }
 .web-tv text { fill: #f4ead5; font-size: 15px; font-family: system-ui, sans-serif; }
 .web-tv .wb-tier { fill: #c9a86a; font-size: 13px; }
 .web-tv .wb-name { font-size: 16px; font-weight: 600; }
