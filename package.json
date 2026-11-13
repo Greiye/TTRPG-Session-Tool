@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test/rules.js && node test/visibility.js && node test/assets.js && node test/bundle.js && node test/smoke.js && node test/data.js && node test/rolls.js && node test/tv.js && node test/messages.js && node test/speech.js && node test/turns.js && node test/world.js && node test/map.js && node test/log-redaction.js && node test/hardening.js && node test/spectator.js && node test/shops.js && node test/quiz.js && node test/plans.js && node test/objectives.js && node test/difficulty.js && node test/downtime.js && node test/factions.js && node test/bulbs.js && node test/legacy.js && node test/journal.js && node test/camp.js && node test/placement.js && node test/layered.js && node test/cast.js && node test/controls.js",
+    "test": "node test/rules.js && node test/visibility.js && node test/assets.js && node test/bundle.js && node test/smoke.js && node test/data.js && node test/rolls.js && node test/tv.js && node test/messages.js && node test/speech.js && node test/turns.js && node test/world.js && node test/map.js && node test/log-redaction.js && node test/hardening.js && node test/spectator.js && node test/shops.js && node test/quiz.js && node test/plans.js && node test/objectives.js && node test/difficulty.js && node test/downtime.js && node test/factions.js && node test/bulbs.js && node test/legacy.js && node test/journal.js && node test/camp.js && node test/placement.js && node test/layered.js && node test/cast.js && node test/controls.js && node test/roles.js",
     "test:ui": "node test/ui.js"
   },
   "keywords": [],

@@ -5,6 +5,17 @@
 export const socket = io();
 window.socket = socket;
 
+// Phase 5: phone, tablet or laptop. Spectators must watch from a phone.
+export const deviceKind = () => {
+  const ua = navigator.userAgent || '';
+  const touch = (navigator.maxTouchPoints || 0) > 0;
+  const small = Math.min(screen.width, screen.height) < 600;
+  if (/iPad|Tablet/i.test(ua) || (touch && !small)) return 'tablet';
+  if (touch || /Mobi|Android|iPhone/i.test(ua)) return 'phone';
+  return 'laptop';
+};
+socket.on('connect', () => socket.emit('client:device', { device: deviceKind() }));
+
 export const $ = (s) => document.querySelector(s);
 export const $$ = (s) => [...document.querySelectorAll(s)];
 export const emit = (ev, data = {}) => socket.emit(ev, data);

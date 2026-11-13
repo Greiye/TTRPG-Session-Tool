@@ -24,6 +24,9 @@ import './suggestions.js';
 import './plans.js';
 import './journal.js';
 import './camp.js';
+import { mountTableLog } from '../msglog.js';
+
+mountTableLog(document.getElementById('tableLog'));
 
 window.dmEmit = emit; // used by voice.js (classic script)
 Settings.mount({ table: { get: () => state()?.settings.display || {}, set: (display) => emit('dm:settings', { display }) } });

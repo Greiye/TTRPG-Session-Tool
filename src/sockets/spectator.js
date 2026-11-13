@@ -6,6 +6,7 @@ const { str } = require('../util');
 
 module.exports = function spectatorSockets(socket) {
   socket.on('spectate', ({ room, name } = {}, ack) => {
+    if (socket.data.device !== 'phone') return ack?.({ error: 'Spectators join from a phone.' });
     if (!session.sameRoom(state, room)) return ack?.({ error: 'room' });
     // Give up a seat first: a spectator never holds a character.
     const c = state.players[socket.data.charId];
