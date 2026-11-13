@@ -12,6 +12,7 @@ const factions = require('../factions');
 const camp = require('../camp');
 const control = require('../control');
 const cast = require('../cast');
+const T = require('../table');
 
 module.exports = function playerSockets(socket) {
   const { io } = hub;
@@ -115,6 +116,7 @@ module.exports = function playerSockets(socket) {
   socket.on('player:check', ({ skill, kind = 'skill', key = skill, mode } = {}) => {
     const p = me();
     if (!p) return;
+    T.bump(p.id, 'acts');
     const chk = state.check;
     const called = chk && chk.kind === kind && chk.key === key && rolls.isTarget(chk, p.id) && !chk.results[p.id];
     const r = called ? rolls.answer(p, mode) : rolls.free(p, kind, key, mode);
@@ -142,6 +144,7 @@ module.exports = function playerSockets(socket) {
     const p = me();
     text = String(text || '').trim().slice(0, 200);
     if (!p || !text) return;
+    T.bump(p.id, 'talk'); // spotlight meter (src/table.js)
     if (state.mode === 'social') {
       const emotion = state.social.expr?.[p.id] || 'neutral';
       state.social.line = { speaker: p.name, text, emotion, player: true, pid: p.id };
@@ -160,6 +163,7 @@ module.exports = function playerSockets(socket) {
     const p = me();
     const choice = state.social.choices[index];
     if (!p || !choice) return;
+    T.bump(p.id, 'acts');
     log('say', choice, { who: p.name });
     state.social.line = { speaker: p.name, text: choice, emotion: 'neutral', player: true, pid: p.id };
     broadcast();
@@ -168,6 +172,7 @@ module.exports = function playerSockets(socket) {
   socket.on('player:combat', ({ act, target } = {}) => {
     const p = me();
     if (!p || game.currentTurnId() !== p.id || p.hp <= 0) return;
+    T.bump(p.id, 'acts');
     if (act === 'attack') {
       const t = state.combat.enemies.find((e) => e.id === target && e.hp > 0 && e.side !== 'ally');
       if (!t) return;

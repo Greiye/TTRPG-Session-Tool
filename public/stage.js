@@ -336,7 +336,7 @@
 
   function stage(root, s) {
     const prevEmo = root.querySelector('.vn-portrait')?.dataset.emo;
-    root.className = `stage theme-${s.scene.theme} mode-${s.mode} ${s.backdrop?.image ? 'has-bd' : ''}`;
+    root.className = `stage theme-${s.scene.theme} mode-${s.mode} layout-${s.stageLayout || 'auto'} ${s.backdrop?.image ? 'has-bd' : ''}`;
     root.classList.add(`light-${s.scene.light || 'day'}`);
     for (const l of ['day', 'dusk', 'night', 'dawn', 'torchlight']) if (l !== (s.scene.light || 'day')) root.classList.remove(`light-${l}`);
     const ui = layers(root, s);
@@ -360,7 +360,7 @@
         <aside class="stage-log">${logFeed(s, 9, new Set(s.settings?.display?.hideLog || []))}</aside>
       </main>
       <footer>${party(s)}</footer>
-      ${spotlightCard(s)}${bossCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}`;
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
     Anim.hydrate(ui);
@@ -423,6 +423,32 @@
     const b = s.bossCard;
     if (!b || !s.combat.active) return '';
     return `<div class="boss-card" data-n="${b.n}"><div class="bc-kicker">A boss appears</div><h2>${esc(b.name)}</h2>${b.title ? `<p>${esc(b.title)}</p>` : ''}</div>`;
+  }
+
+  // Table tools (Phase I, src/table.js). Tension: the DM's dread bar. Canon: details the players framed.
+  function tension(s) {
+    const t = s.tension;
+    if (!t?.on) return '';
+    return `<div class="tension" role="meter" aria-label="${esc(t.label)}" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${t.value}"><small>${esc(t.label)}</small><div class="tension-bar"><i style="width:${t.value * 10}%"></i></div></div>`;
+  }
+  function canon(s) {
+    const items = (s.canon || []).slice(-2);
+    if (!items.length) return '';
+    return `<div class="canon-tv">${items.map((c) => `<p><small>Canon · ${esc(c.by)}</small> ${esc(c.text)}</p>`).join('')}</div>`;
+  }
+  // Montage: the prompt and how many answered; answers appear together once the DM reveals them.
+  function montage(s) {
+    const m = s.montage;
+    if (!m?.prompt) return '';
+    if (!m.reveal) return `<div class="montage-tv"><div class="mt-kicker">Montage</div><h2>${esc(m.prompt)}</h2><p>${m.count || 0} of ${m.total || 0} answered</p></div>`;
+    const answers = (m.answers || []).map((a) => `<li><b>${esc(a.name)}</b> ${esc(a.text)}</li>`).join('');
+    return `<div class="montage-tv revealed"><div class="mt-kicker">Montage</div><h2>${esc(m.prompt)}</h2><ul>${answers}</ul></div>`;
+  }
+  // Payoffs: the recap of foreshadowing the DM has paid off (rest layout shows them in full).
+  function payoffs(s) {
+    const paid = (s.foreshadow || []).filter((h) => h.paid);
+    if (!paid.length) return '';
+    return `<div class="payoffs-tv"><div class="mt-kicker">Foreshadowing paid off</div>${paid.map((h) => `<p>${esc(h.text)} <em>${esc(h.payoff)}</em></p>`).join('')}</div>`;
   }
 
   window.Stage = { stage, vn, portrait, avatar, layeredSprite, refillLayered, hpBar, logFeed, checkBanner, esc, EMO };

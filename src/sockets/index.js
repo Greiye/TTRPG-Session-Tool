@@ -45,6 +45,7 @@ module.exports = function sockets(io) {
     require('./journal')(socket);
     require('./takeover')(socket);
     require('./moments')(socket);
+    require('./table')(socket); // Phase I table tools
   });
 };
 module.exports.guard = guard;

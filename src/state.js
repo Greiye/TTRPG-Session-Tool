@@ -15,6 +15,7 @@ const plan = require('./plan');
 const downtime = require('./downtime');
 const camp = require('./camp');
 const cast = require('./cast');
+const tableState = require('./table-state'); // Phase I table tools: defaults for their fields
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -81,6 +82,7 @@ const state = {
 };
 
 store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
+store.EXTRA.push('cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -142,6 +144,8 @@ for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { store.flush(s
 module.exports = { state, log, nextId, fullState, stateFor, broadcast, EMOTIONS, EFFECTS };
 
 module.exports.sys = () => rules.get(state.system);
+// Phase I table tools (src/table.js) load after this module's exports exist; fill in fields older saves lack.
+require('./table-state').ensure(state);
 // Replace the live campaign with a saved snapshot (save points). Phones keep the current room code.
 module.exports.loadSnapshot = (saved) => {
   const room = state.room;
