@@ -4,6 +4,14 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Changed
+- Chronicle look for the DM page and phones (`public/chronicle.css`, `public/chronicle.js`): charcoal panels, muted gold accents, small-caps labels. The TV is unchanged, and the TV preview on the DM page keeps the TV's look.
+  - DM page in three columns: tools on the left (sidebar tabs now show a short label under each icon), the story in the middle, the hero on the right. Every existing card, tab and control is where it was inside its tab.
+  - Pill bar over the stage: day, time of day, location (scene title), quest (open objectives) and coins. Phones show their own quest and coins; the DM sees party coins. A pill flashes when its value changes.
+  - Story feed under the TV preview: narration as prose, NPC and player lines in bordered dialogue boxes with a round portrait and the speaker in small caps. New lines slide in. The phone's Logs tab uses the same feed with its filters.
+  - Hero column on the DM page: pick a party member, see a large portrait, name with an edit button (opens the character editor), level, HP and a resource bar (spell slots, mana or stamina, else hit dice), then Stats or Bio.
+  - Phone header is a hero card with the same bars; tap Stats or Bio to open the ability list or backstory, tap again to close. The pencil opens the profile editor.
+
 ### Added
 - Teamwork puzzles (`src/puzzle.js`): the DM starts a riddle, a Caesar cipher or an order puzzle. Clues are split over the seated players (or sent to every phone, or held back), so the table has to talk it out. Phones send guesses; the DM marks wrong ones and confirms the solve. The TV shows the prompt, then the solution with a pop and a word-by-word reveal.
 - NPC and faction relationship web (`src/web.js`): the DM draws NPCs, factions and places, and how each feels about the party or each other (-100 to +100). Faction nodes link to the reputation list. The DM reveals nodes and links as the story goes and turns the web on for the TV, which shows tiers only, never the number. Phones see nothing of the web.

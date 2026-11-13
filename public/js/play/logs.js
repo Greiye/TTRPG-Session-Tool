@@ -2,7 +2,6 @@
 import { $, onState, state } from '../client.js';
 import { addTab, tab, onTab } from './tabs.js';
 
-const { esc } = Stage;
 addTab('logs', '📜 Logs');
 const root = () => $('#tabLogs');
 
@@ -21,10 +20,11 @@ function render() {
   const S = state();
   if (!S || tab() !== 'logs') return;
   const kinds = GROUPS[filter];
-  const items = (S.log || []).filter((l) => !kinds || kinds.includes(l.kind)).slice(-40).reverse();
   root().innerHTML = `
     <div class="chips" role="group" aria-label="Filter the log">${Object.keys(GROUPS).map((g) => `<button class="chip ${g === filter ? 'on' : ''}" data-log-filter="${g}" aria-pressed="${g === filter}">${NAMES[g]}</button>`).join('')}</div>
-    <ul class="log log-full">${items.map((l) => `<li class="k-${esc(l.kind)} ${l.tone ? 't-' + esc(l.tone) : ''}">${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${l.roll === 20 ? '<em class="nat">NAT 20</em> ' : l.roll === 1 ? '<em class="nat one">NAT 1</em> ' : ''}${esc(l.text)}</li>`).join('') || '<li class="note">Nothing logged yet.</li>'}</ul>`;
+    <section class="feed log-full" aria-label="Table log"></section>`;
+  // Story-style feed (public/chronicle.js): speech in portrait boxes, newest at the bottom.
+  Chronicle.feed(root().querySelector('.feed'), S, { n: 40, kinds: kinds || Object.values(GROUPS).flat().filter(Boolean) });
 }
 onState(render);
 onTab((id) => { if (id === 'logs') render(); });
