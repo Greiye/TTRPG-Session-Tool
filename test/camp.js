@@ -13,8 +13,8 @@ assert(camp.vote(c, 'b', 'short', ''));
 assert(!camp.vote(c, 'c', 'nap', 'x'), 'only short or long');
 assert.deepStrictEqual(camp.tally(c), { short: 1, long: 1 });
 // Phones see only their own vote and note; the DM sees all; the TV sees counts only.
-assert.deepStrictEqual(camp.viewFor(c, { role: 'player', charId: 'a' }).mine, { vote: 'long', text: 'I keep watch.' });
-assert.deepStrictEqual(camp.viewFor(c, { role: 'player', charId: 'b' }).mine, { vote: 'short', text: '' });
+assert.deepStrictEqual(camp.viewFor(c, { role: 'player', charId: 'a' }).mine, { vote: 'long', text: 'I keep watch.', dice: 0 });
+assert.deepStrictEqual(camp.viewFor(c, { role: 'player', charId: 'b' }).mine, { vote: 'short', text: '', dice: 0 });
 assert(!('votes' in camp.viewFor(c, { role: 'screen' })));
 assert(camp.viewFor(c, { role: 'dm' }).votes.b === 'short');
 // A new camp clears the last one's votes.
@@ -34,3 +34,14 @@ assert(!JSON.stringify(viewState(base, { role: 'screen' }).camp).includes('secre
 assert(!JSON.stringify(viewState(base, { role: 'player', charId: 'b' }).camp).includes('secret plan'));
 assert(JSON.stringify(viewState(base, { role: 'dm' }).camp).includes('secret plan'));
 console.log('camp: all passed');
+// Hit dice for a short rest: kept on a short vote, clamped to 20, dropped on a long vote.
+{
+  const d = camp.fresh();
+  camp.setOpen(d, true);
+  camp.vote(d, 'a', 'short', '', 3);
+  assert.strictEqual(d.dice.a, 3);
+  camp.vote(d, 'a', 'long', '', 3);
+  assert(!('a' in d.dice));
+  camp.vote(d, 'a', 'short', '', 99);
+  assert.strictEqual(d.dice.a, 20);
+}

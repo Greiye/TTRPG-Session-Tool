@@ -29,7 +29,7 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const arrOf = (v, allowed) => (Array.isArray(v) ? v.filter((x) => allowed.includes(x)) : []);
 
 function fresh() {
-  return { tension: 0, clocks: [], towns: [], links: [], rumours: [], canon: [], oracles: [], pending: [], history: [] };
+  return { clocks: [], towns: [], links: [], rumours: [], canon: [], oracles: [], pending: [], history: [] };
 }
 // A save from before this phase has no living world; keep what it has and fill in the rest.
 const ensure = (saved) => ({ ...fresh(), ...(saved || {}) });
@@ -141,6 +141,8 @@ function removeTown(state, id) {
   for (const r of L.rumours) { delete r.heard[id]; if (r.origin === id) r.origin = null; if (r.effect?.town === id) r.effect = null; }
   for (const s of state.shops || []) if (s.town === id) s.town = null;
 }
+// The living town that matches a world map node, by name (phase G arrival calls onTravel with it).
+const townFor = (L, name) => L.towns.find((t) => t.name.toLowerCase() === String(name || '').trim().toLowerCase()) || null;
 const townWilling = (t) => !t || t.trade === 'open' || (t.trade !== 'closed' && factions.tierOf(t.rep).id !== 'hostile');
 // Roads between towns: the map nodes rumours travel along.
 const adjacent = (L, a, b) => L.links.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
@@ -275,13 +277,15 @@ function setWeather(state, kind, intensity) {
   state.weather = { kind, intensity: intensity === undefined ? from.intensity : int(intensity, 1, 3, 2) };
   return { entries: [record(state.living, `The weather turns to ${kind === 'none' ? 'clear' : kind}.`, { tone: 'call', undo: { type: 'weather', from } })] };
 }
-// Tension: sounds from the soundboard push it up; the DM can ease it down.
+// Tension: the shared tension track (phase I, state.tension = { on, value, label }, shown on the TV when on).
+// Sounds from the soundboard push it up; the DM can ease it down. Its label and on/off stay the DM's.
+const tensionOf = (state) => (state.tension ??= { on: false, value: 0, label: 'Dread' });
 function bump(state, delta, why) {
-  const L = state.living;
-  const from = L.tension;
-  L.tension = clamp(from + int(delta, -10, 10, 0), 0, TENSION_MAX);
-  if (L.tension === from) return { entries: [] };
-  return { entries: [record(L, `Tension ${L.tension > from ? 'rises' : 'eases'} to ${L.tension} (${why}).`, { tone: 'call', undo: { type: 'tension', from } })] };
+  const t = tensionOf(state);
+  const from = t.value || 0;
+  t.value = clamp(from + int(delta, -10, 10, 0), 0, TENSION_MAX);
+  if (t.value === from) return { entries: [] };
+  return { entries: [record(state.living, `Tension ${t.value > from ? 'rises' : 'eases'} to ${t.value} (${why}).`, { tone: 'call', undo: { type: 'tension', from } })] };
 }
 const sound = (state, sfxId) => (SOUND_TENSION[sfxId] ? bump(state, SOUND_TENSION[sfxId], `${sfxId} sound`) : { entries: [] });
 
@@ -302,6 +306,11 @@ function decideCanon(state, id, approve) {
   const from = c.status;
   c.status = approve ? 'approved' : 'rejected';
   const out = [record(L, approve ? `Canon: ${c.text}` : `Canon refused: ${c.text}`, { tone: approve ? 'good' : 'call', vis: approve ? undefined : 'dm', undo: { type: 'canon', id, from } })];
+  // Approved canon joins the table's shared canon list (phase I scene framing), which the TV shows.
+  if (approve && Array.isArray(state.canon)) {
+    state.canon.push({ id: c.id, by: c.by, text: c.text, at: Date.now(), vis: 'all' });
+    if (state.canon.length > 30) state.canon.shift();
+  }
   if (approve && c.kind === 'rumour') out.push(...addRumour(state, { text: c.text }).entries || []);
   return { entries: out };
 }
@@ -364,9 +373,13 @@ function undo(state, id) {
     if (u.start) L.rumours = L.rumours.filter((x) => x.id !== u.id); // taking back the start removes the rumour
     else if (r) delete r.heard[u.town];
   }
-  else if (u.type === 'tension') L.tension = u.from;
+  else if (u.type === 'tension') tensionOf(state).value = u.from;
   else if (u.type === 'weather') state.weather = { ...u.from };
-  else if (u.type === 'canon') { const c = L.canon.find((x) => x.id === u.id); if (c) c.status = u.from; }
+  else if (u.type === 'canon') {
+    const c = L.canon.find((x) => x.id === u.id);
+    if (c) c.status = u.from;
+    if (Array.isArray(state.canon)) state.canon = state.canon.filter((x) => x.id !== u.id);
+  }
   e.undone = true;
   return { entries: [record(L, `Undone: ${e.text}`, { vis: 'dm' })] };
 }
@@ -378,10 +391,10 @@ function view(base, viewer) {
   const light = base.scene?.light || 'day';
   const weather = weatherOf(base);
   const derived = { light, sight: sight(weather, light), travel: travelCost(weather, light), encounters: encounterFactor(weather, light) };
-  if (viewer.role === 'dm') return { ...L, derived, tensionLabel: TENSION_TIER(L.tension), towns: L.towns.map((t) => ({ ...t, label: factions.tierOf(t.rep).label, trade: townWilling(t) ? 'open' : 'closed' })) };
+  if (viewer.role === 'dm') return { ...L, derived, tension: base.tension?.value || 0, tensionLabel: TENSION_TIER(base.tension?.value || 0), towns: L.towns.map((t) => ({ ...t, label: factions.tierOf(t.rep).label, trade: townWilling(t) ? 'open' : 'closed' })) };
   return {
     weather,
-    tension: { value: L.tension, label: TENSION_TIER(L.tension) },
+    tension: { value: base.tension?.value || 0, label: TENSION_TIER(base.tension?.value || 0) },
     derived,
     towns: L.towns.map((t) => ({ id: t.id, name: t.name, label: factions.tierOf(t.rep).label, trade: townWilling(t) ? 'open' : 'closed' })),
     links: L.links,
@@ -393,7 +406,7 @@ function view(base, viewer) {
 module.exports = {
   WEATHER, LIGHTS, TRIGGERS, CANON_KINDS, TRADE_MODES, MAX, SOUND_TENSION, TENSION_MAX,
   fresh, ensure, record, setRep, shiftRep, addClock, advance, tick,
-  addTown, setTrade, removeTown, townWilling, linkTowns, setShop, priceMult, canTrade,
+  addTown, setTrade, removeTown, townFor, townWilling, linkTowns, setShop, priceMult, canTrade,
   distort, addRumour, spreadTo, spreadAll, onSession, onTravel,
   context, weatherOf, travelCost, sight, encounterFactor, setWeather, bump, sound,
   propose, decideCanon, addOracle, roll, decideOracle, undo, view, TENSION_TIER,

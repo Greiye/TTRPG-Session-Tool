@@ -15,6 +15,8 @@ const plan = require('./plan');
 const downtime = require('./downtime');
 const camp = require('./camp');
 const cast = require('./cast');
+const tableState = require('./table-state'); // Phase I table tools: defaults for their fields
+const worldmap = require('./worldmap');
 const living = require('./living');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
@@ -56,11 +58,14 @@ const state = {
   relations: {}, // NPC id -> character id -> stance (item 19, DM only)
   moodMap: {}, // mode -> music track id (item 21)
   map: null, // { image, cols, rows, terrain } battle map (item 24, src/grid.js)
+  worldMap: worldmap.fresh(), // world map: places, votes, travel and flavour cards (Phase G, src/worldmap.js)
   tokens: {}, // id -> { x, y, z } on the map
   roll: null, // last creature randomizer result (item 26)
   plans: [], // imported session plans, DM only (src/plan.js)
   rndArt: {}, // table -> slot -> label -> creature art url (item 26 art, uploaded by the DM)
   checkLib: [], // DM-made check presets
+  tv: require('./moments').defaults(), // TV moments (src/moments.js)
+  story: require('./moments').storyDefault(), // in-world clock: lights the TV (src/moments.js)
   journal: [], // party journal: phone notes, newest first (src/journal.js)
   quiz: null, // recap quiz: questions, phone answers and DM marks (src/quiz.js)
   suggestions: [], // { id, name, text, at, vis } from spectators, seen by DM and players (src/spectate.js)
@@ -81,7 +86,10 @@ const state = {
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'living', 'weather');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
+store.EXTRA.push('cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'worldMap', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
+store.EXTRA.push('living', 'weather'); // phase K living world and the shared weather
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -93,6 +101,7 @@ state.living = living.ensure(state.living);
 state.weather ??= { kind: 'none', intensity: 2 };
 cast.ensure(state.social);
 state.camp ??= camp.fresh();
+state.worldMap ??= worldmap.fresh();
 net.setHost(state.settings.host);
 const snap = () => store.snapshot(state, seq);
 
@@ -145,6 +154,8 @@ for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { store.flush(s
 module.exports = { state, log, nextId, fullState, stateFor, broadcast, EMOTIONS, EFFECTS };
 
 module.exports.sys = () => rules.get(state.system);
+// Phase I table tools (src/table.js) load after this module's exports exist; fill in fields older saves lack.
+require('./table-state').ensure(state);
 // Replace the live campaign with a saved snapshot (save points). Phones keep the current room code.
 module.exports.loadSnapshot = (saved) => {
   const room = state.room;

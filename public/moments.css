@@ -1,0 +1,52 @@
+/* TV moments (public/moments.js): one overlay over the stage. Nothing here takes pointer events. */
+#moments { position: fixed; inset: 0; pointer-events: none; z-index: 30; color: #f4ead5; font-family: Georgia, 'Times New Roman', serif; }
+#moments [hidden] { display: none !important; }
+#moments small { display: block; letter-spacing: .3em; text-transform: uppercase; color: #c9a86a; font: 1.5vw/1.2 system-ui, sans-serif; }
+.mo-slot { position: absolute; inset: 0; display: flex; }
+.mo-card { max-width: 60vw; }
+
+.mo-trans { position: absolute; inset: 0; background: #120d16; opacity: 0; }
+.mo-trans.wipe, .mo-trans.ink { opacity: 1; }
+
+.mo-pause { background: rgba(6, 4, 10, .88); align-items: center; justify-content: center; text-align: center; }
+.mo-pause p { font: italic 4vw/1.3 Georgia, serif; margin: .4em 0 0; max-width: 62vw; }
+
+.mo-chapter { align-items: center; justify-content: center; text-align: center; }
+.mo-chapter .mo-card { background: rgba(20, 14, 24, .92); border: 1px solid #6b5a3a; border-radius: 14px; padding: 3vh 4vw; min-width: 40vw; box-shadow: 0 0 60px #000a; }
+.mo-chapter h2 { font-size: 5vw; margin: .3em 0; }
+.mo-chapter p { font-size: 2vw; color: #c9a86a; margin: 0; }
+
+.mo-enter { align-items: flex-end; justify-content: flex-start; padding: 0 3vw 10vh; }
+.mo-enter .mo-card { display: flex; align-items: flex-end; gap: 1vw; }
+.mo-enter .mo-art { width: 16vw; }
+.mo-enter img { width: 100%; object-fit: contain; filter: drop-shadow(0 6px 14px #000); }
+.mo-enter .mo-art svg { width: 100%; height: auto; }
+.mo-enter b { font-size: 3vw; text-shadow: 0 2px 8px #000; padding-bottom: 1vh; }
+
+.mo-echo { align-items: flex-start; justify-content: flex-end; padding: 14vh 3vw 0 0; }
+.mo-echo .mo-card { width: 28vw; background: rgba(20, 14, 24, .92); border-left: 4px solid #c9a86a; border-radius: 8px; padding: 2.5vh 1.5vw; }
+.mo-echo .was { font-style: italic; opacity: .75; margin: .6em 0; font-size: 1.8vw; }
+.mo-echo .now { font-size: 2.2vw; margin: 0; }
+
+.mo-relic { align-items: center; justify-content: center; text-align: center; background: rgba(6, 4, 10, .6); }
+.mo-relic .mo-card { width: 36vw; background: #1b1420; border: 2px solid #e8c36a; border-radius: 16px; padding: 4vh 3vw; box-shadow: 0 0 60px #e8c36a55; }
+.mo-relic .mo-icon { font-size: 9vw; line-height: 1.1; }
+.mo-relic h2 { font-size: 4vw; margin: .2em 0; color: #e8c36a; }
+.mo-relic p { font-size: 1.9vw; margin: 0; }
+
+.mo-book { position: absolute; inset: 6vh 8vw; background: #efe3c8; color: #2a1d12; border-radius: 10px; padding: 4vh 4vw; overflow: hidden; box-shadow: 0 20px 60px #000c; }
+.mo-book h2 { font-size: 4vw; margin: 0 0 2vh; }
+.mo-book ul { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 3vw; }
+.mo-book li { break-inside: avoid; margin-bottom: 2vh; font-size: 2vw; line-height: 1.35; }
+.mo-book li small { color: #7a5a2a; font: 1.4vw system-ui, sans-serif; letter-spacing: .05em; text-transform: none; margin-bottom: .2em; }
+
+.mo-epi { position: absolute; inset: 0; background: radial-gradient(ellipse at center, #2a1d2e 0%, #0c0810 75%); display: flex; align-items: center; justify-content: center; text-align: center; }
+.mo-epi .mo-card { max-width: 70vw; }
+.mo-epi h2 { font-size: 5.5vw; margin: .3em 0; }
+.mo-epi p { font-size: 2.6vw; line-height: 1.4; margin: 0; }
+
+.mo-quotes { align-items: flex-end; justify-content: flex-end; padding: 0 2vw 20vh 0; }
+.mo-quotes blockquote { width: 24vw; margin: 0 0 1.2vh; padding: 1.2vh 1.2vw; background: rgba(20, 14, 24, .78); border-left: 3px solid #c9a86a; border-radius: 6px; font-size: 1.8vw; line-height: 1.35; }
+.mo-quotes cite { display: block; font: 1.3vw system-ui, sans-serif; color: #c9a86a; margin-top: .4em; }
+
+.mo-clock { position: absolute; top: 2vh; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, .5); border: 1px solid #6b5a3a; border-radius: 999px; padding: .5vh 1.2vw; font: 1.6vw system-ui, sans-serif; }

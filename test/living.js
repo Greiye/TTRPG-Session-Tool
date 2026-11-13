@@ -6,7 +6,7 @@ const { harness } = require('./helpers');
 const h = harness('living');
 const { ok, until } = h;
 
-const world = (extra = {}) => ({ living: L.fresh(), factions: [], shops: [], scene: { light: 'day' }, social: { npc: {}, line: {} }, ...extra });
+const world = (extra = {}) => ({ living: L.fresh(), canon: [], tension: { on: false, value: 0, label: 'Dread' }, factions: [], shops: [], scene: { light: 'day' }, social: { npc: {}, line: {} }, ...extra });
 const always = () => 0; // rng that always rolls "yes" (and picks the first option)
 const never = () => 0.99;
 
@@ -87,11 +87,11 @@ const never = () => 0.99;
   ok(L.encounterFactor('storm', 'night') === 0.75, 'storms keep monsters in their dens, even at night');
   ok(L.encounterFactor('none', 'night') === 1.5, 'night brings more encounters');
   const t = L.sound(s, 'clash');
-  ok(s.living.tension === 3 && t.entries.length === 1, 'a clash pushes tension up by three');
+  ok(s.tension.value === 3 && t.entries.length === 1, 'a clash pushes tension up by three');
   L.sound(s, 'bell');
-  ok(s.living.tension === 3, 'a sound with no tension weight changes nothing');
+  ok(s.tension.value === 3, 'a sound with no tension weight changes nothing');
   L.undo(s, s.living.history[0].id);
-  ok(s.living.tension === 0, 'undoing a tension change restores it');
+  ok(s.tension.value === 0, 'undoing a tension change restores it');
   L.setWeather(s, 'snow', 3);
   ok(s.weather.kind === 'snow' && s.weather.intensity === 3 && L.setWeather(s, 'hail').error, 'weather only takes known values');
 }
@@ -107,6 +107,24 @@ const never = () => 0.99;
   ok(s.weather.kind === 'rain', 'undoing weather puts the TV weather back');
 }
 
+// World map travel (phase G): weather stretches a leg, and arriving calls the living world
+{
+  const wm = require('../src/worldmap');
+  const map = wm.fresh();
+  map.legSeconds = 10;
+  const node = { id: 'n1', name: 'Ashford', x: 0.5, y: 0.5 };
+  map.nodes.push(node);
+  let arrived = null;
+  const ctx = { now: 1000, seated: 1, log() {}, nextId: () => 1, random: () => 0.5, legFactor: L.travelCost('storm', 'night').factor, onArrive: (n) => { arrived = n; } };
+  wm.go(map, 'n1', ctx);
+  ok(map.travel.endAt - map.travel.startAt === Math.round(10000 * 2.63), 'a storm at night stretches a leg of travel');
+  wm.tick(map, { ...ctx, now: map.travel.endAt });
+  ok(arrived?.name === 'Ashford', 'arriving calls the living world hook');
+  const s = world();
+  const town = L.addTown(s.living, { name: 'ashford' }).town;
+  ok(L.townFor(s.living, 'Ashford ') === town, 'a map node finds its town by name');
+}
+
 // Canon and oracles
 {
   const s = world();
@@ -114,6 +132,9 @@ const never = () => 0.99;
   ok(c.status === 'proposed', 'a player proposal waits for the DM');
   L.decideCanon(s, c.id, true);
   ok(c.status === 'approved' && s.living.rumours.length === 1, 'an approved rumour enters the world');
+  ok(s.canon.some((x) => x.id === c.id && x.vis === 'all'), 'approved canon joins the shared canon the TV shows');
+  L.undo(s, s.living.history.find((e) => e.undo?.type === 'canon').id);
+  ok(c.status === 'proposed' && !s.canon.some((x) => x.id === c.id), 'undoing an approval takes it off the shared canon');
   const o = L.addOracle(s.living, { name: 'What happens?', entries: [
     { text: 'A stranger offers help', weight: 1, when: { light: ['night'] } },
     { text: 'A patrol passes', weight: 3, when: { light: ['day'] } },
@@ -179,6 +200,7 @@ const never = () => 0.99;
   const und = await h.call(dm, 'dm:living:tension', { delta: 2 });
   ok(und.ok !== false, 'the DM raises tension');
   ok(await until(() => a.last.living?.tension?.value === 2), 'phones see the tension track');
+  ok(dm.last.tension?.value === 2, 'it is the shared phase I tension track');
   const hist = dm.last.living.history[0];
   await h.call(dm, 'dm:living:undo', { id: hist.id });
   ok(await until(() => dm.last.living.tension === 0), 'the DM takes a tension change back in one step');

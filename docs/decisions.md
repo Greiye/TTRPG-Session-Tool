@@ -27,3 +27,21 @@ Mike can overrule any of these; each is isolated in one module.
 | 3 | Stat blocks are a library (`data/creatures.json`). A creature has a **side**: enemy, ally or neutral. The DM plays all of them and picks which attack to use. Combatants are copies, so editing a stat block does not change a running fight. | | `src/creatures.js` |
 | 3b | Import understands **Open5e v1** JSON, **5e-SRD (5e-bits)** JSON and our own export. File import works offline; Open5e search needs internet on the laptop and only asks for SRD-licensed entries. A small condensed **SRD 5.1 starter set** (12 creatures, 14 spells, CC-BY-4.0) ships in `srd/starter.json` so the app works out of the box. | No full SRD dump in the repo. | `src/srd.js` |
 | 3b | Libraries are fetched over HTTP (`/api/creatures`, `/api/spells`) and refetched when a version number in the state changes. | A full SRD is too big to broadcast on every update. | `src/library.js` |
+
+# Phase I decisions (table control tools)
+
+Automation counts and shows; the DM decides. Every value below can be overridden by the DM.
+
+| Item | Decision | Why | Where |
+|---|---|---|---|
+| Cue deck | A cue stores mode, light, backdrop, layers, one-shot sound and a handout. Firing applies only the parts it sets. Bulbs follow the light. | One tap for a prepared moment, nothing else changes. | `src/table.js` (`addCue`, `fireCue`), `src/sockets/table.js` |
+| Secret nudge | Sent to one character. The phone buzzes and shows the line in a sheet. The player shares it aloud (their words or the prompt) or keeps it. Sharing logs a line; keeping logs nothing. | Quiet prompts at the table; the player always chooses. | `sendNudge`, `answerNudge` |
+| Spotlight meter | Counts acts (checks, choices, combat turns, framing) and talk (say, montage answers, shared nudges). Flags a character at half the average or less. DM only. | Gives quiet players a moment without deciding for them. | `bump`, `balanceView`; hooks in `src/sockets/player.js` |
+| Bonds | Stored on the character (`bond`, private to the owner and the DM). A bond is due after two sessions without a call-back. Sessions are counted by the DM ("Next session"). | Reminders, not rules. | `setBond`, `callBack`, `dueBonds` |
+| Tension | 0 to 10 dread bar on the TV with a label. Not tied to the soundboard yet. | DM sets the pace. Automatic tie-in is Phase K. | `setTension` |
+| Foreshadowing | Hints are DM only. Payoffs are shown to everyone in the recap. | Secret plans stay secret until paid off. | `addHint`, `payOff`, `recapFor` |
+| Framing | DM grants one token at a time (max 3). A phone spends one to add a detail, which goes straight to canon on the TV. DM can remove it. | Player agency with a DM override. | `grantToken`, `spendToken`, `removeCanon` |
+| Montage | Phones see the count until the reveal. After the reveal the TV and every phone see all answers. | Everyone answers in private, then together. | `askMontage`, `montageView` |
+| Layouts | `auto`, `social`, `combat`, `exploration`, `rest`. The TV adds a `layout-*` class and CSS hides what that moment does not need. | One tap, no per-element setup. | `setLayout`, `public/style.css` |
+
+State defaults live in `src/table-state.js` so `src/state.js` can load them first (no require cycle).

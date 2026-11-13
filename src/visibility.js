@@ -89,9 +89,28 @@ function viewState(base, viewer) {
   if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
   out.downtime = require('./downtime').viewFor(base.downtime, viewer); // phones see their own pick and result
   out.camp = require('./camp').viewFor(base.camp, viewer); // camp votes: DM sees all, phones their own
+  // Phase I table tools (src/table.js). The DM sees the controls and the numbers behind them; phones see
+  // their own nudge and token; the TV sees the shared pieces (tension, canon, layout, montage once revealed).
+  const T = require('./table');
+  if (viewer.role === 'dm') {
+    out.balance = T.balanceView();
+    out.dueBonds = T.dueBonds();
+  } else {
+    for (const k of ['cues', 'nudges', 'balance', 'dueBonds']) delete out[k];
+    out.myNudges = viewer.role === 'player' ? (base.nudges || []).filter((n) => n.charId === viewer.charId && n.status === 'sent') : [];
+  }
+  if (viewer.role !== 'dm') { delete out.framing; out.tokens = viewer.role === 'player' ? base.framing?.[viewer.charId] || 0 : 0; }
+  out.foreshadow = T.recapFor(base.foreshadow, viewer); // hints: DM only; paid-off payoffs: everyone
+  out.montage = T.montageView(base.montage, viewer);
+  if (base.worldMap) out.worldMap = require('./worldmap').viewFor(base.worldMap, viewer, base.players.length); // Phase G: see src/worldmap.js
   // Party journal: phones and the DM only (src/journal.js).
   out.journal = ['dm', 'player'].includes(viewer.role) ? base.journal || [] : null;
   out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own
+  // TV moments (src/moments.js): the TV and the DM only. Planned echoes stay with the DM.
+  if (viewer.role === 'dm') out.tv = base.tv;
+  else if (['screen', 'codm'].includes(viewer.role)) out.tv = { ...base.tv, echoes: [] };
+  else delete out.tv;
+  out.story = base.story ? require('./moments').storyView(base.story) : null; // the in-world clock is shared with everyone
   if (base.scene) out.scene = { ...sceneFor(base.scene, viewer), secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
   // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.
   if (base.check) {

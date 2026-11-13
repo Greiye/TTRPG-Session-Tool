@@ -4,6 +4,7 @@ const { state, log, nextId } = require('./state');
 const { roster, saveRoster } = require('./roster');
 const { str, int } = require('./util');
 const { ensureSheet } = require('./sheet');
+const { restCharacter } = require('./rests');
 
 const CONDITIONS = ['Blinded', 'Charmed', 'Deafened', 'Frightened', 'Grappled', 'Incapacitated', 'Invisible', 'Paralyzed', 'Petrified', 'Poisoned', 'Prone', 'Restrained', 'Stunned', 'Unconscious', 'Exhaustion'];
 
@@ -37,24 +38,19 @@ function fillClock(id, delta) {
 }
 
 // ----- rests (18) -----
-// Short rest: players may spend hit dice (each restores ~d(die)+CON, the DM sets the amount through the
-// sheet); the rest is recorded and spell slots are untouched. Long rest: full HP, slots and half the
-// hit dice back, temp HP cleared, one level of exhaustion removed.
-function rest(kind) {
+// Rules per class live in rests.js. A short rest may spend hit dice (spend: { charId: count }, from camp votes).
+function rest(kind, spend = {}) {
   const short = kind === 'short';
+  const parts = [];
   for (const p of Object.values(state.players)) {
     ensureSheet(p);
-    if (!short) {
-      p.hp = p.maxHp;
-      p.tempHp = 0;
-      for (const s of Object.values(p.slots || {})) s.used = 0;
-      p.hitDice.used = Math.max(0, (p.hitDice.used || 0) - Math.max(1, Math.floor((p.level || 1) / 2)));
-      if (p.conditions?.includes('Exhaustion')) p.conditions = p.conditions.filter((x) => x !== 'Exhaustion');
-    }
-    if (roster[p.id]) Object.assign(roster[p.id], { hp: p.hp, tempHp: p.tempHp, slots: p.slots, hitDice: p.hitDice, conditions: p.conditions });
+    const lines = restCharacter(p, short ? 'short' : 'long', spend[p.id] || 0);
+    if (lines.length) parts.push(`${p.name} ${lines.join('; ')}.`);
+    if (roster[p.id]) Object.assign(roster[p.id], { hp: p.hp, tempHp: p.tempHp, slots: p.slots, hitDice: p.hitDice, conditions: p.conditions, uses: p.uses });
   }
   saveRoster();
   log('system', short ? 'The party takes a short rest.' : 'The party takes a long rest. HP, spell slots and half the hit dice are restored.', { tone: 'good' });
+  for (const line of parts) log('system', line);
 }
 
 module.exports = { CONDITIONS, setCondition, addClock, fillClock, rest };
