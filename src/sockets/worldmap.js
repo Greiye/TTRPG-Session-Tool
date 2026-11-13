@@ -6,7 +6,11 @@ const control = require('../control');
 const wm = require('../worldmap');
 const { str } = require('../util');
 
-const ctx = (extra = {}) => ({ now: Date.now(), seated: Object.keys(state.players).length, log, nextId, random: Math.random, ...extra });
+const living = require('../living');
+// Living world (phase K): weather and dark stretch each leg; arriving ticks travel clocks and spreads rumours.
+const legFactor = () => living.travelCost(living.weatherOf(state), state.scene?.light).factor;
+const onArrive = (node) => require('./living').flush(living.onTravel(state, living.townFor(state.living, node?.name)?.id));
+const ctx = (extra = {}) => ({ now: Date.now(), seated: Object.keys(state.players).length, log, nextId, random: Math.random, legFactor: legFactor(), onArrive, ...extra });
 
 // Travel and card timers run on the server, so they keep going with no phone open.
 setInterval(() => { if (wm.tick(state.worldMap, ctx())) broadcast(); }, 500).unref?.();

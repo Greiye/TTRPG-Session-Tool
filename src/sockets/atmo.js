@@ -66,5 +66,7 @@ module.exports = function atmoSockets(socket) {
       const t = trackOf(id);
       if (t) hub.io.emit('sfx', { url: t.url });
     }
+    // Living world: a loud sound pushes the tension track (src/living.js)
+    require('./living').flush(require('../living').sound(state, id));
   });
 };

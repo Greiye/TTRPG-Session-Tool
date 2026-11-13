@@ -17,6 +17,7 @@ const camp = require('./camp');
 const cast = require('./cast');
 const tableState = require('./table-state'); // Phase I table tools: defaults for their fields
 const worldmap = require('./worldmap');
+const living = require('./living');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -75,6 +76,8 @@ const state = {
   dmControl: {}, // charId -> true while the DM plays that character (src/control.js); not saved
   camp: camp.fresh(), // camp: TV image, phone votes for short or long rest and downtime notes (src/camp.js)
   factions: [], // faction reputation, DM sees numbers, phones see tiers (src/factions.js)
+  weather: { kind: 'none', intensity: 2 }, // shared weather: the TV (phase B) and the living world both read it (src/living.js)
+  living: living.fresh(), // living world: clocks, town standing, rumours, weather, tension, canon, oracles (src/living.js)
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
@@ -86,6 +89,7 @@ const state = {
 store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
 store.EXTRA.push('cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
 store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'worldMap', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
+store.EXTRA.push('living', 'weather'); // phase K living world and the shared weather
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -93,6 +97,8 @@ seq = store.restore(state, roster, store.load());
 if (!state.room) state.room = newRoomCode();
 state.scene.secrets ??= [];
 state.factions ??= [];
+state.living = living.ensure(state.living);
+state.weather ??= { kind: 'none', intensity: 2 };
 cast.ensure(state.social);
 state.camp ??= camp.fresh();
 state.worldMap ??= worldmap.fresh();

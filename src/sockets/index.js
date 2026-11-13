@@ -48,6 +48,7 @@ module.exports = function sockets(io) {
     worldSockets(socket);
     require('./moments')(socket);
     require('./table')(socket); // Phase I table tools
+    require('./living')(socket);
   });
 };
 module.exports.guard = guard;

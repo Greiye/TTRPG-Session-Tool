@@ -8,6 +8,7 @@ const game = require('../game');
 const session = require('../session');
 const rolls = require('../rolls');
 const shops = require('../shops');
+const living = require('../living');
 const factions = require('../factions');
 const camp = require('../camp');
 const control = require('../control');
@@ -88,7 +89,9 @@ module.exports = function playerSockets(socket) {
     if (!p) return ack?.({ error: 'Claim a character first.' });
     const shop = state.shops.find((s) => s.id === shopId);
     if (!shop) return ack?.({ error: 'No such shop.' });
-    const r = shops.buy(shop, p, itemId, qty, factions.multFor(state, shop));
+    const open = living.canTrade(state, shop);
+    if (open.error) return ack?.(open);
+    const r = shops.buy(shop, p, itemId, qty, living.priceMult(state, shop));
     if (r.error) return ack?.(r);
     log('shop', `${p.name} buys ${r.qty}× ${r.item.name} from ${shop.name} for ${r.cost.toFixed(2)} gp.`, { who: p.name, vis: { to: [p.id], screen: false } });
     broadcast();

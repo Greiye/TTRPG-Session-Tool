@@ -61,9 +61,11 @@ function canSee(vis, viewer) {
 // A shop as a phone sees it: prices after its faction's multiplier, and the faction's standing.
 const priced = ({ skipped, ...shop }, base) => {
   const F = require('./factions');
-  const mult = F.multFor(base, shop);
+  const L = require('./living');
+  const mult = L.priceMult(base, shop); // faction tier times town tier (src/living.js)
   const f = shop.faction && F.find(base, shop.faction);
-  return { ...shop, standing: f ? F.tierOf(f.rep).label : null, items: shop.items.map((i) => ({ ...i, price: require('./shops').unitCp(i, mult) / 100 })) };
+  const blocked = L.canTrade(base, shop).error || null; // e.g. a hostile town, or shut for the night
+  return { ...shop, standing: f ? F.tierOf(f.rep).label : null, blocked, items: shop.items.map((i) => ({ ...i, price: require('./shops').unitCp(i, mult) / 100 })) };
 };
 
 const strip = (obj, kind, viewer) => {
@@ -126,6 +128,7 @@ function viewState(base, viewer) {
   // Shops: phones see open shops only, without the DM's import notes.
   // Phones see the faction-adjusted prices and the standing, never the reputation number (src/factions.js).
   out.factions = (base.factions || []).map((f) => require('./factions').view(f, viewer.role === 'dm'));
+  out.living = require('./living').view(base, viewer); // weather, tension, towns by tier, canon, rumours (DM only)
   out.shops = viewer.role === 'dm' ? base.shops : (base.shops || []).filter((s) => s.open).map((s) => priced(s, base));
   if (viewer.role === 'dm') {
     out.lan = require('./net').lanAddresses();

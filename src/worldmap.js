@@ -135,7 +135,7 @@ function go(wm, nodeId, ctx) {
     to: nodeId,
     fromPt: { x: from.x, y: from.y },
     startAt: ctx.now,
-    endAt: ctx.now + wm.legSeconds * 1000,
+    endAt: ctx.now + wm.legSeconds * 1000 * (ctx.legFactor || 1), // weather and dark slow travel (src/living.js)
     nextCardAt: ctx.now + wm.cardSeconds * 1000,
   };
   ctx.log('narrate', `The party sets out for ${to.name}.`);
@@ -179,6 +179,7 @@ function tick(wm, ctx) {
     wm.here = t.to;
     wm.travel = null;
     if (to) ctx.log('narrate', `The party reaches ${to.name}.`);
+    ctx.onArrive?.(to); // living world: travel clocks tick and rumours follow the road
     return true;
   }
   return changed;
