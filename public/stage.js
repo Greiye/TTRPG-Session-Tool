@@ -160,10 +160,13 @@
     const toks = Object.entries(s.tokens || {}).filter(([id]) => byId[id]).map(([id, t]) => {
       const c = byId[id];
       const side = c.side ? c.side : c.enemy ? 'enemy' : 'player';
-      return `<div class="tok side-${side} ${turn === id ? 'now' : ''} ${c.hp === 0 ? 'down' : ''}" style="left:${(100 * t.x) / m.cols}%;top:${(100 * t.y) / m.rows}%;width:${100 / m.cols}%;height:${100 / m.rows}%">
+      const dm = s.viewer?.role === 'dm';
+      const pending = (s.pendingPlace || [])[0] === id;
+      return `<div class="tok side-${side} ${turn === id ? 'now' : ''} ${c.hp === 0 ? 'down' : ''} ${pending ? 'pending' : ''}" data-tok="${esc(id)}" ${dm ? 'draggable="true"' : ''} style="left:${(100 * t.x) / m.cols}%;top:${(100 * t.y) / m.rows}%;width:${100 / m.cols}%;height:${100 / m.rows}%">
         <span>${esc((c.name || '?')[0])}</span>${t.z ? `<em class="z">↑${t.z}</em>` : ''}</div>`;
     }).join('');
-    return `<div class="bmap" style="aspect-ratio:${m.cols} / ${m.rows}">${m.image ? `<img src="${esc(m.image)}" alt="">` : ''}
+    // The DM clicks and drags on this map directly (public/js/dm/map.js); phones and the TV only look.
+    return `<div class="bmap" data-cols="${m.cols}" data-rows="${m.rows}" style="aspect-ratio:${m.cols} / ${m.rows}">${m.image ? `<img src="${esc(m.image)}" alt="">` : ''}
       <div class="grid" style="background-size:${100 / m.cols}% ${100 / m.rows}%"></div>${tiles}${toks}</div>`;
   }
 

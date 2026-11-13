@@ -1,4 +1,5 @@
-// Battle map and creature randomizer on the DM page (items 24, 25, 26).
+// Battle map setup and creature randomizer on the DM page (items 24, 25, 26).
+// The map is edited directly on the stage (in combat): click a tile, drag a token, or select a token and use the arrow keys.
 import { $, emit, onState, state } from '../client.js';
 import { dmKey } from './auth.js';
 
@@ -7,6 +8,11 @@ let mapKey = null;
 let selTok = null; // token picked on the map; arrow keys move it one tile
 let rndKey = null;
 const TABLES = { patron: 'Tavern patron' };
+
+function selectToken(id) {
+  selTok = id;
+  document.querySelectorAll('#stage .tok').forEach((el) => el.classList.toggle('sel', el.dataset.tok === id));
+}
 
 onState((s) => {
   const m = s.map;
@@ -18,26 +24,12 @@ onState((s) => {
   }
   if (m) {
     $('#mapCols').value = m.cols; $('#mapRows').value = m.rows;
-    const cells = [];
-    const first = (s.pendingPlace || [])[0];
-    for (let y = 0; y < m.rows; y++) for (let x = 0; x < m.cols; x++) {
-      const t = m.terrain?.[`${x},${y}`];
-      const tok = Object.entries(s.tokens || {}).find(([, p]) => p.x === x && p.y === y);
-      const who = tok && tokenList.find((c) => c.id === tok[0]);
-      const cls = [t ? `t-${t}` : '', who ? 'has' : '', who && who.id === selTok ? 'sel' : '', who && who.id === first ? 'pending' : ''].join(' ');
-      cells.push(`<div class="${cls}" data-x="${x}" data-y="${y}" ${who ? `data-tok="${esc(who.id)}" draggable="true"` : ''} title="${who ? esc(who.name) : ''}">${who ? esc(who.name[0]) : ''}</div>`);
-    }
-    const map = $('#dmMap');
-    map.style.gridTemplateColumns = `repeat(${m.cols}, 1fr)`;
-    map.style.gridTemplateRows = `repeat(${m.rows}, 1fr)`;
-    map.innerHTML = cells.join('');
     const pend = (s.pendingPlace || []).map((id) => tokenList.find((c) => c.id === id)).find(Boolean);
     $('#mapInfo').textContent = pend
-      ? `Place ${pend.name} on the map first. Other changes wait until it is placed.`
-      : m.image ? 'Map image is set. Drag tokens, or click a tile. Arrow keys move the selected token.' : 'No image yet: the grid shows on a plain background.';
+      ? `Place ${pend.name} on the battle map first. Other changes wait until it is placed.`
+      : m.image ? 'Edit on the battle map: click a tile, drag a token, or select one and use the arrow keys.' : 'No image yet: the grid shows on a plain background.';
   } else {
-    $('#dmMap').innerHTML = '<p class="note" style="padding:8px">Set a grid to start a battle map.</p>';
-    $('#dmMap').style.gridTemplateColumns = ''; $('#dmMap').style.gridTemplateRows = '';
+    $('#mapInfo').textContent = 'Set a grid to start a battle map. Then edit it on the stage during combat.';
   }
   const rk = JSON.stringify(s.roll);
   if (rk !== rndKey) {
@@ -49,6 +41,8 @@ onState((s) => {
       : '<p class="note">Roll to get a creature.</p>';
     if (r && TABLES[r.table]) $('#rndTable').value = r.table;
   }
+  // Keep the selected token highlighted across re-renders.
+  if (selTok) selectToken(selTok);
 });
 
 $('#mapSet').onclick = () => emit('dm:map', { cols: $('#mapCols').value, rows: $('#mapRows').value, image: state()?.map?.image || null });
@@ -61,31 +55,47 @@ $('#mapFile').onchange = async (e) => {
   if (!res.ok) return alert(out.error || 'Upload failed');
   emit('dm:map', { cols: $('#mapCols').value, rows: $('#mapRows').value, image: out.url });
 };
-$('#dmMap').addEventListener('click', (e) => {
-  const t = e.target.closest('[data-x]');
-  if (!t || !state()?.map) return;
-  const x = Number(t.dataset.x); const y = Number(t.dataset.y);
+
+// Tile under a pointer on the stage's battle map, or null.
+function tileAt(e) {
+  const bmap = e.target.closest('.bmap');
+  const s = state();
+  if (!bmap || !s?.map) return null;
+  const r = bmap.getBoundingClientRect();
+  const cols = Number(bmap.dataset.cols) || s.map.cols;
+  const rows = Number(bmap.dataset.rows) || s.map.rows;
+  const x = Math.min(cols - 1, Math.max(0, Math.floor(((e.clientX - r.left) / r.width) * cols)));
+  const y = Math.min(rows - 1, Math.max(0, Math.floor(((e.clientY - r.top) / r.height) * rows)));
+  return { x, y };
+}
+
+// All map interaction is delegated from the stage, because the stage re-renders on every state change.
+const stage = $('#stage');
+stage.addEventListener('click', (e) => {
+  const tok = e.target.closest('.tok[data-tok]');
+  const at = tileAt(e);
+  if (!at) return;
   const pend = (state().pendingPlace || [])[0];
-  if (pend) { emit('dm:token', { id: pend, x, y, z: Number($('#mapZ').value) || 0 }); return; }
-  if (t.dataset.tok) { selTok = t.dataset.tok; return; } // selecting a token; the arrow keys move it
+  if (pend) { emit('dm:token', { id: pend, ...at, z: Number($('#mapZ').value) || 0 }); return; }
+  if (tok) { selectToken(tok.dataset.tok); return; } // select a token; arrow keys move it
   const tool = $('#mapTool').value;
-  if (tool === 'place') { if ($('#mapToken').value) emit('dm:token', { id: $('#mapToken').value, x, y, z: Number($('#mapZ').value) || 0 }); }
-  else emit('dm:map:paint', { x, y, kind: tool === 'clear' ? null : tool });
+  if (tool === 'place') { if ($('#mapToken').value) emit('dm:token', { id: $('#mapToken').value, ...at, z: Number($('#mapZ').value) || 0 }); }
+  else emit('dm:map:paint', { ...at, kind: tool === 'clear' ? null : tool });
 });
 // Drag a token onto another tile. Same rules as a click: a new creature has to be placed first.
-$('#dmMap').addEventListener('dragstart', (e) => {
-  const t = e.target.closest('[data-tok]');
-  if (!t) return;
-  selTok = t.dataset.tok;
-  e.dataTransfer?.setData('text/plain', t.dataset.tok);
+stage.addEventListener('dragstart', (e) => {
+  const tok = e.target.closest?.('.tok[data-tok]');
+  if (!tok) return;
+  selectToken(tok.dataset.tok);
+  e.dataTransfer?.setData('text/plain', tok.dataset.tok);
 });
-$('#dmMap').addEventListener('dragover', (e) => { if (e.target.closest('[data-x]')) e.preventDefault(); });
-$('#dmMap').addEventListener('drop', (e) => {
-  const t = e.target.closest('[data-x]');
+stage.addEventListener('dragover', (e) => { if (tileAt(e)) e.preventDefault(); });
+stage.addEventListener('drop', (e) => {
+  const at = tileAt(e);
   const id = e.dataTransfer?.getData('text/plain');
-  if (!t || !id || !state()?.map) return;
+  if (!at || !id) return;
   e.preventDefault();
-  emit('dm:token', { id, x: Number(t.dataset.x), y: Number(t.dataset.y), z: Number($('#mapZ').value) || 0 });
+  emit('dm:token', { id, ...at, z: Number($('#mapZ').value) || 0 });
 });
 // Arrow keys nudge the selected token one tile (not while typing in a field).
 document.addEventListener('keydown', (e) => {
@@ -99,6 +109,7 @@ document.addEventListener('keydown', (e) => {
   const y = Math.min(m.rows - 1, Math.max(0, pos.y + d[1]));
   if (x !== pos.x || y !== pos.y) emit('dm:token', { id: selTok, x, y, z: pos.z || 0 });
 });
+
 $('#rndRoll').onclick = () => emit('dm:roll:creature', { table: $('#rndTable').value, seed: $('#rndSeed').value ? Number($('#rndSeed').value) : undefined });
 $('#rndOut').addEventListener('click', (e) => {
   const b = e.target.closest('[data-reroll]');
