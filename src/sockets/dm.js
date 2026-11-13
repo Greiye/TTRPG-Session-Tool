@@ -5,6 +5,7 @@ const { state, log, nextId, broadcast, EMOTIONS, sys } = require('../state');
 const rules = require('../rules');
 const { roster, newCharacter, applyEdits } = require('../roster');
 const { str } = require('../util');
+const { LIGHTS } = require('../vision');
 const cast = require('../cast');
 const sprites = require('../sprites');
 const game = require('../game');
@@ -34,6 +35,7 @@ const factions = require('../factions');
 const { applySheet } = require('../sheet');
 const { saveRoster } = require('../roster');
 const legacy = require('../legacy');
+const moments = require('../moments');
 
 module.exports = function dmSockets(socket) {
   const { io } = hub;
@@ -57,6 +59,7 @@ module.exports = function dmSockets(socket) {
     }
   });
   dm('dm:scene', ({ title, text, theme, poi }) => {
+    const before = state.scene.title;
     Object.assign(state.scene, {
       title: String(title ?? state.scene.title).slice(0, 80),
       text: String(text ?? state.scene.text).slice(0, 600),
@@ -64,6 +67,8 @@ module.exports = function dmSockets(socket) {
       poi: Array.isArray(poi) ? poi.map((s) => String(s).slice(0, 60)).filter(Boolean).slice(0, 8) : state.scene.poi,
     });
     state.scene.secrets ??= [];
+    // A new place: TV fade and chapter card, and planned choice echoes count down a scene (src/moments.js).
+    if (state.scene.title !== before) moments.onNewScene(state);
   });
   dm('dm:system', ({ id }) => {
     if (!rules.list().some((x) => x.id === id) || id === state.system) return;
@@ -83,6 +88,15 @@ module.exports = function dmSockets(socket) {
     if (!(state.combat.enemies.some((e) => e.id === id) || state.players[id])) return;
     if (grid.place(id, Number(x), Number(y), z) && q[0] === id) q.shift();
   });
+  // Fog of war and light (Phase B, src/vision.js). Only party tokens reveal the map.
+  dm('dm:fog', ({ on } = {}) => { if (state.map) state.map.fog = !!on; });
+  dm('dm:token:light', ({ id, light } = {}) => {
+    const t = state.tokens[id];
+    if (t && Object.prototype.hasOwnProperty.call(LIGHTS, light)) t.light = light;
+  });
+  // TV weather (Phase B): rain, snow, fog or storm at light, medium or heavy strength. It writes the one shared
+  // weather field (state.weather) through the living world, so travel, sight and its history see the same change.
+  dm('dm:weather', ({ kind, intensity } = {}) => { require('../living').setWeather(state, kind === 'clear' ? 'none' : kind, intensity); });
   dm('dm:token:move', ({ id, x, y }) => {
     if (mustPlaceFirst()) return;
     const c = game.combatant(id); if (c) grid.move(c, Number(x), Number(y), { dm: true });
@@ -127,7 +141,11 @@ module.exports = function dmSockets(socket) {
   dm('dm:clock:add', (f) => { if (state.clocks.length < 20) tracker.addClock(f); });
   dm('dm:clock:fill', ({ id, delta }) => tracker.fillClock(id, delta));
   dm('dm:clock:remove', ({ id }) => { state.clocks = state.clocks.filter((k) => k.id !== id); });
-  dm('dm:rest', ({ kind }) => tracker.rest(kind === 'long' ? 'long' : 'short'));
+  dm('dm:rest', ({ kind }) => {
+    const short = kind !== 'long';
+    tracker.rest(short ? 'short' : 'long', short ? (state.camp.dice || {}) : {});
+    state.camp.dice = {}; // the spent dice are used up once the rest is applied
+  });
 
   // ----- Camp: TV image, phone votes for short or long rest (src/camp.js) -----
   dm('dm:camp:open', ({ open }) => {
@@ -430,7 +448,7 @@ module.exports = function dmSockets(socket) {
   dm('dm:memorial:clear', () => legacy.clearMemorial());
 
   // Table-wide display settings, used by the TV (phones and the DM laptop keep their own).
-  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'], log: ['show', 'hide'], sprite: ['auto', 'webm', 'sheet'], anim: ['on', 'off'] };
+  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'], log: ['show', 'hide'], sprite: ['auto', 'webm', 'sheet'], anim: ['on', 'off'], dice: ['on', 'off'] };
   dm('dm:settings', ({ display }) => {
     if (!display) return;
     const cur = state.settings.display || {};

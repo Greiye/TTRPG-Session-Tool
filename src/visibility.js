@@ -61,9 +61,11 @@ function canSee(vis, viewer) {
 // A shop as a phone sees it: prices after its faction's multiplier, and the faction's standing.
 const priced = ({ skipped, ...shop }, base) => {
   const F = require('./factions');
-  const mult = F.multFor(base, shop);
+  const L = require('./living');
+  const mult = L.priceMult(base, shop); // faction tier times town tier (src/living.js)
   const f = shop.faction && F.find(base, shop.faction);
-  return { ...shop, standing: f ? F.tierOf(f.rep).label : null, items: shop.items.map((i) => ({ ...i, price: require('./shops').unitCp(i, mult) / 100 })) };
+  const blocked = L.canTrade(base, shop).error || null; // e.g. a hostile town, or shut for the night
+  return { ...shop, standing: f ? F.tierOf(f.rep).label : null, blocked, items: shop.items.map((i) => ({ ...i, price: require('./shops').unitCp(i, mult) / 100 })) };
 };
 
 const strip = (obj, kind, viewer) => {
@@ -85,12 +87,40 @@ function viewState(base, viewer) {
   out.suggestions = filterList(base.suggestions, viewer); // spectator suggestions: DM and players only (src/spectate.js)
   out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h));
   if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
+  // Fog of war (src/vision.js): every viewer gets the tiles the party can see. Phones and the TV never get
+  // enemy tokens standing in the dark; the DM sees everything, with the fog drawn dimmer.
+  out.mapVision = null;
+  if (base.map?.fog) {
+    const party = new Set((base.players || []).map((p) => p.id));
+    const seen = require('./vision').visibleTiles(base.map, base.tokens, party);
+    out.mapVision = [...seen];
+    if (viewer.role !== 'dm') out.tokens = Object.fromEntries(Object.entries(base.tokens || {}).filter(([id, t]) => party.has(id) || seen.has(`${t.x},${t.y}`)));
+  }
   out.downtime = require('./downtime').viewFor(base.downtime, viewer); // phones see their own pick and result
   out.absent = require('./absent').view(base, viewer); // missed lines are the DM's, and the owner's card
   out.camp = require('./camp').viewFor(base.camp, viewer); // camp votes: DM sees all, phones their own
+  // Phase I table tools (src/table.js). The DM sees the controls and the numbers behind them; phones see
+  // their own nudge and token; the TV sees the shared pieces (tension, canon, layout, montage once revealed).
+  const T = require('./table');
+  if (viewer.role === 'dm') {
+    out.balance = T.balanceView();
+    out.dueBonds = T.dueBonds();
+  } else {
+    for (const k of ['cues', 'nudges', 'balance', 'dueBonds']) delete out[k];
+    out.myNudges = viewer.role === 'player' ? (base.nudges || []).filter((n) => n.charId === viewer.charId && n.status === 'sent') : [];
+  }
+  if (viewer.role !== 'dm') { delete out.framing; out.framingTokens = viewer.role === 'player' ? base.framing?.[viewer.charId] || 0 : 0; } // not `tokens`: that is the battle map
+  out.foreshadow = T.recapFor(base.foreshadow, viewer); // hints: DM only; paid-off payoffs: everyone
+  out.montage = T.montageView(base.montage, viewer);
+  if (base.worldMap) out.worldMap = require('./worldmap').viewFor(base.worldMap, viewer, base.players.length); // Phase G: see src/worldmap.js
   // Party journal: phones and the DM only (src/journal.js).
   out.journal = ['dm', 'player'].includes(viewer.role) ? base.journal || [] : null;
   out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own
+  // TV moments (src/moments.js): the TV and the DM only. Planned echoes stay with the DM.
+  if (viewer.role === 'dm') out.tv = base.tv;
+  else if (['screen', 'codm'].includes(viewer.role)) out.tv = { ...base.tv, echoes: [] };
+  else delete out.tv;
+  out.story = base.story ? require('./moments').storyView(base.story) : null; // the in-world clock is shared with everyone
   if (base.scene) out.scene = { ...sceneFor(base.scene, viewer), secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
   // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.
   if (base.check) {
@@ -108,6 +138,7 @@ function viewState(base, viewer) {
   // Shops: phones see open shops only, without the DM's import notes.
   // Phones see the faction-adjusted prices and the standing, never the reputation number (src/factions.js).
   out.factions = (base.factions || []).map((f) => require('./factions').view(f, viewer.role === 'dm'));
+  out.living = require('./living').view(base, viewer); // weather, tension, towns by tier, canon, rumours (DM only)
   out.shops = viewer.role === 'dm' ? base.shops : (base.shops || []).filter((s) => s.open).map((s) => priced(s, base));
   if (viewer.role === 'dm') {
     out.lan = require('./net').lanAddresses();

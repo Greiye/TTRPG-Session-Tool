@@ -18,13 +18,18 @@ import './world.js';
 import './shops.js';
 import './downtime.js';
 import './factions.js';
+import './living.js';
 import './map.js';
+import './worldmap.js';
+import './weather.js';
 import './gamepad.js';
 import './suggestions.js';
 import './plans.js';
 import './journal.js';
 import './camp.js';
 import './legends.js';
+import './moments.js';
+import './table.js';
 
 
 window.dmEmit = emit; // used by voice.js (classic script)

@@ -36,7 +36,7 @@ function place(id, x, y, z) {
   if (!inside(x, y)) return false;
   if (state.map.terrain?.[`${x},${y}`] === WALL) return false;
   const t = state.tokens[id] || { x, y, z: 0 };
-  state.tokens[id] = { x, y, z: z !== undefined ? int(z, 0, 10, t.z) : t.z };
+  state.tokens[id] = { ...t, x, y, z: z !== undefined ? int(z, 0, 10, t.z) : t.z };
   return true;
 }
 

@@ -18,6 +18,9 @@ const cast = require('./cast');
 const legends = require('./legends');
 const houserules = require('./houserules');
 const absent = require('./absent');
+const tableState = require('./table-state'); // Phase I table tools: defaults for their fields
+const worldmap = require('./worldmap');
+const living = require('./living');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -58,11 +61,14 @@ const state = {
   relations: {}, // NPC id -> character id -> stance (item 19, DM only)
   moodMap: {}, // mode -> music track id (item 21)
   map: null, // { image, cols, rows, terrain } battle map (item 24, src/grid.js)
-  tokens: {}, // id -> { x, y, z } on the map
+  worldMap: worldmap.fresh(), // world map: places, votes, travel and flavour cards (Phase G, src/worldmap.js)
+  tokens: {}, // id -> { x, y, z, light } on the map (light: none | torch | lantern | darkvision, src/vision.js)
   roll: null, // last creature randomizer result (item 26)
   plans: [], // imported session plans, DM only (src/plan.js)
   rndArt: {}, // table -> slot -> label -> creature art url (item 26 art, uploaded by the DM)
   checkLib: [], // DM-made check presets
+  tv: require('./moments').defaults(), // TV moments (src/moments.js)
+  story: require('./moments').storyDefault(), // in-world clock: lights the TV (src/moments.js)
   journal: [], // party journal: phone notes, newest first (src/journal.js)
   quiz: null, // recap quiz: questions, phone answers and DM marks (src/quiz.js)
   suggestions: [], // { id, name, text, at, vis } from spectators, seen by DM and players (src/spectate.js)
@@ -73,19 +79,25 @@ const state = {
   dmControl: {}, // charId -> true while the DM plays that character (src/control.js); not saved
   camp: camp.fresh(), // camp: TV image, phone votes for short or long rest and downtime notes (src/camp.js)
   factions: [], // faction reputation, DM sees numbers, phones see tiers (src/factions.js)
+  weather: { kind: 'none', intensity: 2 }, // shared weather: the TV (phase B) and the living world both read it (src/living.js)
+  living: living.fresh(), // living world: clocks, town standing, rumours, weather, tension, canon, oracles (src/living.js)
   room: null, // join code, set by session.js
   houseRules: {}, // house rule id -> on (src/houserules.js); enforced by the tool
   absent: {}, // empty chairs: charId -> { away, autopilot, missed } (src/absent.js)
   trophy: null, // { id, n } trophy story card on the TV (transient)
   legendsShow: null, // 'hall' | 'shelf' | null: legends card on the TV (transient)
   // lighting preset is kept on the scene (src/world.js)
-  settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
+  settings: { display: { text: 'md', palette: 'default', motion: 'auto', dice: 'on' }, host: null }, // table-wide (TV display, QR host)
   bulbsOn: false, // smart bulbs follow the lighting (item 10, src/bulbs.js); off by default, DM toggle only
   bulbsTargets: 0, // how many bulbs are configured (count only; addresses and keys stay on the server)
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'houseRules', 'absent');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
+store.EXTRA.push('cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'worldMap', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
+store.EXTRA.push('living', 'weather'); // phase K living world and the shared weather
+store.EXTRA.push('houseRules', 'absent'); // phase J house rules and empty chairs
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -93,10 +105,13 @@ seq = store.restore(state, roster, store.load());
 if (!state.room) state.room = newRoomCode();
 state.scene.secrets ??= [];
 state.factions ??= [];
+state.living = living.ensure(state.living);
+state.weather ??= { kind: 'none', intensity: 2 };
 cast.ensure(state.social);
 state.camp ??= camp.fresh();
 state.houseRules ??= {};
 state.absent ??= {};
+state.worldMap ??= worldmap.fresh();
 net.setHost(state.settings.host);
 const snap = () => store.snapshot(state, seq);
 
@@ -152,6 +167,8 @@ for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { store.flush(s
 module.exports = { state, log, nextId, fullState, stateFor, broadcast, EMOTIONS, EFFECTS };
 
 module.exports.sys = () => rules.get(state.system);
+// Phase I table tools (src/table.js) load after this module's exports exist; fill in fields older saves lack.
+require('./table-state').ensure(state);
 // Replace the live campaign with a saved snapshot (save points). Phones keep the current room code.
 module.exports.loadSnapshot = (saved) => {
   const room = state.room;

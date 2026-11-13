@@ -2,6 +2,7 @@
 const { DM_KEY, CODM_KEY } = require('../config');
 const { isLocalAddr } = require('../net');
 const { stateFor, broadcast } = require('../state');
+const worldSockets = require('./worldmap');
 
 // Hardening (audit): a malformed event from any phone must not take the table down.
 // - A null payload counts as "no payload", so `({ id } = {})` defaults apply.
@@ -45,6 +46,10 @@ module.exports = function sockets(io) {
     require('./journal')(socket);
     require('./takeover')(socket);
     require('./legends')(socket);
+    worldSockets(socket);
+    require('./moments')(socket);
+    require('./table')(socket); // Phase I table tools
+    require('./living')(socket);
   });
 };
 module.exports.guard = guard;

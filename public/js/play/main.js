@@ -6,16 +6,20 @@ import './sheet.js';
 import './rolls.js';
 import './messages.js';
 import './combatmap.js';
+import './worldmap.js';
 import './profile.js';
 import './spectate.js';
 import './shops.js';
 import './downtime.js';
 import './journal.js';
 import './legends.js';
+import './world.js';
 import './logs.js';
 import './camp.js';
 import './control.js';
 import './socialpop.js';
+import './table.js';
+import './spotlight.js';
 
 
 Settings.mount();

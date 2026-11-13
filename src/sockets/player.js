@@ -8,12 +8,14 @@ const game = require('../game');
 const session = require('../session');
 const rolls = require('../rolls');
 const shops = require('../shops');
+const living = require('../living');
 const factions = require('../factions');
 const camp = require('../camp');
 const control = require('../control');
 const cast = require('../cast');
 const absent = require('../absent');
 const houserules = require('../houserules');
+const T = require('../table');
 
 module.exports = function playerSockets(socket) {
   const { io } = hub;
@@ -60,12 +62,12 @@ module.exports = function playerSockets(socket) {
   });
 
   // Camp: a character votes short or long rest and may describe what they do while camp is open.
-  socket.on('player:camp', ({ vote, text } = {}, ack) => {
+  socket.on('player:camp', ({ vote, text, dice } = {}, ack) => {
     const p = me();
     if (!p) return ack?.({ error: 'no character' });
     const missing = camp.restBlockers(p);
     if (missing.length && ['short', 'long'].includes(vote)) return ack?.({ error: 'Set up before you rest.', missing });
-    const ok = camp.vote(state.camp, p.id, vote, text);
+    const ok = camp.vote(state.camp, p.id, vote, text, dice);
     if (ok) broadcast();
     ack?.({ ok });
   });
@@ -92,7 +94,9 @@ module.exports = function playerSockets(socket) {
     if (!p) return ack?.({ error: 'Claim a character first.' });
     const shop = state.shops.find((s) => s.id === shopId);
     if (!shop) return ack?.({ error: 'No such shop.' });
-    const r = shops.buy(shop, p, itemId, qty, factions.multFor(state, shop));
+    const open = living.canTrade(state, shop);
+    if (open.error) return ack?.(open);
+    const r = shops.buy(shop, p, itemId, qty, living.priceMult(state, shop));
     if (r.error) return ack?.(r);
     log('shop', `${p.name} buys ${r.qty}× ${r.item.name} from ${shop.name} for ${r.cost.toFixed(2)} gp.`, { who: p.name, vis: { to: [p.id], screen: false } });
     broadcast();
@@ -120,6 +124,7 @@ module.exports = function playerSockets(socket) {
   socket.on('player:check', ({ skill, kind = 'skill', key = skill, mode } = {}) => {
     const p = me();
     if (!p) return;
+    T.bump(p.id, 'acts');
     const chk = state.check;
     const called = chk && chk.kind === kind && chk.key === key && rolls.isTarget(chk, p.id) && !chk.results[p.id];
     const r = called ? rolls.answer(p, mode) : rolls.free(p, kind, key, mode);
@@ -147,6 +152,7 @@ module.exports = function playerSockets(socket) {
     const p = me();
     text = String(text || '').trim().slice(0, 200);
     if (!p || !text) return;
+    T.bump(p.id, 'talk'); // spotlight meter (src/table.js)
     if (state.mode === 'social') {
       const emotion = state.social.expr?.[p.id] || 'neutral';
       state.social.line = { speaker: p.name, text, emotion, player: true, pid: p.id };
@@ -165,6 +171,7 @@ module.exports = function playerSockets(socket) {
     const p = me();
     const choice = state.social.choices[index];
     if (!p || !choice) return;
+    T.bump(p.id, 'acts');
     log('say', choice, { who: p.name });
     state.social.line = { speaker: p.name, text: choice, emotion: 'neutral', player: true, pid: p.id };
     broadcast();
@@ -173,6 +180,7 @@ module.exports = function playerSockets(socket) {
   socket.on('player:combat', ({ act, target } = {}) => {
     const p = me();
     if (!p || game.currentTurnId() !== p.id || p.hp <= 0) return;
+    T.bump(p.id, 'acts');
     if (act === 'attack') {
       const t = state.combat.enemies.find((e) => e.id === target && e.hp > 0 && e.side !== 'ally');
       if (!t) return;
