@@ -130,6 +130,31 @@
       const g = env(c, 0.4, 0.005, 2.8);
       [880, 1760 * 1.01, 2640 * 0.99, 3520].forEach((f) => osc(c, 'sine', f, g, 3));
     },
+    door(c) {
+      // Heavy thump, then a short creak that drops in pitch.
+      const thump = env(c, 0.9, 0.004, 0.35);
+      osc(c, 'sine', 90, thump, 0.4).frequency.exponentialRampToValueAtTime(35, c.currentTime + 0.35);
+      const n = noise(c, 0.35);
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 900;
+      n.connect(bp).connect(env(c, 0.5, 0.01, 0.3));
+      n.start();
+      const creak = env(c, 0.15, 0.05, 0.5);
+      const cr = osc(c, 'sawtooth', 320, creak, 0.6);
+      cr.frequency.exponentialRampToValueAtTime(140, c.currentTime + 0.55);
+    },
+    clash(c) {
+      // Steel on steel: a sharp noise tick and a ringing set of inharmonic partials.
+      const n = noise(c, 0.08);
+      const hp = c.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 3000;
+      n.connect(hp).connect(env(c, 0.9, 0.001, 0.06));
+      n.start();
+      const ring = env(c, 0.22, 0.002, 0.9);
+      [1450, 2330, 3710].forEach((f) => osc(c, 'square', f, ring, 1));
+    },
   };
 
   function sfx({ url, builtin }) {

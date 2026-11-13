@@ -2,7 +2,7 @@
 (() => {
   const { esc } = Stage;
   const FX_ICON = { rain: '🌧 Rain', snow: '❄️ Snow', fog: '🌫 Fog', embers: '🔥 Embers', lightning: '⚡ Storm', darkness: '🌑 Dark', blood: '🩸 Blood', magic: '✨ Magic' };
-  const SFX_ICON = { thunder: '⛈ Thunder', hit: '⚔️ Sword hit', magic: '✨ Spell', roar: '🐲 Roar', bell: '🔔 Bell' };
+  const SFX_ICON = { thunder: '⛈ Thunder', hit: '⚔️ Sword hit', magic: '✨ Spell', roar: '🐲 Roar', bell: '🔔 Bell', door: '🚪 Door slam', clash: '⚔️ Clash' };
 
   const HTML = `
     <div class="card">

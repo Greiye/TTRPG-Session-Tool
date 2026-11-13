@@ -2,7 +2,7 @@
 // The server holds the state (state.audio.mix); this only draws it and sends events.
 (() => {
   const { esc } = Stage;
-  const SFX_ICON = { thunder: '⛈ Thunder', hit: '⚔️ Sword hit', magic: '✨ Spell', roar: '🐲 Roar', bell: '🔔 Bell' };
+  const SFX_ICON = { thunder: '⛈ Thunder', hit: '⚔️ Sword hit', magic: '✨ Spell', roar: '🐲 Roar', bell: '🔔 Bell', door: '🚪 Door slam', clash: '⚔️ Clash' };
 
   const HTML = `
     <div class="card soundboard">

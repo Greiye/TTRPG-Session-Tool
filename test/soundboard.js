@@ -51,6 +51,13 @@ const { ok, until } = h;
   await until(() => au().mix.find((m) => m.id === 'loop-tavern').volume === 0);
   ok(true, 'a layer volume is clamped to 0');
 
+  // One-shots: the new built-ins are accepted by the server and listed for both boards.
+  ok(['door', 'clash'].every((s) => au().builtins.includes(s)), 'door and clash one-shots are offered');
+  codm.emit('atmo:sfx', { id: 'door' });
+  codm.emit('atmo:sfx', { id: 'clash' });
+  await wait(100);
+  ok(au().mix.length === 2, 'one-shots do not change the ambience mix');
+
   phone.emit('atmo:mix:add', { id: 'loop-forest' });
   await wait(150);
   ok(au().mix.length === 2, 'a phone cannot start ambience');
