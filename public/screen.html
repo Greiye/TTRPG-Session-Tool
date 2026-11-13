@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tavern Screen — TV</title>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/worldmap.css">
   <link rel="stylesheet" href="/moments.css">
   <script src="/settings.js"></script>
   <style>
@@ -25,6 +26,7 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="/anim.js"></script>
   <script src="/stage.js"></script>
+  <script src="/worldmap.js"></script>
   <script src="/moments.js"></script>
   <script src="/audio.js"></script>
   <script src="/rollpop.js"></script>
@@ -32,7 +34,7 @@
     const root = document.getElementById('stage');
     const socket = io();
     socket.on('connect', () => socket.emit('screen:hello'));
-    socket.on('state', (s) => { Settings.apply(s.settings.display); Stage.stage(root, s); Moments.render(s); }); // TV follows the table setting
+    socket.on('state', (s) => { Settings.apply(s.settings.display); if (s.worldMap?.onTv) WorldMap.tv(root, s); else Stage.stage(root, s); Moments.render(s); }); // TV follows the table setting; the world map takes over while the DM shows it
     AudioOut.init(socket); // the TV is the speaker
     socket.on('rollpop', (p) => RollPop.show(p)); // roll popups (item 5)
     socket.on('rollpop:skip', () => RollPop.hide());

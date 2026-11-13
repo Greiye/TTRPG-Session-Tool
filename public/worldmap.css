@@ -1,0 +1,35 @@
+/* World map (Phase G): shared by the TV, the phones and the DM page. */
+.wm-board { position: relative; width: 100%; }
+.wm-pic { position: relative; width: 100%; border-radius: 10px; overflow: hidden; background: #1c1622; }
+.wm-pic > img { display: block; width: 100%; height: auto; }
+.wm-blank { aspect-ratio: 16 / 10; background: radial-gradient(circle at 30% 30%, #2b2236, #120d14); }
+.wm-layer { position: absolute; inset: 0; }
+.wm-node { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+.wm-node i { width: 14px; height: 14px; border-radius: 50%; background: #c9a86a; box-shadow: 0 0 0 2px #120d14; }
+.wm-node span { margin-top: 3px; font-size: 12px; white-space: nowrap; text-shadow: 0 1px 2px #000; }
+.wm-node.unrevealed i { background: #8a7a5a; }
+.wm-node.here i { background: #7fd48a; }
+.wm-node.sel i { outline: 2px solid #f4ead5; outline-offset: 2px; }
+.wm-token { position: absolute; transform: translate(-50%, -110%); font-size: 22px; pointer-events: none; filter: drop-shadow(0 2px 3px #000); transition: none; }
+.wm-token.moving span { display: inline-block; animation: wm-bob 1.2s ease-in-out infinite; }
+@keyframes wm-bob { 50% { transform: translateY(-4px); } }
+.wm-card, .wm-card-tv { background: #1b1420; border: 1px solid #5a4a30; border-radius: 10px; padding: 10px 12px; margin: 8px 0; }
+.wm-card.vetoed { opacity: .45; text-decoration: line-through; }
+.wm-lore { color: #c9a86a; margin: 6px 0 0; }
+.wm-comments { margin: 6px 0 0; padding-left: 18px; font-size: 14px; }
+.wm-cform { display: flex; gap: 6px; margin-top: 8px; }
+.wm-votes { display: flex; flex-wrap: wrap; gap: 6px; }
+.wm-vote.on { background: #3d2f14; }
+.wm-tv { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 2.2% 3%; gap: 1.2%; color: #f4ead5; }
+.wm-head { display: flex; justify-content: space-between; align-items: baseline; gap: 2%; }
+.wm-title { font-size: 2.2em; font-weight: 600; }
+.wm-vote-line { font-size: 1.4em; color: #c9a86a; }
+.wm-main { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.wm-tv .wm-board { max-height: 100%; }
+.wm-tv .wm-pic > img { max-height: 74vh; width: auto; max-width: 100%; margin: 0 auto; object-fit: contain; }
+.wm-tv .wm-node span { font-size: 1.5em; }
+.wm-tv .wm-node i { width: 22px; height: 22px; }
+.wm-tv .wm-token { font-size: 2.6em; }
+.wm-card-tv { position: absolute; left: 4%; right: 4%; bottom: 4%; font-size: 1.8em; background: rgba(27,20,32,.92); animation: wm-in .6s both; }
+@keyframes wm-in { from { opacity: 0; transform: translateY(12px); } }
+.wm-card-tv p { margin: 0; }

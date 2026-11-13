@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- World map (Phase G): the DM uploads a map picture and places towns and sites on it. Phones vote where to go, one vote each, and a strict majority of the seated party sends the party there (the DM closes a vote, or overrides it at any time). Travel takes a set number of real seconds, and the party token glides along the line on the TV and the phones. Flavour cards come up while travelling: the DM's own cards first, then a weighted auto table the DM can edit or switch off. The DM can veto any card after it shows, and reveal lore on it. Place info is shown to the table only once the DM reveals it. Phones can comment on cards. The DM can show the map on the TV. Code: `src/worldmap.js` (rules), `src/sockets/worldmap.js` (events and timer), `public/worldmap.js` (shared drawing).
 - TV moments (phase H), driven from a new "TV moments" tab in the DM's Scene group:
   - Scene transitions: fade, wipe or ink across the TV. A new scene title also fades and shows a chapter card.
   - Dramatic pause: dims the TV and holds one line until the DM releases it.
