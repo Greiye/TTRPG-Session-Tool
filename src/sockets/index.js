@@ -43,6 +43,7 @@ module.exports = function sockets(io) {
     require('./quiz')(socket);
     require('./downtime')(socket);
     require('./journal')(socket);
+    require('./takeover')(socket);
   });
 };
 module.exports.guard = guard;

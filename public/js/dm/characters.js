@@ -45,6 +45,9 @@ function render() {
         <button class="btn small" data-edit="${c.id}" title="Edit">✎</button>
         <button class="btn small" data-spot="${c.id}" title="Spotlight on TV" ${atTable.has(c.id) ? '' : 'disabled'}>⭐</button>
         ${atTable.has(c.id) ? '' : `<button class="btn small" data-seat="${c.id}" title="Add to table">➕</button>`}
+        ${!atTable.has(c.id) ? '' : S?.dmControl?.[c.id]
+          ? `<button class="btn small on" data-drop="${c.id}" title="Give the character back to its player">🎮 Release</button>`
+          : `<button class="btn small" data-takeover="${c.id}" title="Play this character from a second tab">🎮 Play</button>`}
         ${c.death
           ? `${S?.memorial?.id === c.id ? `<button class="btn small" data-memclear="${c.id}" title="Dismiss the memorial card on the TV">🕯</button>` : ''}<button class="btn small" data-revive="${c.id}" title="Revive (brings back to the roster, not the party)">↺</button>`
           : `<button class="btn small danger" data-fall="${c.id}" title="Mark as fallen: memorial card on the TV, leaves the party">☠</button>`}
@@ -128,4 +131,6 @@ $('#chars').addEventListener('click', (e) => {
   else if (d.memclear) emit('dm:memorial:clear', {});
   else if (d.spot) emit('dm:spotlight', { id: d.spot });
   else if (d.seat) emit('dm:char:add', { id: d.seat });
+  else if (d.takeover) window.open(`/play?takeover=${encodeURIComponent(d.takeover)}`, '_blank');
+  else if (d.drop) emit('dm:control:drop', { id: d.drop });
 });

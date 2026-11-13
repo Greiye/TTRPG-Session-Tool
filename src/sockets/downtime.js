@@ -3,12 +3,11 @@ const { state, log, broadcast } = require('../state');
 const { roster } = require('../roster');
 const downtime = require('../downtime');
 
+const { actorOf } = require('../control');
+
 module.exports = function downtimeSockets(socket) {
   const isDm = () => socket.data.role === 'dm';
-  const me = () => {
-    const c = state.players[socket.data.charId];
-    return c && c.socketId === socket.id ? c : null;
-  };
+  const me = () => actorOf(state, socket); // while the DM holds a character, its phone cannot choose
 
   // DM: start a new week. Picks reset and open at once.
   socket.on('dm:downtime:start', () => {

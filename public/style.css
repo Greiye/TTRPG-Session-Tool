@@ -668,3 +668,12 @@ span.av.lay { width: 2.5em; height: 2.5em; border-radius: 50%; }
 .tab-group { display: flex; flex-wrap: wrap; gap: 4px; }
 .tab-group[hidden] { display: none; }
 .side-tabs button[hidden] { display: none; }
+
+/* DM takeover (src/control.js): the phone's "DM is controlling your character" banner, and the takeover tab bar. */
+.dm-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 60; padding: 14px 16px; text-align: center; background: rgba(20, 10, 25, .94); border-bottom: 2px solid var(--gold); pointer-events: none; font-size: 1.15rem; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.dm-banner b { font-size: 1.35rem; color: var(--gold); }
+.dm-banner span { font-size: .95rem; }
+.dm-banner-tab { pointer-events: auto; flex-direction: row; justify-content: center; flex-wrap: wrap; gap: 12px; font-size: 1rem; }
+.dm-banner-tab b { font-size: 1.05rem; }
+.dm-banner[hidden] { display: none; }
+.dm-banner-tab { position: relative; border-bottom: 1px solid var(--gold); }

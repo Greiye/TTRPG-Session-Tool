@@ -66,6 +66,7 @@ const state = {
   pendingPlace: [], // creature ids added to the map that must be placed before anything else (phase 2 combat)
   shops: [], // NPC shops with stock and prices (item 27, src/shops.js)
   downtime: downtime.fresh(), // weekly downtime picks and results (src/downtime.js)
+  dmControl: {}, // charId -> true while the DM plays that character (src/control.js); not saved
   camp: camp.fresh(), // camp: TV image, phone votes for short or long rest and downtime notes (src/camp.js)
   factions: [], // faction reputation, DM sees numbers, phones see tiers (src/factions.js)
   room: null, // join code, set by session.js

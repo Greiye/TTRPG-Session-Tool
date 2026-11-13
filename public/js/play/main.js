@@ -13,6 +13,7 @@ import './downtime.js';
 import './journal.js';
 import './logs.js';
 import './camp.js';
+import './control.js';
 import './socialpop.js';
 
 

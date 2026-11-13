@@ -1,6 +1,6 @@
 // Join flow: room code entry, saved-character picker, new character form, reconnect, takeover.
 import { socket, $, onState, state } from '../client.js';
-import { me } from './identity.js';
+import { me, takeoverId } from './identity.js';
 import { show, onShow, current } from './nav.js';
 import { spectate, watching } from './spectate.js';
 
@@ -89,7 +89,26 @@ $('#specBtn').onclick = () => {
   if (!me.room) return showJoin('Enter the room code from the TV first.');
   spectate(showJoin);
 };
+// DM takeover tab: sign in as the DM on this laptop, then take the character.
+function takeOver() {
+  socket.emit('dm:auth', {}, (a) => {
+    if (!a?.ok) return takeError('Open this from the DM screen on the laptop.');
+    socket.emit('dm:takeover', { id: takeoverId }, (r) => {
+      if (r?.error) return takeError(r.error);
+      show('game');
+    });
+  });
+}
+function takeError(msg) {
+  $('#joinErr').textContent = msg;
+  $('#roster').innerHTML = '';
+  $('#newBtn').hidden = true;
+  $('#roomForm').hidden = true;
+  show('join');
+}
+
 socket.on('connect', () => {
+  if (takeoverId) return takeOver();
   if (watching) return spectate(showJoin);
   const id = me.charId;
   if (id && me.tokenFor(id)) join({ id, token: me.tokenFor(id) }); else showJoin();

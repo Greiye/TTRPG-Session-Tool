@@ -10,6 +10,7 @@ const rolls = require('../rolls');
 const shops = require('../shops');
 const factions = require('../factions');
 const camp = require('../camp');
+const control = require('../control');
 const cast = require('../cast');
 
 module.exports = function playerSockets(socket) {
@@ -43,10 +44,8 @@ module.exports = function playerSockets(socket) {
   socket.on('room:check', ({ room } = {}, ack) => ack?.({ ok: session.sameRoom(state, room) }));
 
   // A socket only acts for a character while it holds the claim.
-  const me = () => {
-    const c = state.players[socket.data.charId];
-    return c && c.socketId === socket.id ? c : null;
-  };
+  // Actions come from the seated character, unless the DM holds it (src/control.js).
+  const me = () => control.actorOf(state, socket);
 
   socket.on('player:profile', (f = {}) => {
     const c = me();
@@ -103,8 +102,10 @@ module.exports = function playerSockets(socket) {
     broadcast();
   });
   // Sheet upkeep from the phone: HP, temp HP, spell slots, hit dice, inventory, notes, spell list.
+  // Sheet edits are actions, so a character the DM holds can only change its notes.
   socket.on('player:sheet', (patch = {}) => {
-    const c = me();
+    const notesOnly = !!patch && Object.keys(patch).every((k) => k === 'notes');
+    const c = me() || (notesOnly ? control.seatOf(state, socket) : null);
     if (!c) return;
     require('../sheet').applySheet(c, patch || {}, false);
     broadcast();
@@ -183,7 +184,7 @@ module.exports = function playerSockets(socket) {
   });
 
   socket.on('disconnect', () => {
-    const p = me();
+    const p = control.seatOf(state, socket);
     if (p && p.socketId === socket.id) p.socketId = null;
     broadcast();
   });
