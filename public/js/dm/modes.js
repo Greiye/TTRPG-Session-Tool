@@ -8,8 +8,24 @@ let tab = localStorage.getItem('dmSideTab') || 'rolls';
 let mode = 'exploration';
 let kindsKey = null;
 
+// Tabs follow the live mode: a tab shows only when a card under it is visible in this mode, and an
+// empty group hides with it. If the open tab disappears, the first visible one opens (the saved choice stays).
+function visibleTabs() {
+  const ok = new Set();
+  $$('[data-tab]').forEach((c) => { if (!c.dataset.panel || c.dataset.panel.split(' ').includes(mode)) ok.add(c.dataset.tab); });
+  return ok;
+}
+
 function apply() {
-  $$('[data-stab]').forEach((b) => { b.classList.toggle('on', b.dataset.stab === tab); b.setAttribute('aria-selected', String(b.dataset.stab === tab)); });
+  const vis = visibleTabs();
+  if (!vis.has(tab)) tab = $$('[data-stab]').map((b) => b.dataset.stab).find((id) => vis.has(id)) || tab;
+  $$('[data-stab]').forEach((b) => {
+    const show = vis.has(b.dataset.stab);
+    b.hidden = !show;
+    b.classList.toggle('on', show && b.dataset.stab === tab);
+    b.setAttribute('aria-selected', String(b.dataset.stab === tab));
+  });
+  $$('.tab-group').forEach((g) => { g.hidden = ![...g.querySelectorAll('[data-stab]')].some((b) => !b.hidden); });
   const title = $('#sideTitle');
   if (title) title.textContent = $(`[data-stab="${tab}"]`)?.title || '';
   $$('[data-tab]').forEach((c) => {
@@ -67,5 +83,8 @@ onClick('enter', (id) => {
   $('#castPick').hidden = true;
   emit('dm:mode', id === 'none' ? { mode: 'social' } : { mode: 'social', npcId: id });
 });
-onClick('act', (act) => { if (act === 'reset' && confirm('Reset log, remove enemies and heal the party?')) emit('dm:reset'); });
+onClick('act', (act) => {
+  if (act === 'reset' && confirm('Reset log, remove enemies and heal the party?')) emit('dm:reset');
+  if (act === 'testparty') emit('dm:testparty');
+});
 apply();

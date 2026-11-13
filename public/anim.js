@@ -52,17 +52,28 @@
     bounce: (a) => ({ frames: [{ transform: 'translateY(0)' }, { transform: `translateY(${-14 * a}px)` }, { transform: 'translateY(0)' }], ms: 500, easing: 'ease-out' }),
     flash: () => ({ frames: [{ filter: 'brightness(1)' }, { filter: 'brightness(2.2)' }, { filter: 'brightness(1)' }], ms: 350 }),
     slideUp: (a) => ({ frames: [{ transform: `translateY(${30 * a}px)`, opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], ms: 400, easing: 'ease-out' }),
+    // Entrances for later features (handouts, cards, panels). Each collapses to a fade under reduce motion.
+    unfold: (a) => ({ frames: [{ transform: `perspective(700px) rotateX(${Math.min(90, 90 * a)}deg)`, opacity: 0, transformOrigin: 'top center' }, { transform: 'perspective(700px) rotateX(0deg)', opacity: 1, transformOrigin: 'top center' }], ms: 700, easing: 'cubic-bezier(.2,.8,.2,1)' }),
+    reveal: (a) => ({ frames: [{ transform: `scale(${1 - 0.12 * a})`, opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], ms: 350, easing: 'ease-out' }),
+    fade: () => ({ frames: [{ opacity: 0 }, { opacity: 1 }], ms: 300, easing: 'ease-out' }),
   };
   const DEFAULT_PROFILE = { speed: 1, intensity: 1 };
   const profile = (who) => ({ ...DEFAULT_PROFILE, ...(who?.anim || {}) });
 
   // Play a named animation on an element. Returns a promise that resolves when done (or skipped).
-  function play(el, name, who) {
+  // opts.delay (ms) holds the start back, used by stagger(). Under reduce motion there is no delay.
+  function play(el, name, who, { delay = 0 } = {}) {
     if (!el || !LIB[name] || !el.animate) return Promise.resolve();
     const p = profile(who);
     if (reduced()) return el.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: 150 }).finished.catch(() => {});
     const { frames, ms, easing = 'ease' } = LIB[name](p.intensity);
-    return el.animate(frames, { duration: ms / p.speed, easing }).finished.catch(() => {});
+    return el.animate(frames, { duration: ms / p.speed, easing, delay: delay / p.speed, fill: 'backwards' }).finished.catch(() => {});
+  }
+
+  // Run one entrance on many elements in order (a hand of cards, a list of handouts). Resolves when the last one ends.
+  function stagger(els, name, who, gap = 80) {
+    const list = [...(els || [])];
+    return Promise.all(list.map((el, i) => play(el, name, who, { delay: reduced() ? 0 : i * gap })));
   }
 
   // Run `name` once per distinct key (e.g. a spotlight id), not on every re-render.
@@ -73,5 +84,5 @@
     play(el, name, who);
   }
 
-  window.Anim = { media, hydrate, play, once, profile, isVideo, names: Object.keys(LIB) };
+  window.Anim = { media, hydrate, play, stagger, once, profile, isVideo, reduced, names: Object.keys(LIB) };
 })();

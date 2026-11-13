@@ -662,3 +662,9 @@ span.av.lay { width: 2.5em; height: 2.5em; border-radius: 50%; }
 .init-strip span.down { text-decoration: line-through; opacity: .5; }
 .mode-title { position: absolute; left: 0; right: 0; top: 38%; z-index: 30; text-align: center; pointer-events: none; font-family: var(--display); font-size: calc(4.2cqw * var(--ts)); letter-spacing: .3em; color: var(--gold); text-shadow: 0 .3cqw 1.5cqw #000; animation: modefade 1.8s ease-in-out forwards; }
 @keyframes modefade { 0% { opacity: 0; transform: scale(.96); } 15% { opacity: 1; transform: scale(1); } 75% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Sidebar groups (dm.html): each group is a row of tab buttons; empty groups hide with their tabs. */
+.side-tabs { flex-direction: column; align-items: flex-start; gap: 6px; }
+.tab-group { display: flex; flex-wrap: wrap; gap: 4px; }
+.tab-group[hidden] { display: none; }
+.side-tabs button[hidden] { display: none; }

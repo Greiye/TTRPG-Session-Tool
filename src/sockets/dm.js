@@ -12,6 +12,7 @@ const entities = require('../entities');
 const { release, newRoomCode } = require('../session');
 const net = require('../net');
 const creatures = require('../creatures');
+const { seedTestParty } = require('../testparty');
 const rolls = require('../rolls');
 
 // Log types the DM can hide on the TV (display setting hideLog).
@@ -417,6 +418,8 @@ module.exports = function dmSockets(socket) {
     const c = roster[id];
     if (c && !state.players[id]) { state.players[id] = c; log('system', `${c.name} joins the party.`); }
   });
+  // Placeholder party for testing (src/testparty.js): seeds five complex classes and seats them.
+  dm('dm:testparty', () => { seedTestParty(); });
   dm('dm:spotlight', ({ id }) => { if (roster[id]) game.spotlight(id, 'intro'); });
   // Death and legacy (src/legacy.js): fall = leaves the party, memorial card on the TV.
   dm('dm:char:fall', ({ id, cause, epitaph }) => legacy.fall(id, { cause, epitaph }));
