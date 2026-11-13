@@ -38,6 +38,11 @@ const fakeEl = (log) => ({ animate: (frames, opts) => { log.push({ frames, opts 
   await A.stagger([fakeEl(staggered), fakeEl(staggered), fakeEl(staggered)], 'reveal', null, 100);
   ok(staggered.map((c) => c.opts.delay).join() === '0,100,200', 'stagger starts each element one gap after the last');
 
+  for (const n of ['curtain', 'wipe', 'ink', 'slideIn']) ok(A.names.includes(n), `TV moment animation "${n}" is in the shared library`);
+  const wp = [];
+  await A.play(fakeEl(wp), 'wipe', null);
+  ok(/inset\(0 0 0 0\)/.test(wp[0].frames[1].clipPath), 'wipe sweeps the whole screen across and back');
+
   const quiet = load(true);
   const r = [];
   await quiet.play(fakeEl(r), 'unfold', null);

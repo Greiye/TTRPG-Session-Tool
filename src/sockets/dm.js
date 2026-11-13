@@ -33,6 +33,7 @@ const factions = require('../factions');
 const { applySheet } = require('../sheet');
 const { saveRoster } = require('../roster');
 const legacy = require('../legacy');
+const moments = require('../moments');
 
 module.exports = function dmSockets(socket) {
   const { io } = hub;
@@ -56,6 +57,7 @@ module.exports = function dmSockets(socket) {
     }
   });
   dm('dm:scene', ({ title, text, theme, poi }) => {
+    const before = state.scene.title;
     Object.assign(state.scene, {
       title: String(title ?? state.scene.title).slice(0, 80),
       text: String(text ?? state.scene.text).slice(0, 600),
@@ -63,6 +65,8 @@ module.exports = function dmSockets(socket) {
       poi: Array.isArray(poi) ? poi.map((s) => String(s).slice(0, 60)).filter(Boolean).slice(0, 8) : state.scene.poi,
     });
     state.scene.secrets ??= [];
+    // A new place: TV fade and chapter card, and planned choice echoes count down a scene (src/moments.js).
+    if (state.scene.title !== before) moments.onNewScene(state);
   });
   dm('dm:system', ({ id }) => {
     if (!rules.list().some((x) => x.id === id) || id === state.system) return;
