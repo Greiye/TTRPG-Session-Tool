@@ -47,6 +47,7 @@ module.exports = function sockets(io) {
     require('./takeover')(socket);
     worldSockets(socket);
     require('./moments')(socket);
+    require('./table')(socket); // Phase I table tools
   });
 };
 module.exports.guard = guard;

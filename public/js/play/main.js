@@ -16,6 +16,7 @@ import './logs.js';
 import './camp.js';
 import './control.js';
 import './socialpop.js';
+import './table.js';
 
 
 Settings.mount();

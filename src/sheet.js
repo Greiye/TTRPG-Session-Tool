@@ -7,7 +7,7 @@ const { str, int } = require('./util');
 const { clampGold } = require('./shops');
 
 // Fields only the owner and the DM see (other phones and the TV get the public card).
-const PRIVATE = ['abilities', 'saveProf', 'slots', 'hitDice', 'inventory', 'notes', 'spells', 'derived', 'gold'];
+const PRIVATE = ['abilities', 'saveProf', 'slots', 'hitDice', 'inventory', 'notes', 'spells', 'derived', 'gold', 'bond'];
 
 // Optional resource pools (phase 4). A pool with max 0 is not kept by the character and is hidden on phones.
 const RESOURCES = ['stamina', 'mana'];
