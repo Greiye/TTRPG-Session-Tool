@@ -35,10 +35,10 @@ const { ok, until } = h;
 
   // Framing: grant a token, spend it on the phone, and the TV shows the canon.
   dm.emit('dm:framing:grant', { charId: ash.me.id, n: 1 });
-  ok(await until(() => ash.last?.tokens === 1), 'the phone shows its token');
+  ok(await until(() => ash.last?.framingTokens === 1), 'the phone shows its token');
   ash.emit('player:frame', { text: 'The door is already unlocked.' });
   ok(await until(() => screen.last?.canon?.some((c) => c.text.includes('unlocked'))), 'the TV shows the framed detail as canon');
-  ok(await until(() => ash.last?.tokens === 0), 'spending the token uses it up');
+  ok(await until(() => ash.last?.framingTokens === 0), 'spending the token uses it up');
 
   // Bonds: a phone sets its bond; only the owner and the DM see it; the DM calls it back.
   ash.emit('player:bond', { to: bren.me.id, text: 'We owe each other a debt.' });

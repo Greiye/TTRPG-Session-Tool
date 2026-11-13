@@ -21,6 +21,7 @@ import './factions.js';
 import './living.js';
 import './map.js';
 import './worldmap.js';
+import './weather.js';
 import './gamepad.js';
 import './suggestions.js';
 import './plans.js';

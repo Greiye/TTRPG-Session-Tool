@@ -260,6 +260,11 @@
     const turn = s.combat.active ? s.combat.order[s.combat.turn]?.id : null;
     const tiles = [];
     for (const [k, kind] of Object.entries(m.terrain || {})) { const [x, y] = k.split(',').map(Number); tiles.push(`<i class="t-${kind}" style="left:${(100 * x) / m.cols}%;top:${(100 * y) / m.rows}%;width:${100 / m.cols}%;height:${100 / m.rows}%"></i>`); }
+    // Fog of war (Phase B, src/vision.js): tiles outside the party's sight are covered. The DM sees through it, dimmed.
+    const vis = s.mapVision ? new Set(s.mapVision) : null;
+    const fogDm = s.viewer?.role === 'dm' ? ' dm' : '';
+    let fog = '';
+    if (vis) for (let y = 0; y < m.rows; y++) for (let x = 0; x < m.cols; x++) if (!vis.has(`${x},${y}`)) fog += `<i class="fog-t${fogDm}" style="left:${(100 * x) / m.cols}%;top:${(100 * y) / m.rows}%;width:${100 / m.cols}%;height:${100 / m.rows}%"></i>`;
     const toks = Object.entries(s.tokens || {}).filter(([id]) => byId[id]).map(([id, t]) => {
       const c = byId[id];
       const side = c.side ? c.side : c.enemy ? 'enemy' : 'player';
@@ -270,7 +275,7 @@
     }).join('');
     // The DM clicks and drags on this map directly (public/js/dm/map.js); phones and the TV only look.
     return `<div class="bmap" data-cols="${m.cols}" data-rows="${m.rows}" style="aspect-ratio:${m.cols} / ${m.rows}">${m.image ? `<img src="${esc(m.image)}" alt="">` : ''}
-      <div class="grid" style="background-size:${100 / m.cols}% ${100 / m.rows}%"></div>${tiles}${toks}</div>`;
+      <div class="grid" style="background-size:${100 / m.cols}% ${100 / m.rows}%"></div>${tiles}${fog}${toks}</div>`;
   }
 
   function combat(s) {
@@ -314,7 +319,7 @@
   // Backdrop and effect layers persist across re-renders so videos and animations don't restart.
   function layers(root, s) {
     if (!root.querySelector(':scope > .bd')) {
-      root.innerHTML = '<div class="bd"></div><div class="fx"></div><div class="stage-ui"></div>';
+      root.innerHTML = '<div class="bd"></div><div class="fx"></div><div class="wx"></div><div class="stage-ui"></div>';
     }
     const bd = root.querySelector(':scope > .bd');
     const img = s.backdrop?.image;
@@ -340,6 +345,7 @@
     root.classList.add(`light-${s.scene.light || 'day'}`);
     for (const l of ['day', 'dusk', 'night', 'dawn', 'torchlight']) if (l !== (s.scene.light || 'day')) root.classList.remove(`light-${l}`);
     const ui = layers(root, s);
+    window.Weather?.render(root.querySelector(':scope > .wx'), window.Weather?.fromState(s), window.Settings?.reducedMotion?.()); // Phase B weather
     // Mode title: a short card fades in and out when the table changes mode (not on the first draw).
     const prevMode = root.dataset.mode;
     if (prevMode && prevMode !== s.mode) {

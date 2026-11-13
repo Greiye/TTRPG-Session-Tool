@@ -87,6 +87,15 @@ function viewState(base, viewer) {
   out.suggestions = filterList(base.suggestions, viewer); // spectator suggestions: DM and players only (src/spectate.js)
   out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h));
   if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
+  // Fog of war (src/vision.js): every viewer gets the tiles the party can see. Phones and the TV never get
+  // enemy tokens standing in the dark; the DM sees everything, with the fog drawn dimmer.
+  out.mapVision = null;
+  if (base.map?.fog) {
+    const party = new Set((base.players || []).map((p) => p.id));
+    const seen = require('./vision').visibleTiles(base.map, base.tokens, party);
+    out.mapVision = [...seen];
+    if (viewer.role !== 'dm') out.tokens = Object.fromEntries(Object.entries(base.tokens || {}).filter(([id, t]) => party.has(id) || seen.has(`${t.x},${t.y}`)));
+  }
   out.downtime = require('./downtime').viewFor(base.downtime, viewer); // phones see their own pick and result
   out.camp = require('./camp').viewFor(base.camp, viewer); // camp votes: DM sees all, phones their own
   // Phase I table tools (src/table.js). The DM sees the controls and the numbers behind them; phones see
@@ -99,7 +108,7 @@ function viewState(base, viewer) {
     for (const k of ['cues', 'nudges', 'balance', 'dueBonds']) delete out[k];
     out.myNudges = viewer.role === 'player' ? (base.nudges || []).filter((n) => n.charId === viewer.charId && n.status === 'sent') : [];
   }
-  if (viewer.role !== 'dm') { delete out.framing; out.tokens = viewer.role === 'player' ? base.framing?.[viewer.charId] || 0 : 0; }
+  if (viewer.role !== 'dm') { delete out.framing; out.framingTokens = viewer.role === 'player' ? base.framing?.[viewer.charId] || 0 : 0; } // not `tokens`: that is the battle map
   out.foreshadow = T.recapFor(base.foreshadow, viewer); // hints: DM only; paid-off payoffs: everyone
   out.montage = T.montageView(base.montage, viewer);
   if (base.worldMap) out.worldMap = require('./worldmap').viewFor(base.worldMap, viewer, base.players.length); // Phase G: see src/worldmap.js

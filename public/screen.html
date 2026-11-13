@@ -30,14 +30,17 @@
   <script src="/moments.js"></script>
   <script src="/audio.js"></script>
   <script src="/rollpop.js"></script>
+  <script src="/dice3d.js"></script>
+  <script src="/weather.js"></script>
   <script>
     const root = document.getElementById('stage');
     const socket = io();
     socket.on('connect', () => socket.emit('screen:hello'));
     socket.on('state', (s) => { Settings.apply(s.settings.display); if (s.worldMap?.onTv) WorldMap.tv(root, s); else Stage.stage(root, s); Moments.render(s); }); // TV follows the table setting; the world map takes over while the DM shows it
     AudioOut.init(socket); // the TV is the speaker
-    socket.on('rollpop', (p) => RollPop.show(p)); // roll popups (item 5)
-    socket.on('rollpop:skip', () => RollPop.hide());
+    // Roll results: the 3D dice tray when it is on (Phase B), otherwise the roll popup (item 5).
+    socket.on('rollpop', (p) => (Settings.get().dice !== 'off' && p.dice?.length ? Dice3D.show(p) : RollPop.show(p)));
+    socket.on('rollpop:skip', () => { RollPop.hide(); Dice3D.hide(); });
     // Version label and project stats pop-up (stats live in public/devstats.json).
     const tvStats = document.getElementById('tvStats');
     const fmt = (n) => (n == null ? 'not measured' : Number(n).toLocaleString());

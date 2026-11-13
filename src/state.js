@@ -59,7 +59,7 @@ const state = {
   moodMap: {}, // mode -> music track id (item 21)
   map: null, // { image, cols, rows, terrain } battle map (item 24, src/grid.js)
   worldMap: worldmap.fresh(), // world map: places, votes, travel and flavour cards (Phase G, src/worldmap.js)
-  tokens: {}, // id -> { x, y, z } on the map
+  tokens: {}, // id -> { x, y, z, light } on the map (light: none | torch | lantern | darkvision, src/vision.js)
   roll: null, // last creature randomizer result (item 26)
   plans: [], // imported session plans, DM only (src/plan.js)
   rndArt: {}, // table -> slot -> label -> creature art url (item 26 art, uploaded by the DM)
@@ -80,7 +80,7 @@ const state = {
   living: living.fresh(), // living world: clocks, town standing, rumours, weather, tension, canon, oracles (src/living.js)
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
-  settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
+  settings: { display: { text: 'md', palette: 'default', motion: 'auto', dice: 'on' }, host: null }, // table-wide (TV display, QR host)
   bulbsOn: false, // smart bulbs follow the lighting (item 10, src/bulbs.js); off by default, DM toggle only
   bulbsTargets: 0, // how many bulbs are configured (count only; addresses and keys stay on the server)
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),

@@ -33,7 +33,7 @@ onState((s) => {
   const payoffs = (s.foreshadow || []).filter((h) => h.paid);
   const canon = (s.canon || []).slice(-3).reverse();
   const m = s.montage || {};
-  const k = JSON.stringify([s.tokens, me.bond, bond?.name, payoffs.map((p) => p.id), canon.map((c) => c.id), m.prompt, m.open, m.reveal, m.answers?.[me.id] ?? m.mine, (s.roster || []).map((r) => r.id + r.name).join()]);
+  const k = JSON.stringify([s.framingTokens, me.bond, bond?.name, payoffs.map((p) => p.id), canon.map((c) => c.id), m.prompt, m.open, m.reveal, m.answers?.[me.id] ?? m.mine, (s.roster || []).map((r) => r.id + r.name).join()]);
   if (k === key) return;
   key = k;
 
@@ -43,7 +43,7 @@ onState((s) => {
       <form id="monForm"><textarea id="monText" rows="2" maxlength="200" placeholder="Your answer. Everyone's is revealed together on the TV.">${esc(mineAnswer || '')}</textarea>
       <button class="btn primary" type="submit">${mineAnswer ? 'Change answer' : 'Send answer'}</button></form></div>` : ''}
     ${m.prompt && m.reveal ? `<div class="card table-card"><h3>🎤 ${esc(m.prompt)}</h3><p class="note">Answers are on the TV.</p></div>` : ''}
-    ${s.tokens > 0 ? `<div class="card table-card"><h3>✦ Frame the scene <span class="note">${s.tokens} token${s.tokens === 1 ? '' : 's'}</span></h3>
+    ${s.framingTokens > 0 ? `<div class="card table-card"><h3>✦ Frame the scene <span class="note">${s.framingTokens} token${s.framingTokens === 1 ? '' : 's'}</span></h3>
       <p class="note">Add one detail. It goes on the TV as canon.</p>
       <form id="frameForm"><input id="frameText" maxlength="200" placeholder="The door is already unlocked." class="grow"><button class="btn primary" type="submit">Spend token</button></form></div>` : ''}
     <div class="card table-card"><h3>🪢 Your bond</h3>

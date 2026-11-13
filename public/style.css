@@ -726,3 +726,42 @@ span.av.lay { width: 2.5em; height: 2.5em; border-radius: 50%; }
 .spot-glow.still { animation: none; }
 .spot-glow .spot-tag { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: rgb(0 0 0 / .7); color: #fff; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
 @keyframes spotPulse { 50% { box-shadow: inset 0 0 0 6px var(--gold), inset 0 0 60px rgb(224 176 74 / .6); } }
+
+
+/* ================= PHASE B: fog of war, weather, 3D dice tray ================= */
+/* Fog covers tiles no party token can see. The DM sees through it, dimmed. Tokens stay above the fog. */
+.bmap .fog-t { position: absolute; background: rgb(6 8 14 / .9); pointer-events: none; z-index: 1; }
+.bmap .fog-t.dm { background: rgb(6 8 14 / .5); }
+.bmap .tok { z-index: 2; }
+
+/* Weather: one canvas, under the stage text and above the backdrop. */
+.wx { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.wx canvas { width: 100%; height: 100%; display: block; }
+
+/* 3D dice tray: a felt tray along the bottom of the TV. Cubes tumble, then settle with the result on top. */
+.dice-tray { position: fixed; left: 0; right: 0; bottom: 0; height: 42vh; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5vmin; background: radial-gradient(ellipse at 50% 40%, #2b5a44 0%, #173426 70%, #0d1f17 100%); border-top: .4vmin solid #6b5a3a; box-shadow: 0 -1vmin 3vmin rgb(0 0 0 / .5); color: #f4ead5; cursor: pointer; animation: fadein .3s; }
+.dice-tray[hidden] { display: none; }
+.dt-label { font-size: 2.4vmin; opacity: .9; text-shadow: 0 0 .6vmin #000; }
+.dt-dice { display: flex; gap: 4vmin; perspective: 110vmin; }
+.die3d { width: 11vmin; text-align: center; }
+.die3d small { display: block; margin-top: 2.6vmin; font-size: 1.8vmin; opacity: .7; }
+.die3d.off { opacity: .4; }
+.die3d .cube { position: relative; width: 11vmin; height: 11vmin; transform-style: preserve-3d; transform: rotateX(-16deg) rotateY(22deg); animation: die-roll var(--dur, 1.3s) cubic-bezier(.2, .7, .2, 1) var(--delay, 0s) both; }
+.die3d .face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 700 4.5vmin var(--display, serif); color: #2a1d10; background: #f4ead5; border: .3vmin solid #6b5a3a; border-radius: 1.2vmin; box-shadow: inset 0 0 1.5vmin rgb(0 0 0 / .25); backface-visibility: hidden; }
+.die3d .f-front { transform: translateZ(5.5vmin); }
+.die3d .f-back { transform: rotateY(180deg) translateZ(5.5vmin); }
+.die3d .f-right { transform: rotateY(90deg) translateZ(5.5vmin); }
+.die3d .f-left { transform: rotateY(-90deg) translateZ(5.5vmin); }
+.die3d .f-top { transform: rotateX(90deg) translateZ(5.5vmin); }
+.die3d .f-bottom { transform: rotateX(-90deg) translateZ(5.5vmin); }
+.die3d.max .f-front { color: #6b4300; background: #ffe49a; }
+.die3d.min .f-front { color: #8a1f1f; }
+.dice-tray.crit .die3d .f-front { border-color: #ffd34d; box-shadow: 0 0 2vmin #ffd34d; }
+.dt-total { font: 700 7vmin var(--display, serif); text-shadow: 0 0 1vmin #000; }
+.dice-tray.pass .dt-total { color: #9fe0a0; }
+.dice-tray.fail .dt-total { color: #ff9b9b; }
+.dice-tray.crit .dt-total { color: #ffd34d; }
+.dice-tray.fumble .dt-total { color: #ff7a7a; }
+@keyframes die-roll { from { transform: rotateX(-1080deg) rotateY(-1440deg) rotateZ(-360deg); } to { transform: rotateX(-16deg) rotateY(22deg); } }
+html[data-motion="reduce"] .die3d .cube { animation: none; }
+@media (prefers-reduced-motion: reduce) { html[data-motion="auto"] .die3d .cube { animation: none; } }
