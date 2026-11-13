@@ -8,6 +8,7 @@ const { state, broadcast } = require('./state');
 const { roster } = require('./roster');
 const { mediaItem } = require('./media');
 const assets = require('./assets');
+const layered = require('./layered');
 
 const QR_COLORS = { dark: '#1b1420', light: '#f4ead5' };
 
@@ -64,6 +65,14 @@ module.exports = function routes(app) {
   // Older endpoints, kept for existing pages.
   app.post('/api/media', raw, (req, res) => upload(req, res, String(req.get('content-type')).startsWith('audio/') ? 'audio' : 'backdrop'));
   app.post('/api/portrait/:id', raw, portrait);
+  // Layered sprites: DM only, one file per request. ?file=manifest.json | layers/<name>.png | anim/<name>.webm
+  app.post('/api/layered/:kind/:id', raw, async (req, res) => {
+    if (!isDm(req)) return res.status(403).json({ error: 'DM only' });
+    try {
+      const out = await layered.storeLayered(req.params.kind, req.params.id, String(req.query.file || ''), req.body);
+      res.json(out);
+    } catch (e) { fail(res, e); }
+  });
   // Oversized bodies get a readable JSON error instead of a stack trace.
   app.use((err, _req, res, next) => {
     if (err.type === 'entity.too.large') return res.status(413).json({ error: 'File too big.' });

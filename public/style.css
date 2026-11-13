@@ -593,3 +593,9 @@ html[data-log="hide"] .stage-log, html[data-log="hide"] #log { display: none; }
 .tok.sel { outline: .25cqw dashed var(--gold); outline-offset: .3cqw; }
 .tok.pending { box-shadow: 0 0 1.6cqw #5fd3ff; animation: pulse 1s ease-in-out infinite; }
 .combat-quiet #suggest { display: none; }
+
+/* Layered sprites (stage.js layeredSprite): stacked layers at the sprite's own square size. */
+.lay { position: relative; display: inline-block; width: 100%; aspect-ratio: 1; }
+.lay-l { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; object-fit: contain; pointer-events: none; }
+.lay-sheet { background-repeat: no-repeat; }
+span.av.lay { width: 2.5em; height: 2.5em; border-radius: 50%; }
