@@ -1,4 +1,4 @@
-// Persistent roster: list, edit dialog (incl. DM-only hooks/secret), spotlight, whisper, seat.
+// Persistent roster: list, edit dialog (incl. DM-only hooks/secret), spotlight, seat.
 // Full character data (with DM-only fields) arrives on dm:roster.
 import { socket, $, emit, onState, state } from '../client.js';
 import { dmKey } from './auth.js';
@@ -44,7 +44,6 @@ function render() {
       <div class="char-btns">
         <button class="btn small" data-edit="${c.id}" title="Edit">✎</button>
         <button class="btn small" data-spot="${c.id}" title="Spotlight on TV" ${atTable.has(c.id) ? '' : 'disabled'}>⭐</button>
-        <button class="btn small" data-whisper="${c.id}" title="Whisper to their phone" ${c.online ? '' : 'disabled'}>🤫</button>
         ${atTable.has(c.id) ? '' : `<button class="btn small" data-seat="${c.id}" title="Add to table">➕</button>`}
         ${c.death
           ? `${S?.memorial?.id === c.id ? `<button class="btn small" data-memclear="${c.id}" title="Dismiss the memorial card on the TV">🕯</button>` : ''}<button class="btn small" data-revive="${c.id}" title="Revive (brings back to the roster, not the party)">↺</button>`
@@ -52,23 +51,7 @@ function render() {
       </div>
     </div>`).join('') || '<p class="note">No saved characters yet. Players create one when they join, or add them here.</p>';
   Anim.hydrate($('#chars'));
-  renderWhispers();
 }
-
-// Whispers (item 10): the DM sees all of them; the TV gets one only after the DM reveals it.
-function renderWhispers() {
-  const ws = (state()?.whispers || []).slice().reverse();
-  $('#whispers').innerHTML = ws.map((w) => {
-    const c = ROSTER.find((x) => x.id === w.to);
-    const shown = !!(w.vis && w.vis.screen);
-    return `<div class="item"><span><b>${esc(c?.name || w.to)}</b>: ${esc(w.text)}</span>
-      <button class="btn small ${shown ? 'on' : ''}" data-wshow="${esc(w.id)}" data-on="${shown ? '' : '1'}">${shown ? 'Hide from TV' : 'Show on TV'}</button></div>`;
-  }).join('') || '<p class="note">No whispers yet.</p>';
-}
-$('#whispers').addEventListener('click', (e) => {
-  const b = e.target.closest('[data-wshow]');
-  if (b) socket.emit('dm:whisper:reveal', { id: b.dataset.wshow, on: b.dataset.on === '1' });
-});
 
 const skillInputs = () => $('#skillInputs').querySelectorAll('[data-skill]');
 const sheet = (sel) => $('#sheetInputs').querySelectorAll(sel);
@@ -145,9 +128,4 @@ $('#chars').addEventListener('click', (e) => {
   else if (d.memclear) emit('dm:memorial:clear', {});
   else if (d.spot) emit('dm:spotlight', { id: d.spot });
   else if (d.seat) emit('dm:char:add', { id: d.seat });
-  else if (d.whisper) {
-    const c = ROSTER.find((x) => x.id === d.whisper);
-    const text = prompt(`Whisper to ${c.name} (only their phone sees it):`);
-    if (text) socket.emit('dm:whisper', { id: c.id, text }, ({ ok }) => { if (!ok) alert(`${c.name}'s phone isn't connected.`); });
-  }
 });

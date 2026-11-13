@@ -58,20 +58,13 @@
     <button class="bigbtn" id="profSave">Save</button>
   </section>
 
-  <div id="whisperPop" class="whisper-pop" hidden>
-    <div class="card"><h3>🤫 The DM whispers to you</h3><p id="whisperText"></p><button class="bigbtn" id="whisperOk">Got it</button></div>
-  </div>
-
   <section id="gameView" hidden>
     <div id="me" class="me"></div>
     <nav id="tabs" class="tabs"></nav>
     <div id="tabSheet" class="tab-body" hidden></div>
     <div id="tabPlay">
-    <div id="whispers"></div>
     <div id="main" style="display:flex;flex-direction:column;gap:12px;margin-top:12px"></div>
     <div id="suggest"></div>
-    <h3 class="muted" style="font-family:var(--display);font-size:13px;letter-spacing:.1em;margin:18px 0 6px">RECENT</h3>
-    <div id="log"></div>
     <form id="sayForm" class="sayform">
       <input id="say" class="grow" maxlength="200" placeholder="What do you do?" autocomplete="off">
       <button class="btn primary">Send</button>

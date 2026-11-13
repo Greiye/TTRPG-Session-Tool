@@ -43,7 +43,6 @@ function snapshot(state, seq) {
     audio: { music: state.audio.music?.id || null, playing: state.audio.playing, volume: state.audio.volume, sfxVolume: state.audio.sfxVolume },
     settings: state.settings,
     log: state.log,
-    whispers: state.whispers,
     ...Object.fromEntries(EXTRA.map((k) => [k, state[k]])),
   };
 }
@@ -52,7 +51,7 @@ function snapshot(state, seq) {
 function restore(state, roster, saved) {
   if (!saved || saved.version !== VERSION) return 0;
   const pick = (k) => { if (saved[k] !== undefined) state[k] = saved[k]; };
-  ['system', 'mode', 'room', 'scene', 'check', 'combat', 'social', 'log', 'whispers', ...EXTRA].forEach(pick);
+  ['system', 'mode', 'room', 'scene', 'check', 'combat', 'social', 'log', ...EXTRA].forEach(pick);
   if (saved.settings) Object.assign(state.settings, saved.settings);
   state.players = Object.create(null);
   for (const id of saved.party || []) if (roster[id]) state.players[id] = roster[id];

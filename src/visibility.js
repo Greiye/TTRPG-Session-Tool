@@ -80,12 +80,12 @@ function viewState(base, viewer) {
   out.combat = { ...base.combat, enemies: base.combat.enemies.map((e) => strip(e, 'enemy', viewer)) };
   out.log = filterList(base.log, viewer);
   out.rolls = filterList(base.rolls, viewer);
-  out.whispers = filterList(base.whispers, viewer);
   out.objectives = filterList(base.objectives, viewer); // secret objectives: the owner's phone and the DM until revealed (src/objectives.js)
   out.suggestions = filterList(base.suggestions, viewer); // spectator suggestions: DM and players only (src/spectate.js)
   out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h));
   if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
   out.downtime = require('./downtime').viewFor(base.downtime, viewer); // phones see their own pick and result
+  out.camp = require('./camp').viewFor(base.camp, viewer); // camp votes: DM sees all, phones their own
   // Party journal: phones and the DM only (src/journal.js).
   out.journal = ['dm', 'player'].includes(viewer.role) ? base.journal || [] : null;
   out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own

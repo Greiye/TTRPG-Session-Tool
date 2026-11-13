@@ -3,15 +3,25 @@
 import { $ } from '../client.js';
 
 const tabs = [];
+const hiddenTabs = new Set(); // tabs the DM has not opened for this phone yet (e.g. Downtime outside camp)
 const subs = [];
 let active = 'play';
 const cap = (id) => id[0].toUpperCase() + id.slice(1);
 
 function draw() {
-  $('#tabs').innerHTML = tabs.map((t) => `<button class="${t.id === active ? 'on' : ''}" data-tab="${t.id}">${t.label}${t.badge ? `<i>${t.badge}</i>` : ''}</button>`).join('');
+  const shown = tabs.filter((t) => !hiddenTabs.has(t.id));
+  if (active !== 'play' && hiddenTabs.has(active)) active = 'play';
+  $('#tabs').innerHTML = shown.map((t) => `<button class="${t.id === active ? 'on' : ''}" data-tab="${t.id}">${t.label}${t.badge ? `<i>${t.badge}</i>` : ''}</button>`).join('');
   for (const t of tabs) { const el = $(`#tab${cap(t.id)}`); if (el) el.hidden = t.id !== active; }
 }
 export const tab = () => active;
+// Show or hide a tab on this phone. A hidden tab's content stays hidden too.
+export function setTabOn(id, on) {
+  const was = hiddenTabs.has(id);
+  if (on && was) hiddenTabs.delete(id);
+  if (!on && !was) hiddenTabs.add(id);
+  if (on !== !was) draw();
+}
 export const onTab = (fn) => subs.push(fn);
 export function addTab(id, label) {
   if (!$(`#tab${cap(id)}`)) { const d = document.createElement('div'); d.id = `tab${cap(id)}`; d.className = 'tab-body'; d.hidden = true; $('#tabPlay').before(d); }

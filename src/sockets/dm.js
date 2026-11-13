@@ -11,6 +11,10 @@ const { release, newRoomCode } = require('../session');
 const net = require('../net');
 const creatures = require('../creatures');
 const rolls = require('../rolls');
+
+// Log types the DM can hide on the TV (display setting hideLog).
+const camp = require('../camp');
+const LOG_KINDS = ['action', 'check', 'combat', 'downtime', 'narrate', 'npc', 'say', 'shop', 'system', 'notice'];
 const perception = require('../perception');
 const messages = require('../messages');
 const tracker = require('../tracker');
@@ -105,6 +109,15 @@ module.exports = function dmSockets(socket) {
   dm('dm:clock:remove', ({ id }) => { state.clocks = state.clocks.filter((k) => k.id !== id); });
   dm('dm:rest', ({ kind }) => tracker.rest(kind === 'long' ? 'long' : 'short'));
 
+  // ----- Camp: TV image, phone votes for short or long rest (src/camp.js) -----
+  dm('dm:camp:open', ({ open }) => {
+    const was = state.camp.open;
+    camp.setOpen(state.camp, open);
+    if (state.camp.open && !was) log('system', 'Camp is set. Choose a short or long rest.', { tone: 'call' });
+    if (!state.camp.open && was) log('system', 'Camp is over.', { tone: 'call' });
+  });
+  dm('dm:camp:image', ({ id }) => camp.setImage(state.camp, state.backdrop.library.find((b) => b.id === id)));
+
   // ----- Phase 4: messages -----
   dm('dm:handout', (f) => { const m = messages.handout(f, 'h' + nextId(), roster); if (m.text || m.image) state.handouts.push(m); if (state.handouts.length > 80) state.handouts.shift(); });
   dm('dm:spoil', (f) => { const m = messages.spoil(f, 'p' + nextId()); if (m) state.handouts.push(m); });
@@ -159,15 +172,10 @@ module.exports = function dmSockets(socket) {
   });
   dm('dm:shop:open', ({ id, open }) => { const s = state.shops.find((x) => x.id === id); if (s) s.open = !!open; });
   dm('dm:shop:remove', ({ id }) => { state.shops = state.shops.filter((s) => s.id !== id); });
-  // Share a handout or whisper with the TV (the group decides what goes on the big screen).
+  // Share a handout with the TV (the group decides what goes on the big screen).
   dm('dm:share', ({ id, on }) => {
     const h = state.handouts.find((x) => x.id === id);
     if (h && typeof h.vis === 'object') h.vis = { ...h.vis, screen: !!on };
-  });
-  // Whispers only reach the TV once the DM reveals them.
-  dm('dm:whisper:reveal', ({ id, on }) => {
-    const w = state.whispers.find((x) => x.id === id);
-    if (w) w.vis = { to: [w.to], screen: !!on };
   });
   dm('dm:vote:start', ({ options }) => {
     state.vote = messages.vote(options, 'v' + nextId());
@@ -355,26 +363,16 @@ module.exports = function dmSockets(socket) {
   dm('dm:char:fall', ({ id, cause, epitaph }) => legacy.fall(id, { cause, epitaph }));
   dm('dm:char:revive', ({ id }) => legacy.revive(id));
   dm('dm:memorial:clear', () => legacy.clearMemorial());
-  // Whispers go only to that player's phone; the DM gets an ack saying whether it was delivered.
-  socket.on('dm:whisper', ({ id, text } = {}, ack) => {
-    if (socket.data.role !== 'dm') return;
-    const c = roster[id];
-    text = str(text, 500);
-    if (!c || !text) return ack?.({ ok: false });
-    const w = { id: nextId(), to: c.id, text, at: Date.now(), vis: { to: [c.id] } };
-    state.whispers.push(w);
-    if (state.whispers.length > 200) state.whispers.shift();
-    if (c.socketId) io.to(c.socketId).emit('whisper', w);
-    ack?.({ ok: !!c.socketId });
-    broadcast();
-  });
 
   // Table-wide display settings, used by the TV (phones and the DM laptop keep their own).
-  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'] };
+  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'], log: ['show', 'hide'] };
   dm('dm:settings', ({ display }) => {
     if (!display) return;
     const cur = state.settings.display || {};
     for (const [k, vals] of Object.entries(DISPLAY)) if (vals.includes(display[k])) cur[k] = display[k];
+    // Hide individual log types on the TV (DM choice; the phones keep their own log).
+    if (typeof display.hideJoin === 'boolean') cur.hideJoin = display.hideJoin; // hide the top-right join box on the TV
+    if (Array.isArray(display.hideLog)) cur.hideLog = display.hideLog.filter((k) => LOG_KINDS.includes(k));
     state.settings.display = cur;
   });
 

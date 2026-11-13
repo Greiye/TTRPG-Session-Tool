@@ -9,6 +9,7 @@ const session = require('../session');
 const rolls = require('../rolls');
 const shops = require('../shops');
 const factions = require('../factions');
+const camp = require('../camp');
 
 module.exports = function playerSockets(socket) {
   const { io } = hub;
@@ -51,6 +52,15 @@ module.exports = function playerSockets(socket) {
     if (!c) return;
     applyEdits(c, f, false);
     broadcast();
+  });
+
+  // Camp: a character votes short or long rest and may describe what they do while camp is open.
+  socket.on('player:camp', ({ vote, text } = {}, ack) => {
+    const p = me();
+    if (!p) return ack?.({ error: 'no character' });
+    const ok = camp.vote(state.camp, p.id, vote, text);
+    if (ok) broadcast();
+    ack?.({ ok });
   });
 
   // Phase 4: a character votes on the dialogue wheel (one vote each; changing it is allowed while open).

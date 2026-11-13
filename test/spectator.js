@@ -13,7 +13,6 @@ const base = {
   players: [{ id: 'a', name: 'Thorn', secret: 's', hooks: 'h', socketId: 'x', token: 't', hp: 3 }],
   combat: { enemies: [{ id: 'e', atk: 5, hp: 7 }] },
   log: [{ text: 'pub' }, { text: 'dmonly', vis: 'dm' }, { text: 'shared', vis: { to: ['*'], screen: true } }],
-  whispers: [{ text: 'hi', vis: { to: ['a'] } }],
   suggestions: [sugg],
 };
 const vs = viewState(base, sp), vp = viewState(base, pl), vd = viewState(base, dm), vt = viewState(base, tv);
@@ -24,7 +23,6 @@ assert(!('secret' in vs.players[0]) && !('hooks' in vs.players[0]) && !('token' 
 assert(!('atk' in vs.combat.enemies[0]) && vs.combat.enemies[0].hp === 7);
 // Public log only: the public entry and the one shared to the TV.
 assert.deepStrictEqual(vs.log.map((l) => l.text), ['pub', 'shared']);
-assert(vs.whispers.length === 0, 'spectators never see whispers');
 // Suggestions: DM and players yes; spectators and the TV no.
 assert(vs.suggestions.length === 0 && vt.suggestions.length === 0);
 assert(vp.suggestions.length === 1 && vd.suggestions.length === 1);
