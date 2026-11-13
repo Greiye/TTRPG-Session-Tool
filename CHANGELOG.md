@@ -32,6 +32,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Weather on the TV: rain, snow, fog and storm, set by the DM in the Scene tab at light, medium or heavy strength. Drawn on a canvas (`public/weather.js`). Under reduce motion the scene is still and storms do not flash. Separate from the backdrop effects, which stay as they were. It uses the one shared weather field (`state.weather`) with the living world, so changing weather in either place changes both.
 - 3D dice tray on the TV: when a roll lands, its dice tumble across a felt tray and settle on the result. Plain CSS 3D, so it needs no network. Turn it off with the TV's "3D dice tray" setting (Settings, TV section). Under reduce motion the dice appear already showing their faces.
 - Shared entrance animations in `public/anim.js`: `unfold` (paper turn), `reveal`, `fade`, and `Anim.stagger` for ordered entrances. All collapse to a short fade under reduce motion.
+- Languages: a line spoken in a tongue (DM sets it beside the line) shows as glyphs on phones and the TV unless the character knows the tongue. The DM glosses it per character or for everyone (`src/speech.js`).
+- NPC speech styles: the DM picks a font and colour for an NPC's lines on the TV from fixed lists.
+- Intro card: "Previously on…" on the TV with the campaign name, session number and up to three recap lines, shown for 12 seconds (DM panel: Intro card).
+- Timers (`src/timers.js`): a condition can run for a set number of rounds and ends by itself. Concentration starts from the DM's Conditions panel; damage to the caster asks their phone for a DC 10 (or half the damage) Constitution save. The DM drops concentration.
 
 ### Changed
 - With the 3D dice tray on, roll results on the TV use the tray instead of the centre roll popup. Turn the tray off to get the popup back.

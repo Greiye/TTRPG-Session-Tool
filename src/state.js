@@ -67,6 +67,9 @@ const state = {
   tv: require('./moments').defaults(), // TV moments (src/moments.js)
   story: require('./moments').storyDefault(), // in-world clock: lights the TV (src/moments.js)
   journal: [], // party journal: phone notes, newest first (src/journal.js)
+  intro: { campaign: '', session: 1, lines: [] }, // session intro card text, kept between sessions (src/speech.js)
+  introCard: null, // the intro card on the TV now: intro plus n (a new showing bumps n)
+  timers: [], // condition countdowns and concentration (src/timers.js)
   quiz: null, // recap quiz: questions, phone answers and DM marks (src/quiz.js)
   suggestions: [], // { id, name, text, at, vis } from spectators, seen by DM and players (src/spectate.js)
   objectives: [], // secret player objectives { id, charId, name, title, text, revealed, vis } (src/objectives.js)
@@ -90,6 +93,7 @@ store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations',
 store.EXTRA.push('cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
 store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'worldMap', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
 store.EXTRA.push('living', 'weather'); // phase K living world and the shared weather
+store.EXTRA.push('intro', 'timers'); // phase D intro card text and timers
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;

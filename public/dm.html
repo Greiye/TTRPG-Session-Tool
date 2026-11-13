@@ -80,6 +80,12 @@
     </div>
 
     <div class="card" data-tab="quiz" data-panel="exploration social">
+      <h3>Intro card <span class="note">Previously on… on the TV</span></h3>
+      <div class="row"><input id="introCampaign" class="grow" maxlength="60" placeholder="Campaign name" aria-label="Campaign name"><input id="introSession" type="number" min="1" max="999" value="1" style="width:80px" title="Session number" aria-label="Session number"></div>
+      <textarea id="introLines" rows="3" placeholder="Up to three recap lines, one per line" aria-label="Recap lines"></textarea>
+      <div class="row"><button class="btn primary" id="introShow">Show on TV</button><span class="note" id="introStatus"></span></div>
+    </div>
+    <div class="card" data-tab="quiz" data-panel="exploration social">
       <h3>Recap quiz <span class="note" id="quizStatus">no quiz</span></h3>
       <p class="note">One per line: question | answer. Phones get the questions; you mark each answer. Right answers give inspiration.</p>
       <textarea id="quizText" rows="4" placeholder="Who runs the inn? | Mirela&#10;Where did the cart go? | The old mill"></textarea>
@@ -183,6 +189,10 @@
       <h3>Conditions <span class="note">on players and creatures in the encounter</span></h3>
       <select id="condWho"></select>
       <div id="condBtns" class="dm-conds"></div>
+      <div class="row"><input id="condRounds" type="number" min="0" max="99" value="0" style="width:90px" title="Rounds a condition lasts. 0 means until you clear it." aria-label="Rounds"><small class="note">rounds (0 = until cleared)</small></div>
+      <h3>Concentration <span class="note">for the player picked above</span></h3>
+      <div class="row"><input id="concSpell" class="grow" maxlength="60" placeholder="Spell, e.g. Hold Person" aria-label="Spell"><button class="btn small" data-conc="start">Concentrate</button><button class="btn small" data-conc="drop">Drop</button></div>
+      <div id="timerList" class="list"></div>
     </div>
     <div class="card" data-tab="clocks">
       <h3>Clocks <span class="note">countdowns on the TV</span></h3>
@@ -332,6 +342,10 @@
         <input id="npcHue" type="range" min="0" max="359" style="width:110px" title="Palette">
         <select id="npcFaction" style="width:150px" title="Faction whose reputation sets this NPC's mood" aria-label="NPC faction"></select>
       </div>
+      <div class="row">
+        <select id="npcFont" style="width:150px" title="Font for this NPC's lines on the TV" aria-label="Speech font"><option value="serif">Serif</option><option value="sans">Sans</option><option value="mono">Mono</option><option value="script">Script</option><option value="runic">Runic</option></select>
+        <select id="npcColor" style="width:150px" title="Colour for this NPC's lines on the TV" aria-label="Speech colour"><option value="ivory">Ivory</option><option value="gold">Gold</option><option value="crimson">Crimson</option><option value="teal">Teal</option><option value="violet">Violet</option><option value="moss">Moss</option><option value="frost">Frost</option></select>
+      </div>
       <h3>On the scene <span class="note">up to 5 NPCs or items</span></h3>
       <div id="castList" class="cast-list"></div>
       <div class="row">
@@ -352,8 +366,10 @@
     </div>
     <div class="card" data-tab="npc" data-panel="social">
       <h3>Dialogue</h3>
+      <div class="row"><input id="lineLang" maxlength="30" style="width:170px" placeholder="Tongue (blank = Common)" aria-label="Language of this line"></div>
       <textarea id="line" rows="2" placeholder="Type the NPC's line. Enter to speak, Shift+Enter for newline."></textarea>
       <button class="btn primary" data-act="say">Speak as NPC</button>
+      <div id="glossBtns" class="row dm-conds"></div>
     </div>
     <div class="card" data-tab="npc" data-panel="social">
       <h3>Live voice <span><span id="recDot" class="rec-dot"></span></span></h3>

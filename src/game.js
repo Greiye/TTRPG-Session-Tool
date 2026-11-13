@@ -3,6 +3,7 @@ const hub = require('./hub');
 const { state, log, broadcast, sys } = require('./state');
 const { roster } = require('./roster');
 const { BUILTIN_SFX } = require('./media');
+const timers = require('./timers');
 
 let spotlightTimer = null;
 function spotlight(id, kind) {
@@ -33,7 +34,7 @@ function advanceTurn() {
   if (!c.order.length) return;
   for (let i = 0; i < c.order.length; i++) {
     c.turn++;
-    if (c.turn >= c.order.length) { c.turn = 0; c.round++; log('combat', `Round ${c.round} begins.`); }
+    if (c.turn >= c.order.length) { c.turn = 0; c.round++; log('combat', `Round ${c.round} begins.`); timers.tick(); }
     const who = combatant(c.order[c.turn].id);
     if (who && who.hp > 0) break;
   }
@@ -43,10 +44,12 @@ function advanceTurn() {
   require('./grid').resetMoves();
 }
 function applyDamage(target, amount) {
+  const dealt = amount;
   // Temporary hit points soak damage first; healing never touches them.
   if (amount > 0 && target.tempHp) { const soak = Math.min(target.tempHp, amount); target.tempHp -= soak; amount -= soak; }
   const was = target.hp;
   target.hp = Math.max(0, Math.min(target.maxHp, target.hp - amount));
+  timers.onDamage(target, dealt);
   if (was === 0 || amount <= 0) return;
   if (target.hp === 0) log('combat', `${target.name} is down!`, { tone: 'bad' });
   if (state.combat.active && foes().length && foes().every((e) => e.hp === 0)) {

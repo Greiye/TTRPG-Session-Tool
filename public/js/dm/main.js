@@ -29,6 +29,7 @@ import './journal.js';
 import './camp.js';
 import './moments.js';
 import './table.js';
+import './intro.js';
 
 
 window.dmEmit = emit; // used by voice.js (classic script)
