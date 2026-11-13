@@ -11,6 +11,29 @@ const send = (patch) => socket.emit('player:sheet', patch);
 const root = () => $('#tabSheet');
 addTab('sheet', '📜 Sheet');
 
+// Phase 4: condition icons and what they mean (press and hold a condition to read it).
+const COND = {
+  Blinded: ['🙈', 'Cannot see. Attacks against you have advantage, and yours have disadvantage.'],
+  Charmed: ['💖', 'Cannot attack the charmer. The charmer has advantage on social checks against you.'],
+  Deafened: ['🔇', 'Cannot hear. Fails checks that need hearing.'],
+  Frightened: ['😱', 'Disadvantage on checks and attacks while the source is in sight. Cannot move closer to it.'],
+  Grappled: ['✋', 'Speed is 0. Ends if the grappler is incapacitated or moved away.'],
+  Incapacitated: ['😵', 'Cannot take actions or reactions.'],
+  Invisible: ['👻', 'Cannot be seen without special sense. Attacks against you have disadvantage.'],
+  Paralyzed: ['⚡', 'Incapacitated, cannot move or speak. Attacks against you have advantage; hits are critical within 5 ft.'],
+  Petrified: ['🗿', 'Turned to stone. Incapacitated, resistant to all damage, unaware.'],
+  Poisoned: ['☠️', 'Disadvantage on attack rolls and ability checks.'],
+  Prone: ['🤕', 'Crawl only. Disadvantage on attacks. Melee attacks against you have advantage.'],
+  Restrained: ['⛓️', 'Speed is 0. Attacks against you have advantage, and yours have disadvantage.'],
+  Stunned: ['💫', 'Incapacitated, cannot move, speaks falteringly. Attacks against you have advantage.'],
+  Unconscious: ['💤', 'Incapacitated, drops what it holds, falls prone. Hits within 5 ft are critical.'],
+  Exhaustion: ['🥱', 'Levels of exhaustion slow you and weaken your rolls. Long rest removes one level.'],
+};
+const condChip = (x) => `<button class="chip cond" data-cond="${esc(x)}" aria-label="${esc(x)}, press and hold for details"><span aria-hidden="true">${(COND[x] || ['•'])[0]}</span><b>${esc(x)}</b></button>`;
+// Ability hold-rolls: 450 ms press, 3 s cooldown per ability.
+const HOLD_MS = 450, COOL_MS = 3000;
+const cooldown = new Map();
+
 const chip = (label, value) => `<span class="chip"><small>${label}</small><b>${value}</b></span>`;
 const pips = (level, s) => `<div class="slot-row"><span>Level ${level}</span><span class="pips">${Array.from({ length: s.max }, (_, i) => `<button class="pip ${i < s.max - s.used ? 'full' : ''}" data-slot="${level}" data-i="${i}" aria-label="Level ${level} slot ${i + 1}, ${i < s.max - s.used ? 'available' : 'used'}"></button>`).join('')}</span></div>`;
 
@@ -32,7 +55,7 @@ function render() {
       <div class="row"><span class="muted">Temporary HP</span><button class="btn small" data-temp="-1">−</button><b>${c.tempHp || 0}</b><button class="btn small" data-temp="1">+</button><button class="btn small" data-temp="5">+5</button></div>
       <div class="chips">${chip(esc(R.defenseLabel), c.ac)}${chip('Speed', `${c.speed ?? 30} ft`)}${d.prof ? chip('Proficiency', fmt(d.prof)) : ''}${chip('Initiative', fmt(c.init))}${chip('Passive 👁', d.passive.Perception ?? d.passive.Instinct ?? 10)}</div>
     </div>
-    ${R.abilities.length ? `<div class="card"><h3>Abilities <span class="note">score · modifier · save</span></h3><div class="ab-grid">${R.abilities.map(([k, label]) => `<div class="ab"><small>${esc(label.slice(0, 3).toUpperCase())}</small><b>${c.abilities?.[k] ?? 10}</b><span>${fmt(d.mods[k])}</span><small>save ${fmt(d.saves[k])}</small></div>`).join('')}</div></div>` : ''}
+    ${R.abilities.length ? `<div class="card"><h3>Abilities <span class="note">score · modifier · save · press and hold to roll</span></h3><div class="ab-grid">${R.abilities.map(([k, label]) => `<div class="ab ${cooldown.has(k) && cooldown.get(k) > Date.now() ? 'cool' : ''}" data-ab="${esc(k)}" data-ab-label="${esc(label)}" aria-label="${esc(label)} check, press and hold"><small>${esc(label.slice(0, 3).toUpperCase())}</small><b>${c.abilities?.[k] ?? 10}</b><span>${fmt(d.mods[k])}</span><small>save ${fmt(d.saves[k])}</small></div>`).join('')}</div></div>` : ''}
     <div class="card"><h3>Skills</h3><div class="sk-grid">${R.skills.map((k) => `<span>${esc(k)} <b>${fmt(c.skills[k])}</b></span>`).join('')}</div></div>
     ${slots.length ? `<div class="card"><h3>Spell slots <span class="note">tap to use or restore</span></h3>${slots.map(([l, s]) => pips(l, s)).join('')}</div>` : ''}
     ${c.hitDice?.die ? `<div class="card"><h3>Hit dice</h3><div class="row"><b>${c.level - (c.hitDice.used || 0)} / ${c.level}</b><span class="muted">d${c.hitDice.die}</span><span class="grow"></span><button class="btn small" data-hd="1">Use one</button><button class="btn small" data-hd="-1">Restore one</button></div></div>` : ''}
@@ -45,7 +68,8 @@ function render() {
         <p class="note">${esc([s.school, s.time, s.range, s.components, s.duration].filter(Boolean).join(' · '))}</p><p>${esc(s.text)}</p>${s.higher ? `<p class="note">${esc(s.higher)}</p>` : ''}<button class="btn small danger" data-spell-del="${esc(s.id)}">Forget</button></details>`).join('') || '<p class="note">No spells on your sheet yet.</p>'}
       <form class="row" id="spellForm"><input id="spellAdd" class="grow" list="spellList" placeholder="Add a spell by name"><datalist id="spellList">${spells.items.filter((s) => !(c.spells || []).includes(s.id)).map((s) => `<option value="${esc(s.name)}">`).join('')}</datalist><button class="btn">Add</button></form>
     </div>` : ''}
-    ${(c.conditions || []).length ? `<div class="card"><h3>Conditions</h3><div class="chips">${c.conditions.map((x) => `<span class="chip"><b>${esc(x)}</b></span>`).join('')}</div><p class="note">The DM sets these.</p></div>` : ''}
+    ${(c.conditions || []).length ? `<div class="card"><h3>Conditions</h3><div class="chips">${c.conditions.map(condChip).join('')}</div><p class="note">The DM sets these. Press and hold one for what it does.</p><p class="cond-info" id="condInfo" aria-live="polite"></p></div>` : ''}
+    ${['stamina', 'mana'].filter((k) => c[k]?.max > 0).map((k) => `<div class="card"><h3>${k === 'stamina' ? 'Stamina' : 'Mana'}</h3><div class="hp-ctl"><button class="btn" data-res="${k}" data-d="-1">−1</button><b>${c[k].cur}<small> / ${c[k].max}</small></b><button class="btn" data-res="${k}" data-d="1">+1</button></div></div>`).join('')}
     <div class="card"><h3>Languages</h3><div class="chips">${(c.languages || []).map((l) => `<span class="chip"><b>${esc(l)}</b></span>`).join('') || '<span class="note">None</span>'}</div><p class="note">The DM sets the languages you know.</p></div>
     <div class="card"><h3>Notes</h3><textarea id="sheetNotes" rows="4" maxlength="4000" placeholder="Private notes. Only you and the DM can read these.">${esc(c.notes || '')}</textarea></div>`;
 }
@@ -66,9 +90,52 @@ root().addEventListener('click', (e) => {
   else if (d.inv) send({ inv: { op: 'set', id: d.inv, qty: Number(d.q) } });
   else if (d.invDel) send({ inv: { op: 'del', id: d.invDel } });
   else if (d.spellDel) send({ spells: c.spells.filter((x) => x !== d.spellDel) });
+  else if (d.res) send({ [d.res]: { cur: Math.max(0, Math.min(c[d.res].max, c[d.res].cur + Number(d.d))) } });
   else return;
   navigator.vibrate?.(20);
 });
+
+// Press and hold: an ability rolls a d20 check after a short hold (haptic on the roll, then a cooldown);
+// a condition shows what it does with a light flash and a buzz.
+let holdTimer = null, holdEl = null;
+const cancelHold = () => { clearTimeout(holdTimer); holdEl?.classList.remove('holding'); holdEl = null; };
+root().addEventListener('pointerdown', (e) => {
+  const el = e.target.closest('[data-ab],[data-cond]');
+  if (!el || el.classList.contains('cool')) return;
+  cancelHold();
+  holdEl = el;
+  el.classList.add('holding');
+  holdTimer = setTimeout(() => {
+    el.classList.remove('holding');
+    holdEl = null;
+    if (el.dataset.ab) return rollAbility(el);
+    showCondition(el.dataset.cond);
+  }, HOLD_MS);
+});
+['pointerup', 'pointerleave', 'pointercancel'].forEach((t) => root().addEventListener(t, cancelHold));
+document.addEventListener('pointerup', cancelHold);
+
+function rollAbility(el) {
+  const c = mine();
+  const k = el.dataset.ab;
+  const mod = c?.derived?.mods?.[k] ?? 0;
+  socket.emit('player:roll', { expr: `1d20${mod >= 0 ? '+' : ''}${mod}`, label: `${el.dataset.abLabel} check` });
+  cooldown.set(k, Date.now() + COOL_MS);
+  navigator.vibrate?.([30, 40, 30]);
+  el.classList.add('cool');
+  setTimeout(() => { cooldown.delete(k); el.classList.remove('cool'); }, COOL_MS);
+}
+
+function showCondition(name) {
+  const [icon, text] = COND[name] || ['•', 'The DM set this condition.'];
+  const info = $('#condInfo');
+  if (info) info.innerHTML = `<b>${icon} ${esc(name)}.</b> ${esc(text)}`;
+  const f = document.createElement('div');
+  f.className = 'cond-flash';
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 400);
+  navigator.vibrate?.(60);
+}
 root().addEventListener('submit', (e) => {
   e.preventDefault();
   const c = mine();
