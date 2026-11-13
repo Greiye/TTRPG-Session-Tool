@@ -62,6 +62,8 @@ const state = {
   plans: [], // imported session plans, DM only (src/plan.js)
   rndArt: {}, // table -> slot -> label -> creature art url (item 26 art, uploaded by the DM)
   checkLib: [], // DM-made check presets
+  tv: require('./moments').defaults(), // TV moments (src/moments.js)
+  story: require('./moments').storyDefault(), // in-world clock: lights the TV (src/moments.js)
   journal: [], // party journal: phone notes, newest first (src/journal.js)
   quiz: null, // recap quiz: questions, phone answers and DM marks (src/quiz.js)
   suggestions: [], // { id, name, text, at, vis } from spectators, seen by DM and players (src/spectate.js)
@@ -80,7 +82,7 @@ const state = {
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'worldMap', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'worldMap', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;

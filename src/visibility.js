@@ -91,6 +91,11 @@ function viewState(base, viewer) {
   // Party journal: phones and the DM only (src/journal.js).
   out.journal = ['dm', 'player'].includes(viewer.role) ? base.journal || [] : null;
   out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own
+  // TV moments (src/moments.js): the TV and the DM only. Planned echoes stay with the DM.
+  if (viewer.role === 'dm') out.tv = base.tv;
+  else if (['screen', 'codm'].includes(viewer.role)) out.tv = { ...base.tv, echoes: [] };
+  else delete out.tv;
+  out.story = base.story ? require('./moments').storyView(base.story) : null; // the in-world clock is shared with everyone
   if (base.scene) out.scene = { ...sceneFor(base.scene, viewer), secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
   // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.
   if (base.check) {

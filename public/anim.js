@@ -56,6 +56,11 @@
     unfold: (a) => ({ frames: [{ transform: `perspective(700px) rotateX(${Math.min(90, 90 * a)}deg)`, opacity: 0, transformOrigin: 'top center' }, { transform: 'perspective(700px) rotateX(0deg)', opacity: 1, transformOrigin: 'top center' }], ms: 700, easing: 'cubic-bezier(.2,.8,.2,1)' }),
     reveal: (a) => ({ frames: [{ transform: `scale(${1 - 0.12 * a})`, opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], ms: 350, easing: 'ease-out' }),
     fade: () => ({ frames: [{ opacity: 0 }, { opacity: 1 }], ms: 300, easing: 'ease-out' }),
+    // TV moments (public/moments.js): scene transitions and a character entrance.
+    curtain: () => ({ frames: [{ opacity: 0 }, { opacity: 1, offset: 0.4 }, { opacity: 1, offset: 0.6 }, { opacity: 0 }], ms: 1400, easing: 'ease-in-out' }),
+    wipe: () => ({ frames: [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)', offset: 0.5 }, { clipPath: 'inset(0 0 0 100%)' }], ms: 1000, easing: 'ease-in-out' }),
+    ink: () => ({ frames: [{ clipPath: 'circle(0% at 50% 50%)' }, { clipPath: 'circle(150% at 50% 50%)', offset: 0.5 }, { clipPath: 'circle(0% at 50% 50%)' }], ms: 1100, easing: 'ease-in-out' }),
+    slideIn: (a) => ({ frames: [{ transform: `translateX(${-60 * a}%)`, opacity: 0 }, { transform: 'translateX(0)', opacity: 1 }], ms: 700, easing: 'cubic-bezier(.2,.8,.2,1)' }),
   };
   const DEFAULT_PROFILE = { speed: 1, intensity: 1 };
   const profile = (who) => ({ ...DEFAULT_PROFILE, ...(who?.anim || {}) });

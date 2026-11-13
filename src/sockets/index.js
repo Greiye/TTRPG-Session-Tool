@@ -46,6 +46,7 @@ module.exports = function sockets(io) {
     require('./journal')(socket);
     require('./takeover')(socket);
     worldSockets(socket);
+    require('./moments')(socket);
   });
 };
 module.exports.guard = guard;
