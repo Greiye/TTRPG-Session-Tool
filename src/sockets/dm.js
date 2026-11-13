@@ -4,7 +4,7 @@ const { removeUrl } = require('../assets');
 const { state, log, nextId, broadcast, EMOTIONS, sys } = require('../state');
 const rules = require('../rules');
 const { roster, newCharacter, applyEdits } = require('../roster');
-const { str, int } = require('../util');
+const { str } = require('../util');
 const { LIGHTS } = require('../vision');
 const cast = require('../cast');
 const sprites = require('../sprites');
@@ -93,12 +93,9 @@ module.exports = function dmSockets(socket) {
     const t = state.tokens[id];
     if (t && Object.prototype.hasOwnProperty.call(LIGHTS, light)) t.light = light;
   });
-  // TV weather (Phase B): DM-set rain, snow, fog or storm at light, medium or heavy strength.
-  const WEATHER = ['none', 'clear', 'rain', 'snow', 'fog', 'storm']; // 'clear' is the living-world name for none
-  dm('dm:weather', ({ kind, intensity } = {}) => {
-    if (!WEATHER.includes(kind)) return;
-    state.weather = { kind: kind === 'clear' ? 'none' : kind, intensity: int(intensity, 1, 3, 2) };
-  });
+  // TV weather (Phase B): rain, snow, fog or storm at light, medium or heavy strength. It writes the one shared
+  // weather field (state.weather) through the living world, so travel, sight and its history see the same change.
+  dm('dm:weather', ({ kind, intensity } = {}) => { require('../living').setWeather(state, kind === 'clear' ? 'none' : kind, intensity); });
   dm('dm:token:move', ({ id, x, y }) => {
     if (mustPlaceFirst()) return;
     const c = game.combatant(id); if (c) grid.move(c, Number(x), Number(y), { dm: true });

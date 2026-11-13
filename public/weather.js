@@ -87,12 +87,10 @@
     layer._stop = start(canvas, kind, level, !!reduced);
   }
 
-  // One weather source for the TV. The living-world state (src/living.js, state.living.weather) wins when it is
-  // present; otherwise the DM's weather state (state.weather) is used. 'clear' is the living name for 'none'.
+  // The TV draws the one shared weather field, state.weather = { kind, intensity }. The living world (src/living.js)
+  // and the DM's Scene tab both write it.
   function fromState(s) {
-    const living = s?.living?.weather;
-    const kind = living || s?.weather?.kind || 'none';
-    return { kind: kind === 'clear' ? 'none' : kind, intensity: s?.weather?.intensity ?? 2 };
+    return { kind: s?.weather?.kind || 'none', intensity: s?.weather?.intensity ?? 2 };
   }
 
   window.Weather = { render, fromState };
