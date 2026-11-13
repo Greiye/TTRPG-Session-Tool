@@ -18,6 +18,7 @@ const cast = require('./cast');
 const tableState = require('./table-state'); // Phase I table tools: defaults for their fields
 const worldmap = require('./worldmap');
 const living = require('./living');
+const web = require('./web');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -81,6 +82,8 @@ const state = {
   factions: [], // faction reputation, DM sees numbers, phones see tiers (src/factions.js)
   weather: { kind: 'none', intensity: 2 }, // shared weather: the TV (phase B) and the living world both read it (src/living.js)
   living: living.fresh(), // living world: clocks, town standing, rumours, weather, tension, canon, oracles (src/living.js)
+  puzzle: null, // teamwork puzzle: clues split over phones, guesses, DM-confirmed solve (src/puzzle.js)
+  web: web.fresh(), // NPC and faction relationship web, TV sees revealed parts (src/web.js)
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
   settings: { display: { text: 'md', palette: 'default', motion: 'auto', dice: 'on' }, host: null }, // table-wide (TV display, QR host)
@@ -94,6 +97,7 @@ store.EXTRA.push('cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing'
 store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'worldMap', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
 store.EXTRA.push('living', 'weather'); // phase K living world and the shared weather
 store.EXTRA.push('intro', 'timers'); // phase D intro card text and timers
+store.EXTRA.push('puzzle', 'web'); // Phase F teamwork puzzle and relations web
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -103,6 +107,8 @@ state.scene.secrets ??= [];
 state.factions ??= [];
 state.living = living.ensure(state.living);
 state.weather ??= { kind: 'none', intensity: 2 };
+state.web ??= web.fresh();
+state.puzzle ??= null;
 cast.ensure(state.social);
 state.camp ??= camp.fresh();
 state.worldMap ??= worldmap.fresh();

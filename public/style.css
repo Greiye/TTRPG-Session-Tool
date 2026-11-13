@@ -791,3 +791,26 @@ html[data-motion="reduce"] .die3d .cube { animation: none; }
 @keyframes ic-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes ic-line { from { opacity: 0; transform: translateY(.6cqw); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .intro-card, .intro-card li { animation: none; opacity: 1; } }
+
+/* Phase F: puzzle card and relations web on the TV */
+.pz-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 7; max-width: 72%; padding: 2.5cqw 3.5cqw; text-align: center; background: rgb(12 10 18 / .9); color: #f4ead5; border: 1px solid #c9a86a; border-radius: 1.2cqw; box-shadow: 0 1cqw 3cqw rgb(0 0 0 / .6); }
+.pz-card h2 { font-size: 4cqw; margin: .3em 0; }
+.pz-kicker { font-size: 1.6cqw; letter-spacing: .2em; text-transform: uppercase; color: #c9a86a; }
+.pz-prompt { font-size: 2.2cqw; line-height: 1.4; margin: .4em 0; }
+.pz-items { list-style: none; padding: 0; margin: .6em 0 0; display: flex; gap: 1.2cqw; justify-content: center; flex-wrap: wrap; font-size: 2cqw; }
+.pz-items li { border: 1px solid #6b5a3a; border-radius: 1cqw; padding: .5cqw 1.4cqw; }
+.pz-answer { font-size: 4.2cqw; font-weight: 700; color: #e8c77a; margin-top: .4em; }
+.pz-note { font-size: 1.6cqw; color: #8a8478; margin: .4em 0 0; }
+.pz-card.solved { border-color: #e8c77a; box-shadow: 0 0 4cqw rgb(232 199 122 / .45); }
+.web-tv { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgb(0 0 0 / .72); }
+.web-tv svg { width: 88%; height: auto; max-height: 86%; }
+.web-tv .web-kicker { position: absolute; bottom: 3cqw; left: 0; right: 0; text-align: center; color: #c9a86a; font-size: 1.8cqw; letter-spacing: .2em; text-transform: uppercase; }
+.web-tv text { fill: #f4ead5; font-size: 15px; font-family: system-ui, sans-serif; }
+.web-tv .wb-tier { fill: #c9a86a; font-size: 13px; }
+.web-tv .wb-name { font-size: 16px; font-weight: 600; }
+.web-tv .wb-npc { fill: #3b2f4a; stroke: #c9a86a; stroke-width: 2; }
+.web-tv .wb-faction { fill: #22343a; stroke: #7fb1c4; stroke-width: 2; }
+.web-tv .wb-place { fill: #2b3a22; stroke: #9bbf6a; stroke-width: 2; }
+.web-tv .wb-party { fill: #6b5a3a; stroke: #e8c77a; stroke-width: 3; }
+.puzzle.card .pz-guesses li.wrong { text-decoration: line-through; opacity: .6; }
+.web-tv .wb-label { stroke: #07060a; stroke-width: 5px; paint-order: stroke; }

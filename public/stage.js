@@ -366,7 +366,19 @@
         <aside class="stage-log">${logFeed(s, 9, new Set(s.settings?.display?.hideLog || []))}</aside>
       </main>
       <footer>${party(s)}</footer>
-      ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}`;
+    // Puzzle solve: the card pops once, then the solution words land one by one.
+    const pz = ui.querySelector('.pz-card.solved');
+    if (pz && root.dataset.pzDone !== pz.dataset.id) {
+      root.dataset.pzDone = pz.dataset.id;
+      Anim.play(pz, 'pop');
+      Anim.stagger(pz.querySelectorAll('.pz-word'), 'reveal', null, 140);
+    } else if (!pz) root.dataset.pzDone = '';
+    // Relations web: nodes that appear for the first time (or when the web is shown again) reveal in turn.
+    const seenWeb = new Set((root.dataset.webSeen || '').split(',').filter(Boolean));
+    const fresh = [...ui.querySelectorAll('.wb-node')].filter((el) => !seenWeb.has(el.dataset.id));
+    if (fresh.length) Anim.stagger(fresh, 'reveal', null, 120);
+    root.dataset.webSeen = [...ui.querySelectorAll('.wb-node')].map((el) => el.dataset.id).join(',');
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
     Anim.hydrate(ui);
@@ -465,6 +477,61 @@
     const paid = (s.foreshadow || []).filter((h) => h.paid);
     if (!paid.length) return '';
     return `<div class="payoffs-tv"><div class="mt-kicker">Foreshadowing paid off</div>${paid.map((h) => `<p>${esc(h.text)} <em>${esc(h.payoff)}</em></p>`).join('')}</div>`;
+  }
+
+  // Puzzle (src/puzzle.js) on the TV: the prompt, the shuffled items, and the solution once solved.
+  const PZ_TYPE = { riddle: 'Riddle', cipher: 'Cipher', order: 'Put in order' };
+  function puzzleTv(s) {
+    const p = s.puzzle;
+    // While the relations web is on the TV, the web owns the stage; the puzzle card returns when it is hidden.
+    if (!p || !p.prompt || s.web?.showTv) return '';
+    const solved = p.status === 'solved';
+    const words = solved ? String(p.solution || '').split(' ').filter(Boolean).map((w) => `<span class="pz-word">${esc(w)}</span>`).join(' ') : '';
+    const items = !solved && p.items ? `<ol class="pz-items">${p.items.map((i) => `<li>${esc(i)}</li>`).join('')}</ol>` : '';
+    const left = p.clueCount ?? p.clues?.length ?? 0;
+    return `<div class="pz-card ${solved ? 'solved' : ''}" data-id="${esc(p.id)}">
+      <div class="pz-kicker">${solved ? '✔ Solved' : `🧩 ${esc(PZ_TYPE[p.type] || 'Puzzle')}`}</div>
+      <h2>${esc(p.title)}</h2>
+      <p class="pz-prompt">${esc(p.prompt)}</p>
+      ${items}
+      ${solved ? `<div class="pz-answer">${words}</div>` : `<p class="pz-note">${left} clue${left === 1 ? '' : 's'} with the players</p>`}
+    </div>`;
+  }
+
+  // Relations web (src/web.js): revealed nodes and links as an SVG, links coloured by tier. Only when the DM shows it.
+  const WB_COLOR = { hostile: '#b5483c', unfriendly: '#c77c4a', neutral: '#8a8478', friendly: '#6a9c5a', allied: '#4f8f6b' };
+  function webTv(s) {
+    const w = s.web;
+    if (!w || !w.showTv) return '';
+    const nodes = (w.nodes || []).filter((n) => n.revealed);
+    if (!nodes.length) return '';
+    const ids = new Set(nodes.map((n) => n.id));
+    const W = 640, H = 400, cx = W / 2, cy = 200;
+    const ring = nodes.filter((n) => n.kind !== 'party');
+    const pos = {};
+    for (const n of nodes) if (n.kind === 'party') pos[n.id] = { x: cx, y: cy };
+    ring.forEach((n, i) => {
+      const a = -Math.PI / 2 + (i * 2 * Math.PI) / ring.length;
+      pos[n.id] = { x: cx + 230 * Math.cos(a), y: cy + 100 * Math.sin(a) };
+    });
+    const lines = (w.edges || []).filter((e) => e.revealed && ids.has(e.from) && ids.has(e.to)).map((e) => {
+      const a = pos[e.from], b = pos[e.to];
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      return `<g class="wb-edge"><line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${WB_COLOR[e.tier] || '#8a8478'}" stroke-width="5" stroke-linecap="round"/>
+        <text x="${mx}" y="${my - 8}" text-anchor="middle" class="wb-label">${esc(e.label || '')}</text><text x="${mx}" y="${my + 14}" text-anchor="middle" class="wb-tier">${esc(e.tierLabel || '')}</text></g>`;
+    }).join('');
+    const dots = nodes.map((n) => {
+      const p = pos[n.id];
+      // Labels sit above the upper ring nodes and below the rest, so they never cross the links.
+      const up = p.y < cy - 1;
+      const nameY = up ? p.y - 48 : p.y + 52;
+      const tierY = up ? nameY - 20 : nameY + 20;
+      const tier = n.tierLabel ? `<text x="${p.x}" y="${tierY}" text-anchor="middle" class="wb-tier">${esc(n.tierLabel)}</text>` : '';
+      return `<g class="wb-node" data-id="${esc(n.id)}"><circle cx="${p.x}" cy="${p.y}" r="34" class="wb-${esc(n.kind)}"/>
+        <text x="${p.x}" y="${nameY}" text-anchor="middle" class="wb-name">${esc(n.name)}</text>${tier}</g>`;
+    }).join('');
+    return `<div class="web-tv"><div class="web-kicker">Who feels what</div>
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Relations web">${lines}${dots}</svg></div>`;
   }
 
   window.Stage = { stage, vn, portrait, avatar, layeredSprite, refillLayered, hpBar, logFeed, checkBanner, esc, EMO };
