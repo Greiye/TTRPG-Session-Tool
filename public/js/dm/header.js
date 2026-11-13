@@ -25,3 +25,5 @@ $('#system').onchange = (e) => {
 };
 $('#roomNew').onclick = () => confirm('Make a new room code? Phones that are already seated keep playing.') && emit('dm:room:new');
 $('#hostSel').onchange = (e) => emit('dm:host', { host: e.target.value });
+$('#hideJoin').onchange = (e) => emit('dm:settings', { display: { hideJoin: e.target.checked } });
+onState((s) => { $('#hideJoin').checked = !!s.settings?.display?.hideJoin; });

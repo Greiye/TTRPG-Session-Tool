@@ -79,9 +79,6 @@ const stop = (p) => new Promise((res) => { p.on('exit', res); p.kill(); });
   await wait(200);
   ok(tv.last.social.line.text === 'Get out of my inn!' && tv.last.social.npc.emotion === 'angry', 'social line + emotion on TV');
 
-  const w = await call(dm, 'dm:whisper', { id: jb.id, text: 'psst' });
-  ok(w.ok, 'whisper delivered');
-  ok(!JSON.stringify(a.last).includes('psst'), 'whisper not visible to other players');
 
   // Reconnect: same device token reclaims silently.
   const token = ja.token;

@@ -11,6 +11,10 @@ const { release, newRoomCode } = require('../session');
 const net = require('../net');
 const creatures = require('../creatures');
 const rolls = require('../rolls');
+
+// Log types the DM can hide on the TV (display setting hideLog).
+const camp = require('../camp');
+const LOG_KINDS = ['action', 'check', 'combat', 'downtime', 'narrate', 'npc', 'say', 'shop', 'system', 'notice'];
 const perception = require('../perception');
 const messages = require('../messages');
 const tracker = require('../tracker');
@@ -60,9 +64,20 @@ module.exports = function dmSockets(socket) {
   });
   // ----- Phase 8: map, tokens, randomizer -----
   dm('dm:map', (f) => { grid.setMap(f); });
-  dm('dm:map:paint', ({ x, y, kind }) => grid.paint(Number(x), Number(y), kind));
-  dm('dm:token', ({ id, x, y, z }) => { if (state.combat.enemies.some((e) => e.id === id) || state.players[id]) grid.place(id, Number(x), Number(y), z); });
-  dm('dm:token:move', ({ id, x, y }) => { const c = game.combatant(id); if (c) grid.move(c, Number(x), Number(y), { dm: true }); });
+  // A newly added creature must be placed on the map before anything else (terrain, other tokens, next turn).
+  const mustPlaceFirst = () => (state.pendingPlace || []).length > 0;
+  const queueForMap = (ids) => { if (state.map) state.pendingPlace = [...(state.pendingPlace || []), ...ids]; };
+  dm('dm:map:paint', ({ x, y, kind }) => { if (!mustPlaceFirst()) grid.paint(Number(x), Number(y), kind); });
+  dm('dm:token', ({ id, x, y, z }) => {
+    const q = state.pendingPlace || [];
+    if (q.length && id !== q[0]) return;
+    if (!(state.combat.enemies.some((e) => e.id === id) || state.players[id])) return;
+    if (grid.place(id, Number(x), Number(y), z) && q[0] === id) q.shift();
+  });
+  dm('dm:token:move', ({ id, x, y }) => {
+    if (mustPlaceFirst()) return;
+    const c = game.combatant(id); if (c) grid.move(c, Number(x), Number(y), { dm: true });
+  });
   // Art for each pick of a roll: { slot: url } for the picks that have art.
   const artsFor = (r) => {
     const arts = state.rndArt[r.table] || {};
@@ -104,6 +119,15 @@ module.exports = function dmSockets(socket) {
   dm('dm:clock:fill', ({ id, delta }) => tracker.fillClock(id, delta));
   dm('dm:clock:remove', ({ id }) => { state.clocks = state.clocks.filter((k) => k.id !== id); });
   dm('dm:rest', ({ kind }) => tracker.rest(kind === 'long' ? 'long' : 'short'));
+
+  // ----- Camp: TV image, phone votes for short or long rest (src/camp.js) -----
+  dm('dm:camp:open', ({ open }) => {
+    const was = state.camp.open;
+    camp.setOpen(state.camp, open);
+    if (state.camp.open && !was) log('system', 'Camp is set. Choose a short or long rest.', { tone: 'call' });
+    if (!state.camp.open && was) log('system', 'Camp is over.', { tone: 'call' });
+  });
+  dm('dm:camp:image', ({ id }) => camp.setImage(state.camp, state.backdrop.library.find((b) => b.id === id)));
 
   // ----- Phase 4: messages -----
   dm('dm:handout', (f) => { const m = messages.handout(f, 'h' + nextId(), roster); if (m.text || m.image) state.handouts.push(m); if (state.handouts.length > 80) state.handouts.shift(); });
@@ -159,15 +183,10 @@ module.exports = function dmSockets(socket) {
   });
   dm('dm:shop:open', ({ id, open }) => { const s = state.shops.find((x) => x.id === id); if (s) s.open = !!open; });
   dm('dm:shop:remove', ({ id }) => { state.shops = state.shops.filter((s) => s.id !== id); });
-  // Share a handout or whisper with the TV (the group decides what goes on the big screen).
+  // Share a handout with the TV (the group decides what goes on the big screen).
   dm('dm:share', ({ id, on }) => {
     const h = state.handouts.find((x) => x.id === id);
     if (h && typeof h.vis === 'object') h.vis = { ...h.vis, screen: !!on };
-  });
-  // Whispers only reach the TV once the DM reveals them.
-  dm('dm:whisper:reveal', ({ id, on }) => {
-    const w = state.whispers.find((x) => x.id === id);
-    if (w) w.vis = { to: [w.to], screen: !!on };
   });
   dm('dm:vote:start', ({ options }) => {
     state.vote = messages.vote(options, 'v' + nextId());
@@ -228,7 +247,9 @@ module.exports = function dmSockets(socket) {
   dm('dm:enemy:add', ({ name, hp, ac, atk, dmg, side }) => {
     const block = creatures.normalize({ name: name || 'Goblin', hp: Number(hp) || 10, ac: Number(ac) || 12, side,
       attacks: [{ name: 'Attack', atk: Number(atk) || 4, dmg: /d/i.test(String(dmg)) ? dmg : `1d6+${Number(dmg) || 2}` }] });
-    state.combat.enemies.push(creatures.spawn(block, { id: 'e' + nextId(), name: String(name || 'Goblin').slice(0, 24) }));
+    const enemy = creatures.spawn(block, { id: 'e' + nextId(), name: String(name || 'Goblin').slice(0, 24) });
+    state.combat.enemies.push(enemy);
+    queueForMap([enemy.id]);
   });
   // ----- creature library (stat blocks) -----
   socket.on('dm:creature:save', (f = {}, ack) => {
@@ -244,6 +265,7 @@ module.exports = function dmSockets(socket) {
     for (let i = 0; i < Math.max(1, Math.min(12, Number(count) || 1)); i++) {
       const c = creatures.spawn(creatures.SIDES.includes(side) ? { ...block, side } : block, { id: 'e' + nextId(), name: uniqueName(block.name) });
       state.combat.enemies.push(c);
+      queueForMap([c.id]);
       // Joining a fight in progress: roll initiative and slot in.
       if (state.combat.active) {
         state.combat.order.push({ id: c.id, init: sys().initiative(c) });
@@ -257,6 +279,7 @@ module.exports = function dmSockets(socket) {
   dm('dm:spell:delete', ({ id }) => { spells.lib.remove(id); });
   dm('dm:enemy:remove', ({ id }) => {
     state.combat.enemies = state.combat.enemies.filter((e) => e.id !== id);
+    state.pendingPlace = (state.pendingPlace || []).filter((x) => x !== id);
     state.combat.order = state.combat.order.filter((o) => o.id !== id);
   });
   dm('dm:combat:start', () => game.startCombat());
@@ -264,7 +287,7 @@ module.exports = function dmSockets(socket) {
     Object.assign(state.combat, { active: false, order: [], turn: 0, round: 0 });
     log('combat', 'Combat ends.');
   });
-  dm('dm:combat:next', () => game.advanceTurn());
+  dm('dm:combat:next', () => { if (!mustPlaceFirst()) game.advanceTurn(); });
   // The DM plays every creature: enemies, allies and neutrals. `attack` picks one from the stat block.
   dm('dm:enemy:attack', ({ target, attack, mode }) => {
     const e = game.combatant(game.currentTurnId());
@@ -355,26 +378,16 @@ module.exports = function dmSockets(socket) {
   dm('dm:char:fall', ({ id, cause, epitaph }) => legacy.fall(id, { cause, epitaph }));
   dm('dm:char:revive', ({ id }) => legacy.revive(id));
   dm('dm:memorial:clear', () => legacy.clearMemorial());
-  // Whispers go only to that player's phone; the DM gets an ack saying whether it was delivered.
-  socket.on('dm:whisper', ({ id, text } = {}, ack) => {
-    if (socket.data.role !== 'dm') return;
-    const c = roster[id];
-    text = str(text, 500);
-    if (!c || !text) return ack?.({ ok: false });
-    const w = { id: nextId(), to: c.id, text, at: Date.now(), vis: { to: [c.id] } };
-    state.whispers.push(w);
-    if (state.whispers.length > 200) state.whispers.shift();
-    if (c.socketId) io.to(c.socketId).emit('whisper', w);
-    ack?.({ ok: !!c.socketId });
-    broadcast();
-  });
 
   // Table-wide display settings, used by the TV (phones and the DM laptop keep their own).
-  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'] };
+  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'], log: ['show', 'hide'] };
   dm('dm:settings', ({ display }) => {
     if (!display) return;
     const cur = state.settings.display || {};
     for (const [k, vals] of Object.entries(DISPLAY)) if (vals.includes(display[k])) cur[k] = display[k];
+    // Hide individual log types on the TV (DM choice; the phones keep their own log).
+    if (typeof display.hideJoin === 'boolean') cur.hideJoin = display.hideJoin; // hide the top-right join box on the TV
+    if (Array.isArray(display.hideLog)) cur.hideLog = display.hideLog.filter((k) => LOG_KINDS.includes(k));
     state.settings.display = cur;
   });
 

@@ -25,14 +25,6 @@ const { ok, until } = h;
   await until(() => b.last.handouts.some((x) => x.title === 'Secret letter'));
   ok(!a.last.handouts.some((x) => x.title === 'Secret letter'), 'targeted handout is not on other phones');
 
-  // Whispers on the TV only after the DM reveals them (10).
-  dm.emit('dm:whisper', { id: a.me.id, text: 'The guard is your cousin.' });
-  await h.wait(150);
-  ok(!JSON.stringify(tv.last).includes('cousin'), 'whisper is not on the TV before reveal');
-  const wid = dm.last.whispers.find((w) => w.text.includes('cousin')).id;
-  dm.emit('dm:whisper:reveal', { id: wid, on: true });
-  ok(await until(() => JSON.stringify(tv.last?.whispers || []).includes('cousin')), 'revealed whisper shows on the TV');
-
   // Spoils (11): drop items to phones, claims, DM award.
   dm.emit('dm:spoil', { title: 'Bandit camp', items: [{ name: 'Gold', qty: 40 }, { name: 'Dagger', qty: 1 }] });
   await until(() => a.last.handouts.some((x) => x.kind === 'spoil'));

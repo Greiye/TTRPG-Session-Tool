@@ -8,8 +8,9 @@ import { rollBox } from './rolls.js';
 import exploreView from './views/explore.js';
 import socialView from './views/social.js';
 import combatView from './views/combat.js';
+import * as Fx from './fx.js';
 
-const { esc, hpBar, logFeed } = Stage;
+const { esc, hpBar } = Stage;
 const VIEWS = { exploration: exploreView, social: socialView, combat: combatView };
 let lastMode = null;
 
@@ -20,16 +21,19 @@ function render() {
   if (!c) return;
   if (lastMode && lastMode !== S.mode) navigator.vibrate?.(80);
   lastMode = S.mode;
-  $('#me').innerHTML = `${Stage.avatar(c, 'av-me')}<div class="me-info"><b>${esc(c.name)}</b><small class="muted">${esc([c.race, c.cls].filter(Boolean).join(' '))} · ${esc(S.rules.defenseLabel)} ${c.ac} · ${S.mode}</small></div><button class="btn small" id="profBtn">✎ Profile</button>${hpBar(c)}`;
+  $('#me').innerHTML = `${Stage.avatar(c, 'av-me')}<div class="me-info"><b>${esc(c.name)}</b><small class="muted">${esc([c.race, c.cls].filter(Boolean).join(' '))} · ${esc(S.rules.defenseLabel)} ${c.ac} · ${S.mode}</small></div><div class="me-tools"><button class="btn small" id="profBtn">✎ Profile</button><button class="btn small" id="fsBtn" title="Full screen" aria-label="Full screen">⛶</button><button class="btn small" id="awakeBtn" title="Keep the screen on" aria-pressed="${Fx.awake()}">☀</button></div>${hpBar(c)}`;
   Anim.hydrate($('#me'));
   $('#profBtn').onclick = openProfile;
+  $('#fsBtn').onclick = () => Fx.fullscreen();
+  $('#awakeBtn').onclick = () => Fx.toggleAwake();
+  Fx.watchHp(c.hp, c.maxHp);
   $('#say').placeholder = S.mode === 'social' ? 'Say something in character…' : 'What do you do?';
   $('#sayForm').hidden = S.mode === 'combat' || tab() !== 'play';
+  $('#tabPlay').classList.toggle('combat-quiet', S.mode === 'combat'); // combat: no spectator notes, no free-text box
   $('#main').innerHTML = (VIEWS[S.mode] || exploreView)(S, c) + rollBox();
   Anim.hydrate($('#main'));
-  $('#log').innerHTML = logFeed(S, 6);
   const sug = (S.suggestions || []).slice(-5).reverse();
-  $('#suggest').innerHTML = sug.length ? `<details class="card suggest" open><summary>👀 Spectator suggestions (${sug.length})</summary>${sug.map((x) => `<p><b>${esc(x.name)}:</b> ${esc(x.text)}</p>`).join('')}</details>` : '';
+  $('#suggest').innerHTML = sug.length && S.mode !== 'combat' ? `<details class="card suggest" open><summary>👀 Spectator suggestions (${sug.length})</summary>${sug.map((x) => `<p><b>${esc(x.name)}:</b> ${esc(x.text)}</p>`).join('')}</details>` : '';
 }
 onState(render);
 onShow((v) => { if (v === 'game') render(); });
