@@ -306,6 +306,13 @@
         <button class="btn" data-act="castAdd">+ Add</button>
       </div>
       <div id="castErr" class="note" role="alert"></div>
+      <div class="row">
+        <select id="emoTarget" style="width:200px" aria-label="Who the emotion buttons change"><option value="">Speaker</option></select>
+        <input id="spriteId" class="grow" maxlength="40" placeholder="Sprite id (uploaded set)" aria-label="Sprite id">
+        <button class="btn" data-act="spriteSet">Set sprite</button>
+        <button class="btn" data-act="spriteClear">Clear</button>
+      </div>
+      <div id="spriteErr" class="note" role="alert"></div>
       <h3>Emotion <span class="note">keys 1–8</span></h3>
       <div id="emotions" class="emotions"></div>
     </div>

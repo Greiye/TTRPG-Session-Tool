@@ -29,6 +29,7 @@ onState((s) => {
   }
   $$('[data-emo]').forEach((b) => b.classList.toggle('on', b.dataset.emo === s.social.npc.emotion));
   drawCast(s);
+  sprites(s);
 });
 
 $('#castList').addEventListener('click', (e) => {
@@ -46,14 +47,46 @@ async function castAdd() {
 }
 
 const say = () => { emit('dm:say', { text: $('#line').value }); $('#line').value = ''; };
+// Sprites: the emotion buttons drive the speaker, or a chosen character's sprite state.
+function sprites(s) {
+  const sel = $('#emoTarget');
+  const cur = sel.value;
+  const want = [['', 'Speaker'], ...(s.players || []).map((p) => [p.id, p.name])];
+  const key = want.map((x) => x[0]).join();
+  if (sel.dataset.key !== key) {
+    sel.dataset.key = key;
+    sel.innerHTML = want.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
+    sel.value = want.some((x) => x[0] === cur) ? cur : '';
+  }
+}
+async function spriteSet() {
+  const target = $('#emoTarget').value || 'npc';
+  const id = $('#spriteId').value.trim();
+  const state = target === 'npc' ? (state_().social.npc.emotion || 'neutral') : 'neutral';
+  const r = await call('dm:sprite', { target, sprite: { id, state } });
+  $('#spriteErr').textContent = r?.error || '';
+}
+async function spriteClear() {
+  const target = $('#emoTarget').value || 'npc';
+  const r = await call('dm:sprite', { target, sprite: null });
+  $('#spriteErr').textContent = r?.error || '';
+}
+const state_ = () => state();
+
 const actions = {
   say,
   castAdd,
+  spriteSet,
+  spriteClear,
   choices: () => emit('dm:choices', { choices: $$('.choice').map((i) => i.value) }),
   choicesClear: () => { $$('.choice').forEach((i) => (i.value = '')); emit('dm:choices', { choices: [] }); },
 };
 onClick('act', (act) => actions[act]?.());
-onClick('emo', (emotion) => emit('dm:emotion', { emotion }));
+onClick('emo', (emotion) => {
+  const target = $('#emoTarget')?.value;
+  if (target) emit('dm:pc:emotion', { id: target, emotion });
+  else emit('dm:emotion', { emotion });
+});
 $('#line').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); say(); } });
 $('#npcName').addEventListener('change', (e) => emit('dm:npc', { name: e.target.value }));
 $('#npcHue').addEventListener('input', (e) => emit('dm:npc', { hue: Number(e.target.value) }));

@@ -6,6 +6,7 @@ const rules = require('../rules');
 const { roster, newCharacter, applyEdits } = require('../roster');
 const { str } = require('../util');
 const cast = require('../cast');
+const sprites = require('../sprites');
 const game = require('../game');
 const entities = require('../entities');
 const { release, newRoomCode } = require('../session');
@@ -328,7 +329,33 @@ module.exports = function dmSockets(socket) {
     if (!EMOTIONS.includes(emotion)) return;
     state.social.npc.emotion = emotion;
     if (!state.social.line.player) state.social.line.emotion = emotion;
+    // A speaker wearing a sprite switches to the matching sprite state too.
+    if (state.social.npc.sprite) state.social.npc.sprite = { ...state.social.npc.sprite, state: emotion };
     cast.mirror(state.social);
+  });
+  // Steps 5-6: the emotion buttons can also drive a character's sprite state.
+  dm('dm:pc:emotion', ({ id, emotion }) => {
+    const c = roster[id];
+    if (!EMOTIONS.includes(emotion) || !c?.sprite) return;
+    c.sprite = { ...c.sprite, state: emotion };
+    if (state.players[id]) state.players[id].sprite = c.sprite;
+    saveRoster();
+  });
+  // The DM picks which uploaded sprite an NPC (target 'npc') or a character (target = its id) wears.
+  socket.on('dm:sprite', ({ target, sprite } = {}, ack) => {
+    if (socket.data.role !== 'dm') return ack?.({ error: 'DM only.' });
+    const s = sprites.clean(sprite);
+    if (s === undefined) return ack?.({ error: 'Sprite ids use lowercase letters, digits, - and _.' });
+    if (target === 'npc') {
+      state.social.npc.sprite = s;
+      cast.mirror(state.social);
+    } else if (roster[target]) {
+      roster[target].sprite = s;
+      if (state.players[target]) state.players[target].sprite = s;
+      saveRoster();
+    } else return ack?.({ error: 'Pick the speaker or a character.' });
+    broadcast();
+    ack?.({ ok: true });
   });
   dm('dm:say', ({ text }) => {
     text = String(text || '').trim().slice(0, 500);
@@ -397,7 +424,7 @@ module.exports = function dmSockets(socket) {
   dm('dm:memorial:clear', () => legacy.clearMemorial());
 
   // Table-wide display settings, used by the TV (phones and the DM laptop keep their own).
-  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'], log: ['show', 'hide'] };
+  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'], log: ['show', 'hide'], sprite: ['auto', 'webm', 'sheet'], anim: ['on', 'off'] };
   dm('dm:settings', ({ display }) => {
     if (!display) return;
     const cur = state.settings.display || {};

@@ -59,7 +59,10 @@
       if (window.Settings?.reducedMotion()) { tw.i = text.length; return esc(text); }
       tw.timer = setInterval(() => {
         tw.i = Math.min(tw.text.length, tw.i + 1);
-        document.querySelectorAll(`[data-tw="${id}"]`).forEach((el) => (el.textContent = tw.text.slice(0, tw.i)));
+        document.querySelectorAll(`[data-tw="${id}"]`).forEach((el) => {
+          el.textContent = tw.text.slice(0, tw.i);
+          el.closest('.vn')?.classList.toggle('talking', tw.i < tw.text.length); // mouths move while text is typing
+        });
         if (tw.i >= tw.text.length) clearInterval(tw.timer);
       }, 24);
     }
@@ -90,6 +93,16 @@
     const v = layeredCache.get(url);
     return v === 'loading' ? null : v;
   }
+  // Per-device choices (Settings): playback WebM or sheet, and animation on or off (Static). The phone's
+  // profile editor is always static, so its portrait never moves while being edited.
+  const profileOpen = () => !!document.querySelector('#profile:not([hidden])');
+  const stillNow = () => window.Settings?.get().anim === 'off' || profileOpen();
+  const useSheet = () => {
+    const pb = window.Settings?.get().sprite || 'auto';
+    if (pb === 'sheet') return true;
+    if (pb === 'webm') return !canWebm;
+    return !canWebm || SAFARI;
+  };
   function layeredInner(id, state) {
     const dir = `/uploads/layered/${id}/`;
     const m = loadManifest(dir + 'manifest.json');
@@ -101,8 +114,9 @@
     const pieces = m.layers
       .filter((l) => shown.has(l.id))
       .map((l) => ({ z: l.z, html: `<img class="lay-l" alt="" src="${(l.from === 'base' ? baseDir : dir) + l.file}">` }));
-    for (const a of m.animations || []) {
-      if (!canWebm || SAFARI) {
+    const still = stillNow();
+    for (const a of still ? [] : m.animations || []) {
+      if (useSheet()) {
         pieces.push({ z: a.z, html: `<div class="lay-l lay-sheet" data-sheet="${dir}anim/${a.name}.sheet" data-frames="${a.frames}" data-fps="${a.fps}" data-kind="${a.kind}"></div>` });
       } else {
         pieces.push({ z: a.z, html: `<video class="lay-l" data-kind="${a.kind}" src="${dir}anim/${a.name}.webm" autoplay loop muted playsinline></video>` });
@@ -124,11 +138,23 @@
   }
   // One ticker drives every sprite-sheet animation: frame k lives in sheet floor(k/12), cell k%12 of a 4x3 grid.
   const SHEET_COLS = 4, SHEET_ROWS = 3;
+  // Mouth layers move only for the speaker while its line is typing (typewriter mouth sync).
+  const talking = (el) => {
+    const vn = el.closest('.vn.talking');
+    if (!vn) return false;
+    if (el.closest('.vn-pc-l.speaking')) return true;
+    return !!el.closest('.vn-portrait') && !vn.classList.contains('pc-speaking');
+  };
   setInterval(() => {
     const t = performance.now();
+    for (const v of document.querySelectorAll('video[data-kind="mouth"]')) {
+      const want = talking(v);
+      if (want && v.paused) v.play().catch(() => {});
+      else if (!want && !v.paused) v.pause();
+    }
     for (const el of document.querySelectorAll('.lay-sheet')) {
       const frames = +el.dataset.frames, fps = +el.dataset.fps;
-      const k = Math.floor((t / 1000) * fps) % frames;
+      const k = el.dataset.kind === 'mouth' && !talking(el) ? 0 : Math.floor((t / 1000) * fps) % frames;
       const sheet = Math.floor(k / (SHEET_COLS * SHEET_ROWS));
       const cell = k % (SHEET_COLS * SHEET_ROWS);
       const col = cell % SHEET_COLS, row = Math.floor(cell / SHEET_COLS);
