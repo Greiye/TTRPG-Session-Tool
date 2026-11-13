@@ -4,6 +4,18 @@ const { str } = require('./util');
 
 const fresh = () => ({ open: false, n: 0, image: null, votes: {}, notes: {} });
 
+// Phase 5: before a rest, some classes must be set up. Casters need a spell on the sheet, martial
+// classes need a weapon in the inventory. Returns the list of what is still missing (empty when ready).
+const CASTERS = ['Wizard', 'Cleric', 'Bard'];
+const MARTIAL = ['Fighter', 'Rogue', 'Ranger'];
+const WEAPON = /sword|axe|bow|dagger|mace|spear|staff|crossbow|rapier|hammer|flail|club|javelin|sling|pike|lance|glaive|halberd|scimitar|whip/i;
+function restBlockers(c) {
+  const missing = [];
+  if (CASTERS.includes(c.cls) && !(c.spells || []).length) missing.push('a spell on your sheet');
+  if (MARTIAL.includes(c.cls) && !(c.inventory || []).some((i) => i.qty > 0 && WEAPON.test(i.name))) missing.push('a weapon in your inventory');
+  return missing;
+}
+
 // Open or close camp. Opening starts a new camp: votes and notes from the last one are cleared.
 function setOpen(camp, open) {
   if (open && !camp.open) {
@@ -43,4 +55,4 @@ function viewFor(camp, viewer) {
   return base;
 }
 
-module.exports = { fresh, setOpen, setImage, vote, tally, viewFor };
+module.exports = { fresh, setOpen, setImage, vote, tally, viewFor, restBlockers };

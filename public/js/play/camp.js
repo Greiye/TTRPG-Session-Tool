@@ -30,8 +30,14 @@ function onClick(e) {
   if (b.dataset.vote) {
     const text = sheet().querySelector('#campText')?.value ?? '';
     socket.emit('player:camp', { vote: b.dataset.vote, text }, (r) => {
-      if (r?.ok) { sent = state()?.camp?.n || 0; draft = text; }
       navigator.vibrate?.(20);
+      if (r?.missing) {
+        let n = sheet().querySelector('.camp-need');
+        if (!n) { n = document.createElement('p'); n.className = 'note camp-need'; sheet().appendChild(n); }
+        n.textContent = `Set up before you rest: you need ${r.missing.join(' and ')}.`;
+        return;
+      }
+      if (r?.ok) { sent = state()?.camp?.n || 0; draft = text; }
       sheet().hidden = true;
     });
   }

@@ -117,6 +117,7 @@ const stop = (p) => new Promise((res) => { p.on('exit', res); p.kill(); });
 
   // Spectators (item 5): watch the public table, suggest, never hold a seat.
   const sp = await client();
+  sp.emit('client:device', { device: 'phone' }); // spectators watch from phones only (phase 5)
   ok((await call(sp, 'spectate', { room: 'ZZZZ', name: 'Fan' })).error === 'room', 'spectator needs the room code');
   ok((await call(sp, 'spectate', { room, name: 'Fan' })).ok, 'spectator joins with the room code');
   ok((await call(sp, 'player:roll', { expr: 'd20' })).error, 'spectator cannot roll');

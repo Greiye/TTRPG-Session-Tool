@@ -35,6 +35,10 @@ module.exports = function sockets(io) {
     require('./dm')(socket);
     require('./plans')(socket);
     require('./atmo')(socket);
+    // Phase 5: what kind of screen this is (phone, tablet or laptop). Spectators are phone only.
+    socket.on('client:device', ({ device } = {}) => {
+      if (['phone', 'tablet', 'laptop'].includes(device)) socket.data.device = device;
+    });
     require('./spectator')(socket);
     require('./quiz')(socket);
     require('./downtime')(socket);
