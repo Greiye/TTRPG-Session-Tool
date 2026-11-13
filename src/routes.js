@@ -20,6 +20,12 @@ module.exports = function routes(app) {
   }
   // Upload filenames are unique per upload, so browsers may cache them forever.
   app.use('/uploads', express.static(UPLOAD_DIR, { immutable: true, maxAge: '365d' }));
+  // Placeholder soundboard loops, generated in memory (src/placeholder-sounds.js). Anything else is a 404.
+  app.get('/sounds/:file', (req, res) => {
+    const wav = require('./placeholder-sounds').wavFor(req.params.file.replace(/\.wav$/, ''));
+    if (!wav) return res.status(404).end();
+    res.type('audio/wav').set('Cache-Control', 'public, max-age=86400').send(wav);
+  });
   // Speech models for the offline (Vosk) engine. Only files in MODEL_DIR are served; nothing else.
   app.use('/models', express.static(MODEL_DIR, { maxAge: '1d', dotfiles: 'deny', index: false }));
   const dmOnly = (req) => isLocalAddr(req.socket.remoteAddress) || req.query.key === DM_KEY;

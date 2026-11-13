@@ -130,6 +130,31 @@
       const g = env(c, 0.4, 0.005, 2.8);
       [880, 1760 * 1.01, 2640 * 0.99, 3520].forEach((f) => osc(c, 'sine', f, g, 3));
     },
+    door(c) {
+      // Heavy thump, then a short creak that drops in pitch.
+      const thump = env(c, 0.9, 0.004, 0.35);
+      osc(c, 'sine', 90, thump, 0.4).frequency.exponentialRampToValueAtTime(35, c.currentTime + 0.35);
+      const n = noise(c, 0.35);
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 900;
+      n.connect(bp).connect(env(c, 0.5, 0.01, 0.3));
+      n.start();
+      const creak = env(c, 0.15, 0.05, 0.5);
+      const cr = osc(c, 'sawtooth', 320, creak, 0.6);
+      cr.frequency.exponentialRampToValueAtTime(140, c.currentTime + 0.55);
+    },
+    clash(c) {
+      // Steel on steel: a sharp noise tick and a ringing set of inharmonic partials.
+      const n = noise(c, 0.08);
+      const hp = c.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 3000;
+      n.connect(hp).connect(env(c, 0.9, 0.001, 0.06));
+      n.start();
+      const ring = env(c, 0.22, 0.002, 0.9);
+      [1450, 2330, 3710].forEach((f) => osc(c, 'square', f, ring, 1));
+    },
   };
 
   function sfx({ url, builtin }) {
@@ -151,10 +176,40 @@
         current = null;
         decks.forEach((d) => d.pause());
         apply();
+        syncMix(lastState?.audio?.mix || []);
       };
       document.body.append(gateEl);
     }
     gateEl.hidden = !show;
+  }
+
+  // ---------- soundboard ambience: several loops blended, each with its own volume ----------
+  const layers = new Map(); // track id -> { el, want, leaving }
+  function fadeOutLayer(id, L) {
+    L.leaving = true;
+    tween(L.el, 0, FADE_MS, () => { if (L.leaving) { L.el.pause(); layers.delete(id); } });
+  }
+  function syncMix(mix) {
+    const want = isOutput(lastState) ? mix : [];
+    const ids = new Set(want.map((m) => m.id));
+    for (const [id, L] of layers) if (!ids.has(id) && !L.leaving) fadeOutLayer(id, L);
+    for (const m of want) {
+      let L = layers.get(m.id);
+      if (!L) {
+        const el = new Audio(m.url);
+        el.loop = true;
+        el.preload = 'auto';
+        el.volume = 0;
+        L = { el, want: m.volume, leaving: false };
+        layers.set(m.id, L);
+        play(el);
+        tween(el, m.volume, FADE_MS);
+        continue;
+      }
+      L.leaving = false; // a layer taken off and put back during its fade-out keeps playing
+      if (L.el.paused) play(L.el);
+      if (L.want !== m.volume) { L.want = m.volume; tween(L.el, m.volume, 250); }
+    }
   }
 
   window.AudioOut = {
@@ -166,6 +221,7 @@
         target = { url: a.music?.url || null, playing: a.playing, volume: a.volume };
         sfxVolume = a.sfxVolume;
         apply();
+        syncMix(a.mix || []);
       });
       socket.on('sfx', sfx);
     },
