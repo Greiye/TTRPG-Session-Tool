@@ -33,6 +33,7 @@ import './legends.js';
 import './moments.js';
 import './table.js';
 import './intro.js';
+import './chronicle.js';
 
 
 window.dmEmit = emit; // used by voice.js (classic script)
