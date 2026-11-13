@@ -287,6 +287,11 @@ body.phone { max-width: 520px; margin: 0 auto; padding: 14px 14px 120px; }
 .track { display: flex; gap: 4px; align-items: center; background: #1a131d; padding: 4px 6px; border-radius: 6px; font-size: calc(14px * var(--ts)); }
 .track span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .track.on { outline: 1px solid var(--gold); }
+.sb-layers { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.sb-layer { display: flex; gap: 8px; align-items: center; background: #1a131d; padding: 6px 8px; border-radius: 6px; font-size: calc(14px * var(--ts)); }
+.sb-layer span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sb-layer input[type=range] { width: 40%; }
+.sb-layer.on { outline: 1px solid var(--gold); }
 .codm-invite { display: grid; grid-template-columns: 120px 1fr; gap: 10px; align-items: center; }
 .codm-invite img { width: 120px; height: 120px; background: #f4ead5; border-radius: 6px; }
 .codm-invite code { font-size: calc(12px * var(--ts)); word-break: break-all; }

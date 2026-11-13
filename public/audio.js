@@ -151,10 +151,40 @@
         current = null;
         decks.forEach((d) => d.pause());
         apply();
+        syncMix(lastState?.audio?.mix || []);
       };
       document.body.append(gateEl);
     }
     gateEl.hidden = !show;
+  }
+
+  // ---------- soundboard ambience: several loops blended, each with its own volume ----------
+  const layers = new Map(); // track id -> { el, want, leaving }
+  function fadeOutLayer(id, L) {
+    L.leaving = true;
+    tween(L.el, 0, FADE_MS, () => { if (L.leaving) { L.el.pause(); layers.delete(id); } });
+  }
+  function syncMix(mix) {
+    const want = isOutput(lastState) ? mix : [];
+    const ids = new Set(want.map((m) => m.id));
+    for (const [id, L] of layers) if (!ids.has(id) && !L.leaving) fadeOutLayer(id, L);
+    for (const m of want) {
+      let L = layers.get(m.id);
+      if (!L) {
+        const el = new Audio(m.url);
+        el.loop = true;
+        el.preload = 'auto';
+        el.volume = 0;
+        L = { el, want: m.volume, leaving: false };
+        layers.set(m.id, L);
+        play(el);
+        tween(el, m.volume, FADE_MS);
+        continue;
+      }
+      L.leaving = false; // a layer taken off and put back during its fade-out keeps playing
+      if (L.el.paused) play(L.el);
+      if (L.want !== m.volume) { L.want = m.volume; tween(L.el, m.volume, 250); }
+    }
   }
 
   window.AudioOut = {
@@ -166,6 +196,7 @@
         target = { url: a.music?.url || null, playing: a.playing, volume: a.volume };
         sfxVolume = a.sfxVolume;
         apply();
+        syncMix(a.mix || []);
       });
       socket.on('sfx', sfx);
     },

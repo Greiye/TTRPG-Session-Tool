@@ -45,7 +45,8 @@ const state = {
   },
   // Uploads survive restarts (files on disk); `image` null means use the scene theme.
   backdrop: { image: null, effects: [], library: lib.backdrops },
-  audio: { library: lib.audio, music: null, playing: false, volume: 0.6, sfxVolume: 0.9, builtins: BUILTIN_SFX },
+  // loops: built-in placeholder ambience (src/placeholder-sounds.js). mix: layers playing now, { id, url, name, volume }.
+  audio: { library: lib.audio, loops: require('./placeholder-sounds').loopItems(), mix: [], music: null, playing: false, volume: 0.6, sfxVolume: 0.9, builtins: BUILTIN_SFX },
   log: [],
   rolls: [], // dice log (src/rolls.js)
   handouts: [], // handouts, spoils and dialogue votes (src/messages.js)

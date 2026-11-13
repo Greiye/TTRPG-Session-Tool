@@ -5,6 +5,7 @@ const { UPLOAD_DIR } = require('./config');
 const { KINDS, AUDIO } = require('./assets');
 
 const BUILTIN_SFX = ['thunder', 'hit', 'magic', 'roar', 'bell'];
+const MIX_MAX = 6; // ambience layers that can play at once on the soundboard
 const LIB_EXT = [...new Set([...KINDS.backdrop.ext, ...KINDS.audio.ext])];
 
 function mediaItem(file) {
@@ -22,4 +23,4 @@ function scanLibrary() {
   return { backdrops, audio };
 }
 
-module.exports = { BUILTIN_SFX, mediaItem, scanLibrary };
+module.exports = { BUILTIN_SFX, MIX_MAX, mediaItem, scanLibrary };

@@ -31,6 +31,7 @@
       </div>
       <div data-el="tracks" class="tracks"></div>
     </div>
+    <div data-el="board"></div>
     <div data-el="status" class="note"></div>`;
 
   window.Atmo = {
@@ -70,6 +71,7 @@
       });
       el('vol').addEventListener('input', (e) => emit('atmo:volume', { music: e.target.value }));
       el('sfxVol').addEventListener('input', (e) => emit('atmo:volume', { sfx: e.target.value }));
+      const renderBoard = Soundboard.mount(el('board'), { emit, key });
 
       let libKey = null;
       let trackKey = null;
@@ -103,6 +105,7 @@
         el('toggle').textContent = au.playing ? '⏸' : '▶';
         for (const [n, v] of [['vol', au.volume], ['sfxVol', au.sfxVolume]]) if (document.activeElement !== el(n)) el(n).value = v;
         el('speaker').textContent = speaker || (s.screens ? '🔈 plays on TV' : '🔈 plays on DM laptop');
+        renderBoard(s);
       };
     },
   };
