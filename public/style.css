@@ -652,3 +652,13 @@ span.av.lay { width: 2.5em; height: 2.5em; border-radius: 50%; }
 .cond-info { margin: 8px 0 0; font-size: calc(14px * var(--ts)); min-height: 1.2em; }
 .cond-flash { position: fixed; inset: 0; z-index: 960; pointer-events: none; background: rgb(255 255 255 / .35); animation: condflash .4s ease-out forwards; }
 @keyframes condflash { from { opacity: 1; } to { opacity: 0; } }
+
+/* Phase 5 follow-ups: phone initiative strip and the TV mode title fade. */
+.init-strip { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 8px; font-size: calc(13px * var(--ts)); }
+.init-strip > b { color: var(--gold); margin-right: 2px; }
+.init-strip span { padding: 3px 9px; border: 1px solid var(--line); border-radius: 99px; white-space: nowrap; color: var(--muted); }
+.init-strip span.on { border-color: var(--gold); color: var(--gold); }
+.init-strip span.foe { color: #e9a0a0; }
+.init-strip span.down { text-decoration: line-through; opacity: .5; }
+.mode-title { position: absolute; left: 0; right: 0; top: 38%; z-index: 30; text-align: center; pointer-events: none; font-family: var(--display); font-size: calc(4.2cqw * var(--ts)); letter-spacing: .3em; color: var(--gold); text-shadow: 0 .3cqw 1.5cqw #000; animation: modefade 1.8s ease-in-out forwards; }
+@keyframes modefade { 0% { opacity: 0; transform: scale(.96); } 15% { opacity: 1; transform: scale(1); } 75% { opacity: 1; } 100% { opacity: 0; } }
