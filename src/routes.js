@@ -119,6 +119,7 @@ module.exports = function routes(app) {
     if (!dmOnly(req)) return res.sendStatus(403);
     res.attachment(`recap-${stamp()}.md`).type('text/markdown').send(bundle.recap());
   });
+  app.get('/api/version', (_req, res) => res.json({ version: require('../package.json').version }));
   app.get('/api/templates', (_req, res) => res.json(Object.fromEntries(Object.entries(require('./world').TEMPLATES).map(([k, t]) => [k, t.name]))));
   app.get('/api/assets', (_req, res) => res.json(Object.fromEntries(Object.entries(assets.KINDS).map(([k, v]) => [k, { formats: v.ext, maxMB: v.maxBytes / assets.MB }]))));
 

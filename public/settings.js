@@ -2,16 +2,18 @@
 //   data-text     md | lg | xl          (text scale via --ts)
 //   data-palette  default | cb | hc     (color-blind safe, high contrast)
 //   data-motion   auto | reduce | full  (auto follows the OS "reduce motion" setting)
+//   data-log      show | hide           (the action log on this screen)
 // Phones and the DM laptop keep their own choice in localStorage. The TV uses the table setting the DM picks.
 (() => {
   const KEY = 'tavernSettings';
-  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto' };
+  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto', log: 'show' };
   const OPTIONS = {
     text: [['md', 'Normal'], ['lg', 'Large'], ['xl', 'Extra large']],
     palette: [['default', 'Default'], ['cb', 'Color-blind safe'], ['hc', 'High contrast']],
     motion: [['auto', 'Follow device'], ['reduce', 'Reduce'], ['full', 'Full']],
+    log: [['show', 'Show'], ['hide', 'Hide']],
   };
-  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion' };
+  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion', log: 'Action log' };
   const clean = (o = {}) => Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, OPTIONS[k].some(([v]) => v === o[k]) ? o[k] : DEFAULTS[k]]));
 
   let local = DEFAULTS;
@@ -24,6 +26,7 @@
     h.dataset.text = current.text;
     h.dataset.palette = current.palette;
     h.dataset.motion = current.motion;
+    h.dataset.log = current.log;
   }
   apply(local);
 
