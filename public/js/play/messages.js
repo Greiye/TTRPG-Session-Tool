@@ -9,6 +9,8 @@ addTab('inbox', '✉ Inbox');
 const root = () => $('#tabInbox');
 let seen = new Set();
 const drafts = {}; // quiz answers typed but not saved yet, kept across re-renders
+let pzDraft = ''; // puzzle guess typed but not sent
+let pzNote = ''; // why the last guess was not taken
 
 // Recap quiz (src/quiz.js): questions, your own answers, and your marks once the DM has checked them.
 function quizHtml(q, c) {
@@ -29,6 +31,22 @@ function quizHtml(q, c) {
 
 const shownHandouts = new Set(); // handout ids already animated on this phone
 let primed = false;
+// Puzzle (src/puzzle.js): the prompt for everyone, your clues, the table's guesses, and a box to guess.
+function puzzleHtml(p) {
+  if (!p) return '';
+  const solved = p.status === 'solved';
+  const clues = (p.clues || []).map((x) => `<li>${esc(x.text)}</li>`).join('');
+  const guesses = (p.guesses || []).slice(-12).map((g) => `<li class="${g.wrong ? 'wrong' : ''}"><b>${esc(g.name)}</b> ${esc(g.text)}${g.wrong ? ' ✗' : ''}${g.mine ? ' (you)' : ''}</li>`).join('');
+  const body = solved
+    ? `<p>Solved: <b>${esc(p.solution)}</b></p>`
+    : `<div class="row"><input id="pzGuess" class="grow" maxlength="200" placeholder="Your guess" value="${esc(pzDraft)}"><button class="btn small primary" data-pz-guess>Guess</button></div>${pzNote ? `<p class="note">${esc(pzNote)}</p>` : ''}`;
+  return `<div class="card puzzle"><h3>🧩 ${esc(p.title)}${solved ? ' (solved)' : ''}</h3>
+    <p>${esc(p.prompt)}</p>
+    ${p.items ? `<p class="note">Items: ${p.items.map(esc).join(' · ')}</p>` : ''}
+    ${clues ? `<p class="note">Your clues. Share them with the table.</p><ul>${clues}</ul>` : '<p class="note">No clues for you right now. Listen to what the table finds.</p>'}
+    ${guesses ? `<p class="note">Guesses so far</p><ul class="pz-guesses">${guesses}</ul>` : ''}
+    ${body}</div>`;
+}
 
 function render() {
   const S = state();
@@ -61,7 +79,8 @@ function render() {
   const q = S.quiz;
   const quizPending = q?.open ? q.questions.filter((x) => q.mine?.[x.id] === undefined).length : 0;
   const quiz = quizHtml(q, c);
-  root().innerHTML = objHtml + quiz + voteHtml + body + (items.length || objs.length || vote || q ? '' : '<p class="note" style="text-align:center">Nothing here yet. Handouts, phrases and spoils from the DM show up here.</p>');
+  const pz = puzzleHtml(S.puzzle);
+  root().innerHTML = objHtml + pz + quiz + voteHtml + body + (items.length || objs.length || vote || q || pz ? '' : '<p class="note" style="text-align:center">Nothing here yet. Handouts, phrases and spoils from the DM show up here.</p>');
   // A handout that just arrived unfolds like paper. Items already on screen (and the first load) stay still.
   const wraps = [...root().querySelectorAll('.hwrap[data-hid]')];
   const arrived = wraps.filter((el) => !shownHandouts.has(el.dataset.hid));
@@ -79,6 +98,10 @@ onTab((id) => { if (id === 'inbox') render(); });
 root().addEventListener('input', (e) => {
   const q = e.target.dataset.quizQ;
   if (q) drafts[q] = e.target.value;
+  if (e.target.id === 'pzGuess') pzDraft = e.target.value;
+});
+root().addEventListener('keydown', (e) => {
+  if (e.target.id === 'pzGuess' && e.key === 'Enter') root().querySelector('[data-pz-guess]')?.click();
 });
 
 root().addEventListener('click', (e) => {
@@ -88,6 +111,17 @@ root().addEventListener('click', (e) => {
     const text = root().querySelector(`[data-quiz-q="${b.dataset.quizSave}"]`)?.value || '';
     socket.emit('player:quiz:answer', { qid: b.dataset.quizSave, text });
     delete drafts[b.dataset.quizSave];
+    navigator.vibrate?.(20);
+    return;
+  }
+  if (b.hasAttribute('data-pz-guess')) {
+    const text = root().querySelector('#pzGuess')?.value.trim() || '';
+    if (!text) return;
+    socket.emit('player:puzzle:guess', { text }, (r) => {
+      pzNote = r?.error || '';
+      if (!r?.error) pzDraft = '';
+      render();
+    });
     navigator.vibrate?.(20);
     return;
   }

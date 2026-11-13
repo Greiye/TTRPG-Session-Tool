@@ -50,6 +50,8 @@ module.exports = function sockets(io) {
     require('./moments')(socket);
     require('./table')(socket); // Phase I table tools
     require('./living')(socket);
+    require('./puzzle')(socket);
+    require('./web')(socket);
   });
 };
 module.exports.guard = guard;

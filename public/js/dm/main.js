@@ -13,6 +13,8 @@ import './creatures.js';
 import './saves.js';
 import './rolls.js';
 import './quiz.js';
+import './puzzle.js';
+import './web.js';
 import './tracker.js';
 import './world.js';
 import './shops.js';
