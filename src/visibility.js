@@ -120,6 +120,8 @@ function viewState(base, viewer) {
   else if (['screen', 'codm'].includes(viewer.role)) out.tv = { ...base.tv, echoes: [] };
   else delete out.tv;
   out.story = base.story ? require('./moments').storyView(base.story) : null; // the in-world clock is shared with everyone
+  out.puzzle = require('./puzzle').viewFor(base.puzzle, viewer); // teamwork puzzle: clues per phone, answer once solved (src/puzzle.js)
+  out.web = require('./web').viewFor(base.web, viewer, base.factions || []); // relations web: TV sees revealed parts only (src/web.js)
   if (base.scene) out.scene = { ...sceneFor(base.scene, viewer), secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
   // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.
   if (base.check) {

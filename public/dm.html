@@ -48,7 +48,7 @@
       </div>
     </div>
 
-        <nav class="side-tabs" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Roll calls">🎲</button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat">⚔️</button><button role="tab" data-stab="party" title="Party and conditions" aria-label="Party and conditions">👥</button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages">✉</button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs">📜</button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene and fog" aria-label="Scene and fog">🗺</button><button role="tab" data-stab="world" title="World map" aria-label="World map">🧭</button><button role="tab" data-stab="npc" title="NPCs, dialogue and shops" aria-label="NPCs, dialogue and shops">🧙</button><button role="tab" data-stab="backdrop" title="Backdrop and music" aria-label="Backdrop and music">🎬</button><button role="tab" data-stab="lights" title="Smart lights" aria-label="Smart lights">💡</button><button role="tab" data-stab="clocks" title="Clocks" aria-label="Clocks">⏳</button><button role="tab" data-stab="table" title="Table tools" aria-label="Table tools">🎛</button><button role="tab" data-stab="moments" title="TV moments" aria-label="TV moments">🎞</button></div><div class="tab-group" data-group="prep" aria-label="Prep and record"><button role="tab" data-stab="quiz" title="Recap quiz" aria-label="Recap quiz">📝</button><button role="tab" data-stab="notes" title="Notes, journal and relations" aria-label="Notes, journal and relations">📓</button><button role="tab" data-stab="camp" title="Camp and downtime" aria-label="Camp and downtime">⛺</button><button role="tab" data-stab="codm" title="Co-DM" aria-label="Co-DM">🎧</button><button role="tab" data-stab="campaign" title="Campaign data" aria-label="Campaign data">💾</button></div></nav>
+        <nav class="side-tabs" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Roll calls">🎲</button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat">⚔️</button><button role="tab" data-stab="party" title="Party and conditions" aria-label="Party and conditions">👥</button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages">✉</button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs">📜</button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene and fog" aria-label="Scene and fog">🗺</button><button role="tab" data-stab="world" title="World map" aria-label="World map">🧭</button><button role="tab" data-stab="npc" title="NPCs, dialogue and shops" aria-label="NPCs, dialogue and shops">🧙</button><button role="tab" data-stab="backdrop" title="Backdrop and music" aria-label="Backdrop and music">🎬</button><button role="tab" data-stab="lights" title="Smart lights" aria-label="Smart lights">💡</button><button role="tab" data-stab="clocks" title="Clocks" aria-label="Clocks">⏳</button><button role="tab" data-stab="table" title="Table tools" aria-label="Table tools">🎛</button><button role="tab" data-stab="moments" title="TV moments" aria-label="TV moments">🎞</button></div><div class="tab-group" data-group="prep" aria-label="Prep and record"><button role="tab" data-stab="quiz" title="Recap quiz" aria-label="Recap quiz">📝</button><button role="tab" data-stab="puzzle" title="Puzzles" aria-label="Puzzles">🧩</button><button role="tab" data-stab="web" title="Relations web" aria-label="Relations web">🕸</button><button role="tab" data-stab="notes" title="Notes, journal and relations" aria-label="Notes, journal and relations">📓</button><button role="tab" data-stab="camp" title="Camp and downtime" aria-label="Camp and downtime">⛺</button><button role="tab" data-stab="codm" title="Co-DM" aria-label="Co-DM">🎧</button><button role="tab" data-stab="campaign" title="Campaign data" aria-label="Campaign data">💾</button></div></nav>
     <p class="side-title" id="sideTitle"></p>
 
 <div class="card" data-tab="codm">
@@ -79,6 +79,28 @@
       <div id="party" class="list"></div>
     </div>
 
+    <div class="card" data-tab="puzzle">
+      <h3>Puzzle <span class="note" id="puzStatus">no puzzle</span></h3>
+      <p class="note">Clues go to phones one at a time, so the table has to talk it out. Players send guesses; you mark wrong ones and confirm the solve. The TV shows the solution.</p>
+      <div class="row"><select id="puzType"><option value="riddle">Riddle</option><option value="cipher">Cipher (Caesar)</option><option value="order">Put in order</option></select><input id="puzTitle" class="grow" maxlength="80" placeholder="Title"></div>
+      <textarea id="puzPrompt" rows="2" maxlength="600" placeholder="Riddle text"></textarea>
+      <div class="row"><input id="puzAnswer" class="grow" maxlength="200" placeholder="Answer (use / for alternatives)"><input id="puzShift" type="number" min="0" max="25" value="3" title="Caesar shift" style="width:80px" hidden></div>
+      <textarea id="puzClues" rows="3" maxlength="2000" placeholder="One clue per line. Spread over the seated players in turn."></textarea>
+      <div class="row"><button class="btn primary" id="puzStart">Start puzzle</button><button class="btn" id="puzReopen" hidden>Reopen</button><button class="btn" id="puzSolve">Confirm solve</button><button class="btn danger" id="puzClear">Clear</button></div>
+      <p class="note" id="puzMsg"></p>
+      <div id="puzList" class="list"></div>
+    </div>
+    <div class="card" data-tab="web">
+      <h3>Relations web <span class="note">who feels what about whom</span></h3>
+      <p class="note">Draw how NPCs, factions and places feel about the party and each other. Reveal parts as the story goes; the TV shows revealed tiers only.</p>
+      <div class="row"><select id="webKind"><option value="npc">NPC</option><option value="faction">Faction</option><option value="place">Place</option></select><input id="webName" class="grow" maxlength="60" placeholder="Name"><select id="webRef" class="grow" hidden></select><button class="btn small" id="webAddNode">Add</button></div>
+      <div class="row"><select id="webFrom" class="grow"></select><span class="note">feels about</span><select id="webTo" class="grow"></select></div>
+      <div class="row"><input id="webLabel" class="grow" maxlength="40" placeholder="Label, e.g. owes a debt"><input id="webValue" type="number" min="-100" max="100" value="0" style="width:80px" title="-100 hostile to +100 allied"><button class="btn small" id="webAddEdge">Link</button></div>
+      <label class="chk"><input type="checkbox" id="webShow"> Show revealed parts on the TV</label>
+      <p class="note" id="webMsg"></p>
+      <div id="webNodes" class="list"></div>
+      <div id="webEdges" class="list"></div>
+    </div>
     <div class="card" data-tab="quiz" data-panel="exploration social">
       <h3>Recap quiz <span class="note" id="quizStatus">no quiz</span></h3>
       <p class="note">One per line: question | answer. Phones get the questions; you mark each answer. Right answers give inspiration.</p>
