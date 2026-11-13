@@ -4,7 +4,8 @@ const { removeUrl } = require('../assets');
 const { state, log, nextId, broadcast, EMOTIONS, sys } = require('../state');
 const rules = require('../rules');
 const { roster, newCharacter, applyEdits } = require('../roster');
-const { str } = require('../util');
+const { str, int } = require('../util');
+const { LIGHTS } = require('../vision');
 const cast = require('../cast');
 const sprites = require('../sprites');
 const game = require('../game');
@@ -85,6 +86,18 @@ module.exports = function dmSockets(socket) {
     if (q.length && id !== q[0]) return;
     if (!(state.combat.enemies.some((e) => e.id === id) || state.players[id])) return;
     if (grid.place(id, Number(x), Number(y), z) && q[0] === id) q.shift();
+  });
+  // Fog of war and light (Phase B, src/vision.js). Only party tokens reveal the map.
+  dm('dm:fog', ({ on } = {}) => { if (state.map) state.map.fog = !!on; });
+  dm('dm:token:light', ({ id, light } = {}) => {
+    const t = state.tokens[id];
+    if (t && Object.prototype.hasOwnProperty.call(LIGHTS, light)) t.light = light;
+  });
+  // TV weather (Phase B): DM-set rain, snow, fog or storm at light, medium or heavy strength.
+  const WEATHER = ['none', 'rain', 'snow', 'fog', 'storm'];
+  dm('dm:weather', ({ kind, intensity } = {}) => {
+    if (!WEATHER.includes(kind)) return;
+    state.weather = { kind, intensity: int(intensity, 1, 3, 2) };
   });
   dm('dm:token:move', ({ id, x, y }) => {
     if (mustPlaceFirst()) return;
@@ -435,7 +448,7 @@ module.exports = function dmSockets(socket) {
   dm('dm:memorial:clear', () => legacy.clearMemorial());
 
   // Table-wide display settings, used by the TV (phones and the DM laptop keep their own).
-  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'], log: ['show', 'hide'], sprite: ['auto', 'webm', 'sheet'], anim: ['on', 'off'] };
+  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'], log: ['show', 'hide'], sprite: ['auto', 'webm', 'sheet'], anim: ['on', 'off'], dice: ['on', 'off'] };
   dm('dm:settings', ({ display }) => {
     if (!display) return;
     const cur = state.settings.display || {};

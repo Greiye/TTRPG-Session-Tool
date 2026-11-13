@@ -22,6 +22,9 @@ onState((s) => {
     mapKey = tk;
     $('#mapToken').innerHTML = tokenList.map((x) => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('') || '<option value="">Add players or enemies first</option>';
   }
+  $('#mapFog').checked = !!m?.fog;
+  const lit = selTok && s.tokens?.[selTok];
+  if (lit) $('#mapLight').value = lit.light || 'none';
   if (m) {
     $('#mapCols').value = m.cols; $('#mapRows').value = m.rows;
     const pend = (s.pendingPlace || []).map((id) => tokenList.find((c) => c.id === id)).find(Boolean);
@@ -109,6 +112,10 @@ document.addEventListener('keydown', (e) => {
   const y = Math.min(m.rows - 1, Math.max(0, pos.y + d[1]));
   if (x !== pos.x || y !== pos.y) emit('dm:token', { id: selTok, x, y, z: pos.z || 0 });
 });
+
+// Fog of war and light (Phase B). Only party tokens reveal the map; the light is set on the token selected on the map.
+$('#mapFog').onchange = (e) => emit('dm:fog', { on: e.target.checked });
+$('#mapLight').onchange = (e) => { if (selTok) emit('dm:token:light', { id: selTok, light: e.target.value }); };
 
 $('#rndRoll').onclick = () => emit('dm:roll:creature', { table: $('#rndTable').value, seed: $('#rndSeed').value ? Number($('#rndSeed').value) : undefined });
 $('#rndOut').addEventListener('click', (e) => {
