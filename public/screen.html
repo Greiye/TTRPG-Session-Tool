@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tavern Screen — TV</title>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/moments.css">
   <script src="/settings.js"></script>
   <style>
     .tv-ver { position: fixed; right: 12px; bottom: 8px; font: 13px/1 system-ui, sans-serif; color: #8a8478; background: none; border: 0; cursor: pointer; z-index: 50; }
@@ -18,18 +19,20 @@
 </head>
 <body class="tv">
   <div class="stage-wrap"><div id="stage" class="stage"></div></div>
+  <div id="moments" aria-hidden="true"></div>
   <button class="tv-ver" id="tvVer" title="Project stats">v…</button>
   <div class="tv-stats" id="tvStats" hidden><div class="box" id="tvStatsBox"></div></div>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/anim.js"></script>
   <script src="/stage.js"></script>
+  <script src="/moments.js"></script>
   <script src="/audio.js"></script>
   <script src="/rollpop.js"></script>
   <script>
     const root = document.getElementById('stage');
     const socket = io();
     socket.on('connect', () => socket.emit('screen:hello'));
-    socket.on('state', (s) => { Settings.apply(s.settings.display); Stage.stage(root, s); }); // TV follows the table setting
+    socket.on('state', (s) => { Settings.apply(s.settings.display); Stage.stage(root, s); Moments.render(s); }); // TV follows the table setting
     AudioOut.init(socket); // the TV is the speaker
     socket.on('rollpop', (p) => RollPop.show(p)); // roll popups (item 5)
     socket.on('rollpop:skip', () => RollPop.hide());
