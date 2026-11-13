@@ -29,10 +29,11 @@ function render() {
   Fx.watchHp(c.hp, c.maxHp);
   $('#say').placeholder = S.mode === 'social' ? 'Say something in character…' : 'What do you do?';
   $('#sayForm').hidden = S.mode === 'combat' || tab() !== 'play';
+  $('#tabPlay').classList.toggle('combat-quiet', S.mode === 'combat'); // combat: no spectator notes, no free-text box
   $('#main').innerHTML = (VIEWS[S.mode] || exploreView)(S, c) + rollBox();
   Anim.hydrate($('#main'));
   const sug = (S.suggestions || []).slice(-5).reverse();
-  $('#suggest').innerHTML = sug.length ? `<details class="card suggest" open><summary>👀 Spectator suggestions (${sug.length})</summary>${sug.map((x) => `<p><b>${esc(x.name)}:</b> ${esc(x.text)}</p>`).join('')}</details>` : '';
+  $('#suggest').innerHTML = sug.length && S.mode !== 'combat' ? `<details class="card suggest" open><summary>👀 Spectator suggestions (${sug.length})</summary>${sug.map((x) => `<p><b>${esc(x.name)}:</b> ${esc(x.text)}</p>`).join('')}</details>` : '';
 }
 onState(render);
 onShow((v) => { if (v === 'game') render(); });

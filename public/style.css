@@ -553,11 +553,6 @@ html[data-motion="reduce"] .boss-card { animation-duration: .001ms; }
 .tok.now { box-shadow: 0 0 1.4cqw var(--gold); }
 .tok.down { opacity: .35; }
 .tok .z { position: absolute; top: -1cqw; right: -1cqw; font-style: normal; font-size: calc(.9cqw * var(--ts)); background: #000; border-radius: .5cqw; padding: 0 .3cqw; }
-.dm-map { display: grid; gap: 0; width: 100%; aspect-ratio: 20 / 14; border: 1px solid var(--line); cursor: crosshair; background: #1a1220; user-select: none; }
-.dm-map div { border: 1px solid rgb(255 255 255 / .06); }
-.dm-map div.t-difficult { background: rgb(120 90 30 / .5); }
-.dm-map div.t-wall { background: #000; }
-.dm-map div.has { background: rgb(42 110 158 / .7); font-size: 10px; text-align: center; }
 .pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 180px; }
 .pad .btn { padding: 10px 0; }
 .rolled { display: grid; grid-template-columns: 1fr auto; gap: 4px; align-items: center; }
@@ -578,11 +573,6 @@ html[data-motion="reduce"] .boss-card { animation-duration: .001ms; }
 .tok.now { box-shadow: 0 0 1.4cqw var(--gold); }
 .tok.down { opacity: .35; }
 .tok .z { position: absolute; top: -1cqw; right: -1cqw; font-style: normal; font-size: calc(.9cqw * var(--ts)); background: #000; border-radius: .5cqw; padding: 0 .3cqw; }
-.dm-map { display: grid; width: 100%; aspect-ratio: 20 / 14; border: 1px solid var(--line); cursor: crosshair; background: #1a1220; user-select: none; }
-.dm-map div { border: 1px solid rgb(255 255 255 / .06); font-size: 10px; display: flex; align-items: center; justify-content: center; }
-.dm-map div.t-difficult { background: rgb(120 90 30 / .5); }
-.dm-map div.t-wall { background: #000; }
-.dm-map div.has { background: rgb(42 110 158 / .7); }
 .pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 180px; }
 .pad .btn { padding: 10px 0; }
 .rolled { display: grid; grid-template-columns: 1fr auto; gap: 4px; align-items: center; }
@@ -600,3 +590,6 @@ html[data-motion="reduce"] .memorial { animation-duration: .001ms; }
 
 /* Action log hidden per screen (Display settings > Action log) */
 html[data-log="hide"] .stage-log, html[data-log="hide"] #log { display: none; }
+.tok.sel { outline: .25cqw dashed var(--gold); outline-offset: .3cqw; }
+.tok.pending { box-shadow: 0 0 1.6cqw #5fd3ff; animation: pulse 1s ease-in-out infinite; }
+.combat-quiet #suggest { display: none; }
