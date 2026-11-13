@@ -3,12 +3,11 @@ const { state, log, broadcast } = require('../state');
 const { roster } = require('../roster');
 const quiz = require('../quiz');
 
+const { actorOf } = require('../control');
+
 module.exports = function quizSockets(socket) {
   const isDm = () => socket.data.role === 'dm';
-  const me = () => {
-    const c = state.players[socket.data.charId];
-    return c && c.socketId === socket.id ? c : null;
-  };
+  const me = () => actorOf(state, socket); // while the DM holds a character, its phone cannot answer
 
   // DM: start a quiz from "Question | Answer" lines. Replaces any quiz still open.
   socket.on('dm:quiz:start', ({ text } = {}) => {

@@ -12,6 +12,9 @@ const CLASSES = {
   Druid: { blurb: 'Shapeshifter, nature caster · AC 13', hp: 22, ac: 13, atk: 5, dmg: [1, 6, 2], init: 1, skills: { Athletics: 1, Perception: 3, Intimidation: 0, Insight: 4, Persuasion: 0, Deception: 0, Stealth: 1, Investigation: 1, Survival: 4, Arcana: 2 } },
   Paladin: { blurb: 'Holy warrior, aura · AC 18', hp: 28, ac: 18, atk: 5, dmg: [1, 8, 3], init: 0, skills: { Athletics: 4, Perception: 1, Intimidation: 2, Insight: 1, Persuasion: 3, Deception: 0, Stealth: -1, Investigation: 0, Survival: 0, Arcana: 0 } },
   Warlock: { blurb: 'Pact-bound caster · AC 13', hp: 18, ac: 13, atk: 5, dmg: [1, 10, 0], init: 2, skills: { Athletics: 0, Perception: 1, Intimidation: 2, Insight: 1, Persuasion: 2, Deception: 3, Stealth: 2, Investigation: 2, Survival: 0, Arcana: 4 } },
+  Barbarian: { blurb: 'Raging brawler · AC 15', hp: 30, ac: 15, atk: 5, dmg: [1, 12, 3], init: 1, skills: { Athletics: 5, Perception: 1, Intimidation: 3, Insight: 1, Persuasion: 0, Deception: 0, Stealth: 0, Investigation: 0, Survival: 3, Arcana: 0 } },
+  Monk: { blurb: 'Unarmed martial artist · AC 16', hp: 20, ac: 16, atk: 5, dmg: [1, 6, 3], init: 3, skills: { Athletics: 2, Perception: 4, Intimidation: 0, Insight: 4, Persuasion: 0, Deception: 0, Stealth: 5, Investigation: 0, Survival: 2, Arcana: 0 } },
+  Sorcerer: { blurb: 'Innate caster · AC 12', hp: 16, ac: 12, atk: 5, dmg: [1, 4, 0], init: 2, skills: { Athletics: 0, Perception: 1, Intimidation: 2, Insight: 1, Persuasion: 4, Deception: 3, Stealth: 1, Investigation: 0, Survival: 0, Arcana: 3 } },
 };
 const SKILLS = Object.keys(CLASSES.Fighter.skills);
 const ABILITIES = [['str', 'Strength'], ['dex', 'Dexterity'], ['con', 'Constitution'], ['int', 'Intelligence'], ['wis', 'Wisdom'], ['cha', 'Charisma']];
@@ -29,6 +32,9 @@ const SHEET = {
   Druid: { ab: [10, 12, 14, 10, 16, 8], saves: ['int', 'wis'], hd: 8, slots: { 1: 2 }, lang: ['Common', 'Sylvan'] },
   Paladin: { ab: [16, 10, 14, 8, 12, 14], saves: ['wis', 'cha'], hd: 10, slots: {}, lang: ['Common', 'Celestial'] },
   Warlock: { ab: [8, 14, 14, 10, 12, 16], saves: ['wis', 'cha'], hd: 8, slots: { 1: 1 }, lang: ['Common', 'Infernal'] },
+  Barbarian: { ab: [15, 13, 14, 8, 12, 10], saves: ['str', 'con'], hd: 12, slots: {}, lang: ['Common'] },
+  Monk: { ab: [10, 15, 12, 8, 14, 12], saves: ['str', 'dex'], hd: 8, slots: {}, lang: ['Common'] },
+  Sorcerer: { ab: [8, 14, 14, 10, 12, 16], saves: ['con', 'cha'], hd: 6, slots: { 1: 2 }, lang: ['Common', 'Draconic'] },
 };
 // Encounter difficulty (DMG ch. 3). Per-character XP thresholds by level: [easy, medium, hard, deadly].
 const XP_THRESHOLDS = [[25, 50, 75, 100], [50, 100, 150, 200], [75, 150, 225, 400], [125, 250, 375, 500], [250, 500, 750, 1100],

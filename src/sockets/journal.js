@@ -1,12 +1,11 @@
 // Party journal events (see src/journal.js). Phones add and remove their own notes; the DM can remove any.
 const { state, broadcast } = require('../state');
 const journal = require('../journal');
+const { seatOf } = require('../control');
 
 module.exports = function journalSockets(socket) {
-  const me = () => {
-    const c = state.players[socket.data.charId];
-    return c && c.socketId === socket.id ? c : null;
-  };
+  // Notes stay writable while the DM holds the character (src/control.js).
+  const me = () => seatOf(state, socket);
 
   socket.on('player:journal:add', ({ text, kind } = {}) => {
     const p = me();

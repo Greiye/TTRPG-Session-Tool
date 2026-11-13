@@ -17,6 +17,7 @@ const FIELD_RULES = {
 
 function viewerOf(socket) {
   const d = socket.data;
+  if (d.takeover) return { role: 'player', charId: d.takeover }; // a DM tab playing a character sees that character's view
   if (d.role === 'dm') return { role: 'dm' };
   if (d.role === 'codm') return { role: 'codm' };
   if (d.charId) return { role: 'player', charId: d.charId };
