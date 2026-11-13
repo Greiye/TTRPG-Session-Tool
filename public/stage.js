@@ -116,8 +116,8 @@
 
   // Only entries new since the last render slide in; re-rendering the whole log must not replay old animations.
   let logSeen = null;
-  function logFeed(s, n = 9) {
-    const shown = s.log.slice(-n);
+  function logFeed(s, n = 9, hideKinds = null) {
+    const shown = (hideKinds ? s.log.filter((l) => !hideKinds.has(l.kind)) : s.log).slice(-n);
     const first = !logSeen;
     const seen = logSeen || new Set();
     const fresh = (l) => !first && !seen.has(l.id);
@@ -190,10 +190,11 @@
     if (!p) return '';
     return `<div class="spotlight ${sp.kind}" style="${accent(p)}">
       <div class="sp-card">${avatar(p, 'av-sp')}
-        <div class="sp-text">${sp.kind === 'nat20' ? '<div class="sp-kicker">NATURAL 20!</div>' : '<div class="sp-kicker">Introducing</div>'}
-          <h2>${esc(p.name)}</h2>
+        <div class="sp-text">${sp.kind === 'nat20'
+          ? `<div class="sp-kicker">NATURAL 20!</div><h2>${esc(p.name)}</h2>
           <p>${esc([p.race, p.cls].filter(Boolean).join(' '))}${p.level ? ` · Level ${p.level}` : ''}${p.player ? ` · played by ${esc(p.player)}` : ''}</p>
-          ${p.catchphrase ? `<q>${esc(p.catchphrase)}</q>` : ''}
+          ${p.catchphrase ? `<q>${esc(p.catchphrase)}</q>` : ''}`
+          : `<h2>${esc(p.name)}</h2>`}
         </div>
       </div>
     </div>`;
@@ -236,14 +237,14 @@
     ui.innerHTML = `
       <header class="stage-top">
         <div class="mode-pill">${MODE_ICON[s.mode]} ${s.mode}</div>
-        ${s.room ? `<div class="join"><img src="/qr.svg?r=${esc(s.room)}${KEY_QS}" alt="Join QR"><div><b>Join the party</b><span class="room-code">Room <b>${esc(s.room)}</b></span><code>${esc(s.joinUrl.replace(/\/play\?room=.*/, '/j/' + s.room))}</code><small>${s.players.length} adventurer${s.players.length === 1 ? '' : 's'}</small></div></div>` : ''}
+        ${s.room && !s.settings?.display?.hideJoin ? `<div class="join"><img src="/qr.svg?r=${esc(s.room)}${KEY_QS}" alt="Join QR"><div><b>Join the party</b><span class="room-code">Room <b>${esc(s.room)}</b></span><code>${esc(s.joinUrl.replace(/\/play\?room=.*/, '/j/' + s.room))}</code><small>${s.players.length} adventurer${s.players.length === 1 ? '' : 's'}</small></div></div>` : ''}
       </header>
       <main class="stage-main">
         <section class="stage-center">${s.mode === 'social' ? vn(s) : s.mode === 'combat' ? combat(s) : exploration(s)}</section>
-        <aside class="stage-log">${logFeed(s)}</aside>
+        <aside class="stage-log">${logFeed(s, 9, new Set(s.settings?.display?.hideLog || []))}</aside>
       </main>
       <footer>${party(s)}</footer>
-      ${spotlightCard(s)}${bossCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}`;
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
     Anim.hydrate(ui);
@@ -272,6 +273,19 @@
     const v = s.vote;
     if (!items.length && !objs.length && !(v && v.options)) return '';
     return `<div class="shared">${objs.map((o) => `<div class="hand objective-tv"><b>🎯 ${esc(o.name)}: ${esc(o.title)}</b>${o.text ? `<p>${esc(o.text)}</p>` : ''}</div>`).join('')}${items.map((h) => `<div class="hand"><b>${esc(h.title)}</b>${h.text ? `<p>${esc(h.text)}</p>` : ''}</div>`).join('')}${v && v.open ? `<div class="hand vote-tv"><b>The party votes</b>${v.options.map((o, i) => `<span>${esc(o)} <em>${v.counts?.[i] ?? 0}</em></span>`).join('')}</div>` : ''}</div>`;
+  }
+
+  // Camp (src/camp.js): an image over the stage while the DM has camp open, with the vote count so far.
+  function campCard(s) {
+    const c = s.camp;
+    if (!c?.open) return '';
+    const im = c.image;
+    return `<div class="camp-tv"><div class="camp-tv-box">
+      <div class="camp-kicker">Camp ${c.n}</div>
+      ${im ? (im.video ? `<video src="${esc(im.url)}" autoplay muted loop playsinline></video>` : `<img src="${esc(im.url)}" alt="">`) : ''}
+      <h2>Make camp</h2>
+      <p>Short rest: <b>${c.counts?.short || 0}</b> · Long rest: <b>${c.counts?.long || 0}</b></p>
+    </div></div>`;
   }
 
   // Memorial card (legacy.js): shown on the TV after a character falls, until the DM dismisses it.

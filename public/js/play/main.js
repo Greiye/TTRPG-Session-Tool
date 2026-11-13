@@ -1,4 +1,4 @@
-// Phone page entry. Features: join flow, in-game views, profile, whispers; one shared socket.
+// Phone page entry. Features: join flow, in-game views, profile, logs; one shared socket.
 import './identity.js';
 import './join.js';
 import './game.js';
@@ -7,10 +7,11 @@ import './rolls.js';
 import './messages.js';
 import './combatmap.js';
 import './profile.js';
-import './whispers.js';
 import './spectate.js';
 import './shops.js';
 import './downtime.js';
 import './journal.js';
+import './logs.js';
+import './camp.js';
 
 Settings.mount();

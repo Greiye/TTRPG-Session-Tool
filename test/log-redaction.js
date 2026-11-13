@@ -20,7 +20,7 @@ for (let i = 0; i < 20; i++) game.attack(goblin, mira, {});
 const publicText = (v) => v.log.map((l) => l.text).join('\n');
 // Minimal snapshot in the shape viewState() expects (fullState needs a live socket server).
 const live = state.state;
-const base = { system: 'dnd5e', players: [], combat: live.combat, log: live.log, rolls: [], whispers: [], handouts: [], scene: live.scene, settings: live.settings };
+const base = { system: 'dnd5e', players: [], combat: live.combat, log: live.log, rolls: [], handouts: [], scene: live.scene, settings: live.settings };
 const viewPlayer = viewState(base, { role: 'player', charId: 'p1' });
 const viewTv = viewState(base, { role: 'screen' });
 const viewDm = viewState(base, { role: 'dm' });
