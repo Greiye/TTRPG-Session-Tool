@@ -4,11 +4,11 @@
   "versions": {
     "1.1.0": {
       "date": "2026-11-12",
-      "hours": 120,
+      "hours": 8.7,
       "hoursEstimate": true,
-      "tokens": null,
-      "tokensEstimate": true,
-      "notes": "Estimate covers the build from phase 0 through the current PRs (about 88 commits)."
+      "tokens": 250900000,
+      "tokensEstimate": false,
+      "notes": "Sources. Hours (8.7, estimate): git commit timestamps on main; a gap over 2 hours starts a new session; each session adds 30 min before its first commit (5 sessions). Commits (99) and merged PRs (26 merge commits): git history. Lines (+16,316 / -1,909) and 23 h span (2026-11-12 02:48 UTC to 2026-11-13 01:48 UTC): git history. Threads done (20), pull requests (38+), code changes (+11.3k / -1.8k), files (30) and tokens (250.9M: input 23.3k, output 1.2M, cache write 5.6M, cache read 244.1M): Mike usage page screenshot, rounded there."
     }
   }
 }
