@@ -641,3 +641,14 @@ span.av.lay { width: 2.5em; height: 2.5em; border-radius: 50%; }
 .cast-list .btn.on { border-color: var(--gold); color: var(--gold); }
 .cast-list .x { padding: 0 8px; }
 .cast-pick { margin-top: 10px; padding: 10px; border: 1px dashed var(--gold); border-radius: 8px; display: grid; gap: 6px; }
+
+/* Phase 4 phone controls: press-and-hold ability rolls, condition icons, stamina and mana. */
+.ab { position: relative; user-select: none; -webkit-user-select: none; touch-action: manipulation; overflow: hidden; }
+.ab.holding::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--gold); transform-origin: left; animation: holdfill .45s linear forwards; }
+@keyframes holdfill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.ab.cool { opacity: .45; }
+.cond { user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.cond.holding { border-color: var(--gold); }
+.cond-info { margin: 8px 0 0; font-size: calc(14px * var(--ts)); min-height: 1.2em; }
+.cond-flash { position: fixed; inset: 0; z-index: 960; pointer-events: none; background: rgb(255 255 255 / .35); animation: condflash .4s ease-out forwards; }
+@keyframes condflash { from { opacity: 1; } to { opacity: 0; } }

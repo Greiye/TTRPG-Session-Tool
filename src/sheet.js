@@ -9,6 +9,10 @@ const { clampGold } = require('./shops');
 // Fields only the owner and the DM see (other phones and the TV get the public card).
 const PRIVATE = ['abilities', 'saveProf', 'slots', 'hitDice', 'inventory', 'notes', 'spells', 'derived', 'gold'];
 
+// Optional resource pools (phase 4). A pool with max 0 is not kept by the character and is hidden on phones.
+const RESOURCES = ['stamina', 'mana'];
+const pool = (r) => { const max = int(r?.max, 0, 999, 0); return { max, cur: int(r?.cur, 0, max, max) }; };
+
 // Bring any character (new, imported, or saved before sheets existed) up to the current shape.
 function ensureSheet(c) {
   const sys = rules.get(c.system);
@@ -20,6 +24,7 @@ function ensureSheet(c) {
   c.spells ??= [];
   c.notes ??= '';
   c.conditions ??= [];
+  for (const k of RESOURCES) c[k] = pool(c[k]);
   return c;
 }
 
@@ -57,9 +62,17 @@ function applySheet(c, f, isDm) {
       if (f.inv.note !== undefined) item.note = str(f.inv.note, 200);
     } else if (op === 'del' && item) c.inventory = c.inventory.filter((x) => x !== item);
   }
+  for (const k of RESOURCES) {
+    const r = c[k];
+    if (f[k]?.cur !== undefined) r.cur = int(f[k].cur, 0, r.max, r.cur); // players track current points at the table
+  }
   if (Array.isArray(f.spells)) c.spells = [...new Set(f.spells.map((x) => str(x, 80)).filter(Boolean))].slice(0, 200);
   if (!isDm) return;
   if (f.gold !== undefined) c.gold = clampGold(f.gold, c.gold);
+  for (const k of RESOURCES) {
+    const r = c[k];
+    if (f[k]?.max !== undefined) { r.max = int(f[k].max, 0, 999, r.max); r.cur = Math.min(r.cur, r.max); }
+  }
   if (f.speed !== undefined) c.speed = int(f.speed, 0, 300, c.speed);
   if (Array.isArray(f.languages)) c.languages = [...new Set(f.languages.map((x) => str(x, 30)).filter(Boolean))].slice(0, 30);
   if (f.slotMax) {
