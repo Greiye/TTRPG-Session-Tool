@@ -77,9 +77,71 @@
     return `<div class="hp ${tone}"><i style="width:${pct}%"></i><span>${c.hp}/${c.maxHp}</span></div>`;
   }
 
-  // Character avatar: uploaded portrait, or the procedural face tinted with the character's hue.
+  // Layered sprites (src/layered.js): stacked PNG layers from a character manifest, with state overrides.
+  // Manifests load async; the placeholder is filled in by refillLayered() once they arrive.
+  const layeredCache = new Map(); // url -> manifest | 'loading' | null (failed)
+  const canWebm = (() => { try { return document.createElement('video').canPlayType('video/webm; codecs="vp9"') !== ''; } catch { return false; } })();
+  const SAFARI = /^((?!chrome|chromium|android).)*safari/i.test(navigator.userAgent);
+  function loadManifest(url) {
+    if (!layeredCache.has(url)) {
+      layeredCache.set(url, 'loading');
+      fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((m) => { layeredCache.set(url, m); refillLayered(); });
+    }
+    const v = layeredCache.get(url);
+    return v === 'loading' ? null : v;
+  }
+  function layeredInner(id, state) {
+    const dir = `/uploads/layered/${id}/`;
+    const m = loadManifest(dir + 'manifest.json');
+    if (!m) return '';
+    const baseDir = m.base ? `/uploads/layered/${m.base}/` : dir;
+    const ov = (m.states || {})[state] || {};
+    const replaced = new Set(Object.keys(ov));
+    const shown = new Set(m.layers.map((l) => l.id).filter((x) => !replaced.has(x)).concat(Object.values(ov)));
+    const pieces = m.layers
+      .filter((l) => shown.has(l.id))
+      .map((l) => ({ z: l.z, html: `<img class="lay-l" alt="" src="${(l.from === 'base' ? baseDir : dir) + l.file}">` }));
+    for (const a of m.animations || []) {
+      if (!canWebm || SAFARI) {
+        pieces.push({ z: a.z, html: `<div class="lay-l lay-sheet" data-sheet="${dir}anim/${a.name}.sheet" data-frames="${a.frames}" data-fps="${a.fps}" data-kind="${a.kind}"></div>` });
+      } else {
+        pieces.push({ z: a.z, html: `<video class="lay-l" data-kind="${a.kind}" src="${dir}anim/${a.name}.webm" autoplay loop muted playsinline></video>` });
+      }
+    }
+    return pieces.sort((a, b) => a.z - b.z).map((p) => p.html).join('');
+  }
+  // Sprite placeholder for a character or NPC: { id, state } points at uploads/layered/<id>/.
+  function layeredSprite(id, state, cls = '') {
+    return `<span class="lay ${cls}" data-lay="${esc(id)}|${esc(state || 'neutral')}">${layeredInner(id, state || 'neutral')}</span>`;
+  }
+  function refillLayered() {
+    if (typeof document === 'undefined') return;
+    for (const el of document.querySelectorAll('[data-lay]')) {
+      const [id, state] = el.dataset.lay.split('|');
+      const inner = layeredInner(id, state);
+      if (el.dataset.filled !== inner) { el.innerHTML = inner; el.dataset.filled = inner; }
+    }
+  }
+  // One ticker drives every sprite-sheet animation: frame k lives in sheet floor(k/12), cell k%12 of a 4x3 grid.
+  const SHEET_COLS = 4, SHEET_ROWS = 3;
+  setInterval(() => {
+    const t = performance.now();
+    for (const el of document.querySelectorAll('.lay-sheet')) {
+      const frames = +el.dataset.frames, fps = +el.dataset.fps;
+      const k = Math.floor((t / 1000) * fps) % frames;
+      const sheet = Math.floor(k / (SHEET_COLS * SHEET_ROWS));
+      const cell = k % (SHEET_COLS * SHEET_ROWS);
+      const col = cell % SHEET_COLS, row = Math.floor(cell / SHEET_COLS);
+      el.style.backgroundImage = `url(${el.dataset.sheet}${sheet}.png)`;
+      el.style.backgroundSize = `${SHEET_COLS * 100}% ${SHEET_ROWS * 100}%`;
+      el.style.backgroundPosition = `${(col / (SHEET_COLS - 1)) * 100}% ${(row / (SHEET_ROWS - 1)) * 100}%`;
+    }
+  }, 42);
+
+  // Character avatar: layered sprite, uploaded portrait, or the procedural face tinted with the character's hue.
   function avatar(p, cls = '') {
     if (!p) return '';
+    if (p.sprite) return layeredSprite(p.sprite.id, p.sprite.state, `av ${cls}`);
     return p.portrait
       ? Anim.media(p.portrait, `av ${cls}`, `--hue:${p.hue ?? 40}`)
       : `<span class="av ${cls}" style="--hue:${p.hue ?? 40}">${portrait('neutral', p.hue ?? 40)}</span>`;
@@ -93,7 +155,7 @@
     const text = typewrite('vn', key, line.text);
     const pc = line.player && s.players.find((p) => p.id === line.pid);
     return `<div class="vn ${compact ? 'compact' : ''} ${pc ? 'pc-speaking' : ''}">
-      <div class="vn-portrait bounce-${npc.emotion}" data-emo="${npc.emotion}">${portrait(npc.emotion, npc.hue)}</div>
+      <div class="vn-portrait bounce-${npc.emotion}" data-emo="${npc.emotion}">${npc.sprite ? layeredSprite(npc.sprite.id, npc.sprite.state || npc.emotion, 'vn-lay') : portrait(npc.emotion, npc.hue)}</div>
       ${pc ? `<div class="vn-pc" style="${accent(pc)}">${avatar(pc, 'av-vn')}</div>` : ''}
       <div class="vn-box emo-${emo} ${line.player ? 'player-line' : ''}" style="${pc ? accent(pc) : ''}">
         <div class="vn-name">${esc(line.speaker)}${line.player ? '' : ` <small>${EMO[npc.emotion].icon}</small>`}</div>
@@ -295,5 +357,5 @@
     return `<div class="boss-card" data-n="${b.n}"><div class="bc-kicker">A boss appears</div><h2>${esc(b.name)}</h2>${b.title ? `<p>${esc(b.title)}</p>` : ''}</div>`;
   }
 
-  window.Stage = { stage, vn, portrait, avatar, hpBar, logFeed, checkBanner, esc, EMO };
+  window.Stage = { stage, vn, portrait, avatar, layeredSprite, refillLayered, hpBar, logFeed, checkBanner, esc, EMO };
 })();

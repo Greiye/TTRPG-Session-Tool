@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tavern-screen.local/schema/v1/layered.schema.json",
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,39}$" },
+    "layerFile": { "type": "string", "pattern": "^layers/[a-z0-9_-]{1,40}\\.png$" },
+    "animFile": { "type": "string", "pattern": "^anim/[a-z0-9_-]{1,40}\\.webm$" },
+    "layer": {
+      "type": "object",
+      "required": ["id", "z", "file"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "z": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "file": { "$ref": "#/$defs/layerFile" },
+        "from": { "enum": ["base", "own"] }
+      }
+    },
+    "animation": {
+      "type": "object",
+      "required": ["name", "file", "kind", "fps", "frames", "z"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/id" },
+        "file": { "$ref": "#/$defs/animFile" },
+        "kind": { "enum": ["blink", "mouth", "loop"] },
+        "fps": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "frames": { "type": "integer", "minimum": 1, "maximum": 24 },
+        "z": { "type": "integer", "minimum": 0, "maximum": 99 }
+      }
+    },
+    "sharedManifest": {
+      "type": "object",
+      "required": ["kind", "pack", "size", "layers"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "shared" },
+        "pack": { "$ref": "#/$defs/id" },
+        "size": { "const": [512, 512] },
+        "layers": { "type": "array", "minItems": 1, "maxItems": 64, "items": { "$ref": "#/$defs/layer" } },
+        "animations": { "type": "array", "maxItems": 16, "items": { "$ref": "#/$defs/animation" } }
+      }
+    },
+    "characterManifest": {
+      "type": "object",
+      "required": ["kind", "id", "size", "layers"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "character" },
+        "id": { "$ref": "#/$defs/id" },
+        "size": { "const": [512, 512] },
+        "base": { "type": "string", "pattern": "^shared/[a-z0-9][a-z0-9_-]{0,39}$" },
+        "layers": { "type": "array", "minItems": 1, "maxItems": 64, "items": { "$ref": "#/$defs/layer" } },
+        "states": {
+          "type": "object",
+          "maxProperties": 32,
+          "additionalProperties": {
+            "type": "object",
+            "description": "Maps a layer id to the layer id that replaces it while this state is active.",
+            "additionalProperties": { "$ref": "#/$defs/id" }
+          }
+        },
+        "animations": { "type": "array", "maxItems": 16, "items": { "$ref": "#/$defs/animation" } }
+      }
+    }
+  }
+}
