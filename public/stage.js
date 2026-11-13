@@ -314,6 +314,16 @@
     root.classList.add(`light-${s.scene.light || 'day'}`);
     for (const l of ['day', 'dusk', 'night', 'dawn', 'torchlight']) if (l !== (s.scene.light || 'day')) root.classList.remove(`light-${l}`);
     const ui = layers(root, s);
+    // Mode title: a short card fades in and out when the table changes mode (not on the first draw).
+    const prevMode = root.dataset.mode;
+    if (prevMode && prevMode !== s.mode) {
+      const t = document.createElement('div');
+      t.className = 'mode-title';
+      t.textContent = `— ${s.mode.toUpperCase()} —`;
+      root.appendChild(t);
+      setTimeout(() => t.remove(), 1800);
+    }
+    root.dataset.mode = s.mode;
     ui.innerHTML = `
       <header class="stage-top">
         <div class="mode-pill">${MODE_ICON[s.mode]} ${s.mode}</div>
