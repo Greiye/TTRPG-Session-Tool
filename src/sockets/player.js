@@ -56,12 +56,12 @@ module.exports = function playerSockets(socket) {
   });
 
   // Camp: a character votes short or long rest and may describe what they do while camp is open.
-  socket.on('player:camp', ({ vote, text } = {}, ack) => {
+  socket.on('player:camp', ({ vote, text, dice } = {}, ack) => {
     const p = me();
     if (!p) return ack?.({ error: 'no character' });
     const missing = camp.restBlockers(p);
     if (missing.length && ['short', 'long'].includes(vote)) return ack?.({ error: 'Set up before you rest.', missing });
-    const ok = camp.vote(state.camp, p.id, vote, text);
+    const ok = camp.vote(state.camp, p.id, vote, text, dice);
     if (ok) broadcast();
     ack?.({ ok });
   });

@@ -17,6 +17,7 @@ import './camp.js';
 import './control.js';
 import './socialpop.js';
 import './table.js';
+import './spotlight.js';
 
 
 Settings.mount();

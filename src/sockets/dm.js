@@ -130,7 +130,11 @@ module.exports = function dmSockets(socket) {
   dm('dm:clock:add', (f) => { if (state.clocks.length < 20) tracker.addClock(f); });
   dm('dm:clock:fill', ({ id, delta }) => tracker.fillClock(id, delta));
   dm('dm:clock:remove', ({ id }) => { state.clocks = state.clocks.filter((k) => k.id !== id); });
-  dm('dm:rest', ({ kind }) => tracker.rest(kind === 'long' ? 'long' : 'short'));
+  dm('dm:rest', ({ kind }) => {
+    const short = kind !== 'long';
+    tracker.rest(short ? 'short' : 'long', short ? (state.camp.dice || {}) : {});
+    state.camp.dice = {}; // the spent dice are used up once the rest is applied
+  });
 
   // ----- Camp: TV image, phone votes for short or long rest (src/camp.js) -----
   dm('dm:camp:open', ({ open }) => {

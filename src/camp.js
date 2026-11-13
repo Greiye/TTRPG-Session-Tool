@@ -2,7 +2,7 @@
 // and vote short or long rest. The DM applies the rest with the Rests buttons.
 const { str } = require('./util');
 
-const fresh = () => ({ open: false, n: 0, image: null, votes: {}, notes: {} });
+const fresh = () => ({ open: false, n: 0, image: null, votes: {}, notes: {}, dice: {} }); // dice: hit dice each character spends on a short rest
 
 // Phase 5: before a rest, some classes must be set up. Casters need a spell on the sheet, martial
 // classes need a weapon in the inventory. Returns the list of what is still missing (empty when ready).
@@ -22,6 +22,7 @@ function setOpen(camp, open) {
     camp.n += 1;
     camp.votes = {};
     camp.notes = {};
+    camp.dice = {};
   }
   camp.open = !!open;
 }
@@ -32,11 +33,14 @@ function setImage(camp, item) {
 }
 
 // A phone's vote and downtime note. One vote each; changing it is allowed while camp is open.
-function vote(camp, charId, kind, text) {
+function vote(camp, charId, kind, text, dice = 0) {
   if (!camp.open || !['short', 'long'].includes(kind)) return false;
   camp.votes[charId] = kind;
   const t = str(text, 500);
   if (t) camp.notes[charId] = t;
+  camp.dice ??= {};
+  const n = Math.max(0, Math.min(20, Math.floor(Number(dice)) || 0));
+  if (kind === 'short' && n) camp.dice[charId] = n; else delete camp.dice[charId];
   return true;
 }
 
@@ -50,8 +54,8 @@ function tally(camp) {
 function viewFor(camp, viewer) {
   if (!camp) return null;
   const base = { open: camp.open, n: camp.n, image: camp.image, counts: tally(camp) };
-  if (viewer.role === 'dm') return { ...base, votes: camp.votes, notes: camp.notes };
-  if (viewer.role === 'player') return { ...base, mine: { vote: camp.votes[viewer.charId] || null, text: camp.notes[viewer.charId] || '' } };
+  if (viewer.role === 'dm') return { ...base, votes: camp.votes, notes: camp.notes, dice: camp.dice || {} };
+  if (viewer.role === 'player') return { ...base, mine: { vote: camp.votes[viewer.charId] || null, text: camp.notes[viewer.charId] || '', dice: (camp.dice || {})[viewer.charId] || 0 } };
   return base;
 }
 
