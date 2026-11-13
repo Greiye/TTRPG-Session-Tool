@@ -42,6 +42,9 @@ const SHOTS = process.env.SHOTS;
   await dm.evaluate(() => socket.emit('dm:mode', { mode: 'social' }));
   await tv.waitForSelector('.vn', { timeout: 5000 });
   await dm.waitForTimeout(800);
+  // Entering social mode pops up on the phone; Leave closes it.
+  await ph.waitForSelector('.pop-scrim', { timeout: 5000 });
+  await ph.click('[data-sp="leave"]');
   // Settings: phone picks large text + color-blind palette; DM sets TV to high contrast.
   await ph.click('.settings-btn');
   await ph.click('label:has(input[name="me-text"][value="xl"])');

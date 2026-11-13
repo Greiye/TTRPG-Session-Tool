@@ -599,3 +599,45 @@ html[data-log="hide"] .stage-log, html[data-log="hide"] #log { display: none; }
 .lay-l { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; object-fit: contain; pointer-events: none; }
 .lay-sheet { background-repeat: no-repeat; }
 span.av.lay { width: 2.5em; height: 2.5em; border-radius: 50%; }
+
+/* Phase 3 social scene: party on the left (up to 3), cast on the right (up to 5), dialogue below. */
+.vn-left { position: absolute; left: 2cqw; bottom: 15cqw; display: flex; flex-direction: column; gap: 1.2cqw; z-index: 2; }
+.vn-pc-l { width: 10cqw; text-align: center; filter: brightness(.55); transition: filter .3s, transform .3s; }
+.vn-pc-l.speaking { filter: none; transform: translateX(1cqw); }
+.vn-pc-l .av, .vn-pc-l .lay { width: 10cqw; height: 10cqw; }
+.vn-pc-l small { display: block; font-size: calc(1.1cqw * var(--ts)); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vn-right { position: absolute; right: 2cqw; bottom: 15cqw; display: flex; align-items: flex-end; gap: 1cqw; z-index: 1; }
+.vn-cast-m { width: 15cqw; text-align: center; filter: brightness(.5); transition: filter .3s, width .3s; }
+.vn-cast-m.on { width: 22cqw; filter: none; }
+.vn-cast-m small { display: block; font-size: calc(1.2cqw * var(--ts)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vn-right .vn-portrait, .vn-right .vn-portrait-s { position: relative; left: auto; bottom: auto; transform: none; width: 100%; }
+.vn-right .vn-portrait-s svg { width: 100%; height: auto; }
+.vn-item { display: block; font-size: 9cqw; line-height: 1.2; }
+.vn-cast-m.on .vn-item { font-size: 13cqw; }
+.vn-cast-m.item { width: 13cqw; }
+.vn-full { position: fixed; inset: 0; z-index: 1000; background: rgb(8 5 10 / .94); display: flex; align-items: center; justify-content: center; }
+.vn-full-art { height: 88vh; max-width: 94vw; display: flex; align-items: flex-end; justify-content: center; }
+.vn-full-art svg, .vn-full-art img, .vn-full-art video { height: 100%; width: auto; max-width: 100%; }
+.vn-full-art .vn-item { font-size: 40vh; }
+.vn-full-back { position: absolute; top: 16px; left: 16px; }
+.phone .vn-mini .vn-left, .phone .vn-mini .vn-right { bottom: 31cqw; }
+.phone .vn-mini .vn-pc-l { width: 15cqw; }
+.phone .vn-mini .vn-pc-l .av, .phone .vn-mini .vn-pc-l .lay { width: 15cqw; height: 15cqw; }
+.phone .vn-mini .vn-pc-l small { font-size: calc(3cqw * var(--ts)); }
+.phone .vn-mini .vn-cast-m { width: 20cqw; }
+.phone .vn-mini .vn-cast-m.on { width: 30cqw; }
+.phone .vn-mini .vn-cast-m small { font-size: calc(3cqw * var(--ts)); }
+.phone .vn-mini .vn-right .vn-portrait { width: 100%; bottom: auto; transform: none; }
+.phone .vn-mini .vn-item { font-size: 12cqw; }
+.phone .vn-mini .vn-cast-m.on .vn-item { font-size: 18cqw; }
+/* Phone pop-up when the DM enters social mode */
+.pop-scrim { position: fixed; inset: 0; z-index: 900; background: rgb(0 0 0 / .6); display: flex; align-items: flex-end; justify-content: center; }
+.pop-sheet { width: min(520px, 100%); background: var(--panel, #1d1622); border: 1px solid var(--gold); border-radius: 16px 16px 0 0; padding: 18px 16px 22px; }
+.pop-sheet h3 { margin: 0 0 12px; font-family: var(--display); color: var(--gold); }
+.pop-sheet .list { display: grid; gap: 8px; }
+.pop-sheet .btn { text-align: left; padding: 12px; }
+.pop-emos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+.cast-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.cast-list .btn.on { border-color: var(--gold); color: var(--gold); }
+.cast-list .x { padding: 0 8px; }
+.cast-pick { margin-top: 10px; padding: 10px; border: 1px dashed var(--gold); border-radius: 8px; display: grid; gap: 6px; }

@@ -5,6 +5,7 @@ const { state, log, nextId, broadcast, EMOTIONS, sys } = require('../state');
 const rules = require('../rules');
 const { roster, newCharacter, applyEdits } = require('../roster');
 const { str } = require('../util');
+const cast = require('../cast');
 const game = require('../game');
 const entities = require('../entities');
 const { release, newRoomCode } = require('../session');
@@ -39,13 +40,18 @@ module.exports = function dmSockets(socket) {
     broadcast();
   });
 
-  dm('dm:mode', ({ mode }) => {
+  dm('dm:mode', ({ mode, npcId }) => {
     if (!['exploration', 'combat', 'social'].includes(mode)) return;
     state.mode = mode;
     world.applyMood(mode);
     state.check = null;
     log('system', `— ${mode.toUpperCase()} —`);
     void bulbs.sync(state);
+    if (mode === 'social') {
+      // Entering social mode: the DM may pick who speaks; phones pop up once per entry (social.entered).
+      if (npcId) cast.pick(state.social, npcId);
+      state.social.entered += 1;
+    }
   });
   dm('dm:scene', ({ title, text, theme, poi }) => {
     Object.assign(state.scene, {
@@ -307,11 +313,22 @@ module.exports = function dmSockets(socket) {
       state.social.npc.faction = factions.find(state, faction) ? faction : null;
       factions.applyMood(state); // the NPC's mood follows its faction at once
     }
+    cast.mirror(state.social);
   });
+  socket.on('dm:cast:add', (f = {}, ack) => {
+    if (socket.data.role !== 'dm') return ack?.({ error: 'DM only.' });
+    const r = cast.add(state.social, f || {}, nextId);
+    if (r.ok) log('system', `${f.name} joins the scene.`);
+    broadcast();
+    ack?.(r);
+  });
+  dm('dm:cast:remove', ({ id }) => { cast.remove(state.social, id); });
+  dm('dm:cast:pick', ({ id }) => { cast.pick(state.social, id); });
   dm('dm:emotion', ({ emotion }) => {
     if (!EMOTIONS.includes(emotion)) return;
     state.social.npc.emotion = emotion;
     if (!state.social.line.player) state.social.line.emotion = emotion;
+    cast.mirror(state.social);
   });
   dm('dm:say', ({ text }) => {
     text = String(text || '').trim().slice(0, 500);

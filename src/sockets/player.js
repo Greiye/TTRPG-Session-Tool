@@ -10,6 +10,7 @@ const rolls = require('../rolls');
 const shops = require('../shops');
 const factions = require('../factions');
 const camp = require('../camp');
+const cast = require('../cast');
 
 module.exports = function playerSockets(socket) {
   const { io } = hub;
@@ -139,10 +140,17 @@ module.exports = function playerSockets(socket) {
     text = String(text || '').trim().slice(0, 200);
     if (!p || !text) return;
     if (state.mode === 'social') {
-      state.social.line = { speaker: p.name, text, emotion: 'neutral', player: true, pid: p.id };
+      const emotion = state.social.expr?.[p.id] || 'neutral';
+      state.social.line = { speaker: p.name, text, emotion, player: true, pid: p.id };
       log('say', text, { who: p.name });
     } else log('action', text, { who: p.name });
     broadcast();
+  });
+
+  // Phase 3: the expression this phone's next social line is spoken with.
+  socket.on('player:expression', ({ emotion } = {}) => {
+    const p = me();
+    if (p && cast.setExpression(state.social, p.id, emotion)) broadcast();
   });
 
   socket.on('player:choice', ({ index } = {}) => {
