@@ -11,6 +11,7 @@ import './spectate.js';
 import './shops.js';
 import './downtime.js';
 import './journal.js';
+import './world.js';
 import './logs.js';
 import './camp.js';
 import './control.js';

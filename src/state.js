@@ -15,6 +15,7 @@ const plan = require('./plan');
 const downtime = require('./downtime');
 const camp = require('./camp');
 const cast = require('./cast');
+const living = require('./living');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -70,6 +71,7 @@ const state = {
   dmControl: {}, // charId -> true while the DM plays that character (src/control.js); not saved
   camp: camp.fresh(), // camp: TV image, phone votes for short or long rest and downtime notes (src/camp.js)
   factions: [], // faction reputation, DM sees numbers, phones see tiers (src/factions.js)
+  living: living.fresh(), // living world: clocks, town standing, rumours, weather, tension, canon, oracles (src/living.js)
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
   settings: { display: { text: 'md', palette: 'default', motion: 'auto' }, host: null }, // table-wide (TV display, QR host)
@@ -78,7 +80,7 @@ const state = {
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'living');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -86,6 +88,7 @@ seq = store.restore(state, roster, store.load());
 if (!state.room) state.room = newRoomCode();
 state.scene.secrets ??= [];
 state.factions ??= [];
+state.living = living.ensure(state.living);
 cast.ensure(state.social);
 state.camp ??= camp.fresh();
 net.setHost(state.settings.host);

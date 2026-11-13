@@ -133,6 +133,35 @@
       <div id="facStatus" class="note" role="status"></div>
       <div id="facList" class="list"></div>
     </div>
+    <div class="card" data-tab="notes" data-panel="exploration social">
+      <h3>Living world <span class="note">DM only unless noted · every automated change has an Undo</span></h3>
+      <div class="row"><label class="note">Weather <select id="lvWeather" aria-label="Weather"></select></label><span class="note grow" id="lvDerived"></span></div>
+      <div class="row"><span class="note">Tension</span><button class="btn small" data-lv="tension" data-d="-1" aria-label="Ease tension">−1</button><span id="lvTension" class="grow" role="status">Calm 0</span><button class="btn small" data-lv="tension" data-d="1" aria-label="Raise tension">+1</button><button class="btn small" data-lv="session">Session ends</button></div>
+      <h4>Clocks <span class="note">tick on events, between sessions and travel</span></h4>
+      <div class="row"><input id="lvcName" placeholder="Clock name" class="grow" aria-label="Clock name"><input id="lvcSeg" type="number" min="2" max="12" value="4" style="width:60px" aria-label="Segments"><input id="lvcSession" type="number" min="0" max="3" value="0" style="width:60px" title="Ticks each session" aria-label="Ticks per session"><input id="lvcTravel" type="number" min="0" max="3" value="0" style="width:60px" title="Ticks per travel" aria-label="Ticks per travel"></div>
+      <div class="row"><input id="lvcText" placeholder="When it fills (consequence)" class="grow" aria-label="Consequence"><select id="lvcTarget" style="width:150px" aria-label="Standing it moves"></select><input id="lvcDelta" type="number" min="-100" max="100" value="0" style="width:70px" aria-label="Standing change"><label class="note"><input type="checkbox" id="lvcShow"> show on TV</label><button class="btn" data-lv="clock-add">Add clock</button></div>
+      <div id="lvClocks" class="list"></div>
+      <h4>Towns <span class="note">standing sets prices and whether traders serve the party</span></h4>
+      <div class="row"><input id="lvtName" placeholder="Town name" class="grow" aria-label="Town name"><input id="lvtRep" type="number" min="-100" max="100" value="0" style="width:70px" aria-label="Starting standing"><button class="btn" data-lv="town-add">Add town</button></div>
+      <div id="lvTowns" class="list"></div>
+      <div class="row"><select id="lvlA" class="grow" aria-label="First town"></select><select id="lvlB" class="grow" aria-label="Second town"></select><button class="btn" data-lv="link">Link roads</button></div>
+      <div class="row"><select id="lvShop" class="grow" aria-label="Shop"></select><select id="lvShopTown" style="width:150px" aria-label="Shop's town"></select><label class="note"><input type="checkbox" id="lvShopNight"> open at night</label><button class="btn" data-lv="shop">Set shop</button></div>
+      <h4>Rumours <span class="note">spread along roads, can come out changed</span></h4>
+      <div class="row"><input id="lvrText" placeholder="What is said" class="grow" aria-label="Rumour"><select id="lvrTown" style="width:140px" aria-label="Starts in"></select></div>
+      <div class="row"><select id="lvrEffTown" style="width:140px" aria-label="Standing it moves"></select><input id="lvrEffDelta" type="number" min="-100" max="100" value="0" style="width:70px" aria-label="Standing change when it arrives"><button class="btn" data-lv="rumour-add">Start rumour</button></div>
+      <div id="lvRumours" class="list"></div>
+      <h4>Oracles <span class="note">one result per line: text | weight | lights | weather</span></h4>
+      <div class="row"><input id="lvoName" placeholder="Oracle name, e.g. What happens?" class="grow" aria-label="Oracle name"></div>
+      <textarea id="lvoText" rows="4" placeholder="A stranger offers help | 2 | night&#10;A patrol passes | 3 | day,dawn | clear&#10;Nothing happens | 4" aria-label="Oracle results"></textarea>
+      <div class="row"><button class="btn" data-lv="oracle-add">Add oracle</button></div>
+      <div id="lvOracles" class="list"></div>
+      <div id="lvPending" class="list"></div>
+      <h4>Player canon <span class="note">a detail, NPC or rumour a player proposes</span></h4>
+      <div id="lvCanon" class="list"></div>
+      <h4>Recent changes</h4>
+      <div id="lvHistory" class="list"></div>
+      <div id="lvStatus" class="note" role="status"></div>
+    </div>
     <div class="card" data-tab="camp">
       <h3>Camp <span class="note" id="campStatus">no camp yet</span></h3>
       <p class="note">Open camp: the TV shows the image, and phones get a pop-up to vote short or long rest and describe downtime. Apply the rest below.</p>
