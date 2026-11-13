@@ -19,6 +19,7 @@ import './shops.js';
 import './downtime.js';
 import './factions.js';
 import './map.js';
+import './worldmap.js';
 import './gamepad.js';
 import './suggestions.js';
 import './plans.js';

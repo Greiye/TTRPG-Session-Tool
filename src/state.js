@@ -16,6 +16,7 @@ const downtime = require('./downtime');
 const camp = require('./camp');
 const cast = require('./cast');
 const tableState = require('./table-state'); // Phase I table tools: defaults for their fields
+const worldmap = require('./worldmap');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -56,6 +57,7 @@ const state = {
   relations: {}, // NPC id -> character id -> stance (item 19, DM only)
   moodMap: {}, // mode -> music track id (item 21)
   map: null, // { image, cols, rows, terrain } battle map (item 24, src/grid.js)
+  worldMap: worldmap.fresh(), // world map: places, votes, travel and flavour cards (Phase G, src/worldmap.js)
   tokens: {}, // id -> { x, y, z } on the map
   roll: null, // last creature randomizer result (item 26)
   plans: [], // imported session plans, DM only (src/plan.js)
@@ -83,6 +85,7 @@ const state = {
 
 store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
 store.EXTRA.push('cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'worldMap', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -92,6 +95,7 @@ state.scene.secrets ??= [];
 state.factions ??= [];
 cast.ensure(state.social);
 state.camp ??= camp.fresh();
+state.worldMap ??= worldmap.fresh();
 net.setHost(state.settings.host);
 const snap = () => store.snapshot(state, seq);
 

@@ -100,6 +100,7 @@ function viewState(base, viewer) {
   if (viewer.role !== 'dm') { delete out.framing; out.tokens = viewer.role === 'player' ? base.framing?.[viewer.charId] || 0 : 0; }
   out.foreshadow = T.recapFor(base.foreshadow, viewer); // hints: DM only; paid-off payoffs: everyone
   out.montage = T.montageView(base.montage, viewer);
+  if (base.worldMap) out.worldMap = require('./worldmap').viewFor(base.worldMap, viewer, base.players.length); // Phase G: see src/worldmap.js
   // Party journal: phones and the DM only (src/journal.js).
   out.journal = ['dm', 'player'].includes(viewer.role) ? base.journal || [] : null;
   out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own
