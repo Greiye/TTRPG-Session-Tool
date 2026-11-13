@@ -49,7 +49,7 @@ function pick(social, id) {
   ensure(social);
   const c = social.cast.find((x) => x.id === id);
   if (!c) return false;
-  social.npc = { ...social.npc, id: c.id, name: c.name, hue: c.hue, emotion: c.emotion, faction: c.faction, kind: c.kind };
+  social.npc = { ...social.npc, id: c.id, name: c.name, hue: c.hue, emotion: c.emotion, faction: c.faction, kind: c.kind, sprite: c.sprite || null };
   return true;
 }
 
@@ -58,7 +58,7 @@ function mirror(social) {
   ensure(social);
   const c = social.cast.find((x) => x.id === social.npc.id);
   if (!c) return;
-  Object.assign(c, { name: social.npc.name, hue: social.npc.hue, emotion: social.npc.emotion, faction: social.npc.faction });
+  Object.assign(c, { name: social.npc.name, hue: social.npc.hue, emotion: social.npc.emotion, faction: social.npc.faction, sprite: social.npc.sprite || null });
 }
 
 // A player's next line carries the expression they chose on their phone.

@@ -6,14 +6,16 @@
 // Phones and the DM laptop keep their own choice in localStorage. The TV uses the table setting the DM picks.
 (() => {
   const KEY = 'tavernSettings';
-  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto', log: 'show' };
+  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto', log: 'show', sprite: 'auto', anim: 'on' };
   const OPTIONS = {
     text: [['md', 'Normal'], ['lg', 'Large'], ['xl', 'Extra large']],
     palette: [['default', 'Default'], ['cb', 'Color-blind safe'], ['hc', 'High contrast']],
     motion: [['auto', 'Follow device'], ['reduce', 'Reduce'], ['full', 'Full']],
     log: [['show', 'Show'], ['hide', 'Hide']],
+    sprite: [['auto', 'Auto'], ['webm', 'WebM'], ['sheet', 'Sheet']],
+    anim: [['on', 'Animated'], ['off', 'Static']],
   };
-  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion', log: 'Action log' };
+  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion', log: 'Action log', sprite: 'Sprite playback', anim: 'Sprite animation' };
   const clean = (o = {}) => Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, OPTIONS[k].some(([v]) => v === o[k]) ? o[k] : DEFAULTS[k]]));
 
   let local = DEFAULTS;
@@ -27,6 +29,7 @@
     h.dataset.palette = current.palette;
     h.dataset.motion = current.motion;
     h.dataset.log = current.log;
+    h.dataset.anim = current.anim;
   }
   apply(local);
 
