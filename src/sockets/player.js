@@ -11,7 +11,6 @@ const shops = require('../shops');
 const factions = require('../factions');
 const camp = require('../camp');
 const cast = require('../cast');
-const messagelog = require('../messagelog');
 
 module.exports = function playerSockets(socket) {
   const { io } = hub;
@@ -65,18 +64,6 @@ module.exports = function playerSockets(socket) {
     const ok = camp.vote(state.camp, p.id, vote, text);
     if (ok) broadcast();
     ack?.({ ok });
-  });
-
-  // Phase 5: anyone at the table can post to the table message log.
-  socket.on('msg:post', ({ text } = {}, ack) => {
-    let from = null, role = null;
-    if (socket.data.role === 'dm') { from = 'DM'; role = 'dm'; }
-    else if (socket.data.role === 'codm') { from = 'Co-DM'; role = 'codm'; }
-    else { const p = me(); if (p) { from = p.name; role = 'player'; } }
-    if (!from) return ack?.({ error: 'Join the table first.' });
-    const m = messagelog.post(state.messages, { from, role, text, id: nextId() });
-    if (m) broadcast();
-    ack?.(m ? { ok: true } : { error: 'Write something first.' });
   });
 
   // Phase 4: a character votes on the dialogue wheel (one vote each; changing it is allowed while open).

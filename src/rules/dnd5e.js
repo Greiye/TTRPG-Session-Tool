@@ -9,6 +9,9 @@ const CLASSES = {
   Cleric: { blurb: 'Healer, insightful · AC 18', hp: 24, ac: 18, atk: 5, dmg: [1, 8, 3], init: 0, skills: { Athletics: 2, Perception: 4, Intimidation: 0, Insight: 6, Persuasion: 3, Deception: -1, Stealth: -1, Investigation: 0, Survival: 2, Arcana: 1 } },
   Ranger: { blurb: 'Tracker, archer · AC 15', hp: 24, ac: 15, atk: 7, dmg: [1, 8, 4], init: 3, skills: { Athletics: 2, Perception: 6, Intimidation: 0, Insight: 2, Persuasion: 0, Deception: 0, Stealth: 6, Investigation: 2, Survival: 6, Arcana: 0 } },
   Bard: { blurb: 'Silver-tongued · AC 14', hp: 20, ac: 14, atk: 5, dmg: [1, 8, 3], init: 2, skills: { Athletics: 0, Perception: 2, Intimidation: 3, Insight: 3, Persuasion: 7, Deception: 6, Stealth: 2, Investigation: 1, Survival: 0, Arcana: 2 } },
+  Druid: { blurb: 'Shapeshifter, nature caster · AC 13', hp: 22, ac: 13, atk: 5, dmg: [1, 6, 2], init: 1, skills: { Athletics: 1, Perception: 3, Intimidation: 0, Insight: 4, Persuasion: 0, Deception: 0, Stealth: 1, Investigation: 1, Survival: 4, Arcana: 2 } },
+  Paladin: { blurb: 'Holy warrior, aura · AC 18', hp: 28, ac: 18, atk: 5, dmg: [1, 8, 3], init: 0, skills: { Athletics: 4, Perception: 1, Intimidation: 2, Insight: 1, Persuasion: 3, Deception: 0, Stealth: -1, Investigation: 0, Survival: 0, Arcana: 0 } },
+  Warlock: { blurb: 'Pact-bound caster · AC 13', hp: 18, ac: 13, atk: 5, dmg: [1, 10, 0], init: 2, skills: { Athletics: 0, Perception: 1, Intimidation: 2, Insight: 1, Persuasion: 2, Deception: 3, Stealth: 2, Investigation: 2, Survival: 0, Arcana: 4 } },
 };
 const SKILLS = Object.keys(CLASSES.Fighter.skills);
 const ABILITIES = [['str', 'Strength'], ['dex', 'Dexterity'], ['con', 'Constitution'], ['int', 'Intelligence'], ['wis', 'Wisdom'], ['cha', 'Charisma']];
@@ -23,6 +26,9 @@ const SHEET = {
   Cleric: { ab: [14, 10, 14, 10, 16, 12], saves: ['wis', 'cha'], hd: 8, slots: { 1: 2 }, lang: ['Common', 'Celestial'] },
   Ranger: { ab: [12, 16, 14, 10, 15, 8], saves: ['str', 'dex'], hd: 10, slots: {}, lang: ['Common', 'Sylvan'] },
   Bard: { ab: [8, 14, 13, 12, 10, 17], saves: ['dex', 'cha'], hd: 8, slots: { 1: 2 }, lang: ['Common', 'Elvish'] },
+  Druid: { ab: [10, 12, 14, 10, 16, 8], saves: ['int', 'wis'], hd: 8, slots: { 1: 2 }, lang: ['Common', 'Sylvan'] },
+  Paladin: { ab: [16, 10, 14, 8, 12, 14], saves: ['wis', 'cha'], hd: 10, slots: {}, lang: ['Common', 'Celestial'] },
+  Warlock: { ab: [8, 14, 14, 10, 12, 16], saves: ['wis', 'cha'], hd: 8, slots: { 1: 1 }, lang: ['Common', 'Infernal'] },
 };
 // Encounter difficulty (DMG ch. 3). Per-character XP thresholds by level: [easy, medium, hard, deadly].
 const XP_THRESHOLDS = [[25, 50, 75, 100], [50, 100, 150, 200], [75, 150, 225, 400], [125, 250, 375, 500], [250, 500, 750, 1100],

@@ -14,8 +14,6 @@ import './journal.js';
 import './logs.js';
 import './camp.js';
 import './socialpop.js';
-import { mountTableLog } from '../msglog.js';
 
-mountTableLog(document.getElementById('tableLog'));
 
 Settings.mount();

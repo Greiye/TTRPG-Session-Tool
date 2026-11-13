@@ -47,7 +47,7 @@
       </div>
     </div>
 
-        <nav class="side-tabs" id="sideTabs" role="tablist" aria-label="Sidebar sections"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Roll calls">🎲</button><button role="tab" data-stab="scene" title="Scene and fog" aria-label="Scene and fog">🗺</button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat">⚔️</button><button role="tab" data-stab="npc" title="NPCs, dialogue and shops" aria-label="NPCs, dialogue and shops">🧙</button><button role="tab" data-stab="backdrop" title="Backdrop and music" aria-label="Backdrop and music">🎬</button><button role="tab" data-stab="lights" title="Smart lights" aria-label="Smart lights">💡</button><button role="tab" data-stab="quiz" title="Recap quiz" aria-label="Recap quiz">📝</button><button role="tab" data-stab="camp" title="Camp and downtime" aria-label="Camp and downtime">⛺</button><button role="tab" data-stab="clocks" title="Clocks" aria-label="Clocks">⏳</button><button role="tab" data-stab="notes" title="Notes, journal and relations" aria-label="Notes, journal and relations">📓</button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages">✉</button><button role="tab" data-stab="party" title="Party and conditions" aria-label="Party and conditions">👥</button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs">📜</button><button role="tab" data-stab="campaign" title="Campaign data" aria-label="Campaign data">💾</button><button role="tab" data-stab="codm" title="Co-DM" aria-label="Co-DM">🎧</button></nav>
+        <nav class="side-tabs" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Roll calls">🎲</button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat">⚔️</button><button role="tab" data-stab="party" title="Party and conditions" aria-label="Party and conditions">👥</button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages">✉</button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs">📜</button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene and fog" aria-label="Scene and fog">🗺</button><button role="tab" data-stab="npc" title="NPCs, dialogue and shops" aria-label="NPCs, dialogue and shops">🧙</button><button role="tab" data-stab="backdrop" title="Backdrop and music" aria-label="Backdrop and music">🎬</button><button role="tab" data-stab="lights" title="Smart lights" aria-label="Smart lights">💡</button><button role="tab" data-stab="clocks" title="Clocks" aria-label="Clocks">⏳</button></div><div class="tab-group" data-group="prep" aria-label="Prep and record"><button role="tab" data-stab="quiz" title="Recap quiz" aria-label="Recap quiz">📝</button><button role="tab" data-stab="notes" title="Notes, journal and relations" aria-label="Notes, journal and relations">📓</button><button role="tab" data-stab="camp" title="Camp and downtime" aria-label="Camp and downtime">⛺</button><button role="tab" data-stab="codm" title="Co-DM" aria-label="Co-DM">🎧</button><button role="tab" data-stab="campaign" title="Campaign data" aria-label="Campaign data">💾</button></div></nav>
     <p class="side-title" id="sideTitle"></p>
 
 <div class="card" data-tab="codm">
@@ -65,6 +65,7 @@
         <label class="btn small">⬆ Import bundle<input type="file" accept=".json,application/json" id="importIn" hidden></label>
         <a class="btn small" id="transcriptBtn" download>📜 Transcript</a>
         <a class="btn small" id="scriptBtn" download>🎬 Script</a>
+        <button class="btn small" data-act="testparty" title="Five test characters (druid, paladin, warlock, wizard, cleric) seated in the party">🧪 Add test party</button>
         <a class="btn small" id="recapBtn" download>📰 Recap</a>
       </div>
       <p class="note">One file with characters, NPCs, places and lore (plus portraits) for Arthuria or another laptop. The transcript is Markdown.</p>
@@ -87,10 +88,6 @@
     <div class="card" data-tab="notes" data-panel="exploration social">
       <h3>Party journal <span class="note">phone notes: clues, NPCs, places</span></h3>
       <div id="journalList" class="list"></div>
-    </div>
-    <div class="card" data-tab="messages" data-panel="exploration social combat">
-      <h3>Table log <span class="note">everyone's messages</span></h3>
-      <div id="tableLog"></div>
     </div>
     <div class="card" data-tab="messages" data-panel="exploration social">
       <h3>Messages <span class="note">phones, the TV, and the vote</span></h3>

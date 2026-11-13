@@ -6,8 +6,8 @@ const fresh = () => ({ open: false, n: 0, image: null, votes: {}, notes: {} });
 
 // Phase 5: before a rest, some classes must be set up. Casters need a spell on the sheet, martial
 // classes need a weapon in the inventory. Returns the list of what is still missing (empty when ready).
-const CASTERS = ['Wizard', 'Cleric', 'Bard'];
-const MARTIAL = ['Fighter', 'Rogue', 'Ranger'];
+const CASTERS = ['Wizard', 'Cleric', 'Bard', 'Druid', 'Warlock'];
+const MARTIAL = ['Fighter', 'Rogue', 'Ranger', 'Paladin'];
 const WEAPON = /sword|axe|bow|dagger|mace|spear|staff|crossbow|rapier|hammer|flail|club|javelin|sling|pike|lance|glaive|halberd|scimitar|whip/i;
 function restBlockers(c) {
   const missing = [];
