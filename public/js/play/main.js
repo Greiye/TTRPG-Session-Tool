@@ -13,5 +13,6 @@ import './downtime.js';
 import './journal.js';
 import './logs.js';
 import './camp.js';
+import './socialpop.js';
 
 Settings.mount();

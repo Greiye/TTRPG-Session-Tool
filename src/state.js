@@ -14,6 +14,7 @@ const perception = require('./perception');
 const plan = require('./plan');
 const downtime = require('./downtime');
 const camp = require('./camp');
+const cast = require('./cast');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -83,6 +84,7 @@ seq = store.restore(state, roster, store.load());
 if (!state.room) state.room = newRoomCode();
 state.scene.secrets ??= [];
 state.factions ??= [];
+cast.ensure(state.social);
 state.camp ??= camp.fresh();
 net.setHost(state.settings.host);
 const snap = () => store.snapshot(state, seq);
@@ -141,5 +143,6 @@ module.exports.loadSnapshot = (saved) => {
   const room = state.room;
   seq = Math.max(seq, store.restore(state, roster, saved));
   state.room = room;
+  cast.ensure(state.social);
 };
 module.exports.snapshot = snap;

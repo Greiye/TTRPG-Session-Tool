@@ -56,6 +56,16 @@ $('#sideTabs')?.addEventListener('click', (e) => {
   if (b) showTab(b.dataset.stab);
 });
 
-onClick('mode', (m) => emit('dm:mode', { mode: m }));
+// Entering social mode with a cast on the scene asks who speaks first (the DM picks an NPC or item).
+onClick('mode', (m) => {
+  const s = state();
+  $('#castPick').hidden = true;
+  if (m === 'social' && s?.mode !== 'social' && s?.social?.cast?.length) { $('#castPick').hidden = false; return; }
+  emit('dm:mode', { mode: m });
+});
+onClick('enter', (id) => {
+  $('#castPick').hidden = true;
+  emit('dm:mode', id === 'none' ? { mode: 'social' } : { mode: 'social', npcId: id });
+});
 onClick('act', (act) => { if (act === 'reset' && confirm('Reset log, remove enemies and heal the party?')) emit('dm:reset'); });
 apply();

@@ -148,15 +148,30 @@
   }
   const accent = (p) => `--hue:${p.hue ?? 40}`;
 
+  // Phase 3 scene: party portraits on the left (up to 3), the cast on the right (up to 5, focus enlarged), dialogue below.
+  const MAX_PARTY = 3;
   function vn(s, { compact = false } = {}) {
     const { npc, line, caption } = s.social;
-    const emo = line.player ? 'neutral' : line.emotion;
+    const cast = s.social.cast || [];
+    const emo = line.emotion || 'neutral';
     const key = `${line.speaker}|${line.text}`;
     const text = typewrite('vn', key, line.text);
     const pc = line.player && s.players.find((p) => p.id === line.pid);
+    const left = s.players.slice(0, MAX_PARTY).map((p) => `
+      <div class="vn-pc-l hold-zoom ${line.pid === p.id ? 'speaking' : ''}" style="${accent(p)}">${avatar(p, 'av-vn')}<small>${esc(p.name)}</small></div>`).join('');
+    // Without a cast the single speaker stands on the right, as before.
+    // A speaker who is not on the cast (or no cast yet) stands at the far right, enlarged.
+    const inCast = cast.some((m) => m.id === npc.id);
+    const members = [...cast, ...(inCast && cast.length ? [] : [{ id: npc.id || 'npc', name: npc.name, hue: npc.hue, emotion: npc.emotion, kind: 'npc', spoke: true }])];
+    const right = members.map((m) => {
+      const on = m.spoke || m.id === npc.id;
+      if (m.kind === 'item') return `<div class="vn-cast-m item ${on ? 'on' : ''}"><span class="vn-item hold-zoom">${esc(m.icon || '🗝️')}</span><small>${esc(m.name)}</small></div>`;
+      if (on) return `<div class="vn-cast-m on"><div class="vn-portrait hold-zoom bounce-${npc.emotion}" data-emo="${npc.emotion}">${npc.sprite ? layeredSprite(npc.sprite.id, npc.sprite.state || npc.emotion, 'vn-lay') : portrait(npc.emotion, npc.hue)}</div><small>${esc(npc.name)} <i>${EMO[npc.emotion].icon}</i></small></div>`;
+      return `<div class="vn-cast-m"><div class="vn-portrait-s hold-zoom">${portrait(m.emotion || 'neutral', m.hue)}</div><small>${esc(m.name)}</small></div>`;
+    }).join('');
     return `<div class="vn ${compact ? 'compact' : ''} ${pc ? 'pc-speaking' : ''}">
-      <div class="vn-portrait bounce-${npc.emotion}" data-emo="${npc.emotion}">${npc.sprite ? layeredSprite(npc.sprite.id, npc.sprite.state || npc.emotion, 'vn-lay') : portrait(npc.emotion, npc.hue)}</div>
-      ${pc ? `<div class="vn-pc" style="${accent(pc)}">${avatar(pc, 'av-vn')}</div>` : ''}
+      <div class="vn-left">${left}</div>
+      <div class="vn-right">${right}</div>
       <div class="vn-box emo-${emo} ${line.player ? 'player-line' : ''}" style="${pc ? accent(pc) : ''}">
         <div class="vn-name">${esc(line.speaker)}${line.player ? '' : ` <small>${EMO[npc.emotion].icon}</small>`}</div>
         <div class="vn-text"><span data-tw="vn">${text}</span></div>
@@ -375,4 +390,26 @@
   }
 
   window.Stage = { stage, vn, portrait, avatar, layeredSprite, refillLayered, hpBar, logFeed, checkBanner, esc, EMO };
+})();
+
+// Press and hold a portrait for a moment to see it full screen; Back returns. Works on the TV and the phone.
+(() => {
+  let timer = null;
+  const cancel = () => clearTimeout(timer);
+  document.addEventListener('pointerdown', (e) => {
+    const el = e.target.closest?.('.hold-zoom');
+    if (!el || document.querySelector('.vn-full')) return;
+    cancel();
+    timer = setTimeout(() => zoomIn(el), 600);
+  });
+  ['pointerup', 'pointerleave', 'pointercancel', 'pointermove'].forEach((t) => document.addEventListener(t, cancel));
+  function zoomIn(el) {
+    const o = document.createElement('div');
+    o.className = 'vn-full';
+    o.innerHTML = `<div class="vn-full-art">${el.innerHTML}</div><button class="btn vn-full-back">‹ Back</button>`;
+    o.querySelector('.vn-full-back').onclick = () => o.remove();
+    document.body.appendChild(o);
+    navigator.vibrate?.(25);
+    if (typeof Anim !== 'undefined') Anim.hydrate(o);
+  }
 })();

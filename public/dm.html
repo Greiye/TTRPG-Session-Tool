@@ -40,6 +40,11 @@
         <button class="btn" data-mode="combat">⚔️ Combat</button>
         <button class="btn" data-mode="social">💬 Social</button>
       </div>
+      <div id="castPick" class="cast-pick" hidden>
+        <span class="note">Who speaks in this scene?</span>
+        <div id="castPickList" class="cast-list"></div>
+        <button class="btn small" data-enter="none">Enter without picking</button>
+      </div>
     </div>
 
         <nav class="side-tabs" id="sideTabs" role="tablist" aria-label="Sidebar sections"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Roll calls">🎲</button><button role="tab" data-stab="scene" title="Scene and fog" aria-label="Scene and fog">🗺</button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat">⚔️</button><button role="tab" data-stab="npc" title="NPCs, dialogue and shops" aria-label="NPCs, dialogue and shops">🧙</button><button role="tab" data-stab="backdrop" title="Backdrop and music" aria-label="Backdrop and music">🎬</button><button role="tab" data-stab="lights" title="Smart lights" aria-label="Smart lights">💡</button><button role="tab" data-stab="quiz" title="Recap quiz" aria-label="Recap quiz">📝</button><button role="tab" data-stab="camp" title="Camp and downtime" aria-label="Camp and downtime">⛺</button><button role="tab" data-stab="clocks" title="Clocks" aria-label="Clocks">⏳</button><button role="tab" data-stab="notes" title="Notes, journal and relations" aria-label="Notes, journal and relations">📓</button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages">✉</button><button role="tab" data-stab="party" title="Party and conditions" aria-label="Party and conditions">👥</button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs">📜</button><button role="tab" data-stab="campaign" title="Campaign data" aria-label="Campaign data">💾</button><button role="tab" data-stab="codm" title="Co-DM" aria-label="Co-DM">🎧</button></nav>
@@ -289,6 +294,14 @@
         <input id="npcHue" type="range" min="0" max="359" style="width:110px" title="Palette">
         <select id="npcFaction" style="width:150px" title="Faction whose reputation sets this NPC's mood" aria-label="NPC faction"></select>
       </div>
+      <h3>On the scene <span class="note">up to 5 NPCs or items</span></h3>
+      <div id="castList" class="cast-list"></div>
+      <div class="row">
+        <input id="castName" class="grow" maxlength="40" placeholder="Name" aria-label="Cast name">
+        <select id="castKind" style="width:110px" aria-label="Kind"><option value="npc">NPC</option><option value="item">Item</option></select>
+        <button class="btn" data-act="castAdd">+ Add</button>
+      </div>
+      <div id="castErr" class="note" role="alert"></div>
       <h3>Emotion <span class="note">keys 1–8</span></h3>
       <div id="emotions" class="emotions"></div>
     </div>
