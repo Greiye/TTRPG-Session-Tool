@@ -86,6 +86,7 @@ function viewState(base, viewer) {
   out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h));
   if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
   out.downtime = require('./downtime').viewFor(base.downtime, viewer); // phones see their own pick and result
+  out.absent = require('./absent').view(base, viewer); // missed lines are the DM's, and the owner's card
   out.camp = require('./camp').viewFor(base.camp, viewer); // camp votes: DM sees all, phones their own
   // Party journal: phones and the DM only (src/journal.js).
   out.journal = ['dm', 'player'].includes(viewer.role) ? base.journal || [] : null;

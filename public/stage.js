@@ -360,7 +360,7 @@
         <aside class="stage-log">${logFeed(s, 9, new Set(s.settings?.display?.hideLog || []))}</aside>
       </main>
       <footer>${party(s)}</footer>
-      ${spotlightCard(s)}${bossCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${legendsCard(s)}${trophyCard(s)}`;
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
     Anim.hydrate(ui);
@@ -425,7 +425,37 @@
     return `<div class="boss-card" data-n="${b.n}"><div class="bc-kicker">A boss appears</div><h2>${esc(b.name)}</h2>${b.title ? `<p>${esc(b.title)}</p>` : ''}</div>`;
   }
 
-  window.Stage = { stage, vn, portrait, avatar, layeredSprite, refillLayered, hpBar, logFeed, checkBanner, esc, EMO };
+  // Legends (phase J, src/legends.js): the hall of fame and the trophy shelf. Shared by the TV and phones.
+  function hallHtml(L) {
+    if (!L) return '';
+    const rows = (title, list, line) => `<section class="hall-cat"><h3>${title}</h3>${list.length ? `<ol>${list.map(line).join('')}</ol>` : '<p class="hall-none">Nobody yet.</p>'}</section>`;
+    return `<div class="hall">${rows(L.cats.nat1, L.nat1, (r) => `<li><b>${esc(r.player)}</b> <span>${esc(r.character)}</span> <em>${r.count}</em></li>`)}${rows(L.cats.kill, L.kill, (e) => `<li><b>${esc(e.player)}</b> <span>${esc(e.character)}</span> <small>${esc(e.detail)}</small></li>`)}${rows(L.cats.plan, L.plan, (e) => `<li><b>${esc(e.player)}</b> <span>${esc(e.character)}</span> <small>${esc(e.detail)}</small></li>`)}</div>`;
+  }
+  function shelfHtml(L) {
+    if (!L || !L.trophies.length) return '<p class="hall-none">The shelf is bare. Win something worth keeping.</p>';
+    return `<ul class="shelf">${L.trophies.map((t) => `<li><b>${esc(t.name)}</b></li>`).join('')}</ul>`;
+  }
+  // The legends card on the TV: the DM shows the hall of fame or the shelf.
+  function legendsCard(s) {
+    if (!s.legendsShow || !s.legends) return '';
+    const shelf = s.legendsShow === 'shelf';
+    return `<div class="legends-tv" data-view="${esc(s.legendsShow)}"><div class="legends-box">
+      <div class="legends-kicker">${shelf ? 'The trophy shelf' : 'The hall of fame'}</div>
+      ${shelf ? shelfHtml(s.legends) : hallHtml(s.legends)}
+    </div></div>`;
+  }
+  // A trophy's story card: the DM opens it, and it stays until the DM closes it.
+  function trophyCard(s) {
+    const t = s.trophy && (s.legends?.trophies || []).find((x) => x.id === s.trophy.id);
+    if (!t) return '';
+    return `<div class="trophy-tv" data-n="${s.trophy.n}"><div class="trophy-box">
+      <div class="legends-kicker">How we won it</div>
+      <h2>${esc(t.name)}</h2>
+      ${t.story ? `<p>${esc(t.story)}</p>` : ''}
+    </div></div>`;
+  }
+
+  window.Stage = { stage, vn, portrait, avatar, layeredSprite, refillLayered, hpBar, logFeed, checkBanner, hallHtml, shelfHtml, esc, EMO };
 })();
 
 // Press and hold a portrait for a moment to see it full screen; Back returns. Works on the TV and the phone.

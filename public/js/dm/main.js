@@ -24,6 +24,7 @@ import './suggestions.js';
 import './plans.js';
 import './journal.js';
 import './camp.js';
+import './legends.js';
 
 
 window.dmEmit = emit; // used by voice.js (classic script)

@@ -21,6 +21,7 @@ const config = {
 };
 config.PORTRAIT_DIR = path.join(config.UPLOAD_DIR, 'portraits');
 config.ROSTER_FILE = path.join(config.DATA_DIR, 'characters.json');
+config.LEGENDS_FILE = path.join(config.DATA_DIR, 'legends.json'); // hall of fame and trophy shelf, kept across campaigns (src/legends.js)
 fs.mkdirSync(config.PORTRAIT_DIR, { recursive: true });
 fs.mkdirSync(config.DATA_DIR, { recursive: true });
 

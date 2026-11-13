@@ -8,6 +8,8 @@ const hub = require('./hub');
 const { state, log, nextId, broadcast, sys } = require('./state');
 const dice = require('./dice');
 const { str, int } = require('./util');
+const legends = require('./legends');
+const { roster } = require('./roster');
 
 const KINDS = ['skill', 'save', 'ability'];
 const MODES = ['adv', 'dis'];
@@ -48,6 +50,8 @@ function record(entry, { pop = true } = {}) {
   const e = { id: nextId(), t: Date.now(), ...entry };
   state.rolls.push(e);
   if (state.rolls.length > 60) state.rolls.shift();
+  // Hall of fame (src/legends.js): a natural 1 on a d20 by a player counts toward "most natural 1s".
+  if (e.fumble && e.whoId && e.vis !== 'dm' && (e.dice || []).some((d) => d.kept && d.sides === 20)) legends.recordNat1(roster[e.whoId]);
   if (pop && state.settings.rollPopup !== false) {
     const anim = e.crit ? 'slam' : POP_ANIMS[e.id % POP_ANIMS.length];
     const payload = { id: e.id, who: e.who, hue: e.hue, label: e.label, dice: e.dice, mod: e.mod, total: e.total, outcome: e.outcome, crit: !!e.crit, fumble: !!e.fumble, anim };

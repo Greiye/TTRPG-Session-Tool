@@ -44,6 +44,7 @@ module.exports = function sockets(io) {
     require('./downtime')(socket);
     require('./journal')(socket);
     require('./takeover')(socket);
+    require('./legends')(socket);
   });
 };
 module.exports.guard = guard;

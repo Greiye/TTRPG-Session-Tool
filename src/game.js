@@ -3,6 +3,7 @@ const hub = require('./hub');
 const { state, log, broadcast, sys } = require('./state');
 const { roster } = require('./roster');
 const { BUILTIN_SFX } = require('./media');
+const absent = require('./absent');
 
 let spotlightTimer = null;
 function spotlight(id, kind) {
@@ -29,8 +30,13 @@ function currentTurnId() {
   return c.active && c.order.length ? c.order[c.turn % c.order.length].id : null;
 }
 function advanceTurn() {
+  if (!state.combat.order.length) return;
+  stepTurn();
+  settleAutopilot();
+}
+// Moves the turn on to the next living combatant and announces it.
+function stepTurn() {
   const c = state.combat;
-  if (!c.order.length) return;
   for (let i = 0; i < c.order.length; i++) {
     c.turn++;
     if (c.turn >= c.order.length) { c.turn = 0; c.round++; log('combat', `Round ${c.round} begins.`); }
@@ -41,6 +47,16 @@ function advanceTurn() {
   if (who) log('combat', `${who.name}'s turn.`);
   if (who && !who.enemy) playTheme(who);
   require('./grid').resetMoves();
+}
+// An empty chair on autopilot takes its turn for it (Dodge). Bounded by the order, so an all-autopilot table cannot loop.
+function settleAutopilot() {
+  const c = state.combat;
+  for (let i = 0; i < c.order.length; i++) {
+    const who = combatant(currentTurnId());
+    if (!c.active || !who || who.enemy || !absent.isAutopilot(state, who.id)) return;
+    log('combat', `${who.name} is on autopilot and takes the Dodge action.`);
+    stepTurn();
+  }
 }
 function applyDamage(target, amount) {
   // Temporary hit points soak damage first; healing never touches them.
@@ -80,6 +96,7 @@ function startCombat() {
   const who = combatant(currentTurnId());
   if (who) log('combat', `${who.name}'s turn.`);
   if (who && !who.enemy) playTheme(who);
+  settleAutopilot();
 }
 
-module.exports = { spotlight, playTheme, combatant, currentTurnId, advanceTurn, applyDamage, attack, startCombat };
+module.exports = { spotlight, playTheme, combatant, currentTurnId, advanceTurn, settleAutopilot, applyDamage, attack, startCombat };

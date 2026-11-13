@@ -593,6 +593,23 @@ html[data-motion="reduce"] .boss-card { animation-duration: .001ms; }
 .memorial .av-mem { width: 12cqw; height: 12cqw; filter: grayscale(1) brightness(.8); }
 html[data-motion="reduce"] .memorial { animation-duration: .001ms; }
 
+/* ================= Phase J: legends (hall of fame, trophy shelf) ================= */
+.legends-tv, .trophy-tv { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgb(0 0 0 / .72); animation: fadein .4s; }
+.legends-box, .trophy-box { width: min(78cqw, 1100px); max-height: 86cqh; overflow: hidden; color: #f4ead5; text-align: center; }
+.legends-kicker { font-family: var(--display); letter-spacing: .25em; text-transform: uppercase; color: var(--gold); font-size: calc(1.2cqw * var(--ts)); }
+.trophy-box h2 { font-family: var(--display); font-size: calc(4cqw * var(--ts)); margin: .3em 0; color: var(--gold); }
+.trophy-box p { font-style: italic; font-size: calc(1.8cqw * var(--ts)); margin: 0 auto; max-width: 60cqw; line-height: 1.4; }
+.hall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2cqw; text-align: left; margin-top: 1.5cqw; }
+.hall-cat h3 { font-family: var(--display); font-size: calc(1.5cqw * var(--ts)); color: var(--gold); margin: 0 0 .5cqw; }
+.hall-cat ol, .shelf { margin: 0; padding: 0; list-style: none; }
+.hall-cat li { font-size: calc(1.3cqw * var(--ts)); padding: .4cqw 0; border-bottom: 1px solid rgb(255 255 255 / .12); }
+.hall-cat li b { color: #f4ead5; } .hall-cat li span { color: #c9bfae; } .hall-cat li em { float: right; font-style: normal; color: var(--gold); }
+.hall-cat li small { display: block; color: #b9ad97; }
+.hall-none { color: #a79c86; font-style: italic; }
+.shelf { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.2cqw; margin-top: 2cqw; }
+.shelf li { padding: 1cqw 1.6cqw; border: 1px solid #6b5a3a; border-radius: 10px; background: #1b1420; font-size: calc(1.4cqw * var(--ts)); }
+html[data-motion="reduce"] .legends-tv, html[data-motion="reduce"] .trophy-tv { animation-duration: .001ms; }
+
 /* Action log hidden per screen (Display settings > Action log) */
 html[data-log="hide"] .stage-log, html[data-log="hide"] #log { display: none; }
 .tok.sel { outline: .25cqw dashed var(--gold); outline-offset: .3cqw; }
@@ -682,3 +699,17 @@ span.av.lay { width: 2.5em; height: 2.5em; border-radius: 50%; }
 .dm-banner-tab b { font-size: 1.05rem; }
 .dm-banner[hidden] { display: none; }
 .dm-banner-tab { position: relative; border-bottom: 1px solid var(--gold); }
+
+/* Phase J: phone legends tab and the what-you-missed card */
+.missed-card { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgb(0 0 0 / .75); }
+.missed-box { width: min(480px, 100%); max-height: 80vh; overflow: auto; background: #1b1420; color: #f4ead5; border: 1px solid #6b5a3a; border-radius: 12px; padding: 20px; }
+.missed-box ul { padding-left: 18px; margin: 8px 0 14px; }
+.missed-box li { margin: 4px 0; }
+.rules { list-style: none; padding: 0; margin: 0; }
+.rules li { padding: 6px 0; border-bottom: 1px solid rgb(255 255 255 / .1); }
+.phone .hall { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 6px; }
+.phone .hall-cat h3 { font-size: 16px; }
+.phone .hall-cat li { font-size: 15px; }
+.phone .hall-cat li small { font-size: 13px; }
+.phone .shelf { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; }
+.phone .shelf li { border: 1px solid #6b5a3a; border-radius: 8px; padding: 4px 8px; }
