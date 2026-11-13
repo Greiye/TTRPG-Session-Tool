@@ -14,7 +14,7 @@ const FEATURES = {
   Bard: [{ name: 'Bardic Inspiration', max: (c) => Math.max(1, mod(c.abilities?.cha)), reset: (c) => (c.level >= 5 ? 'short' : 'long') }],
   Druid: [{ name: 'Wild Shape', max: () => 2, reset: () => 'short' }],
   Paladin: [
-    { name: 'Lay on Hands', max: (c) => 5 * (c.level || 1), reset: () => 'long' }, // a pool of points, not a use count
+    { name: 'Lay on Hands', max: (c) => 5 * (c.level || 1), reset: () => 'long', pool: true }, // a pool of points, not a use count
     { name: 'Channel Divinity', max: (c) => (c.level >= 3 ? 1 : 0), reset: () => 'short' },
   ],
 };
@@ -84,4 +84,7 @@ function restCharacter(p, kind, spend = 0) {
   return out;
 }
 
-module.exports = { FEATURES, unlocked, spendable, restCharacter };
+// What a character's sheet shows: each unlocked feature with its maximum and the rest that refills it.
+const featureList = (c) => unlocked(c).map((f) => ({ name: f.name, max: f.max(c), reset: f.reset(c), pool: !!f.pool }));
+
+module.exports = { FEATURES, unlocked, spendable, restCharacter, featureList };

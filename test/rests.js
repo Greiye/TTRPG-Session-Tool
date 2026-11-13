@@ -1,6 +1,6 @@
 // Rest rules: per-class resources come back on the right rest, and hit dice spent heal and are counted.
 const assert = require('assert');
-const { restCharacter } = require('../src/rests');
+const { restCharacter, featureList } = require('../src/rests');
 
 const mk = (cls, extra = {}) => ({
   name: 'T', cls, level: 5, hp: 5, maxHp: 30, abilities: { con: 14, cha: 16, str: 10, dex: 10, int: 10, wis: 10 },
@@ -46,5 +46,10 @@ let l = mk('Fighter', { hp: 5 });
 restCharacter(l, 'long', 3);
 assert.strictEqual(l.hitDice.used, 0);
 assert.strictEqual(l.hp, 30);
+
+// The sheet lists unlocked features with their maximum and reset; Channel Divinity waits for level 3.
+const fl = featureList(mk('Paladin', { level: 2 }));
+assert.deepStrictEqual(fl.map((f) => f.name), ['Lay on Hands']);
+assert.strictEqual(featureList(mk('Paladin', { level: 3 })).find((f) => f.name === 'Channel Divinity').max, 1);
 
 console.log('rests ok');
