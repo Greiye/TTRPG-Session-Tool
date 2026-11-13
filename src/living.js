@@ -8,7 +8,8 @@ const crypto = require('crypto');
 const { str, int } = require('./util');
 const factions = require('./factions');
 
-const WEATHER = ['clear', 'rain', 'snow', 'fog', 'storm'];
+// Weather is the shared source state.weather = { kind, intensity } (also read by the TV, src/sockets/dm.js).
+const WEATHER = ['none', 'rain', 'snow', 'fog', 'storm'];
 const LIGHTS = ['day', 'dusk', 'night', 'dawn', 'torchlight'];
 const TRIGGERS = ['session', 'travel', 'event'];
 const CANON_KINDS = ['detail', 'npc', 'rumour'];
@@ -18,7 +19,7 @@ const TENSION_MAX = 10;
 const TENSION_LABELS = ['Calm', 'Calm', 'Calm', 'Uneasy', 'Uneasy', 'Tense', 'Tense', 'Tense', 'Peak', 'Peak', 'Peak'];
 // Words a rumour can flip when it has no number to change.
 const SWAPS = [[/\bnorth\b/i, 'south'], [/\bsouth\b/i, 'north'], [/\beast\b/i, 'west'], [/\bwest\b/i, 'east'], [/\balive\b/i, 'dead'], [/\bdead\b/i, 'alive'], [/\bgold\b/i, 'silver'], [/\bsafe\b/i, 'cursed']];
-const WEATHER_TRAVEL = { clear: 1, rain: 1.25, fog: 1.25, snow: 1.5, storm: 1.75 };
+const WEATHER_TRAVEL = { none: 1, rain: 1.25, fog: 1.25, snow: 1.5, storm: 1.75 };
 const LIGHT_TRAVEL = { night: 1.5, dusk: 1.2, dawn: 1.1 };
 const LIGHT_ENCOUNTER = { night: 1.5, dusk: 1.25, dawn: 1.1 };
 const TENSION_TIER = (v) => TENSION_LABELS[clamp(v, 0, TENSION_MAX)];
@@ -28,7 +29,7 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const arrOf = (v, allowed) => (Array.isArray(v) ? v.filter((x) => allowed.includes(x)) : []);
 
 function fresh() {
-  return { weather: 'clear', tension: 0, clocks: [], towns: [], links: [], rumours: [], canon: [], oracles: [], pending: [], history: [] };
+  return { tension: 0, clocks: [], towns: [], links: [], rumours: [], canon: [], oracles: [], pending: [], history: [] };
 }
 // A save from before this phase has no living world; keep what it has and fill in the rest.
 const ensure = (saved) => ({ ...fresh(), ...(saved || {}) });
@@ -245,32 +246,34 @@ function onTravel(state, town, rng = Math.random) {
 }
 
 // ----- interlocking rules: weather, light, tension -----
-const context = (state) => ({ light: state.scene?.light || 'day', weather: state.living.weather });
+const weatherOf = (state) => state.weather?.kind || 'none';
+const context = (state) => ({ light: state.scene?.light || 'day', weather: weatherOf(state) });
 // Travel takes longer in bad weather and in the dark. Returns the factor and why.
-function travelCost(L, light) {
+function travelCost(weather, light) {
   const reasons = [];
-  let factor = WEATHER_TRAVEL[L.weather] || 1;
-  if (factor > 1) reasons.push(L.weather);
+  let factor = WEATHER_TRAVEL[weather] || 1;
+  if (factor > 1) reasons.push(weather);
   if (LIGHT_TRAVEL[light]) { factor *= LIGHT_TRAVEL[light]; reasons.push(light); }
   return { factor: Math.round(factor * 100) / 100, reasons };
 }
 // How far the party can see: poor in fog, storms and full dark; dim in rain, snow, dusk and torchlight.
-function sight(L, light) {
-  if (['fog', 'storm'].includes(L.weather) || light === 'night') return 'poor';
-  if (['rain', 'snow'].includes(L.weather) || ['dusk', 'torchlight'].includes(light)) return 'dim';
+function sight(weather, light) {
+  if (['fog', 'storm'].includes(weather) || light === 'night') return 'poor';
+  if (['rain', 'snow'].includes(weather) || ['dusk', 'torchlight'].includes(light)) return 'dim';
   return 'clear';
 }
 // Encounters come more often at dusk and night; storms keep monsters in their dens.
-function encounterFactor(L, light) {
-  const f = (LIGHT_ENCOUNTER[light] || 1) * (L.weather === 'storm' ? 0.5 : 1);
+function encounterFactor(weather, light) {
+  const f = (LIGHT_ENCOUNTER[light] || 1) * (weather === 'storm' ? 0.5 : 1);
   return Math.round(f * 100) / 100;
 }
-function setWeather(L, weather) {
-  if (!WEATHER.includes(weather)) return { error: 'Unknown weather.' };
-  if (L.weather === weather) return { entries: [] };
-  const from = L.weather;
-  L.weather = weather;
-  return { entries: [record(L, `The weather turns to ${weather}.`, { tone: 'call', undo: { type: 'weather', from } })] };
+// Set the shared weather. Intensity is 1 (light) to 3 (heavy) and keeps its old value if not given.
+function setWeather(state, kind, intensity) {
+  if (!WEATHER.includes(kind)) return { error: 'Unknown weather.' };
+  const from = { kind: state.weather?.kind || 'none', intensity: state.weather?.intensity || 2 };
+  if (from.kind === kind && (intensity === undefined || int(intensity, 1, 3, from.intensity) === from.intensity)) return { entries: [] };
+  state.weather = { kind, intensity: intensity === undefined ? from.intensity : int(intensity, 1, 3, 2) };
+  return { entries: [record(state.living, `The weather turns to ${kind === 'none' ? 'clear' : kind}.`, { tone: 'call', undo: { type: 'weather', from } })] };
 }
 // Tension: sounds from the soundboard push it up; the DM can ease it down.
 function bump(state, delta, why) {
@@ -362,7 +365,7 @@ function undo(state, id) {
     else if (r) delete r.heard[u.town];
   }
   else if (u.type === 'tension') L.tension = u.from;
-  else if (u.type === 'weather') L.weather = u.from;
+  else if (u.type === 'weather') state.weather = { ...u.from };
   else if (u.type === 'canon') { const c = L.canon.find((x) => x.id === u.id); if (c) c.status = u.from; }
   e.undone = true;
   return { entries: [record(L, `Undone: ${e.text}`, { vis: 'dm' })] };
@@ -373,10 +376,11 @@ function undo(state, id) {
 function view(base, viewer) {
   const L = base.living || fresh(); // a test state or old snapshot may have none
   const light = base.scene?.light || 'day';
-  const derived = { light, sight: sight(L, light), travel: travelCost(L, light), encounters: encounterFactor(L, light) };
+  const weather = weatherOf(base);
+  const derived = { light, sight: sight(weather, light), travel: travelCost(weather, light), encounters: encounterFactor(weather, light) };
   if (viewer.role === 'dm') return { ...L, derived, tensionLabel: TENSION_TIER(L.tension), towns: L.towns.map((t) => ({ ...t, label: factions.tierOf(t.rep).label, trade: townWilling(t) ? 'open' : 'closed' })) };
   return {
-    weather: L.weather,
+    weather,
     tension: { value: L.tension, label: TENSION_TIER(L.tension) },
     derived,
     towns: L.towns.map((t) => ({ id: t.id, name: t.name, label: factions.tierOf(t.rep).label, trade: townWilling(t) ? 'open' : 'closed' })),
@@ -391,6 +395,6 @@ module.exports = {
   fresh, ensure, record, setRep, shiftRep, addClock, advance, tick,
   addTown, setTrade, removeTown, townWilling, linkTowns, setShop, priceMult, canTrade,
   distort, addRumour, spreadTo, spreadAll, onSession, onTravel,
-  context, travelCost, sight, encounterFactor, setWeather, bump, sound,
+  context, weatherOf, travelCost, sight, encounterFactor, setWeather, bump, sound,
   propose, decideCanon, addOracle, roll, decideOracle, undo, view, TENSION_TIER,
 };

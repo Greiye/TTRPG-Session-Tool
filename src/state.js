@@ -71,6 +71,7 @@ const state = {
   dmControl: {}, // charId -> true while the DM plays that character (src/control.js); not saved
   camp: camp.fresh(), // camp: TV image, phone votes for short or long rest and downtime notes (src/camp.js)
   factions: [], // faction reputation, DM sees numbers, phones see tiers (src/factions.js)
+  weather: { kind: 'none', intensity: 2 }, // shared weather: the TV (phase B) and the living world both read it (src/living.js)
   living: living.fresh(), // living world: clocks, town standing, rumours, weather, tension, canon, oracles (src/living.js)
   room: null, // join code, set by session.js
   // lighting preset is kept on the scene (src/world.js)
@@ -80,7 +81,7 @@ const state = {
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'living');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'living', 'weather');
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -89,6 +90,7 @@ if (!state.room) state.room = newRoomCode();
 state.scene.secrets ??= [];
 state.factions ??= [];
 state.living = living.ensure(state.living);
+state.weather ??= { kind: 'none', intensity: 2 };
 cast.ensure(state.social);
 state.camp ??= camp.fresh();
 net.setHost(state.settings.host);

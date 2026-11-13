@@ -94,10 +94,10 @@ onState((s) => {
   if (!L || !L.towns) return;
   const towns = L.towns;
   const shops = s.shops || [];
-  const weathers = ['clear', 'rain', 'snow', 'fog', 'storm'];
+  const weathers = ['none', 'rain', 'snow', 'fog', 'storm'];
   const wSel = $('#lvWeather');
-  if (wSel.dataset.key !== 'w') { wSel.innerHTML = weathers.map((w) => `<option value="${w}">${w}</option>`).join(''); wSel.dataset.key = 'w'; }
-  wSel.value = L.weather;
+  if (wSel.dataset.key !== 'w') { wSel.innerHTML = weathers.map((w) => `<option value="${w}">${w === 'none' ? 'clear' : w}</option>`).join(''); wSel.dataset.key = 'w'; }
+  wSel.value = s.weather?.kind || 'none';
   const d = L.derived || {};
   $('#lvDerived').textContent = `Sight ${d.sight} · travel ×${d.travel?.factor ?? 1} · encounters ×${d.encounters ?? 1}`;
   $('#lvTension').textContent = `${L.tensionLabel ?? L.tension?.label ?? ''} ${L.tension?.value ?? L.tension ?? 0}/10`;

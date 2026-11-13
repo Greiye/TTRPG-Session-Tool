@@ -81,23 +81,30 @@ const never = () => 0.99;
 // Interlocks: weather, light, tension
 {
   const s = world();
-  s.living.weather = 'rain';
-  ok(L.travelCost(s.living, 'night').factor === 1.88, 'rain and night slow travel together');
-  ok(L.sight(s.living, 'day') === 'dim', 'rain dims sight');
-  s.living.weather = 'fog';
-  ok(L.sight(s.living, 'day') === 'poor', 'fog leaves sight poor');
-  s.living.weather = 'storm';
-  ok(L.encounterFactor(s.living, 'night') === 0.75, 'storms keep monsters in their dens, even at night');
-  s.living.weather = 'clear';
-  ok(L.encounterFactor(s.living, 'night') === 1.5, 'night brings more encounters');
+  ok(L.travelCost('rain', 'night').factor === 1.88, 'rain and night slow travel together');
+  ok(L.sight('rain', 'day') === 'dim', 'rain dims sight');
+  ok(L.sight('fog', 'day') === 'poor', 'fog leaves sight poor');
+  ok(L.encounterFactor('storm', 'night') === 0.75, 'storms keep monsters in their dens, even at night');
+  ok(L.encounterFactor('none', 'night') === 1.5, 'night brings more encounters');
   const t = L.sound(s, 'clash');
   ok(s.living.tension === 3 && t.entries.length === 1, 'a clash pushes tension up by three');
   L.sound(s, 'bell');
   ok(s.living.tension === 3, 'a sound with no tension weight changes nothing');
   L.undo(s, s.living.history[0].id);
   ok(s.living.tension === 0, 'undoing a tension change restores it');
-  L.setWeather(s.living, 'snow');
-  ok(s.living.weather === 'snow' && L.setWeather(s.living, 'hail').error, 'weather only takes known values');
+  L.setWeather(s, 'snow', 3);
+  ok(s.weather.kind === 'snow' && s.weather.intensity === 3 && L.setWeather(s, 'hail').error, 'weather only takes known values');
+}
+
+// Shared weather: the TV and the living world read the same state.weather
+{
+  const s = world();
+  s.weather = { kind: 'rain', intensity: 2 };
+  ok(L.context(s).weather === 'rain' && L.view(s, { role: 'screen' }).weather === 'rain', 'the living world reads the TV weather');
+  const w = L.setWeather(s, 'fog');
+  ok(s.weather.kind === 'fog' && s.weather.intensity === 2 && w.entries.length === 1, 'changing weather keeps the intensity and is recorded');
+  L.undo(s, w.entries[0].id);
+  ok(s.weather.kind === 'rain', 'undoing weather puts the TV weather back');
 }
 
 // Canon and oracles

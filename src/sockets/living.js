@@ -50,7 +50,7 @@ module.exports = function livingSockets(socket) {
   dm('dm:living:rumour:remove', ({ id }) => { L().rumours = L().rumours.filter((r) => r.id !== id); });
 
   // Weather, tension, and the world ticks (a session ends, or the party travels to a town)
-  dm('dm:living:weather', ({ weather }) => living.setWeather(L(), weather));
+  dm('dm:living:weather', ({ weather, intensity }) => living.setWeather(state, weather, intensity));
   dm('dm:living:tension', ({ delta }) => living.bump(state, delta, 'DM'));
   dm('dm:living:session', () => living.onSession(state));
   dm('dm:living:travel', ({ town }) => living.onTravel(state, town));

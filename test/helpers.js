@@ -9,7 +9,9 @@ const ROOT = path.join(__dirname, '..');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function harness(name) {
-  const PORT = 4200 + Math.floor(Math.random() * 1500);
+  // fetch() refuses 5060 and 5061 (SIP, on the WHATWG bad-port list), so the harness never picks them.
+  let PORT;
+  do PORT = 4200 + Math.floor(Math.random() * 1500); while (PORT === 5060 || PORT === 5061);
   const URL = `http://127.0.0.1:${PORT}`;
   const TMP = fs.mkdtempSync(path.join(os.tmpdir(), `tavern-${name}-`));
   let failures = 0;
