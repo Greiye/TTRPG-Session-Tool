@@ -16,6 +16,8 @@ onState((s) => {
   }
   const who = everyone.find((x) => x.id === $('#condWho').value);
   $('#condBtns').innerHTML = who ? CONDS.map((c) => `<button class="btn small ${(who.conditions || []).includes(c) ? 'on' : ''}" data-cond="${c}">${c}</button>`).join('') : '';
+  const names = Object.fromEntries(everyone.map((x) => [x.id, x.name]));
+  $('#timerList').innerHTML = (s.timers || []).map((t) => `<div class="item"><span><b>${esc(names[t.charId] || 'Someone')}</b> ${esc(t.name)} <small class="muted">${t.kind === 'concentration' ? 'concentrating' : `${t.rounds} round${t.rounds === 1 ? '' : 's'} left`}</small></span></div>`).join('') || '<p class="note">No timers.</p>';
   $('#clockList').innerHTML = (s.clocks || []).map((c) => `<div class="item"><span><b>${esc(c.name)}</b> <small class="muted">${c.filled}/${c.segments}</small></span><span class="clock-row"><button class="btn small" data-clock="${c.id}" data-d="-1">−</button><button class="btn small" data-clock="${c.id}" data-d="1">+</button><button class="btn small danger" data-clock-del="${c.id}">✕</button></span></div>`).join('') || '<p class="note">No clocks yet.</p>';
 });
 
@@ -23,7 +25,17 @@ $('#condWho').onchange = () => {};
 onClick('cond', (name) => {
   const who = $('#condWho').value;
   const has = state()?.players.concat(state().combat.enemies).find((x) => x.id === who)?.conditions?.includes(name);
-  emit('dm:condition', { id: who, name, on: !has });
+  const rounds = Math.round(Number($('#condRounds').value) || 0);
+  if (!has && rounds > 0) emit('dm:timer:condition', { id: who, name, rounds });
+  else emit('dm:condition', { id: who, name, on: !has });
+});
+onClick('conc', (a) => {
+  const who = $('#condWho').value;
+  if (a === 'drop') return emit('dm:concentrate:drop', { id: who });
+  const spell = $('#concSpell').value.trim();
+  if (!spell) return;
+  emit('dm:concentrate', { id: who, spell });
+  $('#concSpell').value = '';
 });
 $('#clockList').addEventListener('click', (e) => {
   const b = e.target.closest('button');
