@@ -35,7 +35,7 @@ const { ok, until } = h;
   dm.emit('dm:token', { id: gob.id, x: 9, y: 7 });
   await until(() => dm.last.tokens[gob.id]);
   ok(a.last.mapVision === null, 'fog off by default: no vision set is sent');
-  ok(a.last.tokens[gob.id], 'with fog off the phone sees every token');
+  ok(await until(() => a.last.tokens[gob.id]), 'with fog off the phone sees every token');
   dm.emit('dm:fog', { on: true });
   ok(await until(() => dm.last.map.fog === true), 'DM turns fog of war on');
   ok(await until(() => Array.isArray(a.last.mapVision) && a.last.mapVision.includes('0,0')), 'phone gets the tiles Thorn can see');

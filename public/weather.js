@@ -87,5 +87,13 @@
     layer._stop = start(canvas, kind, level, !!reduced);
   }
 
-  window.Weather = { render };
+  // One weather source for the TV. The living-world state (src/living.js, state.living.weather) wins when it is
+  // present; otherwise the DM's weather state (state.weather) is used. 'clear' is the living name for 'none'.
+  function fromState(s) {
+    const living = s?.living?.weather;
+    const kind = living || s?.weather?.kind || 'none';
+    return { kind: kind === 'clear' ? 'none' : kind, intensity: s?.weather?.intensity ?? 2 };
+  }
+
+  window.Weather = { render, fromState };
 })();

@@ -94,10 +94,10 @@ module.exports = function dmSockets(socket) {
     if (t && Object.prototype.hasOwnProperty.call(LIGHTS, light)) t.light = light;
   });
   // TV weather (Phase B): DM-set rain, snow, fog or storm at light, medium or heavy strength.
-  const WEATHER = ['none', 'rain', 'snow', 'fog', 'storm'];
+  const WEATHER = ['none', 'clear', 'rain', 'snow', 'fog', 'storm']; // 'clear' is the living-world name for none
   dm('dm:weather', ({ kind, intensity } = {}) => {
     if (!WEATHER.includes(kind)) return;
-    state.weather = { kind, intensity: int(intensity, 1, 3, 2) };
+    state.weather = { kind: kind === 'clear' ? 'none' : kind, intensity: int(intensity, 1, 3, 2) };
   });
   dm('dm:token:move', ({ id, x, y }) => {
     if (mustPlaceFirst()) return;

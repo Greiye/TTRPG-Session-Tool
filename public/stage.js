@@ -345,7 +345,7 @@
     root.classList.add(`light-${s.scene.light || 'day'}`);
     for (const l of ['day', 'dusk', 'night', 'dawn', 'torchlight']) if (l !== (s.scene.light || 'day')) root.classList.remove(`light-${l}`);
     const ui = layers(root, s);
-    window.Weather?.render(root.querySelector(':scope > .wx'), s.weather, window.Settings?.reducedMotion?.()); // Phase B weather
+    window.Weather?.render(root.querySelector(':scope > .wx'), window.Weather?.fromState(s), window.Settings?.reducedMotion?.()); // Phase B weather
     // Mode title: a short card fades in and out when the table changes mode (not on the first draw).
     const prevMode = root.dataset.mode;
     if (prevMode && prevMode !== s.mode) {

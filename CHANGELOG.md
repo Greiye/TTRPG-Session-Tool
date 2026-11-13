@@ -29,7 +29,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Placeholder test party: "Add test party" seats one test character per D&D 5e class (all twelve). Seeding twice does not duplicate them.
 - Barbarian, Druid, Monk, Paladin, Sorcerer and Warlock classes in the D&D 5e rules.
 - Fog of war and light on the battle map. The DM turns fog on from the battle map card. Party tokens reveal the tiles in their light radius: torch 20 ft, lantern 30 ft, darkvision 60 ft. Walls block sight. Enemies in the dark are not sent to phones or the TV; the DM sees everything, with the fog dimmed. Set a token's light from the map card with that token selected.
-- Weather on the TV: rain, snow, fog and storm, set by the DM in the Scene tab at light, medium or heavy strength. Drawn on a canvas (`public/weather.js`). Under reduce motion the scene is still and storms do not flash. Separate from the backdrop effects, which stay as they were.
+- Weather on the TV: rain, snow, fog and storm, set by the DM in the Scene tab at light, medium or heavy strength. Drawn on a canvas (`public/weather.js`). Under reduce motion the scene is still and storms do not flash. Separate from the backdrop effects, which stay as they were. When the living world's weather (`state.living.weather`) is present, the TV draws that instead, so there is one weather source.
 - 3D dice tray on the TV: when a roll lands, its dice tumble across a felt tray and settle on the result. Plain CSS 3D, so it needs no network. Turn it off with the TV's "3D dice tray" setting (Settings, TV section). Under reduce motion the dice appear already showing their faces.
 - Shared entrance animations in `public/anim.js`: `unfold` (paper turn), `reveal`, `fade`, and `Anim.stagger` for ordered entrances. All collapse to a short fade under reduce motion.
 
@@ -39,3 +39,6 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ### Removed
 - Table message log on the DM screen, the phones and the TV (the game is played in person).
+
+### Fixed
+- Battle map tokens vanished on phones and the TV: the framing-token count (Phase I) was sent under the same `tokens` field and overwrote the map positions. The count is now `framingTokens`.

@@ -108,7 +108,7 @@ function viewState(base, viewer) {
     for (const k of ['cues', 'nudges', 'balance', 'dueBonds']) delete out[k];
     out.myNudges = viewer.role === 'player' ? (base.nudges || []).filter((n) => n.charId === viewer.charId && n.status === 'sent') : [];
   }
-  if (viewer.role !== 'dm') { delete out.framing; out.tokens = viewer.role === 'player' ? base.framing?.[viewer.charId] || 0 : 0; }
+  if (viewer.role !== 'dm') { delete out.framing; out.framingTokens = viewer.role === 'player' ? base.framing?.[viewer.charId] || 0 : 0; } // not `tokens`: that is the battle map
   out.foreshadow = T.recapFor(base.foreshadow, viewer); // hints: DM only; paid-off payoffs: everyone
   out.montage = T.montageView(base.montage, viewer);
   if (base.worldMap) out.worldMap = require('./worldmap').viewFor(base.worldMap, viewer, base.players.length); // Phase G: see src/worldmap.js
