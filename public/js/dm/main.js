@@ -29,6 +29,7 @@ import './suggestions.js';
 import './plans.js';
 import './journal.js';
 import './camp.js';
+import './legends.js';
 import './moments.js';
 import './table.js';
 import './intro.js';

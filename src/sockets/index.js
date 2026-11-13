@@ -45,6 +45,7 @@ module.exports = function sockets(io) {
     require('./downtime')(socket);
     require('./journal')(socket);
     require('./takeover')(socket);
+    require('./legends')(socket);
     worldSockets(socket);
     require('./moments')(socket);
     require('./table')(socket); // Phase I table tools

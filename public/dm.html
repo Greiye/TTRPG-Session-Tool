@@ -48,7 +48,7 @@
       </div>
     </div>
 
-        <nav class="side-tabs" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Roll calls">🎲</button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat">⚔️</button><button role="tab" data-stab="party" title="Party and conditions" aria-label="Party and conditions">👥</button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages">✉</button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs">📜</button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene and fog" aria-label="Scene and fog">🗺</button><button role="tab" data-stab="world" title="World map" aria-label="World map">🧭</button><button role="tab" data-stab="npc" title="NPCs, dialogue and shops" aria-label="NPCs, dialogue and shops">🧙</button><button role="tab" data-stab="backdrop" title="Backdrop and music" aria-label="Backdrop and music">🎬</button><button role="tab" data-stab="lights" title="Smart lights" aria-label="Smart lights">💡</button><button role="tab" data-stab="clocks" title="Clocks" aria-label="Clocks">⏳</button><button role="tab" data-stab="table" title="Table tools" aria-label="Table tools">🎛</button><button role="tab" data-stab="moments" title="TV moments" aria-label="TV moments">🎞</button></div><div class="tab-group" data-group="prep" aria-label="Prep and record"><button role="tab" data-stab="quiz" title="Recap quiz" aria-label="Recap quiz">📝</button><button role="tab" data-stab="puzzle" title="Puzzles" aria-label="Puzzles">🧩</button><button role="tab" data-stab="web" title="Relations web" aria-label="Relations web">🕸</button><button role="tab" data-stab="notes" title="Notes, journal and relations" aria-label="Notes, journal and relations">📓</button><button role="tab" data-stab="camp" title="Camp and downtime" aria-label="Camp and downtime">⛺</button><button role="tab" data-stab="codm" title="Co-DM" aria-label="Co-DM">🎧</button><button role="tab" data-stab="campaign" title="Campaign data" aria-label="Campaign data">💾</button></div></nav>
+        <nav class="side-tabs" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Roll calls">🎲</button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat">⚔️</button><button role="tab" data-stab="party" title="Party and conditions" aria-label="Party and conditions">👥</button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages">✉</button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs">📜</button><button role="tab" data-stab="legends" title="Legends: hall of fame, trophies, house rules, empty chairs" aria-label="Legends">🏛</button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene and fog" aria-label="Scene and fog">🗺</button><button role="tab" data-stab="world" title="World map" aria-label="World map">🧭</button><button role="tab" data-stab="npc" title="NPCs, dialogue and shops" aria-label="NPCs, dialogue and shops">🧙</button><button role="tab" data-stab="backdrop" title="Backdrop and music" aria-label="Backdrop and music">🎬</button><button role="tab" data-stab="lights" title="Smart lights" aria-label="Smart lights">💡</button><button role="tab" data-stab="clocks" title="Clocks" aria-label="Clocks">⏳</button><button role="tab" data-stab="table" title="Table tools" aria-label="Table tools">🎛</button><button role="tab" data-stab="moments" title="TV moments" aria-label="TV moments">🎞</button></div><div class="tab-group" data-group="prep" aria-label="Prep and record"><button role="tab" data-stab="quiz" title="Recap quiz" aria-label="Recap quiz">📝</button><button role="tab" data-stab="puzzle" title="Puzzles" aria-label="Puzzles">🧩</button><button role="tab" data-stab="web" title="Relations web" aria-label="Relations web">🕸</button><button role="tab" data-stab="notes" title="Notes, journal and relations" aria-label="Notes, journal and relations">📓</button><button role="tab" data-stab="camp" title="Camp and downtime" aria-label="Camp and downtime">⛺</button><button role="tab" data-stab="codm" title="Co-DM" aria-label="Co-DM">🎧</button><button role="tab" data-stab="campaign" title="Campaign data" aria-label="Campaign data">💾</button></div></nav>
     <p class="side-title" id="sideTitle"></p>
 
 <div class="card" data-tab="codm">
@@ -59,6 +59,27 @@
       </div>
     </div>
 
+    <div class="card" data-tab="legends" id="legCard">
+      <h3>Hall of fame <span class="note">kept across campaigns · natural 1s are counted automatically</span></h3>
+      <div id="legBoard" class="list"></div>
+      <div class="row"><select id="legWho" class="grow" aria-label="Character"></select><select id="legCat" aria-label="Award" style="width:auto"><option value="kill">Best kill</option><option value="plan">Worst plan</option></select></div>
+      <div class="row"><input id="legDetail" class="grow" maxlength="200" placeholder="The ogre, in one blow"><button class="btn" id="legAward">Award</button></div>
+      <div id="legStatus" class="note" role="status"></div>
+      <div id="legAwards" class="list"></div>
+      <div class="row"><button class="btn small" id="legShowHall">Show hall on TV</button><button class="btn small" id="legShowShelf">Show shelf on TV</button><button class="btn small" id="legHide">Hide</button></div>
+      <h3>Trophy shelf <span class="note">how the group won each one</span></h3>
+      <div class="row"><input id="trName" class="grow" maxlength="60" placeholder="Crown of the Drowned King"><button class="btn" id="trAdd">Add</button></div>
+      <textarea id="trStory" rows="2" maxlength="800" placeholder="How we won it: we bargained with the eel…" style="width:100%"></textarea>
+      <div id="trStatus" class="note" role="status"></div>
+      <div id="trList" class="list"></div>
+      <div class="row"><button class="btn small" id="trClose">Close story on TV</button></div>
+      <h3>House rules <span class="note">the tool enforces each one while it is on</span></h3>
+      <div id="ruleList" class="list"></div>
+      <div id="ruleStatus" class="note" role="status"></div>
+      <h3>Empty chairs <span class="note">a character whose phone is gone</span></h3>
+      <div id="chairList" class="list"></div>
+      <div id="chairStatus" class="note" role="status"></div>
+    </div>
     <div class="card" data-tab="campaign">
       <h3>Campaign data <span class="note" id="dataStatus"></span></h3>
       <div class="row">

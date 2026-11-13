@@ -18,6 +18,7 @@ const rolls = require('../rolls');
 
 // Log types the DM can hide on the TV (display setting hideLog).
 const camp = require('../camp');
+const houserules = require('../houserules');
 const LOG_KINDS = ['action', 'check', 'combat', 'downtime', 'narrate', 'npc', 'say', 'shop', 'system', 'notice'];
 const perception = require('../perception');
 const messages = require('../messages');
@@ -155,6 +156,8 @@ module.exports = function dmSockets(socket) {
   // ----- Camp: TV image, phone votes for short or long rest (src/camp.js) -----
   dm('dm:camp:open', ({ open }) => {
     const was = state.camp.open;
+    const why = open && !was ? houserules.blockCamp(state) : null; // house rule (src/houserules.js)
+    if (why) { log('system', why, { tone: 'bad' }); return; }
     camp.setOpen(state.camp, open);
     if (state.camp.open && !was) log('system', 'Camp is set. Choose a short or long rest.', { tone: 'call' });
     if (!state.camp.open && was) log('system', 'Camp is over.', { tone: 'call' });

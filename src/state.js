@@ -15,6 +15,9 @@ const plan = require('./plan');
 const downtime = require('./downtime');
 const camp = require('./camp');
 const cast = require('./cast');
+const legends = require('./legends');
+const houserules = require('./houserules');
+const absent = require('./absent');
 const tableState = require('./table-state'); // Phase I table tools: defaults for their fields
 const worldmap = require('./worldmap');
 const living = require('./living');
@@ -85,6 +88,10 @@ const state = {
   puzzle: null, // teamwork puzzle: clues split over phones, guesses, DM-confirmed solve (src/puzzle.js)
   web: web.fresh(), // NPC and faction relationship web, TV sees revealed parts (src/web.js)
   room: null, // join code, set by session.js
+  houseRules: {}, // house rule id -> on (src/houserules.js); enforced by the tool
+  absent: {}, // empty chairs: charId -> { away, autopilot, missed } (src/absent.js)
+  trophy: null, // { id, n } trophy story card on the TV (transient)
+  legendsShow: null, // 'hall' | 'shelf' | null: legends card on the TV (transient)
   // lighting preset is kept on the scene (src/world.js)
   settings: { display: { text: 'md', palette: 'default', motion: 'auto', dice: 'on' }, host: null }, // table-wide (TV display, QR host)
   bulbsOn: false, // smart bulbs follow the lighting (item 10, src/bulbs.js); off by default, DM toggle only
@@ -96,6 +103,7 @@ store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations',
 store.EXTRA.push('cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
 store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'worldMap', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
 store.EXTRA.push('living', 'weather'); // phase K living world and the shared weather
+store.EXTRA.push('houseRules', 'absent'); // phase J house rules and empty chairs
 store.EXTRA.push('intro', 'timers'); // phase D intro card text and timers
 store.EXTRA.push('puzzle', 'web'); // Phase F teamwork puzzle and relations web
 saves.backupOnStart();
@@ -111,14 +119,18 @@ state.web ??= web.fresh();
 state.puzzle ??= null;
 cast.ensure(state.social);
 state.camp ??= camp.fresh();
+state.houseRules ??= {};
+state.absent ??= {};
 state.worldMap ??= worldmap.fresh();
 net.setHost(state.settings.host);
 const snap = () => store.snapshot(state, seq);
 
 const nextId = () => ++seq;
 function log(kind, text, extra = {}) {
-  state.log.push({ id: ++seq, t: Date.now(), kind, text, ...extra });
+  const entry = { id: ++seq, t: Date.now(), kind, text, ...extra };
+  state.log.push(entry);
   if (state.log.length > 80) state.log.shift();
+  absent.note(state, entry); // empty chairs keep what they missed (src/absent.js)
 }
 
 // Full snapshot. Never sent as-is: stateFor() filters it per viewer (see visibility.js).
@@ -130,7 +142,8 @@ function fullState() {
   const codms = [...io.sockets.sockets.values()].filter((x) => x.data.role === 'codm').length;
   const spectators = [...io.sockets.sockets.values()].filter((x) => x.data.spectator).length;
   const bulbsTargets = require('./bulbs').targets().length;
-  return { ...state, bulbsTargets, plans: plan.withDanger(state.plans, state), players, roster: cards, screens, codms, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
+  const legendsView = legends.view(); // hall of fame and trophy shelf: public, kept across campaigns
+  return { ...state, bulbsTargets, legends: legendsView, houseRuleList: houserules.list(state), plans: plan.withDanger(state.plans, state), players, roster: cards, screens, codms, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
 }
 const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
 
@@ -159,7 +172,7 @@ function broadcast() {
   });
 }
 // Save immediately on shutdown so the last change is never lost.
-for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { store.flush(snap); saveRoster.flush?.(); require('./entities').flush(); library.flushAll(); process.exit(0); });
+for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { store.flush(snap); saveRoster.flush?.(); legends.flush(); require('./entities').flush(); library.flushAll(); process.exit(0); });
 
 module.exports = { state, log, nextId, fullState, stateFor, broadcast, EMOTIONS, EFFECTS };
 

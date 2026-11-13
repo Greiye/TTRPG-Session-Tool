@@ -13,6 +13,8 @@ const factions = require('../factions');
 const camp = require('../camp');
 const control = require('../control');
 const cast = require('../cast');
+const absent = require('../absent');
+const houserules = require('../houserules');
 const T = require('../table');
 
 module.exports = function playerSockets(socket) {
@@ -34,6 +36,9 @@ module.exports = function playerSockets(socket) {
     }
     session.seat(c, socket);
     socket.data.spectator = false;
+    // An empty chair's card: what the table did while this seat was empty (src/absent.js).
+    const missed = absent.returned(state, c.id);
+    if (missed.length) socket.emit('missed', { name: c.name, lines: missed });
     if (!state.players[c.id]) {
       state.players[c.id] = c;
       log('system', `${c.name} the ${c.race ? c.race + ' ' : ''}${c.cls} joined the party.`);
@@ -183,6 +188,9 @@ module.exports = function playerSockets(socket) {
     } else if (['dodge', 'dash', 'help', 'hide'].includes(act)) {
       log('combat', `${p.name} takes the ${act[0].toUpperCase() + act.slice(1)} action.`);
     } else if (act === 'potion') {
+      const why = houserules.blockPotion(state, p); // house rule: one potion per turn (src/houserules.js)
+      if (why) { log('combat', why, { tone: 'bad', vis: { to: [p.id] } }); return; }
+      houserules.markPotion(state, p);
       const h = rollDice([2, 4, 2]);
       p.hp = Math.min(p.maxHp, p.hp + h.total);
       log('combat', `${p.name} drinks a potion and heals ${h.total}.`, { tone: 'good' });
@@ -193,7 +201,7 @@ module.exports = function playerSockets(socket) {
 
   socket.on('disconnect', () => {
     const p = control.seatOf(state, socket);
-    if (p && p.socketId === socket.id) p.socketId = null;
+    if (p && p.socketId === socket.id) { p.socketId = null; absent.away(state, p.id); } // the chair is empty now
     broadcast();
   });
 };
