@@ -35,6 +35,8 @@ const { applySheet } = require('../sheet');
 const { saveRoster } = require('../roster');
 const legacy = require('../legacy');
 const moments = require('../moments');
+const speech = require('../speech');
+const timers = require('../timers');
 
 module.exports = function dmSockets(socket) {
   const { io } = hub;
@@ -137,6 +139,10 @@ module.exports = function dmSockets(socket) {
 
   // ----- Phase 6: conditions, clocks, rests -----
   dm('dm:condition', ({ id, name, on }) => tracker.setCondition(id, name, !!on));
+  // Phase D timers: a condition that counts down by round, and concentration on a spell.
+  dm('dm:timer:condition', ({ id, name, rounds }) => timers.conditionTimer(id, name, rounds));
+  dm('dm:concentrate', ({ id, spell }) => timers.concentrate(id, spell));
+  dm('dm:concentrate:drop', ({ id }) => timers.dropConcentration(id));
   dm('dm:clock:add', (f) => { if (state.clocks.length < 20) tracker.addClock(f); });
   dm('dm:clock:fill', ({ id, delta }) => tracker.fillClock(id, delta));
   dm('dm:clock:remove', ({ id }) => { state.clocks = state.clocks.filter((k) => k.id !== id); });
@@ -326,8 +332,9 @@ module.exports = function dmSockets(socket) {
   });
 
   // ----- social -----
-  dm('dm:npc', ({ name, hue, faction }) => {
+  dm('dm:npc', ({ name, hue, faction, style }) => {
     if (name) state.social.npc.name = String(name).slice(0, 40);
+    if (style !== undefined) state.social.npc.style = speech.styleFor(style);
     if (hue !== undefined) state.social.npc.hue = Number(hue) % 360;
     if (faction !== undefined) {
       state.social.npc.faction = factions.find(state, faction) ? faction : null;
@@ -376,14 +383,22 @@ module.exports = function dmSockets(socket) {
     broadcast();
     ack?.({ ok: true });
   });
-  dm('dm:say', ({ text }) => {
+  dm('dm:say', ({ text, lang }) => {
     text = String(text || '').trim().slice(0, 500);
     if (!text) return;
     const { npc } = state.social;
-    state.social.line = { speaker: npc.name, text, emotion: npc.emotion };
+    const tongue = str(lang, 30);
+    const line = { speaker: npc.name, text, emotion: npc.emotion, style: npc.style || null };
+    if (tongue) Object.assign(line, { lang: tongue, gloss: [] }); // in a tongue: scrambled until glossed
+    state.social.line = line;
     state.social.caption = '';
-    log('npc', text, { who: npc.name, emotion: npc.emotion });
+    if (!tongue) return log('npc', text, { who: npc.name, emotion: npc.emotion });
+    log('npc', speech.scramble(text), { who: npc.name, emotion: npc.emotion });
+    log('npc', `(${tongue}) ${text}`, { who: npc.name, emotion: npc.emotion, vis: 'dm' });
   });
+  // Phase D: the DM lets one character, or everyone ('*'), read the current line in its tongue.
+  dm('dm:gloss', ({ to, on }) => speech.gloss(state.social.line, to === '*' ? '*' : String(to || ''), !!on));
+  dm('dm:intro', (f) => speech.showIntro(f));
   dm('dm:caption', ({ text }) => { state.social.caption = String(text || '').slice(0, 500); });
   dm('dm:choices', ({ choices }) => {
     state.social.choices = (choices || []).map((c) => String(c).trim().slice(0, 120)).filter(Boolean).slice(0, 4);

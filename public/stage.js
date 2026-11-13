@@ -200,7 +200,7 @@
       <div class="vn-right">${right}</div>
       <div class="vn-box emo-${emo} ${line.player ? 'player-line' : ''}" style="${pc ? accent(pc) : ''}">
         <div class="vn-name">${esc(line.speaker)}${line.player ? '' : ` <small>${EMO[npc.emotion].icon}</small>`}</div>
-        <div class="vn-text"><span data-tw="vn">${text}</span></div>
+        <div class="vn-text"><span data-tw="vn" class="vn-words${line.style ? ` ns-${line.style.font} nc-${line.style.color}` : ''}${line.scrambled ? ' scrambled' : ''}">${text}</span></div>
         ${caption ? `<div class="vn-caption">🎙 ${esc(caption)}…</div>` : ''}
         ${!compact && s.social.choices.length ? `<ol class="vn-choices">${s.social.choices.map((c) => `<li>${esc(c)}</li>`).join('')}</ol>` : ''}
       </div>
@@ -366,7 +366,7 @@
         <aside class="stage-log">${logFeed(s, 9, new Set(s.settings?.display?.hideLog || []))}</aside>
       </main>
       <footer>${party(s)}</footer>
-      ${spotlightCard(s)}${bossCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}`;
     // Puzzle solve: the card pops once, then the solution words land one by one.
     const pz = ui.querySelector('.pz-card.solved');
     if (pz && root.dataset.pzDone !== pz.dataset.id) {
@@ -441,6 +441,12 @@
   }
 
   // Boss title card (item 7b): a short banner over the stage when a boss fight opens.
+  // Phase D: "Previously on..." card with the campaign, session number and recap lines. Shown for a while, then removed.
+  function introCard(s) {
+    const c = s.introCard;
+    if (!c) return '';
+    return `<div class="intro-card" data-n="${c.n}"><div class="ic-kicker">Previously on</div><h2>${esc(c.campaign || 'Our story')}</h2><p class="ic-session">Session ${c.session}</p><ol>${(c.lines || []).map((l) => `<li>${esc(l)}</li>`).join('')}</ol></div>`;
+  }
   function bossCard(s) {
     const b = s.bossCard;
     if (!b || !s.combat.active) return '';
