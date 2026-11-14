@@ -4,6 +4,15 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Changed
+- DM tools column can be minimized: « in its header slides it away (animated), and a grip on the left screen edge brings it back with a click, a drag to the right (the column follows the pointer; a short drag snaps shut), or the right arrow key. The choice is remembered on that laptop (`public/js/dm/dock.js`).
+- Chronicle look for the DM page and phones (`public/chronicle.css`, `public/chronicle.js`): charcoal panels, muted gold accents, small-caps labels. The TV is unchanged, and the TV preview on the DM page keeps the TV's look.
+  - DM page in three columns: tools on the left (sidebar tabs now show a short label under each icon), the story in the middle, the hero on the right. Every existing card, tab and control is where it was inside its tab.
+  - Pill bar over the stage: day, time of day, location (scene title), quest (open objectives) and coins. Phones show their own quest and coins; the DM sees party coins. A pill flashes when its value changes.
+  - Story feed under the TV preview: narration as prose, NPC and player lines in bordered dialogue boxes with a round portrait and the speaker in small caps. New lines slide in. The phone's Logs tab uses the same feed with its filters.
+  - Hero column on the DM page: pick a party member, see a large portrait, name with an edit button (opens the character editor), level, HP and a resource bar (spell slots, mana or stamina, else hit dice), then Stats or Bio.
+  - Phone header is a hero card with the same bars; tap Stats or Bio to open the ability list or backstory, tap again to close. The pencil opens the profile editor.
+
 ### Added
 - Each session opens on the world map: when the server starts, and on Next session, the table switches to exploration with the world map on the TV. The DM turns this off with "Open each session here" in the World map tab, and the map must have a picture or places. Combat and social now take the TV back from the world map. Untick "Show on TV" to move from the map to the exploration stage.
 - World map roads, fog of war and town links. The DM draws roads between places (+ Road, then tap two places) and sets each road's length in legs. A party at a place travels by the shortest road route, one leg per road, passing through each place on the way (each stop ticks travel clocks and spreads rumours). With no road it heads straight there, as before. Fog of war hides places the party has not seen and roads it does not know; arriving somewhere uncovers the roads out of it and the places at their ends. A fogged destination or vote option shows as ???. The DM can turn fog on or off, reveal or fog everything, and tick any place or road in or out of the fog. A place can link to a living-world town by id, so prices, clocks and rumours no longer depend on matching names (an unlinked place still falls back to the name). Phones show how many legs a place is by known roads; the TV title names the stops on the way.
