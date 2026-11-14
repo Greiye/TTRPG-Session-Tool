@@ -10,9 +10,10 @@ import socialView from './views/social.js';
 import combatView from './views/combat.js';
 import * as Fx from './fx.js';
 
-const { esc, hpBar } = Stage;
+const { esc } = Stage;
 const VIEWS = { exploration: exploreView, social: socialView, combat: combatView };
 let lastMode = null;
+let heroView = 'none'; // hero card: 'none' (bars only), 'stats' or 'bio'
 
 function render() {
   const S = state();
@@ -21,9 +22,13 @@ function render() {
   if (!c) return;
   if (lastMode && lastMode !== S.mode) navigator.vibrate?.(80);
   lastMode = S.mode;
-  $('#me').innerHTML = `${Stage.avatar(c, 'av-me')}<div class="me-info"><b>${esc(c.name)}</b><small class="muted">${esc([c.race, c.cls].filter(Boolean).join(' '))} · ${esc(S.rules.defenseLabel)} ${c.ac} · ${S.mode}</small></div><div class="me-tools"><button class="btn small" id="profBtn">✎ Profile</button><button class="btn small" id="fsBtn" title="Full screen" aria-label="Full screen">⛶</button><button class="btn small" id="awakeBtn" title="Keep the screen on" aria-pressed="${Fx.awake()}">☀</button></div>${hpBar(c)}`;
+  // Hero card (public/chronicle.js): bars always, Stats or Bio opens below when tapped.
+  $('#me').innerHTML = `${Chronicle.hero(c, S, { view: heroView, editAttr: 'data-prof', compact: true })}<div class="me-tools"><button class="btn small" id="profBtn">✎ Profile</button><button class="btn small" id="fsBtn" title="Full screen" aria-label="Full screen">⛶</button><button class="btn small" id="awakeBtn" title="Keep the screen on" aria-pressed="${Fx.awake()}">☀</button><small class="muted me-mode">${esc(S.mode)}</small></div>`;
   Anim.hydrate($('#me'));
+  $('#pills').innerHTML = Chronicle.pills(S, c);
   $('#profBtn').onclick = openProfile;
+  $('#me [data-prof]').onclick = openProfile;
+  $('#me').querySelectorAll('[data-hero-view]').forEach((b) => { b.onclick = () => { heroView = heroView === b.dataset.heroView ? 'none' : b.dataset.heroView; render(); }; });
   $('#fsBtn').onclick = () => Fx.fullscreen();
   $('#awakeBtn').onclick = () => Fx.toggleAwake();
   Fx.watchHp(c.hp, c.maxHp);

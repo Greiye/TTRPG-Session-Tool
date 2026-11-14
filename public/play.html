@@ -8,9 +8,10 @@
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/dungeon.css">
   <link rel="stylesheet" href="/worldmap.css">
+  <link rel="stylesheet" href="/chronicle.css">
   <script src="/settings.js"></script>
 </head>
-<body class="phone">
+<body class="phone chron">
   <section id="joinView">
     <h1>Who are you?</h1>
     <p id="joinErr" class="err"></p>
@@ -62,6 +63,7 @@
 
   <section id="gameView" hidden>
     <div id="me" class="me"></div>
+    <div id="pills" class="pills" aria-label="Day, time, place, quest and coins"></div>
     <nav id="tabs" class="tabs"></nav>
     <div id="tabSheet" class="tab-body" hidden></div>
     <div id="tabPlay">
@@ -78,6 +80,7 @@
   <script src="/anim.js"></script>
   <script src="/dungeon.js"></script>
   <script src="/stage.js"></script>
+  <script src="/chronicle.js"></script>
   <script src="/worldmap.js"></script>
   <script src="/rollpop.js"></script>
   <script type="module" src="/js/play/main.js"></script>

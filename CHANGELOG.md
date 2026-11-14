@@ -4,6 +4,15 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Changed
+- DM tools column can be minimized: « in its header slides it away (animated), and a grip on the left screen edge brings it back with a click, a drag to the right (the column follows the pointer; a short drag snaps shut), or the right arrow key. The choice is remembered on that laptop (`public/js/dm/dock.js`).
+- Chronicle look for the DM page and phones (`public/chronicle.css`, `public/chronicle.js`): charcoal panels, muted gold accents, small-caps labels. The TV is unchanged, and the TV preview on the DM page keeps the TV's look.
+  - DM page in three columns: tools on the left (sidebar tabs now show a short label under each icon), the story in the middle, the hero on the right. Every existing card, tab and control is where it was inside its tab.
+  - Pill bar over the stage: day, time of day, location (scene title), quest (open objectives) and coins. Phones show their own quest and coins; the DM sees party coins. A pill flashes when its value changes.
+  - Story feed under the TV preview: narration as prose, NPC and player lines in bordered dialogue boxes with a round portrait and the speaker in small caps. New lines slide in. The phone's Logs tab uses the same feed with its filters.
+  - Hero column on the DM page: pick a party member, see a large portrait, name with an edit button (opens the character editor), level, HP and a resource bar (spell slots, mana or stamina, else hit dice), then Stats or Bio.
+  - Phone header is a hero card with the same bars; tap Stats or Bio to open the ability list or backstory, tap again to close. The pencil opens the profile editor.
+
 ### Added
 - Dungeon nodes for exploration (`src/dungeon.js`, `public/dungeon.js`, `public/dungeon.css`): the tree starts on the left and branches to the right, one column per level, joined by rope lines, on a stone wall with flickering torches. Unvisited rooms are parchment cards, visited rooms are iron plates, and the party's room glows with a "Party" tag. Each card shows its kind and a badge (DC, CR or an icon). Unrevealed rooms one step past a revealed room show as fogged "???" cards on the TV and phones; DM notes never leave the DM. The DM builds the tree in Scene and fog (add rooms, ropes in and out, reveal, remove), clicks a room on the stage preview to edit it, and double-clicks to move the party. Phones see the board and a button for each way onward. A fresh table starts with an example dungeon. The board adapts as the party moves: on the TV and phones, levels two or more behind the party shrink to a trail of icons so the rooms ahead get more space, and cards glide to their new places.
 - The DM side panel can be minimized (⇥, or the [ key). A small "Tabs" handle stays on the right edge: click it, or drag it left to pull the panel out to any width. Drag the panel's left edge to resize it, or nearly shut to minimize. Width and state are kept per laptop.
