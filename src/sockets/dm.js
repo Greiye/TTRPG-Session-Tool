@@ -19,6 +19,7 @@ const rolls = require('../rolls');
 // Log types the DM can hide on the TV (display setting hideLog).
 const camp = require('../camp');
 const houserules = require('../houserules');
+const NARRATION_MAX = 10; // narrate posts kept under the scene description
 const LOG_KINDS = ['action', 'check', 'combat', 'downtime', 'narrate', 'npc', 'say', 'shop', 'system', 'notice'];
 const perception = require('../perception');
 const messages = require('../messages');
@@ -71,7 +72,7 @@ module.exports = function dmSockets(socket) {
     });
     state.scene.secrets ??= [];
     // A new place: TV fade and chapter card, and planned choice echoes count down a scene (src/moments.js).
-    if (state.scene.title !== before) moments.onNewScene(state);
+    if (state.scene.title !== before) { moments.onNewScene(state); state.narration = []; } // a new place starts a clean narration list
   });
   dm('dm:system', ({ id }) => {
     if (!rules.list().some((x) => x.id === id) || id === state.system) return;
@@ -159,6 +160,7 @@ module.exports = function dmSockets(socket) {
     const was = state.camp.open;
     const why = open && !was ? houserules.blockCamp(state) : null; // house rule (src/houserules.js)
     if (why) { log('system', why, { tone: 'bad' }); return; }
+    if (open && !was) require('../popups').only(state, 'camp');
     camp.setOpen(state.camp, open);
     if (state.camp.open && !was) log('system', 'Camp is set. Choose a short or long rest.', { tone: 'call' });
     if (!state.camp.open && was) log('system', 'Camp is over.', { tone: 'call' });
@@ -218,7 +220,17 @@ module.exports = function dmSockets(socket) {
     broadcast();
   });
   dm('dm:shop:open', ({ id, open }) => { const s = state.shops.find((x) => x.id === id); if (s) s.open = !!open; });
-  dm('dm:shop:remove', ({ id }) => { state.shops = state.shops.filter((s) => s.id !== id); });
+  dm('dm:shop:remove', ({ id }) => { state.shops = state.shops.filter((s) => s.id !== id); if (state.shopPop?.shopId === id) state.shopPop = null; });
+  // Shop pop-up (Mike, Nov 14): the TV shows the shop and how many are still shopping; phones get a buy and
+  // sell list. Popping a shop opens it for trade. id null closes the pop-up.
+  dm('dm:shop:pop', ({ id }) => {
+    const s = id && state.shops.find((x) => x.id === id);
+    if (!s) { state.shopPop = null; return; }
+    require('../popups').only(state, 'shop');
+    s.open = true;
+    state.shopPop = { shopId: s.id, n: (state.shopPop?.n || 0) + 1, done: [] };
+    log('shop', `${s.name} is open for business${s.npc ? `: ${s.npc} lays out the wares` : ''}.`);
+  });
   // Share a handout with the TV (the group decides what goes on the big screen).
   dm('dm:share', ({ id, on }) => {
     const h = state.handouts.find((x) => x.id === id);
@@ -248,7 +260,13 @@ module.exports = function dmSockets(socket) {
   });
   dm('dm:boss:clear', () => { state.bossCard = null; });
 
-  dm('dm:narrate', ({ text }) => { if (text) log('narrate', String(text).slice(0, 400)); });
+  // Narrate bar: the post goes to the log and under the scene description, which keeps the newest 10.
+  dm('dm:narrate', ({ text }) => {
+    const t = String(text || '').trim().slice(0, 400);
+    if (!t) return;
+    log('narrate', t);
+    state.narration = [...(state.narration || []), { id: nextId(), text: t }].slice(-NARRATION_MAX);
+  });
   // ----- roll calls, dice, check presets (Phase 2) -----
   dm('dm:check', ({ skill, dc }) => { if (!skill) rolls.clear(); else rolls.call({ kind: 'skill', key: skill, dc }); }); // older clients
   dm('dm:call', (f) => { if (f.clear) rolls.clear(); else rolls.call(f); });

@@ -24,37 +24,64 @@ const defaults = () => ({
   book: { n: 0, open: false, entries: [] }, // journal snapshot shown as a book
   epilogue: null, // { n, slides: [{ kicker, title, text }] }
 });
-const storyDefault = () => ({ day: 1, hour: 9 });
+// Story clock: a day counter and five segments. No clock hours (Mike, Nov 14).
+const SEGMENTS = ['dawn', 'day', 'noon', 'dusk', 'night'];
+const SEG_NAMES = ['Dawn', 'Day', 'Noon', 'Dusk', 'Night'];
+const SEG_LIGHT = ['dawn', 'day', 'day', 'dusk', 'night']; // noon lights the TV like day
+const storyDefault = () => ({ day: 1, seg: 1, moved: 0 });
 
 const next = (tv) => { tv.seq = (tv.seq || 0) + 1; return tv.seq; };
-const hourOk = (h) => Number.isInteger(h) && h >= 0 && h <= 23;
 
-// Time of day sets the TV light: dawn 5-7, day 7-17, dusk 17-19, night otherwise.
-function storyLight(story) {
-  const h = story.hour;
-  if (h >= 5 && h < 7) return 'dawn';
-  if (h >= 7 && h < 17) return 'day';
-  if (h >= 17 && h < 19) return 'dusk';
-  return 'night';
+// Saves from before the five segments carry an hour; map it once.
+function segFromHour(h) {
+  if (h >= 5 && h < 7) return 0;
+  if (h >= 7 && h < 12) return 1;
+  if (h >= 12 && h < 17) return 2;
+  if (h >= 17 && h < 19) return 3;
+  return 4;
 }
-const clockLabel = (story) => `Day ${story.day} · ${String(story.hour).padStart(2, '0')}:00`;
+function segOf(story) {
+  if (Number.isInteger(story.seg) && story.seg >= 0 && story.seg < 5) return story.seg;
+  return segFromHour(Number(story.hour ?? 9));
+}
+// A segment from a number (0-4) or a name ('dusk'). Returns -1 when unreadable.
+function readSeg(v) {
+  if (typeof v === 'string' && SEGMENTS.includes(v.toLowerCase())) return SEGMENTS.indexOf(v.toLowerCase());
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 0 && n < 5 ? n : -1;
+}
+const storyLight = (story) => SEG_LIGHT[segOf(story)];
+const clockLabel = (story) => `Day ${story.day} · ${SEG_NAMES[segOf(story)]}`;
 // What the TV and phones get: the label and light are derived here, so every screen agrees.
-const storyView = (story) => ({ day: story.day, hour: story.hour, label: clockLabel(story), light: storyLight(story) });
+// moved counts clock changes, so the TV shows its time card and plays the segment sound once per change.
+const storyView = (story) => {
+  const seg = segOf(story);
+  return { day: story.day, seg, segment: SEGMENTS[seg], name: SEG_NAMES[seg], label: clockLabel(story), light: SEG_LIGHT[seg], moved: story.moved || 0 };
+};
 
-function setTime(story, day, hour) {
-  const d = Number(day), h = Number(hour);
-  if (!Number.isInteger(d) || d < 1 || d > 9999 || !hourOk(h)) return false;
-  story.day = d; story.hour = h;
+// Returns true only when the day or segment really changed.
+function touch(story, before) {
+  delete story.hour;
+  if (before === `${story.day}:${story.seg}`) return false;
+  story.moved = (story.moved || 0) + 1;
   return true;
 }
-// Adds whole hours and rolls the day over at midnight.
-function advance(story, hours) {
-  const add = Math.floor(Number(hours));
-  if (!(add >= 0 && add <= 24 * 365)) return false;
-  const total = (story.day - 1) * 24 + story.hour + add;
-  story.day = Math.floor(total / 24) + 1;
-  story.hour = total % 24;
-  return true;
+function setTime(story, day, seg) {
+  const d = Number(day), sg = readSeg(seg);
+  if (!Number.isInteger(d) || d < 1 || d > 9999 || sg < 0) return false;
+  const before = `${story.day}:${segOf(story)}`;
+  story.day = d; story.seg = sg;
+  return touch(story, before);
+}
+// Moves on whole segments; Night rolls over to Dawn of the next day.
+function advance(story, segs = 1) {
+  const add = Math.floor(Number(segs));
+  if (!(add >= 1 && add <= 5 * 365)) return false;
+  const before = `${story.day}:${segOf(story)}`;
+  const total = (story.day - 1) * 5 + segOf(story) + add;
+  story.day = Math.floor(total / 5) + 1;
+  story.seg = total % 5;
+  return touch(story, before);
 }
 
 function transition(tv, kind) {
@@ -157,7 +184,7 @@ function onNewScene(s) {
 }
 
 module.exports = {
-  TRANSITIONS, defaults, storyDefault, storyLight, storyView, clockLabel, setTime, advance,
+  TRANSITIONS, SEGMENTS, SEG_NAMES, defaults, storyDefault, storyLight, storyView, clockLabel, setTime, advance, segOf,
   transition, pause, chapter, entrance, quoteAdd, quoteRemove, echoPlant, echoFire, echoCancel, echoTick,
   relicAdd, relicReveal, relicRemove, relicClose, bookSet, epilogueStart, epilogueEnd, onNewScene,
 };

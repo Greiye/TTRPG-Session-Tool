@@ -108,4 +108,28 @@ function buy(shop, c, itemId, qty, mult = 1) {
   return { item, qty: n, cost: costCp / 100 };
 }
 
-module.exports = { money, clampGold, parseList, create, buy, unitCp, MAX_SHOPS };
+// A character sells qty of an inventory item to a shop that lists an item of the same name, for half its
+// price (after the faction multiplier). A limited stock goes back up. Returns { item, qty, gain } or { error }.
+const SELL_SHARE = 0.5;
+function sell(shop, c, invId, qty, mult = 1) {
+  if (!shop.open) return { error: `${shop.name} is closed right now.` };
+  const owned = (c.inventory || []).find((x) => x.id === invId);
+  if (!owned) return { error: 'You do not have that.' };
+  const item = shop.items.find((i) => i.name.toLowerCase() === owned.name.toLowerCase());
+  if (!item) return { error: `${shop.name} does not buy ${owned.name}.` };
+  const n = Math.min(int(qty, 1, 999, 1), owned.qty);
+  const gainCp = Math.floor(unitCp(item, mult) * SELL_SHARE) * n;
+  c.gold = Math.round((c.gold || 0) * 100 + gainCp) / 100;
+  owned.qty -= n;
+  if (owned.qty <= 0) c.inventory = c.inventory.filter((x) => x !== owned);
+  if (item.stock !== null) item.stock = Math.min(9999, item.stock + n);
+  return { item, qty: n, gain: gainCp / 100 };
+}
+// What a phone may sell here: its inventory lines this shop lists, with the offer per unit.
+function offers(shop, c, mult = 1) {
+  const byName = new Map(shop.items.map((i) => [i.name.toLowerCase(), i]));
+  return (c?.inventory || []).filter((x) => byName.has(x.name.toLowerCase()))
+    .map((x) => ({ id: x.id, name: x.name, qty: x.qty, offer: Math.floor(unitCp(byName.get(x.name.toLowerCase()), mult) * SELL_SHARE) / 100 }));
+}
+
+module.exports = { money, clampGold, parseList, create, buy, sell, offers, unitCp, MAX_SHOPS, SELL_SHARE };

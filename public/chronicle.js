@@ -3,12 +3,8 @@
 (function () {
   const { esc, portrait, avatar } = Stage;
 
-  const TOD = [[5, 'Dawn', '🌅'], [7, 'Morning', '☀️'], [12, 'Afternoon', '🌤'], [17, 'Dusk', '🌇'], [19, 'Evening', '🌙'], [23, 'Night', '🌑']];
-  function timeOfDay(h = 9) {
-    let out = ['Night', '🌑'];
-    for (const [from, name, icon] of TOD) if (h >= from) out = [name, icon];
-    return out;
-  }
+  // Story clock segments (src/moments.js): Dawn, Day, Noon, Dusk, Night.
+  const TOD_ICON = { dawn: '🌅', day: '☀️', noon: '🌞', dusk: '🌇', night: '🌙' };
   const money = (n) => (Math.round((n || 0) * 100) / 100).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
   // Pills flash when their value changes, so a time skip or a purchase is noticed.
@@ -21,14 +17,13 @@
 
   // Day, time of day, location, quest, coins. `me` is the phone's character; the DM passes none.
   function pills(S, me = null) {
-    const st = S.story || { day: 1, hour: 9 };
-    const [tod, todIcon] = timeOfDay(st.hour);
+    const st = S.story || { day: 1, segment: 'day', name: 'Day' };
     const objs = (S.objectives || []).filter((o) => !o.done && (!me || o.charId === me.id));
     const quest = objs[0] ? objs[0].title + (objs.length > 1 ? ` +${objs.length - 1}` : '') : '—';
     const coins = me ? me.gold : (S.players || []).reduce((n, p) => n + (p.gold || 0), 0);
     return [
       pill('day', '📅', 'Day', String(st.day)),
-      pill('tod', todIcon, '', tod, `${String(st.hour).padStart(2, '0')}:00`),
+      pill('tod', TOD_ICON[st.segment] || '☀️', '', st.name || 'Day', 'Time of day'),
       pill('loc', '📍', '', S.scene?.title || 'Somewhere'),
       pill('quest', '📜', 'Quest', quest),
       pill('coins', '🪙', me ? 'Coins' : 'Party coins', money(coins)),
@@ -112,5 +107,5 @@
     </div>`;
   }
 
-  window.Chronicle = { pills, feed, hero, timeOfDay };
+  window.Chronicle = { pills, feed, hero };
 })();

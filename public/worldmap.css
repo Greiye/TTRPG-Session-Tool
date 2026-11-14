@@ -59,3 +59,19 @@
 /* The dot, not the dot plus its label, sits on the place's point, so roads meet the dots. */
 .wm-node { transform: translate(-50%, -7px); }
 .wm-tv .wm-node { transform: translate(-50%, -11px); }
+/* Reveal (Nov 14): the map unrolls on the TV, then the roads and places drop in one by one. */
+.wm-revealing .wm-head { animation: wm-head-in .7s ease-out both; animation-delay: var(--wm-t, 0ms); }
+.wm-revealing .wm-pic { animation: wm-unroll 1.3s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--wm-t, 0ms); transform-origin: 50% 0; }
+.wm-revealing .wm-roads { animation: wm-fade 1s ease-out both; animation-delay: calc(var(--wm-t, 0ms) + 900ms); }
+.wm-revealing .wm-node { animation: wm-drop .5s cubic-bezier(.2,1.4,.4,1) both; animation-delay: calc(var(--wm-t, 0ms) + 1000ms + var(--i, 0) * 110ms); }
+.wm-revealing .wm-token { animation: wm-fade .6s ease-out both; animation-delay: calc(var(--wm-t, 0ms) + 1600ms); }
+@keyframes wm-unroll { from { clip-path: inset(0 0 100% 0); transform: perspective(900px) rotateX(18deg); filter: sepia(.6) brightness(.6); } to { clip-path: inset(0 0 0 0); transform: none; filter: none; } }
+@keyframes wm-drop { from { opacity: 0; translate: 0 -24px; scale: .6; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes wm-fade { from { opacity: 0; } }
+@keyframes wm-head-in { from { opacity: 0; transform: translateY(-14px); } }
+html[data-motion="reduce"] .wm-revealing * { animation-duration: .001ms !important; animation-delay: 0ms !important; }
+@media (prefers-reduced-motion: reduce) { .wm-revealing * { animation: none !important; } }
+/* DM: places can be dragged on the map page */
+.wm-board.dm .wm-node { touch-action: none; }
+.wm-board.dm .wm-node.dragging { cursor: grabbing; z-index: 3; }
+.wm-board.dm .wm-node.dragging i { box-shadow: 0 0 0 2px #120d14, 0 0 0 6px #7fd4ff66; }

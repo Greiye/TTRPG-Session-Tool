@@ -1,6 +1,7 @@
 // DM controls for TV moments (src/moments.js): transitions, dramatic pause, chapter and entrance cards,
-// quote wall, choice echoes, relics, the journal book, the story clock and the epilogue. The TV shows them.
-import { $, emit, onState } from '../client.js';
+// quote wall, choice echoes, relics and the journal book. The TV shows them. The story clock has its own card
+// under Scene > Clocks. The epilogue controls moved to archive/ (Mike, Nov 14: too close to other features).
+import { $, emit, onState, mount } from '../client.js';
 
 const { esc } = Stage;
 const SFX = ['', 'thunder', 'hit', 'magic', 'roar', 'bell', 'door', 'clash'];
@@ -43,16 +44,18 @@ card.innerHTML = `
   <div id="moRelics" class="list"></div>
   <div class="row"><b>Journal book</b>
     <button class="btn small" data-act="book" id="moBook">Open on the TV</button></div>
-  <div class="row"><b>Story clock</b> <small id="moClock" class="muted"></small>
-    <input id="moDay" type="number" min="1" value="1" title="Day" style="width:5em">
-    <input id="moHour" type="number" min="0" max="23" value="9" title="Hour (0 to 23)" style="width:5em">
-    <button class="btn small" data-act="time">Set</button>
-    <button class="btn small" data-act="plus" data-h="1">+1h</button>
-    <button class="btn small" data-act="plus" data-h="6">+6h</button>
-    <button class="btn small" data-act="plus" data-h="12">+12h</button></div>
-  <div class="row"><b>Epilogue</b>
-    <button class="btn small" data-act="epi">Start slideshow</button>
-    <button class="btn small" data-act="epiclose">End</button></div>`;
+`;
+
+// Story clock (Mike, Nov 14): five segments, Dawn, Day, Noon, Dusk and Night, and no clock hours. Each move
+// shows the day and segment on the TV for a few seconds with that segment's sound.
+const SEGS = [['dawn', '🌅', 'Dawn'], ['day', '☀️', 'Day'], ['noon', '🌞', 'Noon'], ['dusk', '🌇', 'Dusk'], ['night', '🌙', 'Night']];
+const clockCard = mount(`<div class="card" data-tab="scene" data-sub="clocks" id="storyCard">
+  <h3>Story clock <span class="note" id="moClock"></span></h3>
+  <div class="seg-row" id="moSegs">${SEGS.map(([id, icon, name], i) => `<button class="seg" data-seg="${i}" title="${name}"><i>${icon}</i><span>${name}</span></button>`).join('')}</div>
+  <div class="row"><label class="note tight">Day <input id="moDay" type="number" min="1" max="9999" value="1" style="width:5em"></label>
+    <button class="btn small" id="moDaySet">Set day</button><span class="grow"></span>
+    <button class="btn small primary" id="moNext" title="Night rolls over to Dawn of the next day">Next ▸</button></div>
+</div>`, '[data-tab="scene"][data-sub="clocks"]');
 
 let tv = {};
 let story = null;
@@ -65,8 +68,11 @@ onState((s) => {
   $('#moRelease').hidden = !tv.pause;
   $('#moBook').textContent = tv.book?.open ? 'Close the book' : 'Open on the TV';
   $('#moBook').dataset.act = tv.book?.open ? 'bookclose' : 'book';
-  $('#moClock').textContent = story ? `${story.label} · ${story.light}` : '';
-  if (story) { $('#moDay').value = story.day; $('#moHour').value = story.hour; }
+  $('#moClock').textContent = story ? story.label : '';
+  if (story) {
+    if (document.activeElement !== $('#moDay')) $('#moDay').value = story.day;
+    clockCard.querySelectorAll('[data-seg]').forEach((b) => b.classList.toggle('on', Number(b.dataset.seg) === story.seg));
+  }
   $('#moQuotes').innerHTML = (tv.quotes || []).map((q) => `<div class="item"><span>“${esc(q.text)}”${q.who ? ` <small class="muted">${esc(q.who)}</small>` : ''}</span>
     <button class="btn small danger" data-act="quoteremove" data-id="${esc(q.id)}">✕</button></div>`).join('') || '';
   $('#moEchoes').innerHTML = (tv.echoes || []).map((e) => `<div class="item"><span><b>${esc(e.decision)}</b> → ${esc(e.consequence)} <small class="muted">in ${e.left} scene${e.left === 1 ? '' : 's'}</small></span>
@@ -105,11 +111,14 @@ const actions = {
   relicclose: () => emit('dm:tv:relic:close'),
   book: () => emit('dm:tv:book', { open: true }),
   bookclose: () => emit('dm:tv:book', { open: false }),
-  time: () => emit('dm:story:set', { day: Number(val('moDay')), hour: Number(val('moHour')) }),
-  plus: (b) => emit('dm:story:advance', { hours: Number(b.dataset.h) }),
-  epi: () => emit('dm:tv:epilogue:start'),
-  epiclose: () => emit('dm:tv:epilogue:close'),
 };
+clockCard.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.seg) emit('dm:story:set', { day: story?.day || 1, seg: Number(b.dataset.seg) });
+  else if (b.id === 'moDaySet') emit('dm:story:set', { day: Number(val('moDay')), seg: story?.seg ?? 1 });
+  else if (b.id === 'moNext') emit('dm:story:advance', { segs: 1 });
+});
 card.addEventListener('click', (e) => {
   const b = e.target.closest('[data-act]');
   if (b && actions[b.dataset.act]) actions[b.dataset.act](b);

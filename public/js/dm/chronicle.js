@@ -1,13 +1,11 @@
-// Chronicle layout on the DM page: the pill bar over the stage, the story feed, the hero column,
-// and short labels under the sidebar tab icons. Pieces are drawn by public/chronicle.js.
-import { $, $$, onState, state } from '../client.js';
+// Chronicle layout on the DM page: the pill bar over the stage, the story feed, the hero column
+// (the sidebar tab list has its own labels, see modes.js). Pieces are drawn by public/chronicle.js.
+import { $, onState, state } from '../client.js';
 
 let pick = null; // character id shown in the hero column
 let view = 'stats';
 try { view = localStorage.getItem('dmHeroView') || 'stats'; } catch { /* private mode */ }
 
-const SHORT = { rolls: 'Rolls', combat: 'Combat', party: 'Party', messages: 'Inbox', logs: 'Logs', legends: 'Legends', scene: 'Scene', world: 'World', npc: 'NPCs', backdrop: 'Stage', lights: 'Lights', clocks: 'Clocks', table: 'Table', moments: 'Moments', quiz: 'Quiz', puzzle: 'Puzzle', web: 'Web', notes: 'Journal', camp: 'Camp', codm: 'Co-DM', campaign: 'Saves' };
-$$('[data-stab]').forEach((b) => { b.dataset.short = SHORT[b.dataset.stab] || b.title.split(/[ ,]/)[0]; });
 
 function renderHero(S) {
   const party = S.players || [];
@@ -22,7 +20,6 @@ onState((S) => {
   $('#pills').innerHTML = Chronicle.pills(S);
   Chronicle.feed($('#feed'), S);
   renderHero(S);
-  $('#toolsMode').textContent = S.mode;
 });
 
 document.querySelector('.dm-hero').addEventListener('click', (e) => {

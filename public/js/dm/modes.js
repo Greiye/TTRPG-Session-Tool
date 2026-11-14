@@ -1,22 +1,50 @@
-// Live mode switch, sidebar icon tabs, panel visibility, session reset.
+// Modes card: the live mode switch, Planning Mode, the world map page, the list of sidebar tabs, and the
+// small part chips inside a tab (Scene and Miscellaneous). Session reset lives here too.
+//
+// Cards say where they live with data attributes:
+//   data-tab="scene"     the tab that shows the card
+//   data-sub="clocks"    the part of that tab (a chip row appears when a tab has parts)
+//   data-panel="combat"  the live modes the card shows in (no attribute: every mode)
+// Planning Mode (a DM-only view, saved on this laptop) shows the tab groups marked data-plan.
 import { $, $$, emit, onState, onClick, state } from '../client.js';
 
-// Sidebar tabs: each card has data-tab. Cards with data-panel also follow the live mode.
 const KINDS = ['action', 'check', 'combat', 'downtime', 'narrate', 'npc', 'say', 'shop', 'system', 'notice'];
 const KIND_NAMES = { action: 'Actions', check: 'Checks', combat: 'Combat', downtime: 'Downtime', narrate: 'Narration', npc: 'NPC speech', say: 'Player speech', shop: 'Shops', system: 'System', notice: 'Notices' };
-let tab = localStorage.getItem('dmSideTab') || 'rolls';
+const SUB_NAMES = {
+  scene: 'Scene', stage: 'Stage and music', clocks: 'Clocks', moments: 'TV moments', puzzle: 'Puzzles',
+  lights: 'Smart lights', table: 'Table tools', quiz: 'Recap quiz', web: 'Relations web', journal: 'Notes and journal', camp: 'Camp and downtime', codm: 'Co-DM', data: 'Campaign data',
+};
+const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
+
+let tab = load('dmSideTab', 'rolls');
+let subs = {};
+try { subs = JSON.parse(load('dmSideSubs', '{}')) || {}; } catch { subs = {}; }
+let planning = load('dmPlanning', '') === '1';
+let mapPage = load('dmMapPage', '') === '1';
 let mode = 'exploration';
 let kindsKey = null;
 
-// Tabs follow the live mode: a tab shows only when a card under it is visible in this mode, and an
-// empty group hides with it. If the open tab disappears, the first visible one opens (the saved choice stays).
+const inMode = (c) => !c.dataset.panel || c.dataset.panel.split(' ').includes(mode);
+const planTab = (id) => !!$(`[data-group][data-plan] [data-stab="${id}"]`);
+
+// A tab shows when a card under it fits this mode; planning tabs only in Planning Mode.
 function visibleTabs() {
   const ok = new Set();
-  $$('[data-tab]').forEach((c) => { if (!c.dataset.panel || c.dataset.panel.split(' ').includes(mode)) ok.add(c.dataset.tab); });
+  $$('[data-tab]').forEach((c) => { if (inMode(c) && (planning || !planTab(c.dataset.tab))) ok.add(c.dataset.tab); });
   return ok;
 }
 
 function apply() {
+  document.body.classList.toggle('planning', planning);
+  document.body.classList.toggle('map-page', mapPage);
+  $('#planToggle')?.classList.toggle('on', planning);
+  $('#planToggle')?.setAttribute('aria-pressed', String(planning));
+  $('#mapToggle')?.classList.toggle('on', mapPage);
+  $('#mapToggle')?.setAttribute('aria-pressed', String(mapPage));
+  $('#tablePage').hidden = mapPage;
+  $('#wmPage').hidden = !mapPage;
+
   const vis = visibleTabs();
   if (!vis.has(tab)) tab = $$('[data-stab]').map((b) => b.dataset.stab).find((id) => vis.has(id)) || tab;
   $$('[data-stab]').forEach((b) => {
@@ -28,18 +56,30 @@ function apply() {
   $$('.tab-group').forEach((g) => { g.hidden = ![...g.querySelectorAll('[data-stab]')].some((b) => !b.hidden); });
   const title = $('#sideTitle');
   if (title) title.textContent = $(`[data-stab="${tab}"]`)?.title || '';
+
+  // Parts of the open tab that have a card in this mode, in SUB_NAMES order.
+  const parts = [];
+  $$(`[data-tab="${tab}"][data-sub]`).forEach((c) => { if (inMode(c) && !parts.includes(c.dataset.sub)) parts.push(c.dataset.sub); });
+  const order = Object.keys(SUB_NAMES);
+  parts.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  let sub = subs[tab];
+  if (!parts.includes(sub)) sub = parts[0] || null;
+  $('#subTabs').innerHTML = parts.length > 1 ? parts.map((p) => `<button role="tab" class="chip ${p === sub ? 'on' : ''}" aria-selected="${p === sub}" data-sub-pick="${p}">${SUB_NAMES[p] || p}</button>`).join('') : '';
+  $('#subTabs').hidden = parts.length < 2;
+
   $$('[data-tab]').forEach((c) => {
-    const panelOk = !c.dataset.panel || c.dataset.panel.split(' ').includes(mode);
-    c.hidden = !(c.dataset.tab === tab && panelOk);
+    c.hidden = !(c.dataset.tab === tab && inMode(c) && (!c.dataset.sub || c.dataset.sub === sub));
   });
   $$('[data-panel]:not([data-tab])').forEach((p) => { p.hidden = !p.dataset.panel.split(' ').includes(mode); });
 }
 
 function showTab(id) {
   tab = id;
-  try { localStorage.setItem('dmSideTab', id); } catch { /* private mode */ }
+  save('dmSideTab', id);
   apply();
 }
+// Other modules can open a tab (and a part of it): window.dmShowTab('scene', 'clocks').
+window.dmShowTab = (id, sub) => { if (sub) { subs[id] = sub; save('dmSideSubs', JSON.stringify(subs)); } showTab(id); };
 
 // TV log filter: one checkbox per log type, saved to the table setting (hideLog).
 function drawKinds(s) {
@@ -70,6 +110,25 @@ $('#tvLogKinds')?.addEventListener('change', (e) => {
 $('#sideTabs')?.addEventListener('click', (e) => {
   const b = e.target.closest('[data-stab]');
   if (b) showTab(b.dataset.stab);
+});
+$('#subTabs')?.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-sub-pick]');
+  if (!b) return;
+  subs[tab] = b.dataset.subPick;
+  save('dmSideSubs', JSON.stringify(subs));
+  apply();
+});
+$('#planToggle')?.addEventListener('click', () => {
+  planning = !planning;
+  save('dmPlanning', planning ? '1' : '');
+  if (planning) tab = 'shops'; // open on the first planning tab
+  apply();
+});
+$('#mapToggle')?.addEventListener('click', () => {
+  mapPage = !mapPage;
+  save('dmMapPage', mapPage ? '1' : '');
+  apply();
+  document.dispatchEvent(new CustomEvent('dm:page', { detail: { map: mapPage } }));
 });
 
 // Entering social mode with a cast on the scene asks who speaks first (the DM picks an NPC or item).

@@ -1,19 +1,21 @@
-// DM: the world map. Place towns and sites on the picture, run votes and travel (with an override), and shape
-// the road cards: a DM deck drawn first, an auto table the DM can edit or switch off, vetoes and lore.
+// DM: the world map. It is a page, not a sidebar card (Mike, Nov 14): the Modes card's World map button swaps
+// the DM's main column for it. Place towns and sites on the picture (tap to edit, drag to move), run votes
+// and travel (with an override), and veto or reveal road cards as they come up. Road cards draw on their own
+// while the party travels; the deck, the auto table and how often a card shows are edited in Planning Mode
+// (the Road cards tab).
 import { $, emit, call, onState, onClick, mount, state } from '../client.js';
 import { dmKey } from './auth.js';
 
 const { esc } = Stage;
 const WM = () => window.WorldMap;
 
-mount(`<div class="card" data-tab="world">
+mount(`<div class="card wm-page-card">
   <h3>World map <span class="note">places, votes, travel and road cards</span></h3>
   <div class="row wrap">
     <label class="btn small">⬆ Map picture<input type="file" accept="image/*" id="wmFile" hidden></label>
     <label class="chk"><input type="checkbox" id="wmTv"> Show on TV</label>
     <label class="chk" title="When the server starts and on Next session: exploration mode with the world map on the TV"><input type="checkbox" id="wmOpen"> Open each session here</label>
     <label class="note tight">Leg (s) <input id="wmLeg" type="number" min="5" max="1800" style="width:72px"></label>
-    <label class="note tight">Card every (s) <input id="wmCard" type="number" min="5" max="600" style="width:72px"></label>
   </div>
   <div class="row wrap">
     <label class="chk"><input type="checkbox" id="wmFog"> Fog of war</label>
@@ -21,12 +23,19 @@ mount(`<div class="card" data-tab="world">
     <button class="btn small" id="wmFogNone">Fog all</button>
     <span class="note">Under fog the table sees places the party has seen and roads it knows. Arriving uncovers the roads out and the places at their ends.</span>
   </div>
-  <div class="row"><button class="btn small" id="wmPlace">+ Place</button><button class="btn small" id="wmRoad">+ Road</button><span class="note" id="wmHint">Tap a place to edit it.</span></div>
+  <div class="row"><button class="btn small" id="wmPlace">+ Place</button><button class="btn small" id="wmRoad">+ Road</button><span class="note" id="wmHint">Tap a place to edit it, drag it to move it.</span></div>
   <div id="wmBoard"></div>
   <div id="wmEdit"></div>
   <h4>Vote</h4>
   <div id="wmVote"></div>
-  <h4>Road cards</h4>
+  <h4>Road cards <span class="note">drawn on their own while the party travels · edit them in Planning Mode</span></h4>
+  <div id="wmCards"></div>
+</div>`, '#wmPageEnd');
+
+// Planning Mode: the road card deck, the auto table and how often a card comes up.
+mount(`<div class="card" data-tab="roads">
+  <h3>Road cards <span class="note">a DM deck drawn first, then the auto table</span></h3>
+  <div class="row"><label class="note tight">A card every <input id="wmCard" type="number" min="5" max="600" style="width:72px"> seconds while travelling</label></div>
   <form id="wmDeck" class="row wrap">
     <input id="wmDeckText" class="grow" maxlength="200" placeholder="DM card, e.g. A cart with a broken axle">
     <input id="wmDeckLore" class="grow" maxlength="600" placeholder="Lore (hidden until you reveal it)">
@@ -34,8 +43,7 @@ mount(`<div class="card" data-tab="world">
   </form>
   <div class="row"><button class="btn small" id="wmDraw">Draw a card now</button><span class="note">Deck first, then the table.</span></div>
   <div id="wmDeckList"></div>
-  <div id="wmCards"></div>
-  <h4>Auto table <span class="note">random picks for road cards: edit, switch off, or veto</span></h4>
+  <h4>Auto table <span class="note">random picks for road cards: edit, switch off, or weight</span></h4>
   <div id="wmTable"></div>
   <form id="wmTableForm" class="row"><input id="wmTableText" class="grow" maxlength="200" placeholder="New table entry"><button class="btn small">Add</button></form>
 </div>`, '#atmo');
@@ -124,7 +132,7 @@ function draw(S) {
   $('#wmFog').checked = !!wm.fog;
   hint();
 
-  $('#wmBoard').innerHTML = WM().board(S, { dm: true, selected: selId, selRoad, from: roadFrom });
+  if (!drag) $('#wmBoard').innerHTML = WM().board(S, { dm: true, selected: selId, selRoad, from: roadFrom });
   const sel = wm.nodes.find((n) => n.id === selId);
   if (!sel) selId = null;
   once('#wmEdit', JSON.stringify([sel, wm.here, !!wm.travel, wm.fog, wm.roads, selRoad, (S.living?.towns || []).map((t) => t.id + t.name)]), sel ? editorHtml(S, sel) : '');
@@ -146,11 +154,46 @@ function hint() {
   $('#wmRoad').classList.toggle('on', roading);
   $('#wmHint').textContent = placing ? 'Tap the picture to place a new place.'
     : roading ? (roadFrom ? 'Now tap the place the road leads to.' : 'Tap the place the road starts from.')
-    : 'Tap a place to edit it, or a road to pick it.';
+    : 'Tap a place to edit it, drag it to move it, or tap a road to pick it.';
 }
+
+// Drag a place to move it. A press that moves less than a few pixels is a tap, so the click below still selects.
+let drag = null;
+let dragged = false;
+$('#wmBoard').addEventListener('pointerdown', (e) => {
+  const n = e.target.closest('[data-node]');
+  if (!n || e.button !== 0 || placing || roading) return;
+  const pic = n.closest('.wm-pic');
+  drag = { id: n.dataset.node, el: n, pic: pic.getBoundingClientRect(), x0: e.clientX, y0: e.clientY, moved: false };
+  n.setPointerCapture(e.pointerId);
+});
+$('#wmBoard').addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 5) return;
+  drag.moved = true;
+  drag.el.classList.add('dragging');
+  const r = drag.pic;
+  drag.x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+  drag.y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+  drag.el.style.left = `${drag.x * 100}%`;
+  drag.el.style.top = `${drag.y * 100}%`;
+});
+function dragEnd(e) {
+  if (!drag) return;
+  const d = drag;
+  drag = null;
+  if (!d.moved || e.type === 'pointercancel') { if (last) draw(last); return; }
+  dragged = true; // swallow the click that follows the drag
+  setTimeout(() => { dragged = false; }, 0);
+  selId = d.id;
+  emit('dm:worldmap:node', { id: d.id, x: d.x, y: d.y });
+}
+$('#wmBoard').addEventListener('pointerup', dragEnd);
+$('#wmBoard').addEventListener('pointercancel', dragEnd);
 
 // Board: tap a place to select it; with Place on, tap the picture to add one there; with Road on, tap two places.
 $('#wmBoard').addEventListener('click', async (e) => {
+  if (dragged) return;
   const n = e.target.closest('[data-node]');
   if (n && roading) {
     if (!roadFrom) roadFrom = n.dataset.node;

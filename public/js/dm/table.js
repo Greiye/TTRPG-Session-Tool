@@ -7,7 +7,7 @@ const MODES = ['exploration', 'combat', 'social'];
 const LAYOUTS = [['auto', 'Auto'], ['social', 'Social'], ['combat', 'Combat'], ['exploration', 'Exploration'], ['rest', 'Rest']];
 
 mount(`
-<div class="card" data-tab="table" data-panel="exploration social combat">
+<div class="card" data-tab="misc" data-sub="table" data-panel="exploration social combat" id="tableCard">
   <h3>Table tools</h3>
   <p class="note">Automation only counts and shows. Every number here is yours to override.</p>
 
@@ -66,7 +66,7 @@ mount(`
   <div class="row"><span class="note" id="sessNo"></span><button class="btn small" id="sessNext">Next session</button></div>
 </div>`, '#atmo');
 
-const card = document.querySelector('[data-tab="table"]');
+const card = document.querySelector('#tableCard');
 const names = (s) => Object.fromEntries([...(s.players || []), ...(s.roster || [])].map((p) => [p.id, p.name]));
 let drawn = '';
 

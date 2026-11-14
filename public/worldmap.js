@@ -126,18 +126,24 @@
   }
 
   // Full-screen world map on the TV (the TV shows it while the DM has it on).
-  function tv(root, s) {
+  // opts.revealAt: when the DM put the map on the TV. For the first seconds the map unrolls and the places
+  // drop in. A negative animation delay keeps the animation going across re-renders instead of restarting it.
+  const REVEAL_MS = 2600;
+  function tv(root, s, opts = {}) {
     const wm = s.worldMap;
+    const since = opts.revealAt ? Date.now() - opts.revealAt : Infinity;
     const here = byId(wm, wm.here);
     const title = wm.travel ? tripLine(wm) : here ? `At ${here.name}` : 'Where to next?';
     const latest = wm.cards.find((c) => !c.vetoed);
     const showCard = latest && (wm.travel || Date.now() - latest.at < 15000);
     root.className = 'stage wm-stage';
-    root.innerHTML = `<div class="wm-tv">
+    const reveal = since < REVEAL_MS ? ` wm-revealing" style="--wm-t:${-since}ms` : '';
+    root.innerHTML = `<div class="wm-tv${reveal}">
       <header class="wm-head"><div class="wm-title">🧭 ${esc(title)}</div>${wm.vote ? `<div class="wm-vote-line">${voteLine(wm)}</div>` : ''}</header>
       <main class="wm-main">${board(s, { tv: true })}</main>
       ${showCard ? `<aside class="wm-card-tv" data-card="${esc(latest.id)}"><p>${esc(latest.text)}</p>${latest.lore ? `<p class="wm-lore"><b>Lore</b> ${esc(latest.lore)}</p>` : ''}</aside>` : ''}
     </div>`;
+    if (reveal) root.querySelectorAll('.wm-node').forEach((el, i) => el.style.setProperty('--i', i));
     if (showCard && window.Anim) Anim.once(root.querySelector('.wm-card-tv'), `wm:${latest.id}`, 'unfold');
   }
 

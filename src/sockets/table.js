@@ -65,7 +65,7 @@ module.exports = function tableSockets(socket) {
   dm('dm:canon:remove', ({ id }) => T.removeCanon(id));
 
   // 8. Montage: the DM asks, phones answer, the DM reveals on the TV.
-  dm('dm:montage:ask', ({ prompt }) => T.askMontage(prompt));
+  dm('dm:montage:ask', ({ prompt }) => { require('../popups').only(state, 'montage'); T.askMontage(prompt); });
   phone('player:montage', (c, { text }) => { if (T.answerMontage(c.id, text)) T.bump(c.id, 'talk'); });
   dm('dm:montage:reveal', () => T.revealMontage());
   dm('dm:montage:close', () => T.closeMontage());

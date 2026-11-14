@@ -102,6 +102,28 @@ module.exports = function playerSockets(socket) {
     broadcast();
     ack?.({ ok: true, gold: p.gold });
   });
+  // Shop pop-up: sell to the shop, and say you're done (the TV counts who is still shopping).
+  socket.on('player:sell', ({ shopId, invId, qty } = {}, ack) => {
+    const p = me();
+    if (!p) return ack?.({ error: 'Claim a character first.' });
+    const shop = state.shops.find((s) => s.id === shopId);
+    if (!shop) return ack?.({ error: 'No such shop.' });
+    const open = living.canTrade(state, shop);
+    if (open.error) return ack?.(open);
+    const r = shops.sell(shop, p, invId, qty, living.priceMult(state, shop));
+    if (r.error) return ack?.(r);
+    log('shop', `${p.name} sells ${r.qty}× ${r.item.name} to ${shop.name} for ${r.gain.toFixed(2)} gp.`, { who: p.name, vis: { to: [p.id], screen: false } });
+    broadcast();
+    ack?.({ ok: true, gold: p.gold });
+  });
+  socket.on('player:shop:done', ({ done } = {}) => {
+    const p = me();
+    const pop = state.shopPop;
+    if (!p || !pop) return;
+    pop.done = pop.done.filter((id) => id !== p.id);
+    if (done !== false) pop.done.push(p.id);
+    broadcast();
+  });
   // Phase 8: a character moves on its turn, within its speed (see src/grid.js).
   socket.on('player:move', ({ x, y } = {}, ack) => {
     const p = me();

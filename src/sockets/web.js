@@ -42,6 +42,7 @@ module.exports = function webSockets(socket) {
   // Put the revealed parts on the TV, or take them off.
   socket.on('dm:web:show', ({ on } = {}) => {
     if (!isDm()) return;
+    if (on) require('../popups').only(state, 'web');
     state.web.showTv = !!on;
     broadcast();
   });

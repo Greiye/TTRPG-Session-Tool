@@ -274,9 +274,34 @@
     return `<div class="explore">
       <h1>${esc(sc.title)}</h1>
       <p class="scene-text">${esc(sc.text)}</p>
+      ${narration(s)}
       <div class="poi">${poi}</div>
       ${checkBanner(s)}
     </div>`;
+  }
+
+  // Narrate bar posts under the scene description: the newest 10, oldest first, so the latest sits last.
+  function narration(s) {
+    const list = (s.narration || []).slice(-10);
+    if (!list.length) return '';
+    return `<ol class="narration">${list.map((n) => `<li data-nid="${esc(n.id)}">${esc(n.text)}</li>`).join('')}</ol>`;
+  }
+
+  // Shop pop-up on the TV: the shop, its wares, and how many are still shopping.
+  const gp = (n) => Number(n || 0).toFixed(2).replace(/\.?0+$/, '');
+  function shopTv(s) {
+    const pop = s.shopPop;
+    const shop = pop && (s.shops || []).find((x) => x.id === pop.shopId);
+    if (!shop) return '';
+    const items = shop.items.slice(0, 10).map((i) => `<li class="${i.stock === 0 ? 'out' : ''}"><span>${esc(i.name)}</span><b>${gp(i.price)} gp</b>${i.stock === null ? '' : `<small>${i.stock ? `${i.stock} left` : 'sold out'}</small>`}</li>`).join('');
+    const more = shop.items.length > 10 ? `<p class="shop-more">and ${shop.items.length - 10} more on your phones</p>` : '';
+    const left = pop.shopping;
+    return `<div class="shop-tv" data-n="${pop.n}"><div class="shop-box">
+      <div class="shop-kicker">${shop.npc ? esc(shop.npc) : 'A merchant'} opens shop</div>
+      <h2>🛒 ${esc(shop.name)}</h2>
+      <ul class="shop-wares">${items || '<li>Nothing for sale.</li>'}</ul>${more}
+      <p class="shop-left">${left ? `<b>${left}</b> still shopping` : pop.done.length ? 'Everyone is done shopping' : 'Open for business'}</p>
+    </div></div>`;
   }
 
   // Battle map (24, 25): the uploaded map under a grid, tokens by tile, fliers shown with height.
@@ -341,7 +366,6 @@
   // A TV opened remotely (/screen?key=DM_KEY) passes the key on so it may show the join QR.
   const KEY_QS = (() => { const k = new URLSearchParams(location.search).get('key'); return k ? `&key=${encodeURIComponent(k)}` : ''; })();
   const SIDE_ICON = { enemy: '👹', ally: '🛡', neutral: '🕊' };
-  const MODE_ICON = { exploration: '🧭', combat: '⚔️', social: '💬' };
 
   // Backdrop and effect layers persist across re-renders so videos and animations don't restart.
   function layers(root, s) {
@@ -387,7 +411,6 @@
     const hpc = hpChanges(root, s);
     ui.innerHTML = `
       <header class="stage-top">
-        <div class="mode-pill">${MODE_ICON[s.mode]} ${s.mode}</div>
         ${s.room && !s.settings?.display?.hideJoin ? `<div class="join"><img src="/qr.svg?r=${esc(s.room)}${KEY_QS}" alt="Join QR"><div><b>Join the party</b><span class="room-code">Room <b>${esc(s.room)}</b></span><code>${esc(s.joinUrl.replace(/\/play\?room=.*/, '/j/' + s.room))}</code><small>${s.players.length} adventurer${s.players.length === 1 ? '' : 's'}</small></div></div>` : ''}
       </header>
       <main class="stage-main">
@@ -395,7 +418,7 @@
         <aside class="stage-log">${logFeed(s, 9, new Set(s.settings?.display?.hideLog || []))}</aside>
       </main>
       <footer>${party(s, hpc.showing)}</footer>
-      ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}${legendsCard(s)}${trophyCard(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}${legendsCard(s)}${trophyCard(s)}${shopTv(s)}`;
     if (hpc.fresh.length) requestAnimationFrame(() => requestAnimationFrame(() => hpc.fresh.forEach((id) => root.querySelector(`.pc[data-pid="${CSS.escape(id)}"]`)?.classList.add('hp-show'))));
     // Puzzle solve: the card pops once, then the solution words land one by one.
     const pz = ui.querySelector('.pz-card.solved');
@@ -417,6 +440,13 @@
     const arrived = [...ui.querySelectorAll('.shared .hand[data-hid]')].filter((el) => !root.dataset.shownHid?.split(',').includes(el.dataset.hid));
     if (root.dataset.shownHid !== undefined) arrived.forEach((el) => Anim.play(el, 'unfold', null));
     root.dataset.shownHid = [...ui.querySelectorAll('.shared .hand[data-hid]')].map((el) => el.dataset.hid).join(',');
+    const sh = ui.querySelector('.shop-tv');
+    if (sh && sh.dataset.n !== root.dataset.shopN) { root.dataset.shopN = sh.dataset.n; Anim.play(sh.firstElementChild, 'unfold', null); }
+    // A new narrate post slides in; the oldest past ten drops off the top.
+    const nl = [...ui.querySelectorAll('.narration li')];
+    const seenN = new Set((root.dataset.narr || '').split(','));
+    if (root.dataset.narr !== undefined) nl.filter((li) => !seenN.has(li.dataset.nid)).forEach((li) => Anim.play(li, 'slideIn', null));
+    root.dataset.narr = nl.map((li) => li.dataset.nid).join(',');
     const mc = ui.querySelector('.memorial');
     if (mc && mc.dataset.n !== root.dataset.memN) { root.dataset.memN = mc.dataset.n; Anim.once(mc, `mem:${mc.dataset.n}`, 'pop'); }
     const bc = ui.querySelector('.boss-card');

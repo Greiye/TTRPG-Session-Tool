@@ -155,6 +155,76 @@
       const ring = env(c, 0.22, 0.002, 0.9);
       [1450, 2330, 3710].forEach((f) => osc(c, 'square', f, ring, 1));
     },
+    // Story clock segments (src/sockets/moments.js emits tod_<segment> when the clock moves).
+    tod_dawn(c) { // birdsong: quick rising chirps
+      for (let i = 0; i < 7; i++) {
+        const t = c.currentTime + i * 0.28 + Math.random() * 0.1;
+        const g = c.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.18 * sfxVolume, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+        g.connect(c.destination);
+        const o = c.createOscillator();
+        o.type = 'sine';
+        const f = 2400 + Math.random() * 1400;
+        o.frequency.setValueAtTime(f, t);
+        o.frequency.exponentialRampToValueAtTime(f * 1.5, t + 0.12);
+        o.connect(g); o.start(t); o.stop(t + 0.18);
+      }
+    },
+    tod_day(c) { // a soft rising chime
+      [523, 659, 784].forEach((f, i) => {
+        const t = c.currentTime + i * 0.18;
+        const g = c.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.22 * sfxVolume, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+        g.connect(c.destination);
+        const o = c.createOscillator(); o.type = 'triangle'; o.frequency.value = f; o.connect(g); o.start(t); o.stop(t + 1.5);
+      });
+    },
+    tod_noon(c) { // a town bell, struck twice
+      [0, 1.1].forEach((d) => {
+        const t = c.currentTime + d;
+        const g = c.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.35 * sfxVolume, t + 0.005);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
+        g.connect(c.destination);
+        [392, 784 * 1.01, 1176 * 0.99, 1568].forEach((f) => { const o = c.createOscillator(); o.type = 'sine'; o.frequency.value = f; o.connect(g); o.start(t); o.stop(t + 2.5); });
+      });
+    },
+    tod_dusk(c) { // a rooster: cock-a-doodle-doo as four pitched, buzzy syllables
+      const notes = [[0, 0.16, 620, 700], [0.2, 0.16, 700, 780], [0.4, 0.2, 760, 840], [0.66, 0.7, 880, 600]];
+      for (const [d, len, f0, f1] of notes) {
+        const t = c.currentTime + d;
+        const g = c.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.25 * sfxVolume, t + 0.03);
+        g.gain.setValueAtTime(0.25 * sfxVolume, t + len * 0.7);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+        const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = 1.2;
+        bp.connect(g); g.connect(c.destination);
+        const o = c.createOscillator(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f1, t + len);
+        const vib = c.createOscillator(); vib.frequency.value = 28; const vd = c.createGain(); vd.gain.value = 18; vib.connect(vd).connect(o.frequency);
+        o.connect(bp); o.start(t); o.stop(t + len + 0.02); vib.start(t); vib.stop(t + len + 0.02);
+      }
+    },
+    tod_night(c) { // crickets: bursts of fast high pulses
+      for (let b = 0; b < 6; b++) {
+        const t0 = c.currentTime + b * 0.45 + (b % 2) * 0.08;
+        for (let i = 0; i < 4; i++) {
+          const t = t0 + i * 0.045;
+          const g = c.createGain();
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.08 * sfxVolume, t + 0.005);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+          g.connect(c.destination);
+          const o = c.createOscillator(); o.type = 'sine'; o.frequency.value = 4400 + (b % 3) * 120; o.connect(g); o.start(t); o.stop(t + 0.04);
+        }
+      }
+    },
   };
 
   function sfx({ url, builtin }) {

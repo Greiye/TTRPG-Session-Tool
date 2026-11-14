@@ -145,6 +145,17 @@ function viewState(base, viewer) {
   out.factions = (base.factions || []).map((f) => require('./factions').view(f, viewer.role === 'dm'));
   out.living = require('./living').view(base, viewer); // weather, tension, towns by tier, canon, rumours (DM only)
   out.shops = viewer.role === 'dm' ? base.shops : (base.shops || []).filter((s) => s.open).map((s) => priced(s, base));
+  // Shop pop-up: everyone sees which shop and how many seated characters are still shopping; a phone also
+  // gets what it can sell there.
+  if (base.shopPop) {
+    const pop = base.shopPop;
+    const shop = (base.shops || []).find((s) => s.id === pop.shopId);
+    const seated = base.players.filter((p) => p.online !== false).map((p) => p.id);
+    const done = pop.done.filter((id) => seated.includes(id));
+    const me = viewer.role === 'player' ? base.players.find((p) => p.id === viewer.charId) : null;
+    out.shopPop = shop ? { shopId: pop.shopId, n: pop.n, done, shopping: Math.max(0, seated.length - done.length), mine: me ? pop.done.includes(me.id) : false,
+      sell: me ? require('./shops').offers(shop, me, require('./living').priceMult(base, shop)) : [] } : null;
+  }
   if (viewer.role === 'dm') {
     out.lan = require('./net').lanAddresses();
     out.entities = Object.values(require('./entities').entities); // world library (Arthuria), DM only for now

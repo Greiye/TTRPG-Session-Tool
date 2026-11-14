@@ -5,6 +5,22 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Changed
+- DM screen notes (Nov 14):
+  - The top bar folds to its title line with ▴ (▾ brings it back); remembered on that laptop.
+  - The sidebar's first card is now **Modes**: Explore, Combat and Social, then **Planning** and **World map** toggles, then every tab as a labelled list. Tabs are Rolls, Combat, Party, Messages, Logs, Legends, Scene, NPCs and a new **Miscellaneous**. Scene and Miscellaneous have small part chips at the top.
+  - Scene holds the scene, hidden points of interest and dungeon, stage and music (backdrop and music fused), clocks (with the story clock), TV moments and puzzles. Miscellaneous holds smart lights, table tools (with bonds), recap quiz, relations web, notes and journal, camp and downtime, co-DM and campaign data.
+  - Fog of war on the scene is now **Hidden points of interest**.
+  - **Planning Mode** (DM only, nothing changes on the TV): shows the **Shops** tab and a **Road cards** tab (deck, auto table, and how often a card comes up while travelling, 20 s by default). Road cards draw on their own during travel; only their editing moved.
+  - The world map is no longer a sidebar card. The **World map** toggle swaps the DM's main column (stage and story) for the map. Places can be dragged to move them.
+  - Campaign data buttons are gem tiles with a line on what each one does.
+  - The Narrate bar posts under the scene description on the TV as well as to the log. The newest 10 stay; older ones drop off the top, and a new place starts a clean list.
+  - The constant Exploration/Combat/Social label is gone from the TV stage, the DM tools header and the phone header. The short mode card on a mode change stays.
+- Story clock has five segments, Dawn, Day, Noon, Dusk and Night, and no clock hours. The DM taps a segment or Next (Night rolls to Dawn of the next day). Saves with an hour map to a segment.
+- TV: the day and time show on the left only for a few seconds after the story clock moves, with a sound for the segment (birdsong at dawn, a chime by day, a bell at noon, a rooster at dusk, crickets at night; built-in synths).
+- TV: the world map unrolls when the DM puts it on the TV, then roads and places drop in one by one.
+- Only one TV pop-up at a time (`src/popups.js`): opening camp, the relations web, a shop, the hall of fame or trophy shelf, a trophy story, a montage, a relic card or the journal book closes whichever other one is up.
+- Shops no longer have a phone tab. The DM pops a shop up (NPCs tab during play, or Pop up in the Shops list): it opens for trade, the TV shows the shop, its wares and how many players are still shopping, and each phone gets a pop-up with Buy and Sell lists and a Done shopping button. Merchants buy what they sell, at half price.
+
 - Player screen tabs are now Play, Sheet, Inventory, Journal and Misc. Tabs and their sections fade in.
   - Play: a dice pool sits at the top. D4, D6, D8, D10, D12 and D20 each have an icon and ◀ ▶ arrows to remove or add a die, and Roll is at the bottom. Adv and Dis work when the pool is a single D20. The scene description is on the TV only. A point of interest appears on the phone only once the DM reveals it, so there are no ??? placeholders. Skill buttons and the hero Stats and Bio toggle are gone from the phone (stats are on the Sheet, the bio is in the profile).
   - Sheet: tap a skill to roll it. Class features are buttons. Tap one to read its description, then press and hold Activate for 3 seconds to spend a use (the bar fills while you hold, and letting go early cancels). The table log records the use. This adds the `player:feature` socket and `useFeature` in `src/rests.js`.
@@ -19,6 +35,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
   - Story feed under the TV preview: narration as prose, NPC and player lines in bordered dialogue boxes with a round portrait and the speaker in small caps. New lines slide in. The phone's Logs tab uses the same feed with its filters.
   - Hero column on the DM page: pick a party member, see a large portrait, name with an edit button (opens the character editor), level, HP and a resource bar (spell slots, mana or stamina, else hit dice), then Stats or Bio.
   - Phone header is a hero card with the same bars; tap Stats or Bio to open the ability list or backstory, tap again to close. The pencil opens the profile editor.
+
+### Removed
+- Moved to the code module archive (`archive/`, not loaded; see `archive/README.md`): the Session plans card, the Intro card and the Epilogue controls. Their server side still works and is still tested, so each comes back with one import line.
 
 ### Added
 - Each session opens on the world map: when the server starts, and on Next session, the table switches to exploration with the world map on the TV. The DM turns this off with "Open each session here" in the World map tab, and the map must have a picture or places. Combat and social now take the TV back from the world map. Untick "Show on TV" to move from the map to the exploration stage.
