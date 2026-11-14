@@ -34,6 +34,7 @@ import './moments.js';
 import './table.js';
 import './intro.js';
 import './chronicle.js';
+import './dock.js';
 
 
 window.dmEmit = emit; // used by voice.js (classic script)

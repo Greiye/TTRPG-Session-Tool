@@ -52,6 +52,22 @@ const SHOTS = process.env.SHOTS;
   await ph.keyboard.press('Escape');
   const phAttr = await ph.evaluate(() => [document.documentElement.dataset.text, document.documentElement.dataset.palette]);
   if (phAttr.join() !== 'xl,cb') errors.push('phone settings not applied: ' + phAttr);
+  // Tools column: « minimizes it; the edge grip drags it back out (a short drag snaps closed again).
+  const toolsW = () => dm.evaluate(() => document.querySelector('#toolsCol').getBoundingClientRect().width);
+  await dm.click('#toolsMin');
+  await dm.waitForTimeout(500);
+  if ((await toolsW()) > 2) errors.push('tools column did not minimize: ' + (await toolsW()));
+  const gb = await dm.locator('#toolsGrip').boundingBox();
+  const gx = gb.x + gb.width / 2, gy = gb.y + gb.height / 2;
+  await dm.mouse.move(gx, gy); await dm.mouse.down(); await dm.mouse.move(gx + 40, gy, { steps: 4 }); await dm.mouse.up();
+  await dm.waitForTimeout(500);
+  if ((await toolsW()) > 2) errors.push('short drag should snap the tools closed');
+  await dm.mouse.move(gx, gy); await dm.mouse.down(); await dm.mouse.move(gx + 300, gy, { steps: 8 }); await dm.mouse.up();
+  await dm.waitForTimeout(500);
+  if ((await toolsW()) < 300) errors.push('dragging the grip did not restore tools: ' + (await toolsW()));
+  await dm.click('#toolsMin'); await dm.waitForTimeout(450); await dm.click('#toolsGrip');
+  await dm.waitForTimeout(500);
+  if ((await toolsW()) < 300) errors.push('clicking the grip did not restore tools');
   await dm.evaluate(() => socket.emit('dm:settings', { display: { palette: 'hc', motion: 'reduce' } }));
   await tv.waitForFunction(() => document.documentElement.dataset.palette === 'hc', null, { timeout: 3000 });
   // Animated portrait: WebM upload renders as one persistent <video> on the TV across state updates.
