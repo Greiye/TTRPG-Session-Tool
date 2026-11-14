@@ -291,3 +291,72 @@ html:has(> body.codm) { background: radial-gradient(ellipse at 50% -10%, rgb(120
 @keyframes gem-glint { 0%, 85%, 100% { filter: none; } 90% { filter: brightness(1.6) saturate(1.3); } }
 .bigbtn::before, .tabs button.on::before, .mode-pill::before { animation: gem-glint 5s ease-in-out infinite; }
 html[data-motion="reduce"] .bigbtn::before, html[data-motion="reduce"] .tabs button.on::before, html[data-motion="reduce"] .mode-pill::before { animation: none; }
+
+/* ================= Chronicle layout (body.chron) in the game menu look =================
+   chronicle.css gives the DM page and phones their three-column / hero layout with a charcoal skin.
+   These rules keep that layout and repaint it. `body.chron` beats chronicle's `.chron x` selectors. */
+body.chron { --sans: var(--body); font-family: var(--body); }
+body.dm.chron { --ink: #efe2c4; --muted: #c4ae86; --gold: #e8c77e; --line: #5a4530; --panel: #2a1d13; --panel2: #34251a; }
+body.chron .card {
+  background: var(--edge-burn), #e0cb9b var(--tx-parch);
+  border: 4px solid transparent; border-image: var(--frame) 40 / 22px / 0 stretch; border-radius: 0;
+}
+body.chron .card h3, body.chron .col-sub { font-family: var(--display); font-weight: 600; font-size: calc(13px * var(--ts)); letter-spacing: .1em; color: var(--gold); }
+body.chron input, body.chron select, body.chron textarea { background: #f3e6c4; color: #2b1c0e; border-color: #8d6f44; }
+body.chron input:focus, body.chron select:focus, body.chron textarea:focus { outline: 2px solid #b8862f; border-color: #8d6f44; box-shadow: inset 0 1px 3px rgb(70 40 10 / .35); }
+body.chron :is(.btn, .bigbtn, .tabs button, .seg button) {
+  --ink: #f3e5c4; --muted: #cbb58c; --gold: #f2c96e; color: var(--ink);
+  background: linear-gradient(180deg, rgb(255 230 190 / .16), transparent 45%, rgb(0 0 0 / .35)), #5e3b20 var(--tx-wood) center / 400px 120px;
+  border: 3px solid transparent; border-image: var(--plate) 9 / 6px / 0 stretch; border-radius: 0; text-shadow: 0 1px 1px #000;
+}
+body.chron :is(.btn.primary, .tabs button.on, .seg button.on) {
+  color: #fff3d6; background: linear-gradient(180deg, rgb(255 255 255 / .14), transparent 45%, rgb(0 0 0 / .35)), linear-gradient(180deg, #4d5560, #2e333a);
+}
+body.chron .btn.on { color: #ffe2a0; background: linear-gradient(180deg, rgb(255 220 150 / .25), transparent 45%, rgb(0 0 0 / .3)), #6e4622 var(--tx-wood) center / 400px 120px; box-shadow: 0 0 0 1px #e6b65a, 0 0 10px rgb(240 190 90 / .55); }
+body.chron .btn.danger { background: linear-gradient(180deg, rgb(255 200 180 / .14), transparent 45%, rgb(0 0 0 / .4)), #5a1b16 var(--tx-wood) center / 400px 120px; }
+body.chron :is(.btn, .bigbtn, .tabs button):hover { filter: brightness(1.15); border-color: transparent; background-color: transparent; }
+body.chron .bigbtn { font-family: var(--display); letter-spacing: .06em; text-transform: none; border-image-width: 8px; }
+body.chron .modes .btn { font-family: var(--display); text-transform: none; font-size: calc(14px * var(--ts)); letter-spacing: .02em; }
+body.chron .tabs button { font-family: var(--display); }
+body.chron .note { color: var(--muted); }
+body.chron .list .item { background-color: rgb(255 246 222 / .42); color: var(--ink); }
+
+/* DM columns: wooden rails either side of the stone centre */
+body.chron :is(.dm-right, .dm-hero) { background: linear-gradient(90deg, rgb(0 0 0 / .4), transparent 18px), #2a1d13 var(--tx-wood) center / 400px 120px; }
+body.chron .dm-right { border-left: 0; border-right: 6px solid #1a1612; box-shadow: inset -2px 0 0 #6d665e; }
+body.chron .dm-hero { border-left: 6px solid #1a1612; box-shadow: inset 2px 0 0 #6d665e; }
+body.chron .dm-bar, body.chron #pills, body.chron .col-head { border-color: #4a3726; }
+body.chron .dm-bar h2 { font-family: var(--orn); font-weight: 900; text-transform: none; letter-spacing: .02em; color: #e8c77e; }
+body.chron .side-title { font-family: var(--display); color: #d8b878; }
+body.chron .tab-group { border-color: #4a3726; }
+body.chron .side-tabs button { border-radius: 0; }
+body.chron .side-tabs button:hover { background: rgb(255 220 160 / .08); }
+body.chron .side-tabs button.on { background: rgb(255 220 160 / .12); border: 1px solid #b8862f; box-shadow: 0 0 8px rgb(240 190 90 / .35); }
+body.chron .side-tabs button::after { font-family: var(--display); color: #cbb68e; }
+body.chron .side-tabs button.on::after { color: #f2c96e; }
+
+/* top pills (day, light, place, quest, coins) as wooden plates */
+body.chron .pill {
+  color: #f3e5c4; text-shadow: 0 1px 1px #000; border-radius: 0;
+  background: linear-gradient(180deg, rgb(255 230 190 / .16), transparent 45%, rgb(0 0 0 / .35)), #5e3b20 var(--tx-wood) center / 400px 120px;
+  border: 3px solid transparent; border-image: var(--plate) 9 / 6px / 0 stretch;
+}
+body.chron .pill small { color: #cbb58c; font-family: var(--display); }
+
+/* story feed: dialogue lines on framed parchment */
+body.chron .dlg-box { background: var(--edge-burn), #e0cb9b var(--tx-parch); border: 3px solid transparent; border-image: var(--frame) 40 / 14px / 0 stretch; border-radius: 0; padding: 12px 18px; }
+body.chron .dlg-box p { color: #2b1c0e; }
+body.chron .dlg-name { font-family: var(--display); color: #7a4610; }
+body.chron .composer { border: 4px solid transparent; border-image: var(--frame) 40 / 22px / 0 stretch; padding: 14px 18px; }
+
+/* hero sheet: iron-framed portrait, parchment bars and stat rows */
+body.chron .hero-art { border: 4px solid transparent; border-image: var(--frame) 40 / 16px / 0 stretch; }
+body.chron .hbar { background: rgb(255 246 222 / .85) var(--tx-parch); color: #2b1c0e; border-color: #8d6f44; border-radius: 0; --muted: #6c5432; }
+body.chron .hero-head h2 { font-family: var(--display); }
+body.dm.chron .stat-list li { border-color: #4a3726; }
+body.chron .me .hero.compact .hero-art { border: 3px solid #1a1612; border-image: none; border-radius: 50%; box-shadow: 0 0 0 2px #9b9183, 0 0 0 4px #1a1612; }
+body.chron .me b, body.chron .me h2 { font-family: var(--display); }
+body.phone.chron { padding-left: 22px; padding-right: 22px; }
+body.phone.chron h1 { color: #3a230c; }
+body.chron .phone .cls, body.phone.chron .cls { background-color: rgb(255 246 222 / .42); border-radius: 2px; }
+body.phone.chron .tabs { background: rgb(226 204 156 / .96); border-color: #8d6f44; }
