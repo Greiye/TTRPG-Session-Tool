@@ -3,7 +3,7 @@
 .dg {
   --rope: #b48a52; --rope-dark: #4a3420; --parch: #f0dfb4; --parch2: #d7bb80; --iron: #c9ccd1; --iron2: #858b93; --plate-edge: #3b2c1c;
   position: relative; height: 100%; min-height: 0; container-type: size; isolation: isolate;
-  --u: min(1cqw, calc(100cqh / (var(--levels, 5) * 10.2 + 7)));
+  --u: min(1.15cqw, calc(100cqw / (var(--cols, 4) * 23 + var(--trail, 0) * 8 + 4)), calc(100cqh / (var(--rows, 3) * 8.6 + 11)));
   display: flex; flex-direction: column; overflow: hidden; border-radius: .8cqw;
   font-family: var(--display); color: #2b1d10;
   box-shadow: inset 0 0 6cqw #000, 0 .4cqw 2cqw rgb(0 0 0 / .6);
@@ -31,21 +31,14 @@
 @keyframes dg-glow { from { opacity: .75; } to { opacity: 1; } }
 
 .dg-title { text-align: center; color: #f3c873; font-weight: 800; font-size: calc(2.3 * var(--u)); letter-spacing: .04em; padding: calc(1 * var(--u)) 0 calc(.2 * var(--u)); text-shadow: 0 calc(.2 * var(--u)) calc(.6 * var(--u)) #000, 0 0 calc(1.4 * var(--u)) rgb(240 170 70 / .35); }
-.dg-body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: space-evenly; padding: calc(.6 * var(--u)) calc(2 * var(--u)) calc(1.6 * var(--u)); }
-.dg-row { position: relative; display: grid; grid-template-columns: calc(13 * var(--u)) 1fr; align-items: center; z-index: 2; padding: calc(1 * var(--u)) 0 calc(1.7 * var(--u)); }
-.dg-level { display: flex; flex-direction: column; align-items: center; color: #eadbb8; text-shadow: 0 calc(.15 * var(--u)) calc(.4 * var(--u)) #000, 0 0 calc(.8 * var(--u)) #000; line-height: 1.1; transition: color .4s; }
-.dg-level b { font-size: calc(1.7 * var(--u)); letter-spacing: .03em; }
-.dg-level small { font-size: calc(1.25 * var(--u)); font-weight: 600; }
-.dg-row.now .dg-level { color: #ffd27a; }
-.dg-cards { display: flex; justify-content: space-evenly; gap: calc(1.2 * var(--u)); }
-
-/* horizontal rope between levels, with arrow tips at both ends */
-.dg-rope { position: relative; height: calc(.55 * var(--u)); margin: 0 calc(.4 * var(--u)); z-index: 1; border-radius: 99px;
-  background: repeating-linear-gradient(115deg, #d2a96a 0 calc(.35 * var(--u)), #7c5630 calc(.35 * var(--u)) calc(.6 * var(--u)), #a77d47 calc(.6 * var(--u)) calc(.9 * var(--u))), #8a6239;
-  box-shadow: 0 calc(.15 * var(--u)) calc(.3 * var(--u)) rgb(0 0 0 / .7); }
-.dg-rope::before, .dg-rope::after { content: ''; position: absolute; top: 50%; border: calc(.8 * var(--u)) solid transparent; transform: translateY(-50%); }
-.dg-rope::before { left: calc(-1.2 * var(--u)); border-right-color: #c9a46a; border-left-width: 0; }
-.dg-rope::after { right: calc(-1.2 * var(--u)); border-left-color: #c9a46a; border-right-width: 0; }
+.dg-body { flex: 1; min-height: 0; display: flex; flex-direction: row; justify-content: space-evenly; gap: calc(1 * var(--u)); padding: calc(.4 * var(--u)) calc(2 * var(--u)) calc(1.4 * var(--u)); }
+.dg-col { position: relative; z-index: 2; flex: 1 1 calc(19 * var(--u)); min-width: 0; display: flex; flex-direction: column; align-items: center; transition: flex-basis .5s; }
+.dg-col.trail { flex: 0 0 calc(6 * var(--u)); }
+.dg-level { display: flex; flex-direction: column; align-items: center; color: #eadbb8; text-shadow: 0 calc(.15 * var(--u)) calc(.4 * var(--u)) #000, 0 0 calc(.8 * var(--u)) #000; line-height: 1.1; transition: color .4s; min-height: calc(3.6 * var(--u)); }
+.dg-level b { font-size: calc(1.5 * var(--u)); letter-spacing: .03em; white-space: nowrap; }
+.dg-level small { font-size: calc(1.1 * var(--u)); font-weight: 600; }
+.dg-col.now .dg-level { color: #ffd27a; }
+.dg-cards { flex: 1; width: 100%; display: flex; flex-direction: column; justify-content: space-evenly; align-items: center; gap: calc(2.2 * var(--u)); padding: calc(1 * var(--u)) 0; }
 
 /* rope links between cards (SVG, drawn by Dungeon.draw) */
 .dg-links { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
@@ -58,7 +51,7 @@
 @keyframes dg-march { to { stroke-dashoffset: -32; } }
 
 /* room cards: parchment (unvisited), iron plate (visited), smoke (fog) */
-.dg-card { position: relative; z-index: 4; flex: 0 1 calc(18 * var(--u)); min-width: 0; max-width: calc(19 * var(--u)); padding: calc(.9 * var(--u)) calc(1 * var(--u)) calc(1.5 * var(--u)); text-align: center; border-radius: calc(.35 * var(--u));
+.dg-card { position: relative; z-index: 4; width: calc(17 * var(--u)); max-width: 100%; padding: calc(.9 * var(--u)) calc(1 * var(--u)) calc(1.5 * var(--u)); text-align: center; border-radius: calc(.35 * var(--u));
   border: calc(.3 * var(--u)) solid var(--plate-edge); outline: calc(.15 * var(--u)) solid rgb(0 0 0 / .6); outline-offset: calc(.05 * var(--u));
   box-shadow: 0 calc(.35 * var(--u)) calc(.9 * var(--u)) rgb(0 0 0 / .75), inset 0 0 calc(1.2 * var(--u)) rgb(90 60 20 / .45);
   transition: transform .35s cubic-bezier(.2, .9, .3, 1.3), box-shadow .35s, filter .35s; }
@@ -72,7 +65,7 @@
   background: radial-gradient(ellipse at 30% 30%, rgb(120 130 145 / .35), transparent 60%), radial-gradient(ellipse at 70% 70%, rgb(90 100 120 / .35), transparent 60%), #1c2027;
   background-size: 200% 200%; animation: dg-smoke 6s ease-in-out infinite alternate; }
 .dg-card.hidden { opacity: .55; border-style: dashed; filter: saturate(.4); }
-.dg-gem { position: absolute; left: 50%; top: calc(-.75 * var(--u)); width: calc(1.1 * var(--u)); height: calc(1.1 * var(--u)); transform: translateX(-50%) rotate(45deg); border: calc(.2 * var(--u)) solid #2e2216;
+.dg-gem { position: absolute; top: 50%; left: calc(-.75 * var(--u)); width: calc(1.1 * var(--u)); height: calc(1.1 * var(--u)); transform: translateY(-50%) rotate(45deg); border: calc(.2 * var(--u)) solid #2e2216;
   background: radial-gradient(circle at 35% 35%, #ff8f7a, #a3201a 70%); box-shadow: 0 0 calc(.5 * var(--u)) rgb(255 80 60 / .5); }
 .dg-card.iron .dg-gem { background: radial-gradient(circle at 35% 35%, #d8e2ea, #5d6b78 70%); box-shadow: none; }
 .dg-card.fog .dg-gem { background: #3a3f48; box-shadow: none; }
@@ -86,8 +79,15 @@
   box-shadow: 0 calc(.2 * var(--u)) calc(.4 * var(--u)) rgb(0 0 0 / .7), inset 0 calc(.1 * var(--u)) calc(.1 * var(--u)) rgb(255 255 255 / .25); white-space: nowrap; }
 .dg-pill.txt { font-size: calc(.9 * var(--u)); }
 
+/* trail: levels the party left behind shrink to icons */
+.dg-col.trail .dg-card { width: calc(4.6 * var(--u)); padding: calc(.7 * var(--u)) 0; }
+.dg-col.trail .dg-name { font-size: 0; }
+.dg-col.trail .dg-ico { font-size: calc(1.6 * var(--u)); }
+.dg-col.trail .dg-tag, .dg-col.trail .dg-pill, .dg-col.trail .dg-card.fog { display: none; }
+.dg-col.trail .dg-level b { font-size: calc(1.2 * var(--u)); }
+
 /* the party's room: gold rim that breathes, and a flag above */
-.dg-card.here { transform: translateY(calc(-.3 * var(--u))) scale(1.06); z-index: 5; animation: dg-here 2.2s ease-in-out infinite; }
+.dg-card.here { transform: scale(1.06); z-index: 5; animation: dg-here 2.2s ease-in-out infinite; }
 .dg-party { position: absolute; left: calc(-.8 * var(--u)); top: calc(-1.3 * var(--u)); z-index: 2; white-space: nowrap; font-size: calc(.95 * var(--u)); font-weight: 800; color: #2b1d10; padding: calc(.15 * var(--u)) calc(.6 * var(--u)); border-radius: calc(.3 * var(--u)); background: linear-gradient(#ffe39a, #e3b45a); border: calc(.15 * var(--u)) solid #5b4630; box-shadow: 0 calc(.2 * var(--u)) calc(.5 * var(--u)) rgb(0 0 0 / .7); animation: dg-bob 1.6s ease-in-out infinite; }
 .dg-card.choice:not(.here) { box-shadow: 0 calc(.35 * var(--u)) calc(.9 * var(--u)) rgb(0 0 0 / .75), 0 0 calc(1.2 * var(--u)) rgb(255 210 120 / .35); }
 .dg-card.sel { outline: calc(.25 * var(--u)) solid var(--call); }
@@ -95,13 +95,13 @@
 .dg-card.flare { animation: dg-flare 1s ease-out, dg-here 2.2s 1s ease-in-out infinite; }
 @keyframes dg-here { 0%, 100% { box-shadow: 0 calc(.35 * var(--u)) calc(.9 * var(--u)) rgb(0 0 0 / .75), 0 0 0 calc(.2 * var(--u)) #f3c873, 0 0 calc(1.4 * var(--u)) rgb(255 200 90 / .55); } 50% { box-shadow: 0 calc(.35 * var(--u)) calc(.9 * var(--u)) rgb(0 0 0 / .75), 0 0 0 calc(.3 * var(--u)) #ffe39a, 0 0 calc(2.6 * var(--u)) rgb(255 200 90 / .85); } }
 @keyframes dg-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(calc(-.25 * var(--u))); } }
-@keyframes dg-arrive { from { opacity: 0; transform: translateY(calc(-1 * var(--u))) scale(.85); filter: blur(calc(.3 * var(--u))); } }
-@keyframes dg-flare { 0% { filter: brightness(2.2); transform: scale(1.25); } 100% { filter: none; transform: translateY(calc(-.3 * var(--u))) scale(1.06); } }
+@keyframes dg-arrive { from { opacity: 0; transform: translateX(calc(-1.5 * var(--u))) scale(.85); filter: blur(calc(.3 * var(--u))); } }
+@keyframes dg-flare { 0% { filter: brightness(2.2); transform: scale(1.25); } 100% { filter: none; transform: scale(1.06); } }
 @keyframes dg-smoke { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
 
 .dg.dm .dg-card { cursor: pointer; }
-.dg.dm .dg-card:hover { transform: translateY(calc(-.25 * var(--u))); }
-.dg.dm .dg-card.here:hover { transform: translateY(calc(-.5 * var(--u))) scale(1.06); }
+.dg.dm .dg-card:hover { transform: translateX(calc(.25 * var(--u))); }
+.dg.dm .dg-card.here:hover { transform: translateX(calc(.25 * var(--u))) scale(1.06); }
 
 /* TV: the dungeon takes the stage; the log keeps a narrow column */
 .stage.has-dungeon .stage-main { grid-template-columns: 1fr 19cqw; }
@@ -112,13 +112,12 @@
 /* phones: the board scrolls sideways when it is wide */
 .dg.phone { --u: 8.5px; height: auto; container-type: normal; border-radius: 10px; }
 .dg-scroll { overflow-x: auto; margin: 0 -4px; padding-bottom: 4px; }
-.dg-scroll .dg.phone { width: max(100%, calc(var(--cols, 3) * 175px + 130px)); }
+.dg-scroll .dg.phone { width: max(100%, calc(var(--cols, 3) * 175px + var(--trail, 0) * 60px + 40px)); }
 .dg-phone-card h3 { margin-bottom: .5em; }
 
 @media (prefers-reduced-motion: reduce) {
   .dg-torch i, .dg-torch::after, .dg-card.here, .dg-party, .dg-rope-line .r3, .dg-card.fog, .dg-card.arrive, .dg-card.flare { animation: none !important; }
 }
 [data-motion="reduce"] .dg-torch i, [data-motion="reduce"] .dg-torch::after, [data-motion="reduce"] .dg-card.here, [data-motion="reduce"] .dg-party, [data-motion="reduce"] .dg-rope-line .r3, [data-motion="reduce"] .dg-card.fog { animation: none !important; }
-.dg.phone .dg-row { grid-template-columns: calc(8 * var(--u)) 1fr; }
 .dg.phone .dg-level b { font-size: calc(1.3 * var(--u)); }
 .dg.phone .dg-level small { font-size: calc(1 * var(--u)); }

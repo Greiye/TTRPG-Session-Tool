@@ -1,5 +1,7 @@
-// Dungeon nodes (exploration): one drawing for the TV, the DM preview and the phones. Rooms sit on levels,
-// joined by rope lines; horizontal ropes divide the levels; torches flicker on a stone wall. The server
+// Dungeon nodes (exploration): one drawing for the TV, the DM preview and the phones. The tree starts on the
+// left and branches to the right: each level is a column, joined by rope lines; torches flicker on a stone wall.
+// The board adapts as the party moves: on the TV and phones, levels the party has left behind shrink to a
+// narrow trail of icons, so the rooms ahead get the room, and every card glides to its new place. The server
 // filters what each viewer sees (src/dungeon.js viewFor). Classic script: exposes the global Dungeon.
 (function () {
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -19,7 +21,7 @@
     return out;
   }
 
-  // Rows of nodes, one per level. Each row is ordered by where its parents sit, so ropes cross less.
+  // Columns of nodes, one per level. Each column is ordered by where its parents sit, so ropes cross less.
   function rows(nodes) {
     const lv = levels(nodes);
     const depth = Math.max(0, ...Object.values(lv));
@@ -53,18 +55,22 @@
     </div>`;
   }
 
-  // The whole board. opts: { dm, title, selected, phone }.
+  // The whole board. opts: { dm, title, selected, phone }. Not for the DM: levels two or more behind the
+  // party collapse into a trail of icons.
   function board(d, opts = {}) {
     if (!d || !d.nodes?.length) return '';
     const R = rows(d.nodes);
     const kids = new Set(d.here ? d.nodes.filter((n) => n.parents.includes(d.here)).map((n) => n.id) : []);
     const hereLevel = d.here ? levels(d.nodes)[d.here] : 0;
-    const body = R.map((row, i) => `
-      <div class="dg-row ${i + 1 === hereLevel ? 'now' : ''}" style="--n:${row.length}">
-        <div class="dg-level"><b>LEVEL ${i + 1}</b>${i === 0 ? '<small>(Entrance)</small>' : i + 1 === hereLevel ? '<small>(Party here)</small>' : ''}</div>
-        <div class="dg-cards">${row.map((n) => card(n, d, opts, kids.has(n.id))).join('')}</div>
-      </div>${i < R.length - 1 ? '<div class="dg-rope" aria-hidden="true"></div>' : ''}`).join('');
-    return `<div class="dg ${opts.phone ? 'phone' : ''} ${opts.dm ? 'dm' : ''}" style="--levels:${R.length}">
+    const trail = (i) => !opts.dm && hereLevel && i + 1 < hereLevel - 1;
+    const nTrail = R.filter((_, i) => trail(i)).length;
+    const maxRows = Math.max(1, ...R.filter((_, i) => !trail(i)).map((c) => c.length));
+    const body = R.map((col, i) => `
+      <div class="dg-col ${i + 1 === hereLevel ? 'now' : ''} ${trail(i) ? 'trail' : ''}">
+        <div class="dg-level"><b>${trail(i) ? `L${i + 1}` : `LEVEL ${i + 1}`}</b>${trail(i) ? '' : i === 0 ? '<small>(Entrance)</small>' : i + 1 === hereLevel ? '<small>(Party here)</small>' : ''}</div>
+        <div class="dg-cards">${col.map((n) => card(n, d, opts, kids.has(n.id))).join('')}</div>
+      </div>`).join('');
+    return `<div class="dg ${opts.phone ? 'phone' : ''} ${opts.dm ? 'dm' : ''}" style="--cols:${R.length - nTrail};--trail:${nTrail};--rows:${maxRows}">
       <div class="dg-wall" aria-hidden="true"><div class="dg-arch"></div><div class="dg-torch l"><i></i></div><div class="dg-torch r"><i></i></div></div>
       ${opts.title ? `<div class="dg-title">${esc(opts.title)}</div>` : ''}
       <div class="dg-body">${body}</div>
@@ -72,7 +78,7 @@
     </div>`;
   }
 
-  // Draw the ropes once the cards are laid out: from the bottom of each parent to the top of the child.
+  // Draw the ropes once the cards are laid out: from the right side of each parent to the left side of the child.
   function draw(el, d) {
     const svg = el.querySelector('.dg-links');
     if (!svg || !d) return;
@@ -81,8 +87,8 @@
     const at = {};
     el.querySelectorAll('.dg-card').forEach((c) => {
       const r = c.getBoundingClientRect();
-      const pill = c.querySelector('.dg-pill')?.getBoundingClientRect();
-      at[c.dataset.dg] = { x: r.left - box.left + r.width / 2, top: r.top - box.top, bot: Math.max(r.bottom, pill?.bottom || 0) - box.top };
+      if (!r.width) return; // hidden (a fogged room on the trail)
+      at[c.dataset.dg] = { y: r.top - box.top + r.height / 2, left: r.left - box.left, right: r.right - box.left };
     });
     const byId = new Map(d.nodes.map((n) => [n.id, n]));
     const paths = [];
@@ -91,10 +97,11 @@
         const a = at[p];
         const b = at[n.id];
         if (!a || !b) continue;
-        const y1 = a.bot + 2;
-        const y2 = b.top - 4;
-        const mid = (y1 + y2) / 2;
-        const path = `M${a.x.toFixed(1)},${y1.toFixed(1)} C${a.x.toFixed(1)},${mid.toFixed(1)} ${b.x.toFixed(1)},${mid.toFixed(1)} ${b.x.toFixed(1)},${y2.toFixed(1)}`;
+        const x1 = a.right + 2;
+        const x2 = b.left - 4;
+        const mid = (x1 + x2) / 2;
+        const f = (v) => v.toFixed(1);
+        const path = `M${f(x1)},${f(a.y)} C${f(mid)},${f(a.y)} ${f(mid)},${f(b.y)} ${f(x2)},${f(b.y)}`;
         const live = p === d.here;
         const fog = byId.get(n.id)?.fog || (!byId.get(n.id)?.revealed && !byId.get(n.id)?.fog);
         paths.push(`<g class="dg-rope-line ${live ? 'live' : ''} ${fog ? 'faint' : ''}"><path class="r1" d="${path}"/><path class="r2" d="${path}"/>${live ? `<path class="r3" d="${path}"/>` : ''}</g>`);
@@ -108,9 +115,27 @@
   // Wire a freshly rendered board: draw the ropes now and whenever its size changes, and reveal new rooms.
   const seen = new WeakMap();
   const obs = new WeakMap();
+  const places = new WeakMap();
+  const reduce = () => window.Settings?.reducedMotion?.() || matchMedia('(prefers-reduced-motion: reduce)').matches;
   function hydrate(root, d) {
     const el = root?.querySelector('.dg');
     if (!el) return;
+    // Cards glide from where they were to where the new layout puts them (FLIP), and the ropes follow.
+    const prev = places.get(root);
+    const now = {};
+    el.querySelectorAll('.dg-card').forEach((c) => { const r = c.getBoundingClientRect(); now[c.dataset.dg] = { x: r.left, y: r.top, w: r.width }; });
+    places.set(root, now);
+    if (prev && !reduce() && el.animate) {
+      let moved = false;
+      el.querySelectorAll('.dg-card').forEach((c) => {
+        const a = prev[c.dataset.dg];
+        const b = now[c.dataset.dg];
+        if (!a || !b || (Math.abs(a.x - b.x) < 1 && Math.abs(a.y - b.y) < 1)) return;
+        moved = true;
+        c.animate([{ translate: `${a.x - b.x}px ${a.y - b.y}px` }, { translate: '0 0' }], { duration: 650, easing: 'cubic-bezier(.2, .8, .2, 1)' });
+      });
+      if (moved) { const end = performance.now() + 700; const tick = () => { draw(el, d); if (performance.now() < end && el.isConnected) requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+    }
     draw(el, d);
     requestAnimationFrame(() => draw(el, d));
     if (window.ResizeObserver) {
