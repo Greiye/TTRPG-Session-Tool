@@ -32,6 +32,7 @@ function render() {
   $('#tabPlay').classList.toggle('combat-quiet', S.mode === 'combat'); // combat: no spectator notes, no free-text box
   $('#main').innerHTML = (VIEWS[S.mode] || exploreView)(S, c) + rollBox();
   Anim.hydrate($('#main'));
+  if (S.mode === 'exploration' && S.dungeon?.on) window.Dungeon?.hydrate($('#main'), S.dungeon);
   const sug = (S.suggestions || []).slice(-5).reverse();
   $('#suggest').innerHTML = sug.length && S.mode !== 'combat' ? `<details class="card suggest" open><summary>👀 Spectator suggestions (${sug.length})</summary>${sug.map((x) => `<p><b>${esc(x.name)}:</b> ${esc(x.text)}</p>`).join('')}</details>` : '';
 }

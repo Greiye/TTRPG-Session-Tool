@@ -201,9 +201,26 @@ body.tv { height: 100vh; display: grid; place-items: center; background: #000; o
 body.tv .stage-wrap { width: min(100vw, 177.78vh); border-radius: 0; }
 
 /* ================= DM PAGE ================= */
-body.dm { display: grid; grid-template-columns: minmax(0, 1fr) 420px; height: 100vh; }
+body.dm { display: grid; grid-template-columns: minmax(0, 1fr) var(--side-w, 420px); height: 100vh; transition: grid-template-columns .35s cubic-bezier(.2, .8, .2, 1); }
 .dm-left { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: auto; }
-.dm-right { background: var(--panel); border-left: 1px solid var(--line); overflow: auto; padding: 14px; display: flex; flex-direction: column; gap: 14px; }
+.dm-right { position: relative; min-width: 0; background: var(--panel); border-left: 1px solid var(--line); overflow: auto; padding: 14px; display: flex; flex-direction: column; gap: 14px; transition: opacity .25s; }
+/* minimizable side panel (public/js/dm/sidebar.js) */
+body.side-dragging { transition: none; user-select: none; }
+body.side-dragging .dm-right { transition: none; }
+body.side-min .dm-right { padding-inline: 0; border-left: 0; overflow: hidden; opacity: 0; pointer-events: none; }
+.side-min-btn { position: absolute; top: 6px; right: 8px; z-index: 3; width: 28px; height: 28px; padding: 0; border-radius: 6px; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); font-size: 16px; line-height: 1; cursor: pointer; }
+.side-min-btn:hover { color: var(--gold); border-color: var(--gold); }
+.side-grip { position: fixed; top: 0; bottom: 0; right: calc(var(--side-w, 420px) - 4px); width: 8px; cursor: ew-resize; z-index: 20; }
+.side-grip:hover, body.side-dragging .side-grip { background: linear-gradient(90deg, transparent 3px, var(--gold) 3px 5px, transparent 5px); }
+body.side-min .side-grip { display: none; }
+.side-handle { position: fixed; right: 0; top: 50%; z-index: 30; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 5px 14px 7px; border: 1px solid var(--gold); border-right: 0; border-radius: 10px 0 0 10px;
+  background: linear-gradient(90deg, var(--panel2), var(--panel)); color: var(--gold); cursor: grab; touch-action: none; box-shadow: -4px 0 14px rgb(0 0 0 / .5);
+  transform: translate(110%, -50%); opacity: 0; pointer-events: none; transition: transform .35s cubic-bezier(.2, .8, .2, 1.2), opacity .25s; }
+body.side-min .side-handle { transform: translate(0, -50%); opacity: 1; pointer-events: auto; }
+body.side-dragging .side-handle { cursor: grabbing; }
+.side-handle:hover { padding-left: 11px; }
+.side-handle-label { writing-mode: vertical-rl; transform: rotate(180deg); font-family: var(--display); font-size: 13px; letter-spacing: .15em; text-transform: uppercase; }
+.grip-dots { width: 6px; height: 22px; background: radial-gradient(circle, var(--gold) 1.3px, transparent 1.6px) 0 0 / 6px 6px; }
 .side-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
 .side-tabs button { width: 38px; height: 38px; font-size: 18px; padding: 0; border-radius: 8px; background: #1a131d; border: 1px solid var(--line); cursor: pointer; }
 .side-tabs button.on { border-color: var(--gold); background: #2a1f2e; }
@@ -243,7 +260,7 @@ textarea { resize: vertical; min-height: 54px; }
 label.chk { display: flex; gap: 6px; align-items: center; font-size: calc(14px * var(--ts)); }
 label.chk input { width: auto; }
 [hidden] { display: none !important; }
-@media (max-width: 900px) { body.dm { grid-template-columns: 1fr; height: auto; } }
+@media (max-width: 900px) { body.dm { grid-template-columns: 1fr; height: auto; } .side-min-btn, .side-grip, .side-handle { display: none; } body.side-min .dm-right { padding: 14px; opacity: 1; pointer-events: auto; overflow: auto; } }
 
 /* ================= PLAYER PHONE ================= */
 body.phone { max-width: 520px; margin: 0 auto; padding: 14px 14px 120px; }

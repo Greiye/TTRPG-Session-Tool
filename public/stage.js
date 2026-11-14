@@ -241,6 +241,10 @@
   // Fog of war (item 7c): POIs the party has not uncovered show as fog.
   function exploration(s) {
     const sc = s.scene;
+    // Dungeon nodes take over the exploration stage while the DM shows them (public/dungeon.js).
+    if (s.dungeon?.on && s.dungeon.nodes?.length && window.Dungeon) {
+      return `<div class="dg-wrap">${Dungeon.board(s.dungeon, { title: sc.title, dm: document.body.classList.contains('dm'), selected: window.DungeonSel })}${checkBanner(s)}</div>`;
+    }
     // The server sends null for a covered point unless the viewer is the DM.
     const open = new Set(sc.revealed || []);
     const poi = sc.poi.map((p) => (p !== null && open.has(p) ? `<span>🔍 ${esc(p)}</span>` : '<span class="fog">☁ ???</span>')).join('');
@@ -343,6 +347,7 @@
     const prevEmo = root.querySelector('.vn-portrait')?.dataset.emo;
     root.className = `stage theme-${s.scene.theme} mode-${s.mode} layout-${s.stageLayout || 'auto'} ${s.backdrop?.image ? 'has-bd' : ''}`;
     root.classList.add(`light-${s.scene.light || 'day'}`);
+    root.classList.toggle('has-dungeon', s.mode === 'exploration' && !!s.dungeon?.on && !!s.dungeon.nodes?.length);
     for (const l of ['day', 'dusk', 'night', 'dawn', 'torchlight']) if (l !== (s.scene.light || 'day')) root.classList.remove(`light-${l}`);
     const ui = layers(root, s);
     window.Weather?.render(root.querySelector(':scope > .wx'), window.Weather?.fromState(s), window.Settings?.reducedMotion?.()); // Phase B weather
@@ -382,6 +387,7 @@
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
     Anim.hydrate(ui);
+    if (s.mode === 'exploration' && s.dungeon?.on) window.Dungeon?.hydrate(ui, s.dungeon);
     // A handout the group shares to the TV unfolds once, when it first appears.
     const arrived = [...ui.querySelectorAll('.shared .hand[data-hid]')].filter((el) => !root.dataset.shownHid?.split(',').includes(el.dataset.hid));
     if (root.dataset.shownHid !== undefined) arrived.forEach((el) => Anim.play(el, 'unfold', null));

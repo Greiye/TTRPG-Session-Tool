@@ -52,6 +52,7 @@ module.exports = function sockets(io) {
     require('./living')(socket);
     require('./puzzle')(socket);
     require('./web')(socket);
+    require('./dungeon')(socket);
   });
 };
 module.exports.guard = guard;
