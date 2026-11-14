@@ -142,6 +142,16 @@ module.exports = function playerSockets(socket) {
     broadcast();
   });
 
+  // Class feature activated from the sheet (press and hold): spends one use and tells the table.
+  socket.on('player:feature', ({ name } = {}, ack) => {
+    const p = me();
+    if (!p) return ack?.({ error: 'Claim a character first.' });
+    const r = require('../rests').useFeature(p, String(name || ''));
+    if (r.error) return ack?.(r);
+    log('action', `${p.name} uses ${name}${r.pool ? ` (${r.left} points left)` : ''}.`);
+    broadcast();
+    ack?.({ ok: true, left: r.left });
+  });
   // Tapping a skill, save or ability: answers the DM's roll call if it matches, else it is a free roll.
   socket.on('player:check', ({ skill, kind = 'skill', key = skill, mode } = {}) => {
     const p = me();

@@ -1,6 +1,6 @@
 // Rest rules: per-class resources come back on the right rest, and hit dice spent heal and are counted.
 const assert = require('assert');
-const { restCharacter, featureList } = require('../src/rests');
+const { restCharacter, featureList, useFeature } = require('../src/rests');
 
 const mk = (cls, extra = {}) => ({
   name: 'T', cls, level: 5, hp: 5, maxHp: 30, abilities: { con: 14, cha: 16, str: 10, dex: 10, int: 10, wis: 10 },
@@ -51,5 +51,17 @@ assert.strictEqual(l.hp, 30);
 const fl = featureList(mk('Paladin', { level: 2 }));
 assert.deepStrictEqual(fl.map((f) => f.name), ['Lay on Hands']);
 assert.strictEqual(featureList(mk('Paladin', { level: 3 })).find((f) => f.name === 'Channel Divinity').max, 1);
+
+assert(fl[0].text.length > 0, 'features carry a description for the phone');
+
+// Activating a feature from the phone spends one use; an empty feature or one the class lacks is refused.
+const f1 = mk('Fighter', { level: 1 });
+assert.deepStrictEqual(useFeature(f1, 'Second Wind'), { left: 0, pool: false });
+assert.strictEqual(f1.uses['Second Wind'], 1);
+assert(useFeature(f1, 'Second Wind').error);
+assert(useFeature(f1, 'Action Surge').error); // level 2 feature
+assert(useFeature(f1, 'Wild Shape').error);
+restCharacter(f1, 'short');
+assert.strictEqual(useFeature(f1, 'Second Wind').left, 0);
 
 console.log('rests ok');

@@ -1,11 +1,11 @@
-// Phone Messages tab (Phase 4 and 7): handouts, phrases in unknown tongues, spoils with claims,
+// Phone Inbox, a section of the Journal tab (Phase 4 and 7): handouts, phrases in unknown tongues, spoils with claims,
 // and the dialogue vote.
 import { socket, $, onState, state } from '../client.js';
 import { me } from './identity.js';
-import { addTab, tab, onTab, setBadge } from './tabs.js';
+import { addSection, tab, onTab, setBadge } from './tabs.js';
 
 const { esc } = Stage;
-addTab('inbox', '✉ Inbox');
+addSection('journal', 'inbox', '✉ Inbox');
 const root = () => $('#tabInbox');
 let seen = new Set();
 const drafts = {}; // quiz answers typed but not saved yet, kept across re-renders

@@ -1,8 +1,8 @@
-// Phone Logs tab: the table's recent log, hidden from the main screen by default and filtered by type.
+// Phone Logs, a section of the Misc tab: the table's recent log, hidden from the main screen by default and filtered by type.
 import { $, onState, state } from '../client.js';
-import { addTab, tab, onTab } from './tabs.js';
+import { addSection, tab, onTab } from './tabs.js';
 
-addTab('logs', '📜 Logs');
+addSection('misc', 'logs', '🗒 Logs');
 const root = () => $('#tabLogs');
 
 // Filter groups: each one lists the log kinds it shows.

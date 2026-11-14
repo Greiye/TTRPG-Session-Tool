@@ -1,11 +1,11 @@
-// Phone Legends tab (phase J): the hall of fame, the trophy shelf, the house rules in force, and this
+// Phone Legends, a section of the Misc tab (phase J): the hall of fame, the trophy shelf, the house rules in force, and this
 // character's autopilot status. Also the "what you missed" card when a seat is claimed again.
 import { socket, $, onState, state } from '../client.js';
 import { me } from './identity.js';
-import { addTab, onTab } from './tabs.js';
+import { addSection, onTab } from './tabs.js';
 
 const { esc, hallHtml, shelfHtml } = Stage;
-addTab('legends', '🏛 Legends');
+addSection('misc', 'legends', '🏛 Legends');
 const root = () => $('#tabLegends');
 
 function render() {

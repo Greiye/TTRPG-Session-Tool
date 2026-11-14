@@ -92,7 +92,8 @@ ok(wm.viewFor(map4, { role: 'screen' }, 3).cards[0].lore === 'The axle was cut, 
 wm.vetoCard(map4, deckCard.id, false);
 ok(wm.comment(map4, deckCard.id, 'p1', 'Thorn', 'That cloud is definitely bread.', ctx(9)), 'a phone comments on a card');
 ok(!wm.comment(map4, 'nope', 'p1', 'Thorn', 'hi', ctx(9)), 'comments on an unknown card are refused');
-ok(wm.viewFor(map4, { role: 'player', charId: 'p2' }, 3).cards[0].comments[0].charId === undefined, 'comments do not expose the character id');
+ok(wm.viewFor(map4, { role: 'screen' }, 3).cards[0].comments[0].charId === undefined, 'comments do not expose the character id');
+ok(wm.viewFor(map4, { role: 'player', charId: 'p2' }, 3).cards.length === 0, 'phones do not get road cards');
 
 // Secrets: info is DM-only until revealed; votes show counts, not names; deck and table are DM-only
 const map5 = map;

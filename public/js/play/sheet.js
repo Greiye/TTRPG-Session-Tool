@@ -1,5 +1,5 @@
-// Character sheet on the phone (item 2): HP, spell slots, hit dice, inventory, spells, languages,
-// notes. Every change goes to the server at once, so the DM sees it live.
+// Character sheet on the phone (item 2): HP, abilities and skills (tap to roll), spell slots, class features
+// (tap to read, hold 3 s to activate), hit dice, spells, languages, notes. Inventory has its own tab. Every change goes to the server at once, so the DM sees it live.
 import { socket, $, onState, state, library } from '../client.js';
 import { me } from './identity.js';
 import { addTab, tab, onTab } from './tabs.js';
@@ -33,14 +33,34 @@ const condChip = (x) => `<button class="chip cond" data-cond="${esc(x)}" aria-la
 // Ability hold-rolls: 450 ms press, 3 s cooldown per ability.
 const HOLD_MS = 450, COOL_MS = 3000;
 const cooldown = new Map();
+// Class features: tap opens the description; its Activate button needs a 3 s press and hold.
+const FEAT_HOLD_MS = 3000;
+let openFeat = null; // feature name whose description is open
+let featNote = ''; // last activation result
+let featHolding = false; // no redraw while a thumb is on Activate
 
 const chip = (label, value) => `<span class="chip"><small>${label}</small><b>${value}</b></span>`;
 const pips = (level, s) => `<div class="slot-row"><span>Level ${level}</span><span class="pips">${Array.from({ length: s.max }, (_, i) => `<button class="pip ${i < s.max - s.used ? 'full' : ''}" data-slot="${level}" data-i="${i}" aria-label="Level ${level} slot ${i + 1}, ${i < s.max - s.used ? 'available' : 'used'}"></button>`).join('')}</span></div>`;
 
+// Class features as buttons. The open one shows its description, uses left and the hold-to-activate button.
+function featuresHtml(c) {
+  const list = c.features || [];
+  if (!list.length) return '';
+  return `<div class="card"><h3>Class features <span class="note">tap to read · hold Activate for 3 s</span></h3>
+    <div class="feat-grid">${list.map((f) => { const left = Math.max(0, f.max - (c.uses?.[f.name] || 0)); return `<button class="btn feat ${openFeat === f.name ? 'on' : ''} ${left ? '' : 'spent'}" data-feat="${esc(f.name)}" aria-expanded="${openFeat === f.name}">${esc(f.name)}<small>${left} / ${f.max}${f.pool ? ' pts' : ''}</small></button>`; }).join('')}</div>
+    ${list.filter((f) => f.name === openFeat).map((f) => { const left = Math.max(0, f.max - (c.uses?.[f.name] || 0)); return `<div class="feat-desc">
+      <p>${esc(f.text || 'No description yet. Ask your DM.')}</p>
+      <p class="note">${left} of ${f.max}${f.pool ? ' points' : ' uses'} left · refills on a ${esc(f.reset)} rest</p>
+      <button class="bigbtn feat-go" data-feat-go="${esc(f.name)}" ${left ? '' : 'disabled'} aria-label="Activate ${esc(f.name)}, press and hold for 3 seconds"><span class="feat-fill"></span><span class="feat-label">${left ? 'Hold to activate' : 'No uses left'}</span></button>
+      ${featNote ? `<p class="note" role="status">${esc(featNote)}</p>` : ''}
+    </div>`; }).join('')}
+  </div>`;
+}
+
 function render() {
   const S = state();
   const c = S?.players.find((p) => p.id === me.charId);
-  if (!c || tab() !== 'sheet') return;
+  if (!c || tab() !== 'sheet' || featHolding) return;
   // Don't redraw under the player's thumb while they type.
   const a = document.activeElement;
   if (a && root().contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) return;
@@ -56,14 +76,10 @@ function render() {
       <div class="chips">${chip(esc(R.defenseLabel), c.ac)}${chip('Speed', `${c.speed ?? 30} ft`)}${d.prof ? chip('Proficiency', fmt(d.prof)) : ''}${chip('Initiative', fmt(c.init))}${chip('Passive 👁', d.passive.Perception ?? d.passive.Instinct ?? 10)}</div>
     </div>
     ${R.abilities.length ? `<div class="card"><h3>Abilities <span class="note">score · modifier · save · press and hold to roll</span></h3><div class="ab-grid">${R.abilities.map(([k, label]) => `<div class="ab ${cooldown.has(k) && cooldown.get(k) > Date.now() ? 'cool' : ''}" data-ab="${esc(k)}" data-ab-label="${esc(label)}" aria-label="${esc(label)} check, press and hold"><small>${esc(label.slice(0, 3).toUpperCase())}</small><b>${c.abilities?.[k] ?? 10}</b><span>${fmt(d.mods[k])}</span><small>save ${fmt(d.saves[k])}</small></div>`).join('')}</div></div>` : ''}
-    <div class="card"><h3>Skills</h3><div class="sk-grid">${R.skills.map((k) => `<span>${esc(k)} <b>${fmt(c.skills[k])}</b></span>`).join('')}</div></div>
+    <div class="card"><h3>Skills <span class="note">tap to roll</span></h3><div class="sk-grid">${R.skills.map((k) => `<button class="sk" data-skill="${esc(k)}">${esc(k)} <b>${fmt(c.skills[k])}</b></button>`).join('')}</div></div>
     ${slots.length ? `<div class="card"><h3>Spell slots <span class="note">tap to use or restore</span></h3>${slots.map(([l, s]) => pips(l, s)).join('')}</div>` : ''}
-    ${(c.features || []).length ? `<div class="card"><h3>Class features <span class="note">uses left · refills on the rest named</span></h3>${c.features.map((f) => { const left = Math.max(0, f.max - (c.uses?.[f.name] || 0)); return `<div class="row"><span class="grow">${esc(f.name)}</span><b>${left} / ${f.max}${f.pool ? ' pts' : ''}</b><small class="muted">${esc(f.reset)} rest</small></div>`; }).join('')}</div>` : ''}
+    ${featuresHtml(c)}
     ${c.hitDice?.die ? `<div class="card"><h3>Hit dice</h3><div class="row"><b>${c.level - (c.hitDice.used || 0)} / ${c.level}</b><span class="muted">d${c.hitDice.die}</span><span class="grow"></span><button class="btn small" data-hd="1">Use one</button><button class="btn small" data-hd="-1">Restore one</button></div></div>` : ''}
-    <div class="card"><h3>Inventory</h3>
-      <div class="list">${(c.inventory || []).map((i) => `<div class="inv"><span><b>${esc(i.name)}</b>${i.note ? `<small class="muted"> ${esc(i.note)}</small>` : ''}</span><span class="row"><button class="btn small" data-inv="${i.id}" data-q="${i.qty - 1}" ${i.qty ? '' : 'disabled'}>−</button><b>${i.qty}</b><button class="btn small" data-inv="${i.id}" data-q="${i.qty + 1}">+</button><button class="btn small danger" data-inv-del="${i.id}" aria-label="Remove ${esc(i.name)}">✕</button></span></div>`).join('') || '<p class="note">Nothing yet.</p>'}</div>
-      <form class="row" id="invForm"><input id="invName" class="grow" maxlength="60" placeholder="Add an item"><input id="invQty" type="number" min="0" value="1" style="width:64px" aria-label="Quantity"><button class="btn">Add</button></form>
-    </div>
     ${R.slotLevels ? `<div class="card"><h3>Spells</h3>
       ${known.map((s) => `<details data-k="${esc(s.id)}" ${open.has(s.id) ? 'open' : ''}><summary><b>${esc(s.name)}</b> <small class="muted">${s.level ? `level ${s.level}` : 'cantrip'}${s.concentration ? ' · conc.' : ''}</small></summary>
         <p class="note">${esc([s.school, s.time, s.range, s.components, s.duration].filter(Boolean).join(' · '))}</p><p>${esc(s.text)}</p>${s.higher ? `<p class="note">${esc(s.higher)}</p>` : ''}<button class="btn small danger" data-spell-del="${esc(s.id)}">Forget</button></details>`).join('') || '<p class="note">No spells on your sheet yet.</p>'}
@@ -88,8 +104,8 @@ root().addEventListener('click', (e) => {
   else if (d.temp) send({ tempHp: Math.max(0, (c.tempHp || 0) + Number(d.temp)) });
   else if (d.slot) { const s = c.slots[d.slot]; send({ slot: { level: d.slot, used: b.classList.contains('full') ? s.used + 1 : s.used - 1 } }); }
   else if (d.hd) send({ hitDiceUsed: (c.hitDice.used || 0) + Number(d.hd) });
-  else if (d.inv) send({ inv: { op: 'set', id: d.inv, qty: Number(d.q) } });
-  else if (d.invDel) send({ inv: { op: 'del', id: d.invDel } });
+  else if (d.skill) socket.emit('player:check', { skill: d.skill }); // answers the DM's call if it matches, else a free roll
+  else if (d.feat) { openFeat = openFeat === d.feat ? null : d.feat; featNote = ''; render(); }
   else if (d.spellDel) send({ spells: c.spells.filter((x) => x !== d.spellDel) });
   else if (d.res) send({ [d.res]: { cur: Math.max(0, Math.min(c[d.res].max, c[d.res].cur + Number(d.d))) } });
   else return;
@@ -116,6 +132,42 @@ root().addEventListener('pointerdown', (e) => {
 ['pointerup', 'pointerleave', 'pointercancel'].forEach((t) => root().addEventListener(t, cancelHold));
 document.addEventListener('pointerup', cancelHold);
 
+// Activate a class feature: press and hold the button for 3 s. The fill bar shows progress; letting go early cancels.
+let featTimer = null, featEl = null;
+function startFeat(el) {
+  if (featEl || el.disabled) return;
+  featEl = el;
+  featHolding = true;
+  el.classList.add('holding');
+  el.addEventListener('pointerleave', stopFeat, { once: true }); // sliding off the button cancels
+  navigator.vibrate?.(15);
+  featTimer = setTimeout(() => {
+    const name = el.dataset.featGo;
+    featEl = null;
+    featHolding = false;
+    el.classList.remove('holding');
+    el.classList.add('fired');
+    navigator.vibrate?.([40, 30, 80]);
+    socket.emit('player:feature', { name }, (r) => {
+      featNote = r?.error || `${name} activated. The table has been told.`;
+      setTimeout(render, 350); // let the flash play first
+    });
+  }, FEAT_HOLD_MS);
+}
+function stopFeat() {
+  if (!featEl) return;
+  clearTimeout(featTimer);
+  featEl.classList.remove('holding');
+  featEl = null;
+  featHolding = false;
+  render();
+}
+root().addEventListener('pointerdown', (e) => { const el = e.target.closest('[data-feat-go]'); if (el) { e.preventDefault(); startFeat(el); } });
+root().addEventListener('keydown', (e) => { const el = e.target.closest?.('[data-feat-go]'); if (el && (e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); startFeat(el); } });
+root().addEventListener('keyup', (e) => { if (e.target.closest?.('[data-feat-go]')) stopFeat(); });
+['pointerup', 'pointercancel'].forEach((t) => document.addEventListener(t, stopFeat));
+root().addEventListener('contextmenu', (e) => { if (e.target.closest('[data-feat-go],[data-ab],[data-cond]')) e.preventDefault(); });
+
 function rollAbility(el) {
   const c = mine();
   const k = el.dataset.ab;
@@ -141,10 +193,7 @@ root().addEventListener('submit', (e) => {
   e.preventDefault();
   const c = mine();
   if (!c) return;
-  if (e.target.id === 'invForm') {
-    const name = $('#invName').value.trim();
-    if (name) send({ inv: { op: 'add', name, qty: Number($('#invQty').value) || 1 } });
-  } else if (e.target.id === 'spellForm') {
+  if (e.target.id === 'spellForm') {
     const q = $('#spellAdd').value.trim().toLowerCase();
     const s = spells.items.find((x) => x.name.toLowerCase() === q) || spells.items.find((x) => x.name.toLowerCase().startsWith(q));
     if (q && s) send({ spells: [...(c.spells || []), s.id] });
