@@ -4,6 +4,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+- Sample backdrop "Tales of Artheria" (`public/samples/artheria-village.jpg`), bundled with the app and listed first in the backdrop library. A fresh table, or a save from before this change, starts on it. Choosing "Scene theme" is now saved as `'none'`, so it survives a restart. The sample has no ✕ and is never deleted from disk.
+
 ### Changed
 - Player screen tabs are now Play, Sheet, Inventory, Journal and Misc. Tabs and their sections fade in.
   - Play: a dice pool sits at the top. D4, D6, D8, D10, D12 and D20 each have an icon and ◀ ▶ arrows to remove or add a die, and Roll is at the bottom. Adv and Dis work when the pool is a single D20. The scene description is on the TV only. A point of interest appears on the phone only once the DM reveals it, so there are no ??? placeholders. Skill buttons and the hero Stats and Bio toggle are gone from the phone (stats are on the Sheet, the bio is in the profile).

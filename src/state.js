@@ -51,8 +51,8 @@ const state = {
     choices: [],
     caption: '',
   },
-  // Uploads survive restarts (files on disk); `image` null means use the scene theme.
-  backdrop: { image: null, effects: [], library: lib.backdrops },
+  // Uploads survive restarts (files on disk); `image` null means use the scene theme. Starts on the bundled sample.
+  backdrop: { image: require('./media').defaultBackdrop(lib.backdrops), effects: [], library: lib.backdrops },
   // loops: built-in placeholder ambience (src/placeholder-sounds.js). mix: layers playing now, { id, url, name, volume }.
   audio: { library: lib.audio, loops: require('./placeholder-sounds').loopItems(), mix: [], music: null, playing: false, volume: 0.6, sfxVolume: 0.9, builtins: BUILTIN_SFX },
   log: [],

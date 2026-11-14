@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { DATA_DIR } = require('./config');
-const { MIX_MAX } = require('./media');
+const { MIX_MAX, defaultBackdrop } = require('./media');
 
 const FILE = path.join(DATA_DIR, 'campaign.json');
 const VERSION = 1;
@@ -40,7 +40,7 @@ function snapshot(state, seq) {
     check: state.check,
     combat: state.combat,
     social: { ...state.social, caption: '' },
-    backdrop: { image: state.backdrop.image?.id || null, effects: state.backdrop.effects },
+    backdrop: { image: state.backdrop.image?.id || 'none', effects: state.backdrop.effects },
     audio: { music: state.audio.music?.id || null, playing: state.audio.playing, volume: state.audio.volume, sfxVolume: state.audio.sfxVolume, mix: state.audio.mix.map(({ id, volume }) => ({ id, volume })) },
     settings: state.settings,
     log: state.log,
@@ -58,7 +58,8 @@ function restore(state, roster, saved) {
   for (const id of saved.party || []) if (roster[id]) state.players[id] = roster[id];
   state.combat.order = (state.combat.order || []).filter((o) => state.players[o.id] || state.combat.enemies.some((e) => e.id === o.id));
   const bd = saved.backdrop || {};
-  state.backdrop.image = state.backdrop.library.find((b) => b.id === bd.image) || null;
+  // 'none' = the DM chose the scene theme. Older saves (null) and missing files fall back to the sample backdrop.
+  state.backdrop.image = bd.image === 'none' ? null : state.backdrop.library.find((b) => b.id === bd.image) || defaultBackdrop(state.backdrop.library);
   state.backdrop.effects = bd.effects || [];
   const au = saved.audio || {};
   state.audio.music = state.audio.library.find((t) => t.id === au.music) || null;

@@ -84,7 +84,7 @@
           el('bdLib').innerHTML = `<button class="bd-item none ${bd.image ? '' : 'on'}" data-bd="">Scene theme</button>` + bd.library.map((b) => `
             <button class="bd-item ${bd.image?.id === b.id ? 'on' : ''}" data-bd="${esc(b.id)}" title="${esc(b.name)}">
               ${b.video ? `<video src="${esc(b.url)}#t=1" muted preload="metadata"></video>` : `<img src="${esc(b.url)}" alt="" loading="lazy">`}
-              <span>${b.video ? '🎞 ' : ''}${esc(b.name)}</span><i class="del" data-del="${esc(b.id)}">✕</i>
+              <span>${b.video ? '🎞 ' : ''}${esc(b.name)}</span>${b.sample ? '' : `<i class="del" data-del="${esc(b.id)}">✕</i>`}
             </button>`).join('');
         }
         el('fxBtns').innerHTML = s.effects.map((e) => `<button class="btn ${bd.effects.includes(e) ? 'on' : ''}" data-fx="${e}">${FX_ICON[e] || e}</button>`).join('');
