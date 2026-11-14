@@ -33,3 +33,29 @@
 .wm-card-tv { position: absolute; left: 4%; right: 4%; bottom: 4%; font-size: 1.8em; background: rgba(27,20,32,.92); animation: wm-in .6s both; }
 @keyframes wm-in { from { opacity: 0; transform: translateY(12px); } }
 .wm-card-tv p { margin: 0; }
+
+/* Roads and fog (after Phase G). Roads and fog are SVG in picture fractions, under the places and the token. */
+.wm-roads, .wm-fog { position: absolute; inset: 0; width: 100%; height: 100%; }
+.wm-roads { pointer-events: none; overflow: visible; }
+.wm-road { stroke: #e6cf9a; stroke-width: 3; stroke-dasharray: 7 6; stroke-linecap: round; vector-effect: non-scaling-stroke; opacity: .75; filter: drop-shadow(0 1px 1px #000); }
+.wm-road.unknown { opacity: .3; stroke-dasharray: 2 6; }
+.wm-road.trip { stroke: #ffd36b; stroke-width: 4; opacity: 1; animation: wm-march 1s linear infinite; }
+.wm-road.sel { stroke: #7fd4ff; opacity: 1; }
+@keyframes wm-march { to { stroke-dashoffset: -13; } }
+.wm-board.dm .wm-road { pointer-events: stroke; cursor: pointer; stroke-width: 5; }
+.wm-fog { pointer-events: none; opacity: .94; transition: opacity .6s; }
+.wm-fog.dm { opacity: .38; }
+.wm-fog-drift { animation: wm-drift 18s ease-in-out infinite alternate; transform-origin: 50% 50%; }
+@keyframes wm-drift { to { transform: translate(3px, -2px) scale(1.04); } }
+.wm-node.fogged i { background: #5a5466; box-shadow: 0 0 0 2px #120d14, 0 0 10px #9a90b0; }
+.wm-node.fogged span { color: #b8b0c8; font-style: italic; }
+.wm-node.unseen { opacity: .55; }
+.wm-node.dest i { box-shadow: 0 0 0 2px #120d14, 0 0 0 5px #ffd36b88; animation: wm-pulse 1.6s ease-in-out infinite; }
+.wm-node.from i { outline: 2px dashed #7fd4ff; outline-offset: 3px; }
+@keyframes wm-pulse { 50% { box-shadow: 0 0 0 2px #120d14, 0 0 0 9px #ffd36b22; } }
+.wm-node { transition: opacity .6s; }
+.wm-roadlist .item { display: flex; gap: 6px; align-items: center; }
+@media (prefers-reduced-motion: reduce) { .wm-road.trip, .wm-fog-drift, .wm-node.dest i { animation: none; } }
+/* The dot, not the dot plus its label, sits on the place's point, so roads meet the dots. */
+.wm-node { transform: translate(-50%, -7px); }
+.wm-tv .wm-node { transform: translate(-50%, -11px); }

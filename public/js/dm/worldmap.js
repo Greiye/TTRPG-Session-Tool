@@ -11,10 +11,17 @@ mount(`<div class="card" data-tab="world">
   <div class="row wrap">
     <label class="btn small">⬆ Map picture<input type="file" accept="image/*" id="wmFile" hidden></label>
     <label class="chk"><input type="checkbox" id="wmTv"> Show on TV</label>
+    <label class="chk" title="When the server starts and on Next session: exploration mode with the world map on the TV"><input type="checkbox" id="wmOpen"> Open each session here</label>
     <label class="note tight">Leg (s) <input id="wmLeg" type="number" min="5" max="1800" style="width:72px"></label>
     <label class="note tight">Card every (s) <input id="wmCard" type="number" min="5" max="600" style="width:72px"></label>
   </div>
-  <div class="row"><button class="btn small" id="wmPlace">+ Place</button><span class="note" id="wmHint">Tap a place to edit it.</span></div>
+  <div class="row wrap">
+    <label class="chk"><input type="checkbox" id="wmFog"> Fog of war</label>
+    <button class="btn small" id="wmFogAll">Reveal all</button>
+    <button class="btn small" id="wmFogNone">Fog all</button>
+    <span class="note">Under fog the table sees places the party has seen and roads it knows. Arriving uncovers the roads out and the places at their ends.</span>
+  </div>
+  <div class="row"><button class="btn small" id="wmPlace">+ Place</button><button class="btn small" id="wmRoad">+ Road</button><span class="note" id="wmHint">Tap a place to edit it.</span></div>
   <div id="wmBoard"></div>
   <div id="wmEdit"></div>
   <h4>Vote</h4>
@@ -35,6 +42,9 @@ mount(`<div class="card" data-tab="world">
 
 let selId = null;
 let placing = false;
+let roading = false; // road mode: tap one place, then another
+let roadFrom = null;
+let selRoad = null;
 const keys = {};
 const once = (name, key, html) => { if (keys[name] === key) return; keys[name] = key; $(name).innerHTML = html; };
 const setVal = (sel, v) => { const el = $(sel); if (el && document.activeElement !== el) el.value = v; };
@@ -59,15 +69,32 @@ function voteHtml(S) {
 
 function editorHtml(S, sel) {
   const wm = S.worldMap;
+  const towns = S.living?.towns || [];
+  const townOpts = `<option value="">No town${towns.some((t) => t.name.toLowerCase() === sel.name.toLowerCase()) && !sel.town ? ' (same name links)' : ''}</option>`
+    + towns.map((t) => `<option value="${esc(t.id)}" ${sel.town === t.id ? 'selected' : ''}>${esc(t.name)}</option>`).join('');
+  const roads = (wm.roads || []).filter((r) => r.a === sel.id || r.b === sel.id);
+  const roadRows = roads.map((r) => {
+    const other = WM().byId(wm, r.a === sel.id ? r.b : r.a);
+    return `<div class="item ${selRoad === r.id ? 'on' : ''}"><span class="grow">↔ ${esc(other?.name || '?')}</span>
+      <label class="note tight">Legs <input type="number" min="1" max="10" value="${r.length}" data-wm-rlen="${esc(r.id)}" style="width:56px"></label>
+      ${wm.fog ? `<label class="chk"><input type="checkbox" data-wm-rknown="${esc(r.id)}" ${r.known ? 'checked' : ''}> Known</label>` : ''}
+      <button class="btn small" data-wm-rrm="${esc(r.id)}">✕</button></div>`;
+  }).join('');
+  const path = wm.here && wm.here !== sel.id ? WM().route({ ...wm, roads: (wm.roads || []).map((r) => ({ ...r, known: true })) }, wm.here, sel.id) : null;
   return `<div class="item wm-edit">
     <label class="fld">Name<input id="wmName" maxlength="40" value="${esc(sel.name)}"></label>
     <label class="fld">What the party knows <small class="muted">(shown to the table only when revealed)</small><textarea id="wmInfo" rows="3" maxlength="1200">${esc(sel.info)}</textarea></label>
+    <label class="fld">Town <small class="muted">(living world: prices, clocks and rumours)</small><select id="wmTown">${townOpts}</select></label>
     <div class="row wrap">
-      <label class="chk"><input type="checkbox" id="wmRev" ${sel.revealed ? 'checked' : ''}> Revealed to the table</label>
+      <label class="chk"><input type="checkbox" id="wmRev" ${sel.revealed ? 'checked' : ''}> Info revealed to the table</label>
+      ${wm.fog ? `<label class="chk"><input type="checkbox" id="wmSeen" ${sel.seen ? 'checked' : ''}> On the map (out of the fog)</label>` : ''}
       <button class="btn small primary" id="wmSave">Save place</button>
       <button class="btn small" id="wmGo" ${wm.here === sel.id && !wm.travel ? 'disabled' : ''}>Send the party here now</button>
       <button class="btn small" id="wmDel">Remove place</button>
     </div>
+    <p class="note">${path ? `By road: ${path.legs} leg${path.legs === 1 ? '' : 's'}${path.path.length > 1 ? `, via ${path.path.slice(0, -1).map((id) => esc(WM().byId(wm, id)?.name)).join(', ')}` : ''}.` : wm.here && wm.here !== sel.id ? 'No road from the party: they would go straight there (one leg).' : ''}</p>
+    <h4>Roads</h4>
+    <div class="wm-roadlist">${roadRows || '<p class="note">No roads. Use + Road, then tap two places.</p>'}</div>
   </div>`;
 }
 
@@ -93,13 +120,14 @@ function draw(S) {
   setVal('#wmLeg', wm.legSeconds);
   setVal('#wmCard', wm.cardSeconds);
   $('#wmTv').checked = !!wm.onTv;
-  $('#wmPlace').classList.toggle('on', placing);
-  $('#wmHint').textContent = placing ? 'Tap the picture to place a new place.' : 'Tap a place to edit it.';
+  $('#wmOpen').checked = wm.openOnSession !== false;
+  $('#wmFog').checked = !!wm.fog;
+  hint();
 
-  $('#wmBoard').innerHTML = WM().board(S, { dm: true, selected: selId });
+  $('#wmBoard').innerHTML = WM().board(S, { dm: true, selected: selId, selRoad, from: roadFrom });
   const sel = wm.nodes.find((n) => n.id === selId);
   if (!sel) selId = null;
-  once('#wmEdit', JSON.stringify([sel, wm.here, !!wm.travel]), sel ? editorHtml(S, sel) : '');
+  once('#wmEdit', JSON.stringify([sel, wm.here, !!wm.travel, wm.fog, wm.roads, selRoad, (S.living?.towns || []).map((t) => t.id + t.name)]), sel ? editorHtml(S, sel) : '');
   once('#wmVote', JSON.stringify([wm.vote, wm.nodes.map((n) => n.id + n.name), wm.here, S.players.map((p) => p.id + p.name)]), voteHtml(S));
   once('#wmDeckList', JSON.stringify(wm.deck), wm.deck.length
     ? wm.deck.map((d) => `<div class="item"><span>${esc(d.text)}${d.lore ? ' <small class="muted">+ lore</small>' : ''}</span><button class="btn small" data-wm-deck-rm="${esc(d.id)}">✕</button></div>`).join('')
@@ -113,10 +141,33 @@ function draw(S) {
     </div>`).join(''));
 }
 
-// Board: tap a place to select it; with Place on, tap the picture to add one there.
+function hint() {
+  $('#wmPlace').classList.toggle('on', placing);
+  $('#wmRoad').classList.toggle('on', roading);
+  $('#wmHint').textContent = placing ? 'Tap the picture to place a new place.'
+    : roading ? (roadFrom ? 'Now tap the place the road leads to.' : 'Tap the place the road starts from.')
+    : 'Tap a place to edit it, or a road to pick it.';
+}
+
+// Board: tap a place to select it; with Place on, tap the picture to add one there; with Road on, tap two places.
 $('#wmBoard').addEventListener('click', async (e) => {
   const n = e.target.closest('[data-node]');
-  if (n) { selId = n.dataset.node; return last && draw(last); }
+  if (n && roading) {
+    if (!roadFrom) roadFrom = n.dataset.node;
+    else if (roadFrom !== n.dataset.node) {
+      const res = await call('dm:worldmap:road', { a: roadFrom, b: n.dataset.node, known: false });
+      if (res?.error) alert(res.error);
+      selId = roadFrom; selRoad = res?.id || null; roadFrom = null; roading = false;
+    }
+    return last && draw(last);
+  }
+  if (n) { selId = n.dataset.node; selRoad = null; return last && draw(last); }
+  const road = e.target.closest('[data-road]');
+  if (road && last) {
+    const r = last.worldMap.roads.find((x) => x.id === road.dataset.road);
+    if (r) { selRoad = r.id; if (selId !== r.a && selId !== r.b) selId = r.a; }
+    return draw(last);
+  }
   if (!placing) return;
   const pic = e.target.closest('.wm-pic');
   if (!pic) return;
@@ -127,8 +178,13 @@ $('#wmBoard').addEventListener('click', async (e) => {
   if (last) draw(last);
 });
 
-$('#wmPlace').onclick = () => { placing = !placing; $('#wmHint').textContent = placing ? 'Tap the picture to place a new place.' : 'Tap a place to edit it.'; $('#wmPlace').classList.toggle('on', placing); };
+$('#wmPlace').onclick = () => { placing = !placing; roading = false; roadFrom = null; if (last) draw(last); };
+$('#wmRoad').onclick = () => { roading = !roading; placing = false; roadFrom = null; if (last) draw(last); };
+$('#wmFog').onchange = (e) => emit('dm:worldmap:fog', { on: e.target.checked });
+$('#wmFogAll').onclick = () => emit('dm:worldmap:fog:all', { on: true });
+$('#wmFogNone').onclick = () => emit('dm:worldmap:fog:all', { on: false });
 $('#wmTv').onchange = (e) => emit('dm:worldmap:show', { on: e.target.checked });
+$('#wmOpen').onchange = (e) => emit('dm:worldmap:opensession', { on: e.target.checked });
 $('#wmLeg').onchange = (e) => emit('dm:worldmap:timing', { legSeconds: e.target.value });
 $('#wmCard').onchange = (e) => emit('dm:worldmap:timing', { cardSeconds: e.target.value });
 $('#wmFile').onchange = async (e) => {
@@ -144,9 +200,16 @@ $('#wmFile').onchange = async (e) => {
 $('#wmEdit').addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b || !selId) return;
-  if (b.id === 'wmSave') emit('dm:worldmap:node', { id: selId, name: $('#wmName').value.trim() || 'Unnamed place', info: $('#wmInfo').value, revealed: $('#wmRev').checked });
+  if (b.id === 'wmSave') emit('dm:worldmap:node', { id: selId, name: $('#wmName').value.trim() || 'Unnamed place', info: $('#wmInfo').value, revealed: $('#wmRev').checked, town: $('#wmTown').value, ...($('#wmSeen') ? { seen: $('#wmSeen').checked } : {}) });
+  else if (b.dataset.wmRrm) { emit('dm:worldmap:road:remove', { id: b.dataset.wmRrm }); if (selRoad === b.dataset.wmRrm) selRoad = null; }
   else if (b.id === 'wmGo') emit('dm:worldmap:go', { node: selId });
   else if (b.id === 'wmDel') { emit('dm:worldmap:node:remove', { id: selId }); selId = null; }
+});
+
+$('#wmEdit').addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.dataset.wmRlen) emit('dm:worldmap:road', { id: t.dataset.wmRlen, length: t.value });
+  else if (t.dataset.wmRknown) emit('dm:worldmap:road', { id: t.dataset.wmRknown, known: t.checked });
 });
 
 $('#wmVote').addEventListener('click', (e) => {

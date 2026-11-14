@@ -39,7 +39,7 @@
     const root = document.getElementById('stage');
     const socket = io();
     socket.on('connect', () => socket.emit('screen:hello'));
-    socket.on('state', (s) => { Settings.apply(s.settings.display); if (s.worldMap?.onTv) WorldMap.tv(root, s); else Stage.stage(root, s); Moments.render(s); }); // TV follows the table setting; the world map takes over while the DM shows it
+    socket.on('state', (s) => { Settings.apply(s.settings.display); if (s.worldMap?.onTv && s.mode === 'exploration') WorldMap.tv(root, s); else Stage.stage(root, s); Moments.render(s); }); // TV follows the table setting; the world map takes over while the DM shows it
     AudioOut.init(socket); // the TV is the speaker
     // Roll results: the 3D dice tray when it is on (Phase B), otherwise the roll popup (item 5).
     socket.on('rollpop', (p) => (Settings.get().dice !== 'off' && p.dice?.length ? Dice3D.show(p) : RollPop.show(p)));

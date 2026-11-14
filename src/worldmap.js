@@ -1,4 +1,4 @@
-// World map (Phase G): the DM uploads a map and places nodes (towns, sites). The party votes where to go; a
+// World map (Phase G, roads and fog added later): the DM uploads a map and places nodes (towns, sites). The party votes where to go; a
 // strict majority of the seated characters sends the party there, and the DM can always override. Travel is
 // slow: the party token glides between nodes while flavour cards come up. Cards come from the DM's deck first,
 // then from a weighted table the DM can edit or switch off. Every card can be vetoed after it appears.
@@ -12,6 +12,8 @@ const MAX_CARDS = 30;
 const MAX_COMMENTS = 40;
 const MAX_DECK = 30;
 const MAX_TABLE = 40;
+const MAX_ROADS = 80;
+const ROAD_LEN = [1, 10];
 const LEG_S = [5, 1800];
 const CARD_S = [5, 600];
 
@@ -30,9 +32,12 @@ function fresh() {
   return {
     image: null, // map picture URL (uploaded by the DM)
     onTv: false, // the TV shows the world map instead of the stage
+    openOnSession: true, // each session opens in exploration with the world map on the TV (src/sockets/worldmap.js)
     legSeconds: 60, // real seconds for one leg of travel
     cardSeconds: 20, // a flavour card comes up this often while travelling
-    nodes: [], // { id, name, x, y, info, revealed } with x and y as fractions of the picture
+    nodes: [], // { id, name, x, y, info, revealed, town, seen } with x and y as fractions of the picture
+    roads: [], // { id, a, b, length, known }: length counts legs; known matters only under fog
+    fog: false, // fog of war: the table sees seen places and known roads only
     here: null, // node id the party last reached
     vote: null, // { id, candidates, votes: { charId: nodeId }, open, result, at }
     travel: null, // { to, fromPt: { x, y }, startAt, endAt, nextCardAt }
@@ -64,7 +69,7 @@ function saveNode(wm, f, ctx) {
   let n = f.id ? find(wm, f.id) : null;
   if (!n) {
     if (wm.nodes.length >= MAX_NODES) return null;
-    n = { id: 'n' + ctx.nextId(), name: 'New place', x: 0.5, y: 0.5, info: '', revealed: false };
+    n = { id: 'n' + ctx.nextId(), name: 'New place', x: 0.5, y: 0.5, info: '', revealed: false, town: null, seen: false };
     wm.nodes.push(n);
   }
   if (f.name !== undefined) n.name = str(f.name, 40) || n.name;
@@ -72,13 +77,85 @@ function saveNode(wm, f, ctx) {
   if (f.y !== undefined) n.y = clamp01(f.y);
   if (f.info !== undefined) n.info = str(f.info, 1200);
   if (f.revealed !== undefined) n.revealed = !!f.revealed;
+  if (f.town !== undefined) n.town = f.town ? str(f.town, 40) || null : null; // living-world town id (src/living.js)
+  if (f.seen !== undefined) n.seen = !!f.seen;
   return n;
+}
+
+// ----- roads and fog -----
+const roadBetween = (wm, a, b) => (wm.roads || []).find((r) => (r.a === a && r.b === b) || (r.a === b && r.b === a));
+
+// Add or edit a road between two places. An existing pair is edited, not doubled. Returns the road or null.
+function saveRoad(wm, f, ctx) {
+  wm.roads ||= [];
+  let r = f.id ? wm.roads.find((x) => x.id === f.id) : null;
+  if (!r) {
+    if (!find(wm, f.a) || !find(wm, f.b) || f.a === f.b) return null;
+    r = roadBetween(wm, f.a, f.b);
+    if (!r) {
+      if (wm.roads.length >= MAX_ROADS) return null;
+      r = { id: 'r' + ctx.nextId(), a: f.a, b: f.b, length: 1, known: false };
+      wm.roads.push(r);
+    }
+  }
+  if (f.length !== undefined) r.length = int(f.length, ROAD_LEN[0], ROAD_LEN[1], r.length);
+  if (f.known !== undefined) r.known = !!f.known;
+  return r;
+}
+function removeRoad(wm, id) {
+  wm.roads = (wm.roads || []).filter((r) => r.id !== id);
+  return true;
+}
+
+// The table may use a road when fog is off, or when the road is known.
+const usable = (wm, r, all) => all || !wm.fog || r.known;
+
+// Shortest way by road (Dijkstra on length). Returns the places after `from`, ending at `to`, or null.
+function route(wm, from, to, all = false) {
+  if (!from || !to || from === to || !find(wm, from) || !find(wm, to)) return null;
+  const dist = { [from]: 0 };
+  const prev = {};
+  const open = new Set([from]);
+  const done = new Set();
+  while (open.size) {
+    let u = null;
+    for (const id of open) if (u === null || dist[id] < dist[u]) u = id;
+    open.delete(u);
+    if (u === to) break;
+    done.add(u);
+    for (const r of wm.roads || []) {
+      if (!usable(wm, r, all) || (r.a !== u && r.b !== u)) continue;
+      const v = r.a === u ? r.b : r.a;
+      if (done.has(v) || !find(wm, v)) continue;
+      const d = dist[u] + r.length;
+      if (dist[v] === undefined || d < dist[v]) { dist[v] = d; prev[v] = u; open.add(v); }
+    }
+  }
+  if (dist[to] === undefined) return null;
+  const path = [];
+  for (let v = to; v !== from; v = prev[v]) path.unshift(v);
+  return path;
+}
+
+// Arriving somewhere clears its fog: the place is seen, the roads out of it become known, and the places at
+// their far ends are seen too (signposts). The DM can hide any of it again.
+function uncover(wm, nodeId) {
+  const n = find(wm, nodeId);
+  if (!n) return;
+  n.seen = true;
+  for (const r of wm.roads || []) {
+    if (r.a !== nodeId && r.b !== nodeId) continue;
+    r.known = true;
+    const o = find(wm, r.a === nodeId ? r.b : r.a);
+    if (o) o.seen = true;
+  }
 }
 
 function removeNode(wm, id) {
   wm.nodes = wm.nodes.filter((n) => n.id !== id);
   if (wm.here === id) wm.here = null;
-  if (wm.travel?.to === id) wm.travel = null;
+  wm.roads = (wm.roads || []).filter((r) => r.a !== id && r.b !== id);
+  if (wm.travel && (wm.travel.to === id || (wm.travel.route || []).includes(id))) wm.travel = null;
   if (wm.vote) {
     wm.vote.candidates = wm.vote.candidates.filter((x) => x !== id);
     for (const [who, node] of Object.entries(wm.vote.votes)) if (node === id) delete wm.vote.votes[who];
@@ -88,7 +165,8 @@ function removeNode(wm, id) {
 
 // Open a vote. With no candidates, every place except the one the party is at.
 function startVote(wm, candidates, ctx) {
-  const pool = Array.isArray(candidates) && candidates.length ? candidates : wm.nodes.map((n) => n.id).filter((id) => id !== wm.here);
+  const pool = Array.isArray(candidates) && candidates.length ? candidates
+    : wm.nodes.filter((n) => n.id !== wm.here && (!wm.fog || n.seen)).map((n) => n.id);
   const ids = [...new Set(pool)].filter((id) => find(wm, id)).slice(0, 8);
   if (ids.length < 2) return false;
   wm.vote = { id: 'v' + ctx.nextId(), candidates: ids, votes: {}, open: true, result: null, at: ctx.now };
@@ -125,22 +203,36 @@ function cancelVote(wm) {
   return true;
 }
 
-// Start travelling to a node. Used by a passed vote and by the DM's override (the token keeps its place mid-leg).
-function go(wm, nodeId, ctx) {
+// Start travelling to a node. Used by a passed vote and by the DM's override.
+// With roads, a party standing at a place follows the shortest road route, one leg per road (under fog the
+// table only uses known roads; the DM's override may use any). With no route, or mid-leg, the party heads
+// straight there and the token keeps its place. opts: { anyRoad }.
+function go(wm, nodeId, ctx, opts = {}) {
   const to = find(wm, nodeId);
-  if (!to || (wm.here === nodeId && !wm.travel) || wm.travel?.to === nodeId) return false;
+  const dest = wm.travel ? wm.travel.dest || wm.travel.to : null;
+  if (!to || (wm.here === nodeId && !wm.travel) || dest === nodeId) return false;
+  const path = !wm.travel ? route(wm, wm.here, nodeId, !!opts.anyRoad) : null;
   const from = posAt(wm, ctx.now) || { x: to.x, y: to.y };
   if (wm.vote) { wm.vote.open = false; wm.vote.result = nodeId; }
+  const first = path ? path[0] : nodeId;
+  const road = path ? roadBetween(wm, wm.here, first) : null;
   wm.travel = {
-    to: nodeId,
+    to: first,
+    dest: nodeId,
+    route: path ? path.slice(1) : [],
+    road: road?.id || null,
     fromPt: { x: from.x, y: from.y },
     startAt: ctx.now,
-    endAt: ctx.now + wm.legSeconds * 1000 * (ctx.legFactor || 1), // weather and dark slow travel (src/living.js)
+    endAt: ctx.now + legMs(wm, road, ctx),
     nextCardAt: ctx.now + wm.cardSeconds * 1000,
   };
-  ctx.log('narrate', `The party sets out for ${to.name}.`);
+  const via = path && path.length > 1 ? ` by road, via ${path.slice(0, -1).map((id) => find(wm, id).name).join(', ')}` : path ? ' by road' : '';
+  ctx.log('narrate', `The party sets out for ${to.name}${via}.`);
   return true;
 }
+
+// One leg: legSeconds times the road's length, stretched by weather and dark (src/living.js).
+const legMs = (wm, road, ctx) => wm.legSeconds * 1000 * (road?.length || 1) * (ctx.legFactor || 1);
 
 // A card comes up: the next DM card if there is one, otherwise a weighted pick from the enabled table.
 function drawCard(wm, ctx) {
@@ -177,9 +269,21 @@ function tick(wm, ctx) {
   if (ctx.now >= t.endAt) {
     const to = find(wm, t.to);
     wm.here = t.to;
+    const road = t.road && wm.roads.find((r) => r.id === t.road);
+    if (road) road.known = true;
+    uncover(wm, t.to);
+    ctx.onArrive?.(to); // living world: travel clocks tick and rumours follow the road
+    const next = (t.route || []).find((id) => find(wm, id));
+    if (to && next) {
+      // Not there yet: carry on along the route. Card timing runs on across legs.
+      const r2 = roadBetween(wm, t.to, next);
+      const startAt = t.endAt;
+      wm.travel = { ...t, to: next, route: t.route.slice(t.route.indexOf(next) + 1), road: r2?.id || null, fromPt: { x: to.x, y: to.y }, startAt, endAt: startAt + legMs(wm, r2, ctx) };
+      ctx.log('narrate', `The party passes through ${to.name}.`);
+      return true;
+    }
     wm.travel = null;
     if (to) ctx.log('narrate', `The party reaches ${to.name}.`);
-    ctx.onArrive?.(to); // living world: travel clocks tick and rumours follow the road
     return true;
   }
   return changed;
@@ -247,6 +351,11 @@ function setImage(wm, image) {
   wm.image = image ? str(image, 200) || null : null;
   return true;
 }
+function setFog(wm, on) {
+  wm.fog = !!on;
+  if (wm.fog && wm.here) uncover(wm, wm.here);
+  return true;
+}
 function setTiming(wm, { legSeconds, cardSeconds } = {}) {
   if (legSeconds !== undefined) wm.legSeconds = int(legSeconds, LEG_S[0], LEG_S[1], wm.legSeconds);
   if (cardSeconds !== undefined) wm.cardSeconds = int(cardSeconds, CARD_S[0], CARD_S[1], wm.cardSeconds);
@@ -256,16 +365,27 @@ function setTiming(wm, { legSeconds, cardSeconds } = {}) {
 // What one viewer may see. The DM sees the info of every place, the votes, the deck and the table.
 // Phones and the TV see revealed info only, counts without names, cards that are not vetoed, and lore only
 // once the DM reveals it. A phone also sees its own vote.
+// Under fog the table sees a place once it is seen, and always the place the party stands at.
+const seenBy = (wm, n) => !wm.fog || n.seen || n.id === wm.here;
+// A fogged place still needed on screen (the trip's next stop, the destination, or a vote option) goes as "???".
+const pinned = (wm, id) => wm.travel?.to === id || wm.travel?.dest === id || (wm.travel?.route || []).includes(id) || !!wm.vote?.candidates.includes(id);
+
 function viewFor(wm, viewer, seated = 0) {
   const dm = viewer.role === 'dm';
   const v = wm.vote;
   const out = {
     image: wm.image,
     onTv: wm.onTv,
+    openOnSession: wm.openOnSession !== false,
     legSeconds: wm.legSeconds,
     cardSeconds: wm.cardSeconds,
     here: wm.here,
-    nodes: wm.nodes.map((n) => ({ id: n.id, name: n.name, x: n.x, y: n.y, revealed: n.revealed, info: dm || n.revealed ? n.info : null })),
+    fog: !!wm.fog,
+    nodes: wm.nodes.filter((n) => dm || seenBy(wm, n)).map((n) => ({
+      id: n.id, name: n.name, x: n.x, y: n.y, revealed: n.revealed, info: dm || n.revealed ? n.info : null,
+      seen: !wm.fog || !!n.seen, town: dm ? n.town || null : undefined,
+    })).concat(dm ? [] : wm.nodes.filter((n) => !seenBy(wm, n) && pinned(wm, n.id)).map((n) => ({ id: n.id, name: '???', x: n.x, y: n.y, revealed: false, info: null, seen: false, fogged: true }))),
+    roads: (wm.roads || []).filter((r) => dm || !wm.fog || r.known).map((r) => ({ id: r.id, a: r.a, b: r.b, length: r.length, known: !wm.fog || r.known })),
     vote: v ? {
       id: v.id,
       open: v.open,
@@ -276,7 +396,7 @@ function viewFor(wm, viewer, seated = 0) {
       mine: viewer.role === 'player' ? v.votes[viewer.charId] ?? null : null,
       votes: dm ? v.votes : undefined,
     } : null,
-    travel: wm.travel ? { to: wm.travel.to, fromPt: wm.travel.fromPt, startAt: wm.travel.startAt, endAt: wm.travel.endAt } : null,
+    travel: wm.travel ? { to: wm.travel.to, dest: wm.travel.dest || wm.travel.to, route: wm.travel.route || [], road: wm.travel.road || null, fromPt: wm.travel.fromPt, startAt: wm.travel.startAt, endAt: wm.travel.endAt } : null,
     cards: wm.cards.filter((c) => dm || !c.vetoed).map((c) => ({
       id: c.id,
       text: c.text,
@@ -297,4 +417,5 @@ module.exports = {
   fresh, posAt, saveNode, removeNode, reveal: (wm, id, on) => { const n = find(wm, id); if (n) n.revealed = !!on; return !!n; },
   startVote, castVote, closeVote, cancelVote, go, tick, drawNow, addDeck, removeDeck, saveTable, removeTable,
   vetoCard, revealLore, comment, setImage, setTiming, viewFor, counts, DEFAULT_TABLE,
+  saveRoad, removeRoad, route, uncover, setFog, roadBetween,
 };

@@ -9,8 +9,21 @@ const { str } = require('../util');
 const living = require('../living');
 // Living world (phase K): weather and dark stretch each leg; arriving ticks travel clocks and spreads rumours.
 const legFactor = () => living.travelCost(living.weatherOf(state), state.scene?.light).factor;
-const onArrive = (node) => require('./living').flush(living.onTravel(state, living.townFor(state.living, node?.name)?.id));
+// A place linked to a town by id uses that town; an unlinked place falls back to a town of the same name.
+const townOf = (node) => (node?.town && state.living.towns.find((t) => t.id === node.town)) || living.townFor(state.living, node?.name);
+const onArrive = (node) => require('./living').flush(living.onTravel(state, townOf(node)?.id));
 const ctx = (extra = {}) => ({ now: Date.now(), seated: Object.keys(state.players).length, log, nextId, random: Math.random, legFactor: legFactor(), onArrive, ...extra });
+
+// A session opens on the world map: exploration mode, map on the TV. Runs when the server starts (game night)
+// and on the DM's Next session. Skipped while the DM has switched it off or the map is still empty.
+function openSession() {
+  const W = state.worldMap;
+  if (W.openOnSession === false || (!W.image && !W.nodes.length)) return false;
+  if (state.mode !== 'exploration') { state.mode = 'exploration'; require('../world').applyMood('exploration'); state.check = null; }
+  W.onTv = true;
+  return true;
+}
+openSession();
 
 // Travel and card timers run on the server, so they keep going with no phone open.
 setInterval(() => { if (wm.tick(state.worldMap, ctx())) broadcast(); }, 500).unref?.();
@@ -27,6 +40,7 @@ module.exports = function worldSockets(socket) {
 
   dm('dm:worldmap:image', ({ image }) => wm.setImage(W(), image));
   dm('dm:worldmap:show', ({ on }) => { W().onTv = !!on; });
+  dm('dm:worldmap:opensession', ({ on }) => { W().openOnSession = !!on; });
   dm('dm:worldmap:timing', (f) => wm.setTiming(W(), f));
   dm('dm:worldmap:node', (f) => {
     const n = wm.saveNode(W(), f, ctx());
@@ -38,7 +52,15 @@ module.exports = function worldSockets(socket) {
   dm('dm:worldmap:vote:close', () => wm.closeVote(W(), ctx()));
   dm('dm:worldmap:vote:cancel', () => wm.cancelVote(W()));
   // The DM's override: send the party to a place now, whatever the vote says.
-  dm('dm:worldmap:go', ({ node }) => wm.go(W(), node, ctx()));
+  dm('dm:worldmap:go', ({ node }) => wm.go(W(), node, ctx(), { anyRoad: true }));
+  // Roads and fog: a road joins two places and is `length` legs long; under fog the table sees known roads only.
+  dm('dm:worldmap:road', (f) => {
+    const r = wm.saveRoad(W(), f, ctx());
+    return r ? { id: r.id } : { error: 'Pick two different places (80 roads at most).' };
+  });
+  dm('dm:worldmap:road:remove', ({ id }) => wm.removeRoad(W(), id));
+  dm('dm:worldmap:fog', ({ on }) => wm.setFog(W(), on));
+  dm('dm:worldmap:fog:all', ({ on }) => { for (const n of W().nodes) n.seen = !!on; for (const r of W().roads) r.known = !!on; if (on === false && W().here) wm.uncover(W(), W().here); });
   dm('dm:worldmap:deck:add', (f) => wm.addDeck(W(), f, ctx()));
   dm('dm:worldmap:deck:remove', ({ id }) => wm.removeDeck(W(), id));
   dm('dm:worldmap:table:set', (f) => wm.saveTable(W(), f, ctx()));
@@ -61,3 +83,5 @@ module.exports = function worldSockets(socket) {
     ack?.({ ok });
   });
 };
+
+module.exports.openSession = openSession;

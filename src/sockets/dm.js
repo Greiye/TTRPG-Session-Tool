@@ -51,6 +51,7 @@ module.exports = function dmSockets(socket) {
     if (!['exploration', 'combat', 'social'].includes(mode)) return;
     state.mode = mode;
     world.applyMood(mode);
+    if (mode !== 'exploration') state.worldMap.onTv = false; // the world map belongs to exploration: combat and social take the TV
     state.check = null;
     log('system', `— ${mode.toUpperCase()} —`);
     void bulbs.sync(state);
