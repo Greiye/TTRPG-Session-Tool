@@ -56,3 +56,6 @@
 .wm-node { transition: opacity .6s; }
 .wm-roadlist .item { display: flex; gap: 6px; align-items: center; }
 @media (prefers-reduced-motion: reduce) { .wm-road.trip, .wm-fog-drift, .wm-node.dest i { animation: none; } }
+/* The dot, not the dot plus its label, sits on the place's point, so roads meet the dots. */
+.wm-node { transform: translate(-50%, -7px); }
+.wm-tv .wm-node { transform: translate(-50%, -11px); }
