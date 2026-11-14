@@ -207,11 +207,34 @@
     </div>`;
   }
 
-  function party(s) {
+  // Party cards stay tucked below the screen. When a player's HP changes, their card slides up for a few
+  // seconds and then slides back down. Re-renders while a card is up keep it up without replaying the slide.
+  const HP_SHOW_MS = 4000;
+  const hpWatch = new WeakMap();
+  function hpChanges(root, s) {
+    let w = hpWatch.get(root);
+    const first = !w;
+    if (!w) hpWatch.set(root, (w = { hp: {}, until: {}, timers: {} }));
+    const now = Date.now(), fresh = [];
+    for (const p of s.players) {
+      const key = `${p.hp}/${p.maxHp}`;
+      if (!first && w.hp[p.id] !== undefined && w.hp[p.id] !== key) {
+        if (!(w.until[p.id] > now)) fresh.push(p.id);
+        w.until[p.id] = now + HP_SHOW_MS;
+        clearTimeout(w.timers[p.id]);
+        w.timers[p.id] = setTimeout(() => root.querySelector(`.pc[data-pid="${CSS.escape(p.id)}"]`)?.classList.remove('hp-show'), HP_SHOW_MS);
+      }
+      w.hp[p.id] = key;
+    }
+    const showing = new Set(Object.keys(w.until).filter((id) => w.until[id] > now && !fresh.includes(id)));
+    return { showing, fresh };
+  }
+
+  function party(s, showing = new Set()) {
     if (!s.players.length) return '<div class="party empty">Scan the QR code to join the party</div>';
     const turn = s.combat.active ? s.combat.order[s.combat.turn]?.id : null;
     return `<div class="party">${s.players.map((p) => `
-      <div class="pc ${p.hp === 0 ? 'down' : ''} ${turn === p.id ? 'turn' : ''} ${p.online ? '' : 'offline'}" style="${accent(p)}">
+      <div class="pc ${p.hp === 0 ? 'down' : ''} ${turn === p.id ? 'turn' : ''} ${p.online ? '' : 'offline'} ${showing.has(p.id) ? 'hp-show' : ''}" data-pid="${esc(p.id)}" style="${accent(p)}">
         ${avatar(p, 'av-pc')}
         <div class="pc-info"><b>${esc(p.name)}</b><small>${esc([p.race, p.cls].filter(Boolean).join(' '))} ${p.level > 1 ? `${p.level}` : ''} · AC ${p.ac}${p.player ? ` · ${esc(p.player)}` : ''}</small>${hpBar(p)}</div>
       </div>`).join('')}</div>`;
@@ -356,6 +379,7 @@
       setTimeout(() => t.remove(), 1800);
     }
     root.dataset.mode = s.mode;
+    const hpc = hpChanges(root, s);
     ui.innerHTML = `
       <header class="stage-top">
         <div class="mode-pill">${MODE_ICON[s.mode]} ${s.mode}</div>
@@ -365,8 +389,9 @@
         <section class="stage-center">${s.mode === 'social' ? vn(s) : s.mode === 'combat' ? combat(s) : exploration(s)}</section>
         <aside class="stage-log">${logFeed(s, 9, new Set(s.settings?.display?.hideLog || []))}</aside>
       </main>
-      <footer>${party(s)}</footer>
+      <footer>${party(s, hpc.showing)}</footer>
       ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}${legendsCard(s)}${trophyCard(s)}`;
+    if (hpc.fresh.length) requestAnimationFrame(() => requestAnimationFrame(() => hpc.fresh.forEach((id) => root.querySelector(`.pc[data-pid="${CSS.escape(id)}"]`)?.classList.add('hp-show'))));
     // Puzzle solve: the card pops once, then the solution words land one by one.
     const pz = ui.querySelector('.pz-card.solved');
     if (pz && root.dataset.pzDone !== pz.dataset.id) {

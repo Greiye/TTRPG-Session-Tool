@@ -46,6 +46,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Timers (`src/timers.js`): a condition can run for a set number of rounds and ends by itself. Concentration starts from the DM's Conditions panel; damage to the caster asks their phone for a DC 10 (or half the damage) Constitution save. The DM drops concentration.
 
 ### Changed
+- TV party bar no longer takes a fixed row. Player cards stay hidden below the screen; when a player's HP changes their card slides up for about 4 seconds, then slides back down. The scene and log get the freed space.
 - With the 3D dice tray on, roll results on the TV use the tray instead of the centre roll popup. Turn the tray off to get the popup back.
 - DM sidebar tabs are grouped (Play, Scene, Prep and record) and follow the live mode: a tab shows only when it has content in the current mode.
 

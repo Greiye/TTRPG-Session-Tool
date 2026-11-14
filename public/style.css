@@ -112,6 +112,11 @@ code { font-family: ui-monospace, Menlo, monospace; }
 .pc.turn { border-color: var(--gold); transform: translateY(-.6cqw); box-shadow: 0 0 1.5cqw rgb(227 180 90 / .5); }
 .pc.down { opacity: .45; filter: grayscale(1); }
 .pc.offline b::after { content: ' (away)'; color: var(--muted); font-weight: 400; font-size: .8em; }
+/* The party bar is not a fixed segment: it overlays the bottom edge and each card hides below the screen,
+   sliding up only while stage.js marks it .hp-show after an HP change. */
+.party:not(.empty) { position: absolute; left: 0; right: 0; bottom: 0; pointer-events: none; }
+.party:not(.empty) .pc { transform: translateY(160%); opacity: 0; transition: transform .55s cubic-bezier(.2, .9, .3, 1.15), opacity .3s; }
+.party:not(.empty) .pc.hp-show { transform: none; opacity: 1; }
 
 .hp { position: relative; height: 1.2em; background: #3b1a1a; border-radius: 99px; overflow: hidden; font-size: .8em; }
 .hp i { position: absolute; inset: 0 auto 0 0; transition: width .6s; }
