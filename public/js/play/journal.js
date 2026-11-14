@@ -1,13 +1,13 @@
-// Phone party journal tab: shared notes (clues, NPC names, places). Everyone at the table sees them;
+// Phone party journal notes (a section of the Journal tab): shared notes (clues, NPC names, places). Everyone at the table sees them;
 // you can remove your own. The DM copies entries into the recap quiz (src/journal.js).
 import { socket, $, onState, state } from '../client.js';
 import { me } from './identity.js';
-import { addTab, tab, onTab } from './tabs.js';
+import { addSection, onTab } from './tabs.js';
 
 const { esc } = Stage;
 const KIND = { clue: '🔎 Clue', npc: '🧑 NPC', note: '📝 Note' };
-addTab('journal', '📓 Journal');
-const root = () => $('#tabJournal');
+addSection('journal', 'notes', '📝 Notes');
+const root = () => $('#tabNotes');
 let draft = ''; // the text being typed, kept across re-renders
 let kind = 'note';
 
@@ -29,7 +29,7 @@ function render() {
     <div class="list">${entries || '<p class="note" style="text-align:center">The journal is empty.</p>'}</div>`;
 }
 onState(render);
-onTab((id) => { if (id === 'journal') render(); });
+onTab((id) => { if (id === 'notes') render(); });
 
 root().addEventListener('input', (e) => { if (e.target.id === 'journalText') draft = e.target.value; });
 root().addEventListener('change', (e) => { if (e.target.id === 'journalKind') kind = e.target.value; });

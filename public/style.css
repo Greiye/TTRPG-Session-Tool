@@ -850,3 +850,56 @@ html[data-motion="reduce"] .die3d .cube { animation: none; }
 .web-tv .wb-party { fill: #6b5a3a; stroke: #e8c77a; stroke-width: 3; }
 .puzzle.card .pz-guesses li.wrong { text-decoration: line-through; opacity: .6; }
 .web-tv .wb-label { stroke: #07060a; stroke-width: 5px; paint-order: stroke; }
+
+/* Player screen tabs (Nov 14): sections inside Journal and Misc, dice pool, class features, inventory. */
+.tab-body:not([hidden]), .tab-sec:not([hidden]) { animation: tab-in .22s ease-out; }
+@keyframes tab-in { from { opacity: 0; transform: translateY(6px); } }
+.tab-sec { display: flex; flex-direction: column; gap: 12px; }
+.tab-sec[hidden] { display: none; }
+.subtabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.subtabs .chip { flex-direction: row; gap: 4px; position: relative; padding: 7px 12px; font-size: calc(14px * var(--ts)); cursor: pointer; transition: background .15s, border-color .15s; }
+.subtabs .chip.on { border-color: var(--gold); color: var(--gold); }
+.subtabs .chip i { min-width: 16px; padding: 0 4px; border-radius: 99px; background: var(--bad); color: #1b1420; font-style: normal; font-size: calc(11px * var(--ts)); font-weight: 700; }
+
+.dice-pool { margin-top: 12px; }
+.dice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
+.die { display: grid; grid-template-columns: 26px 1fr 26px; align-items: center; border: 1px solid var(--line); border-radius: 10px; background: rgb(0 0 0 / .12); transition: border-color .15s, background .15s; }
+.die.has { border-color: var(--gold); background: rgb(224 176 74 / .14); }
+.die.bump .die-face { animation: die-bump .25s ease-out; }
+@keyframes die-bump { 40% { transform: scale(1.15) rotate(-6deg); } }
+.die-step { height: 100%; min-height: 54px; border: 0; background: none; color: inherit; font-size: calc(14px * var(--ts)); padding: 0; touch-action: manipulation; }
+.die-step:disabled { opacity: .25; }
+.die-face { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; }
+.die-face b { font-family: var(--display); font-size: calc(13px * var(--ts)); }
+.die-ico { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
+.die.has .die-ico { stroke: var(--gold); }
+.die-n { position: absolute; top: 0; right: -4px; min-width: 20px; padding: 0 5px; border-radius: 99px; background: var(--gold); color: #1b1420; font-style: normal; font-weight: 800; font-size: calc(12px * var(--ts)); animation: die-bump .25s ease-out; }
+.dice-opts { margin-bottom: 8px; }
+#dieGo.rolling { animation: die-bump .4s ease-out; }
+.dice-out:empty { display: none; }
+.dice-out { text-align: center; font-weight: 700; margin: 6px 0 0; animation: fadein .3s; }
+
+.poi-in { animation: poi-in .5s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes poi-in { from { opacity: 0; transform: scale(.7); } }
+
+.sk-grid .sk { display: flex; justify-content: space-between; border: 0; border-bottom: 1px dotted var(--line); background: none; color: inherit; font: inherit; text-align: left; padding: 4px 0; cursor: pointer; }
+.sk-grid .sk:active { background: rgb(224 176 74 / .15); }
+.feat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.feat { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; }
+.feat small { opacity: .8; font-size: calc(12px * var(--ts)); }
+.feat.on { outline: 2px solid var(--gold); }
+.feat.spent { opacity: .6; }
+.feat-desc { margin-top: 10px; animation: feat-open .25s ease-out; transform-origin: top; }
+@keyframes feat-open { from { opacity: 0; transform: scaleY(.85); } }
+.feat-go { position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; touch-action: none; -webkit-touch-callout: none; }
+.feat-go .feat-fill { position: absolute; inset: 0; background: rgb(255 255 255 / .35); transform: scaleX(0); transform-origin: left; }
+.feat-go.holding .feat-fill { animation: holdfill 3s linear forwards; }
+.feat-go.holding { animation: feat-shake .12s 2.4s linear infinite; }
+@keyframes feat-shake { 50% { transform: translateX(1px); } }
+.feat-go.fired { animation: feat-fire .35s ease-out; }
+@keyframes feat-fire { 0% { filter: brightness(2); transform: scale(1.04); } }
+.feat-go .feat-label { position: relative; }
+
+.inv-new { animation: slidein .3s ease-out; }
+.inv-gone { opacity: 0; transform: translateX(-1em); transition: opacity .18s, transform .18s; }
+html[data-motion="reduce"] .tab-body, html[data-motion="reduce"] .tab-sec, html[data-motion="reduce"] .die-face, html[data-motion="reduce"] .die-n, html[data-motion="reduce"] .poi-in, html[data-motion="reduce"] .feat-desc, html[data-motion="reduce"] .inv-new { animation: none; }

@@ -4,7 +4,6 @@ import { me as id } from './identity.js';
 import { onShow, current } from './nav.js';
 import { openProfile } from './profile.js';
 import { tab, onTab } from './tabs.js';
-import { rollBox } from './rolls.js';
 import exploreView from './views/explore.js';
 import socialView from './views/social.js';
 import combatView from './views/combat.js';
@@ -13,7 +12,6 @@ import * as Fx from './fx.js';
 const { esc } = Stage;
 const VIEWS = { exploration: exploreView, social: socialView, combat: combatView };
 let lastMode = null;
-let heroView = 'none'; // hero card: 'none' (bars only), 'stats' or 'bio'
 
 function render() {
   const S = state();
@@ -22,20 +20,19 @@ function render() {
   if (!c) return;
   if (lastMode && lastMode !== S.mode) navigator.vibrate?.(80);
   lastMode = S.mode;
-  // Hero card (public/chronicle.js): bars always, Stats or Bio opens below when tapped.
-  $('#me').innerHTML = `${Chronicle.hero(c, S, { view: heroView, editAttr: 'data-prof', compact: true })}<div class="me-tools"><button class="btn small" id="profBtn">✎ Profile</button><button class="btn small" id="fsBtn" title="Full screen" aria-label="Full screen">⛶</button><button class="btn small" id="awakeBtn" title="Keep the screen on" aria-pressed="${Fx.awake()}">☀</button><small class="muted me-mode">${esc(S.mode)}</small></div>`;
+  // Hero card (public/chronicle.js): portrait and bars only. Stats live on the Sheet tab, the bio in the profile.
+  $('#me').innerHTML = `${Chronicle.hero(c, S, { view: 'none', editAttr: 'data-prof', compact: true, seg: false })}<div class="me-tools"><button class="btn small" id="profBtn">✎ Profile</button><button class="btn small" id="fsBtn" title="Full screen" aria-label="Full screen">⛶</button><button class="btn small" id="awakeBtn" title="Keep the screen on" aria-pressed="${Fx.awake()}">☀</button><small class="muted me-mode">${esc(S.mode)}</small></div>`;
   Anim.hydrate($('#me'));
   $('#pills').innerHTML = Chronicle.pills(S, c);
   $('#profBtn').onclick = openProfile;
   $('#me [data-prof]').onclick = openProfile;
-  $('#me').querySelectorAll('[data-hero-view]').forEach((b) => { b.onclick = () => { heroView = heroView === b.dataset.heroView ? 'none' : b.dataset.heroView; render(); }; });
   $('#fsBtn').onclick = () => Fx.fullscreen();
   $('#awakeBtn').onclick = () => Fx.toggleAwake();
   Fx.watchHp(c.hp, c.maxHp);
   $('#say').placeholder = S.mode === 'social' ? 'Say something in character…' : 'What do you do?';
   $('#sayForm').hidden = S.mode === 'combat' || tab() !== 'play';
   $('#tabPlay').classList.toggle('combat-quiet', S.mode === 'combat'); // combat: no spectator notes, no free-text box
-  $('#main').innerHTML = (VIEWS[S.mode] || exploreView)(S, c) + rollBox();
+  $('#main').innerHTML = (VIEWS[S.mode] || exploreView)(S, c);
   Anim.hydrate($('#main'));
   if (S.mode === 'exploration' && S.dungeon?.on) window.Dungeon?.hydrate($('#main'), S.dungeon);
   const sug = (S.suggestions || []).slice(-5).reverse();

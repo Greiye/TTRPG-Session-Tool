@@ -364,7 +364,7 @@ function setTiming(wm, { legSeconds, cardSeconds } = {}) {
 
 // What one viewer may see. The DM sees the info of every place, the votes, the deck and the table.
 // Phones and the TV see revealed info only, counts without names, cards that are not vetoed, and lore only
-// once the DM reveals it. A phone also sees its own vote.
+// once the DM reveals it. A phone also sees its own vote, and no road cards.
 // Under fog the table sees a place once it is seen, and always the place the party stands at.
 const seenBy = (wm, n) => !wm.fog || n.seen || n.id === wm.here;
 // A fogged place still needed on screen (the trip's next stop, the destination, or a vote option) goes as "???".
@@ -397,7 +397,8 @@ function viewFor(wm, viewer, seated = 0) {
       votes: dm ? v.votes : undefined,
     } : null,
     travel: wm.travel ? { to: wm.travel.to, dest: wm.travel.dest || wm.travel.to, route: wm.travel.route || [], road: wm.travel.road || null, fromPt: wm.travel.fromPt, startAt: wm.travel.startAt, endAt: wm.travel.endAt } : null,
-    cards: wm.cards.filter((c) => dm || !c.vetoed).map((c) => ({
+    // Road cards are for the DM and the TV only: phones never get them (Mike, Nov 14).
+    cards: viewer.role === 'player' ? [] : wm.cards.filter((c) => dm || !c.vetoed).map((c) => ({
       id: c.id,
       text: c.text,
       source: c.source,
