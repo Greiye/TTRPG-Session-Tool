@@ -48,7 +48,7 @@ module.exports = function tableSockets(socket) {
   dm('dm:bond:called', ({ charId }) => {
     if (T.callBack(charId)) saveRoster();
   });
-  dm('dm:session:next', () => { state.sessionNo += 1; });
+  dm('dm:session:next', () => { state.sessionNo += 1; require('./worldmap').openSession(); }); // a new session opens on the world map
 
   // 5. Tension track.
   dm('dm:tension', (f) => T.setTension(f));

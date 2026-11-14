@@ -95,6 +95,7 @@ function startCombat() {
   const boss = c.enemies.find((e) => e.boss && e.title);
   if (boss) state.bossCard = { id: boss.id, name: boss.name, title: boss.title, n: (state.bossCard?.n || 0) + 1 };
   state.mode = 'combat';
+  if (state.worldMap) state.worldMap.onTv = false; // combat takes the TV from the world map
   log('combat', `Roll initiative! ${c.order.map((o) => `${combatant(o.id).name} ${o.init}`).join(', ')}`, { tone: 'call' });
   const who = combatant(currentTurnId());
   if (who) log('combat', `${who.name}'s turn.`);

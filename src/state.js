@@ -124,6 +124,7 @@ state.absent ??= {};
 state.worldMap ??= worldmap.fresh();
 state.worldMap.roads ??= []; // roads and fog came after Phase G: older saves have neither
 state.worldMap.fog ??= false;
+state.worldMap.openOnSession ??= true;
 net.setHost(state.settings.host);
 const snap = () => store.snapshot(state, seq);
 

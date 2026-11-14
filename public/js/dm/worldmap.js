@@ -11,6 +11,7 @@ mount(`<div class="card" data-tab="world">
   <div class="row wrap">
     <label class="btn small">⬆ Map picture<input type="file" accept="image/*" id="wmFile" hidden></label>
     <label class="chk"><input type="checkbox" id="wmTv"> Show on TV</label>
+    <label class="chk" title="When the server starts and on Next session: exploration mode with the world map on the TV"><input type="checkbox" id="wmOpen"> Open each session here</label>
     <label class="note tight">Leg (s) <input id="wmLeg" type="number" min="5" max="1800" style="width:72px"></label>
     <label class="note tight">Card every (s) <input id="wmCard" type="number" min="5" max="600" style="width:72px"></label>
   </div>
@@ -119,6 +120,7 @@ function draw(S) {
   setVal('#wmLeg', wm.legSeconds);
   setVal('#wmCard', wm.cardSeconds);
   $('#wmTv').checked = !!wm.onTv;
+  $('#wmOpen').checked = wm.openOnSession !== false;
   $('#wmFog').checked = !!wm.fog;
   hint();
 
@@ -182,6 +184,7 @@ $('#wmFog').onchange = (e) => emit('dm:worldmap:fog', { on: e.target.checked });
 $('#wmFogAll').onclick = () => emit('dm:worldmap:fog:all', { on: true });
 $('#wmFogNone').onclick = () => emit('dm:worldmap:fog:all', { on: false });
 $('#wmTv').onchange = (e) => emit('dm:worldmap:show', { on: e.target.checked });
+$('#wmOpen').onchange = (e) => emit('dm:worldmap:opensession', { on: e.target.checked });
 $('#wmLeg').onchange = (e) => emit('dm:worldmap:timing', { legSeconds: e.target.value });
 $('#wmCard').onchange = (e) => emit('dm:worldmap:timing', { cardSeconds: e.target.value });
 $('#wmFile').onchange = async (e) => {

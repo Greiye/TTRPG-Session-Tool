@@ -237,5 +237,15 @@ ok(map6.legSeconds === 5 && map6.cardSeconds === 600, 'leg and card timers are c
   ok(await h.until(() => a1.last.worldMap.fog === true), 'the DM turns fog on');
   dm.emit('dm:worldmap:fog:all', { on: true });
   ok(await h.until(() => a1.last.worldMap.roads.length === 1), 'revealing all shows every road to the table');
+  dm.emit('dm:mode', { mode: 'combat' });
+  ok(await h.until(() => a1.last.mode === 'combat' && a1.last.worldMap.onTv === false), 'combat takes the TV back from the world map');
+  dm.emit('dm:session:next', {});
+  ok(await h.until(() => a1.last.mode === 'exploration' && a1.last.worldMap.onTv === true), 'a new session opens in exploration with the world map on the TV');
+  dm.emit('dm:worldmap:opensession', { on: false });
+  dm.emit('dm:mode', { mode: 'social' });
+  await h.until(() => a1.last.mode === 'social');
+  dm.emit('dm:session:next', {});
+  await new Promise((r) => setTimeout(r, 300));
+  ok(a1.last.mode === 'social' && a1.last.worldMap.onTv === false && a1.last.worldMap.openOnSession === false, 'with the option off, a new session leaves the TV alone');
   await h.done(srv);
 })().catch((e) => { console.error(e); process.exit(1); });

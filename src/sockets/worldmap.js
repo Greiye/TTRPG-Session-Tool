@@ -14,6 +14,17 @@ const townOf = (node) => (node?.town && state.living.towns.find((t) => t.id === 
 const onArrive = (node) => require('./living').flush(living.onTravel(state, townOf(node)?.id));
 const ctx = (extra = {}) => ({ now: Date.now(), seated: Object.keys(state.players).length, log, nextId, random: Math.random, legFactor: legFactor(), onArrive, ...extra });
 
+// A session opens on the world map: exploration mode, map on the TV. Runs when the server starts (game night)
+// and on the DM's Next session. Skipped while the DM has switched it off or the map is still empty.
+function openSession() {
+  const W = state.worldMap;
+  if (W.openOnSession === false || (!W.image && !W.nodes.length)) return false;
+  if (state.mode !== 'exploration') { state.mode = 'exploration'; require('../world').applyMood('exploration'); state.check = null; }
+  W.onTv = true;
+  return true;
+}
+openSession();
+
 // Travel and card timers run on the server, so they keep going with no phone open.
 setInterval(() => { if (wm.tick(state.worldMap, ctx())) broadcast(); }, 500).unref?.();
 
@@ -29,6 +40,7 @@ module.exports = function worldSockets(socket) {
 
   dm('dm:worldmap:image', ({ image }) => wm.setImage(W(), image));
   dm('dm:worldmap:show', ({ on }) => { W().onTv = !!on; });
+  dm('dm:worldmap:opensession', ({ on }) => { W().openOnSession = !!on; });
   dm('dm:worldmap:timing', (f) => wm.setTiming(W(), f));
   dm('dm:worldmap:node', (f) => {
     const n = wm.saveNode(W(), f, ctx());
@@ -71,3 +83,5 @@ module.exports = function worldSockets(socket) {
     ack?.({ ok });
   });
 };
+
+module.exports.openSession = openSession;

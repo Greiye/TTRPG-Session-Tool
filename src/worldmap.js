@@ -32,6 +32,7 @@ function fresh() {
   return {
     image: null, // map picture URL (uploaded by the DM)
     onTv: false, // the TV shows the world map instead of the stage
+    openOnSession: true, // each session opens in exploration with the world map on the TV (src/sockets/worldmap.js)
     legSeconds: 60, // real seconds for one leg of travel
     cardSeconds: 20, // a flavour card comes up this often while travelling
     nodes: [], // { id, name, x, y, info, revealed, town, seen } with x and y as fractions of the picture
@@ -375,6 +376,7 @@ function viewFor(wm, viewer, seated = 0) {
   const out = {
     image: wm.image,
     onTv: wm.onTv,
+    openOnSession: wm.openOnSession !== false,
     legSeconds: wm.legSeconds,
     cardSeconds: wm.cardSeconds,
     here: wm.here,
