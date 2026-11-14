@@ -40,12 +40,15 @@ module.exports = function legendSockets(socket) {
   dm('dm:trophy:open', ({ id }) => {
     if (!id) { state.trophy = null; return { ok: true }; }
     if (!legends.trophy(id)) return { error: 'No such trophy.' };
+    require('../popups').only(state, 'trophy');
     state.trophy = { id, n: (state.trophy?.n || 0) + 1 };
     return { ok: true };
   });
   // Show the hall or the shelf on the TV (null hides it). Trophy stories take the screen first.
   dm('dm:legends:show', ({ view }) => {
-    state.legendsShow = ['hall', 'shelf'].includes(view) ? view : null;
+    const v = ['hall', 'shelf'].includes(view) ? view : null;
+    if (v) require('../popups').only(state, 'legends');
+    state.legendsShow = v;
     return { ok: true };
   });
 

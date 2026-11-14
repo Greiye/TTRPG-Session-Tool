@@ -49,4 +49,8 @@
 .mo-quotes blockquote { width: 24vw; margin: 0 0 1.2vh; padding: 1.2vh 1.2vw; background: rgba(20, 14, 24, .78); border-left: 3px solid #c9a86a; border-radius: 6px; font-size: 1.8vw; line-height: 1.35; }
 .mo-quotes cite { display: block; font: 1.3vw system-ui, sans-serif; color: #c9a86a; margin-top: .4em; }
 
-.mo-clock { position: absolute; top: 2vh; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, .5); border: 1px solid #6b5a3a; border-radius: 999px; padding: .5vh 1.2vw; font: 1.6vw system-ui, sans-serif; }
+.mo-clock { position: absolute; bottom: 16%; left: 2vw; display: flex; align-items: center; gap: .8vw; background: rgba(0, 0, 0, .5); border: 1px solid #6b5a3a; padding: 1vh 1.6vw; font: 1.6vw system-ui, sans-serif; }
+.mo-clock i { font-style: normal; font-size: 3vw; line-height: 1; }
+.mo-clock span { display: flex; flex-direction: column; line-height: 1.1; }
+.mo-clock small { font-size: 1.1vw; letter-spacing: .2em; text-transform: uppercase; opacity: .85; }
+.mo-clock b { font-size: 2.4vw; }

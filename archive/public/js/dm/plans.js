@@ -1,5 +1,7 @@
-// Session plans: import a Markdown plan, then launch its scenes, NPCs and encounters one click at a time.
-// Parsing and launching happen on the server (src/plan.js); this card only lists and sends.
+// ARCHIVED (Nov 14): Mike plans sessions on paper. Session plans: import a Markdown plan, then launch its
+// scenes, NPCs and encounters one click at a time. Parsing and launching still live on the server
+// (src/plan.js, src/sockets/plans.js, tested by test/plans.js). To restore, copy this file to
+// public/js/dm/ and add `import './plans.js';` to public/js/dm/main.js.
 import { $, emit, call, mount, onState, state } from '../client.js';
 
 const RATING_LABEL = { trivial: 'Trivial', easy: 'Easy', medium: 'Medium', hard: 'Hard', deadly: 'Deadly' };

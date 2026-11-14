@@ -28,8 +28,8 @@ const { ok, until } = h;
   ok(await until(() => tv.last.tv.pause === null), 'release clears the pause');
 
   // Chapter cards: a new scene title shows one; the same title does not.
-  dm.emit('dm:story:set', { day: 2, hour: 23 });
-  ok(await until(() => tv.last.story?.label === 'Day 2 · 23:00' && tv.last.story.light === 'night'), 'story clock reaches the TV with its label and night light');
+  dm.emit('dm:story:set', { day: 2, seg: 'night' });
+  ok(await until(() => tv.last.story?.label === 'Day 2 · Night' && tv.last.story.light === 'night'), 'story clock reaches the TV with its label and night light');
   dm.emit('dm:scene', { title: 'Old mill', text: '', theme: 'default', poi: [] });
   ok(await until(() => tv.last.tv.chapter?.title === 'Old mill'), 'a new place shows a chapter card');
   ok(tv.last.tv.trans.kind === 'fade', 'a new place also fades the TV');
@@ -89,14 +89,20 @@ const { ok, until } = h;
   dm.emit('dm:tv:epilogue:close');
   ok(await until(() => tv.last.tv.epilogue === null), 'the epilogue ends');
 
-  // Story clock: wraps past midnight, rejects bad hours, and lights the TV by hour.
-  dm.emit('dm:story:advance', { hours: 3 });
-  ok(await until(() => tv.last.story?.label === 'Day 3 · 02:00' && tv.last.story.light === 'night'), 'advancing past midnight rolls the day');
-  dm.emit('dm:story:set', { day: 1, hour: 25 });
+  // Story clock: five segments, Night rolls to Dawn, bad segments are ignored, each move counts once.
+  const mv = tv.last.story.moved;
+  dm.emit('dm:story:advance', { segs: 1 });
+  ok(await until(() => tv.last.story?.label === 'Day 3 · Dawn' && tv.last.story.light === 'dawn'), 'advancing past night rolls to dawn of the next day');
+  ok(tv.last.story.moved === mv + 1, 'a clock move counts once, so the TV shows its time card');
+  dm.emit('dm:story:set', { day: 1, seg: 7 });
   await h.wait(120);
-  ok(tv.last.story.label === 'Day 3 · 02:00', 'an hour outside 0 to 23 is ignored');
-  dm.emit('dm:story:set', { day: 1, hour: 18 });
-  ok(await until(() => tv.last.story.light === 'dusk'), 'evening reads as dusk');
+  ok(tv.last.story.label === 'Day 3 · Dawn', 'a segment outside the five is ignored');
+  dm.emit('dm:story:advance', { segs: 2 });
+  ok(await until(() => tv.last.story.label === 'Day 3 · Noon' && tv.last.story.light === 'day'), 'noon lights the TV like day');
+  dm.emit('dm:story:set', { day: 3, seg: 'dusk' });
+  ok(await until(() => tv.last.story.light === 'dusk'), 'dusk reads as dusk');
+  const u = require('../src/moments');
+  ok(u.storyView({ day: 2, hour: 23 }).label === 'Day 2 · Night', 'an old save with an hour maps to a segment');
 
   // Phones and the co-DM: phones get nothing from the TV; a phone cannot trigger moments.
   ok(phone.last.tv === undefined, 'phones receive no TV state');

@@ -25,13 +25,15 @@ module.exports = function momentSockets(socket) {
   dm('dm:tv:echo:fire', ({ id }) => moments.echoFire(tv(), id));
   dm('dm:tv:echo:cancel', ({ id }) => moments.echoCancel(tv(), id));
   dm('dm:tv:relic:add', (f) => moments.relicAdd(tv(), f));
-  dm('dm:tv:relic:reveal', ({ id }) => moments.relicReveal(tv(), id));
+  dm('dm:tv:relic:reveal', ({ id }) => { require('../popups').only(state, 'relic'); moments.relicReveal(tv(), id); });
   dm('dm:tv:relic:remove', ({ id }) => moments.relicRemove(tv(), id));
   dm('dm:tv:relic:close', () => moments.relicClose(tv()));
-  dm('dm:tv:book', ({ open }) => moments.bookSet(tv(), !!open, state.journal));
+  dm('dm:tv:book', ({ open }) => { if (open) require('../popups').only(state, 'book'); moments.bookSet(tv(), !!open, state.journal); });
   dm('dm:tv:epilogue:start', () => moments.epilogueStart(tv(), state));
   dm('dm:tv:epilogue:close', () => moments.epilogueEnd(tv()));
-  // Story clock: the DM sets the date and time, or moves it on. Lighting follows the hour.
-  dm('dm:story:set', ({ day, hour }) => { moments.setTime(state.story, day, hour); });
-  dm('dm:story:advance', ({ hours }) => { moments.advance(state.story, hours); });
+  // Story clock: five segments (Dawn, Day, Noon, Dusk, Night). Each change plays that segment's sound on
+  // the TV (public/audio.js tod_* synths) and the TV shows the day and segment for a few seconds.
+  const moved = (ok) => { if (ok) hub.io?.emit('sfx', { builtin: `tod_${moments.SEGMENTS[moments.segOf(state.story)]}` }); };
+  dm('dm:story:set', ({ day, seg }) => moved(moments.setTime(state.story, day ?? state.story.day, seg)));
+  dm('dm:story:advance', ({ segs }) => moved(moments.advance(state.story, segs ?? 1)));
 };

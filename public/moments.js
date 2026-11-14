@@ -97,11 +97,24 @@
     el.innerHTML = list.slice(-3).map((q) => `<blockquote>“${esc(q.text)}”${q.who ? `<cite>— ${esc(q.who)}</cite>` : ''}</blockquote>`).join('');
   }
 
+  // Day and time card (Mike, Nov 14): on the left, only for a few seconds after the story clock moves.
+  // The server plays the segment's sound with it (crickets at night, a rooster at dusk).
+  const TOD_ICON = { dawn: '🌅', day: '☀️', noon: '🌞', dusk: '🌇', night: '🌙' };
+  const CLOCK_MS = 4500;
+  let clockMoved;
   function clock(story) {
     const el = L.querySelector('.mo-clock');
     if (!story) { el.hidden = true; return; }
+    const first = clockMoved === undefined;
+    if (story.moved === clockMoved) return;
+    clockMoved = story.moved;
+    if (first) return; // a TV that just loaded does not replay the last move
+    el.className = `mo-clock seg-${story.segment}`;
+    el.innerHTML = `<i>${TOD_ICON[story.segment] || '🕰'}</i><span><small>Day ${esc(story.day)}</small><b>${esc(story.name)}</b></span>`;
     el.hidden = false;
-    el.textContent = `${story.label} · ${story.light}`;
+    Anim.play(el, 'slideIn', null);
+    clearTimeout(timers.clock);
+    timers.clock = setTimeout(() => { el.hidden = true; }, CLOCK_MS);
   }
 
   // Story clock lights the TV: the time of day replaces the scene's light setting.

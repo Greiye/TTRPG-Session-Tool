@@ -23,7 +23,7 @@ function render() {
   if (lastMode && lastMode !== S.mode) navigator.vibrate?.(80);
   lastMode = S.mode;
   // Hero card (public/chronicle.js): bars always, Stats or Bio opens below when tapped.
-  $('#me').innerHTML = `${Chronicle.hero(c, S, { view: heroView, editAttr: 'data-prof', compact: true })}<div class="me-tools"><button class="btn small" id="profBtn">✎ Profile</button><button class="btn small" id="fsBtn" title="Full screen" aria-label="Full screen">⛶</button><button class="btn small" id="awakeBtn" title="Keep the screen on" aria-pressed="${Fx.awake()}">☀</button><small class="muted me-mode">${esc(S.mode)}</small></div>`;
+  $('#me').innerHTML = `${Chronicle.hero(c, S, { view: heroView, editAttr: 'data-prof', compact: true })}<div class="me-tools"><button class="btn small" id="profBtn">✎ Profile</button><button class="btn small" id="fsBtn" title="Full screen" aria-label="Full screen">⛶</button><button class="btn small" id="awakeBtn" title="Keep the screen on" aria-pressed="${Fx.awake()}">☀</button></div>`;
   Anim.hydrate($('#me'));
   $('#pills').innerHTML = Chronicle.pills(S, c);
   $('#profBtn').onclick = openProfile;

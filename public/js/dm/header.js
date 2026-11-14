@@ -27,3 +27,17 @@ $('#roomNew').onclick = () => confirm('Make a new room code? Phones that are alr
 $('#hostSel').onchange = (e) => emit('dm:host', { host: e.target.value });
 $('#hideJoin').onchange = (e) => emit('dm:settings', { display: { hideJoin: e.target.checked } });
 onState((s) => { $('#hideJoin').checked = !!s.settings?.display?.hideJoin; });
+
+// Top bar minimize (Mike, Nov 14): ▴ folds the bar to its title line; ▾ brings it back. Saved on this laptop.
+const BAR_KEY = 'dmBarMin';
+function setBar(min) {
+  document.body.classList.toggle('bar-min', min);
+  const b = $('#barMin');
+  b.textContent = min ? '▾' : '▴';
+  b.title = min ? 'Show the top bar' : 'Minimize the top bar';
+  b.setAttribute('aria-label', b.title);
+  b.setAttribute('aria-expanded', String(!min));
+  try { localStorage.setItem(BAR_KEY, min ? '1' : ''); } catch { /* private mode */ }
+}
+$('#barMin').onclick = () => setBar(!document.body.classList.contains('bar-min'));
+try { if (localStorage.getItem(BAR_KEY)) setBar(true); } catch { /* private mode */ }
