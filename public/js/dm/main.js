@@ -4,6 +4,7 @@ import { dmKey } from './auth.js';
 import './header.js';
 import './modes.js';
 import './exploration.js';
+import './dungeon.js';
 import './combat.js';
 import './social.js';
 import './characters.js';
@@ -33,6 +34,8 @@ import './legends.js';
 import './moments.js';
 import './table.js';
 import './intro.js';
+import './chronicle.js';
+import './dock.js';
 
 
 window.dmEmit = emit; // used by voice.js (classic script)
