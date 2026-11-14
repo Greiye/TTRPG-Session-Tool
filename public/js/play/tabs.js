@@ -6,7 +6,7 @@ import { $ } from '../client.js';
 
 const ORDER = ['play', 'sheet', 'inventory', 'journal', 'misc', 'downtime', 'shop'];
 const tabs = []; // { id, label, badge, sections: [{ id, label, badge }], sec }
-const hiddenTabs = new Set(); // tabs the DM has not opened for this phone (Downtime outside camp, Shop without an open shop)
+const hiddenTabs = new Set(['shop']); // tabs not shown on this phone: Downtime outside camp; the old Shops tab never (shops are a DM pop-up)
 const subs = [];
 let active = 'play';
 const cap = (id) => id[0].toUpperCase() + id.slice(1);

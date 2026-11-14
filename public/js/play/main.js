@@ -10,6 +10,7 @@ import './worldmap.js';
 import './profile.js';
 import './spectate.js';
 import './inventory.js';
+import './shops.js';
 import './downtime.js';
 import './journal.js';
 import './logs.js';
