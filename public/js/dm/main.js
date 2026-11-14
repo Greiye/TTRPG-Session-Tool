@@ -4,6 +4,7 @@ import { dmKey } from './auth.js';
 import './header.js';
 import './modes.js';
 import './exploration.js';
+import './dungeon.js';
 import './combat.js';
 import './social.js';
 import './characters.js';

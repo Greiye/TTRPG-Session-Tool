@@ -22,6 +22,7 @@ const tableState = require('./table-state'); // Phase I table tools: defaults fo
 const worldmap = require('./worldmap');
 const living = require('./living');
 const web = require('./web');
+const dungeon = require('./dungeon');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -86,6 +87,7 @@ const state = {
   weather: { kind: 'none', intensity: 2 }, // shared weather: the TV (phase B) and the living world both read it (src/living.js)
   living: living.fresh(), // living world: clocks, town standing, rumours, weather, tension, canon, oracles (src/living.js)
   puzzle: null, // teamwork puzzle: clues split over phones, guesses, DM-confirmed solve (src/puzzle.js)
+  dungeon: dungeon.fresh(), // exploration dungeon nodes: rooms on levels joined by ropes (src/dungeon.js)
   web: web.fresh(), // NPC and faction relationship web, TV sees revealed parts (src/web.js)
   room: null, // join code, set by session.js
   houseRules: {}, // house rule id -> on (src/houserules.js); enforced by the tool
@@ -105,6 +107,7 @@ store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations',
 store.EXTRA.push('living', 'weather'); // phase K living world and the shared weather
 store.EXTRA.push('houseRules', 'absent'); // phase J house rules and empty chairs
 store.EXTRA.push('intro', 'timers'); // phase D intro card text and timers
+store.EXTRA.push('dungeon'); // exploration dungeon nodes
 store.EXTRA.push('puzzle', 'web'); // Phase F teamwork puzzle and relations web
 saves.backupOnStart();
 require('./srd').seed();
@@ -116,6 +119,7 @@ state.factions ??= [];
 state.living = living.ensure(state.living);
 state.weather ??= { kind: 'none', intensity: 2 };
 state.web ??= web.fresh();
+state.dungeon ??= dungeon.fresh();
 state.puzzle ??= null;
 cast.ensure(state.social);
 state.camp ??= camp.fresh();
