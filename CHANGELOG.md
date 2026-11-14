@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Changed
+- DM tools column can be minimized: « in its header slides it away (animated), and a grip on the left screen edge brings it back with a click, a drag to the right (the column follows the pointer; a short drag snaps shut), or the right arrow key. The choice is remembered on that laptop (`public/js/dm/dock.js`).
 - Chronicle look for the DM page and phones (`public/chronicle.css`, `public/chronicle.js`): charcoal panels, muted gold accents, small-caps labels. The TV is unchanged, and the TV preview on the DM page keeps the TV's look.
   - DM page in three columns: tools on the left (sidebar tabs now show a short label under each icon), the story in the middle, the hero on the right. Every existing card, tab and control is where it was inside its tab.
   - Pill bar over the stage: day, time of day, location (scene title), quest (open objectives) and coins. Phones show their own quest and coins; the DM sees party coins. A pill flashes when its value changes.
