@@ -3,7 +3,6 @@ import { socket, $, emit, onState, state } from '../client.js';
 import { dmKey } from './auth.js';
 import './header.js';
 import './modes.js';
-import './sidebar.js';
 import './exploration.js';
 import './dungeon.js';
 import './combat.js';
