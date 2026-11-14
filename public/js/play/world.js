@@ -1,13 +1,13 @@
-// Phone World tab (living world, src/living.js): the weather, tension and sight the party has, town
+// Phone World, a section of the Misc tab (living world, src/living.js): the weather, tension and sight the party has, town
 // standing by tier, public clocks, approved canon, and a form to propose a detail, NPC or rumour. The DM
 // approves every proposal before it reaches the table.
 import { socket, $, onState, state } from '../client.js';
 import { me } from './identity.js';
-import { addTab, onTab } from './tabs.js';
+import { addSection, onTab } from './tabs.js';
 
 const { esc } = Stage;
 const KIND = { detail: '🔍 Detail', npc: '🧑 NPC', rumour: '🗣 Rumour' };
-addTab('world', '🌍 World');
+addSection('misc', 'world', '🌍 World');
 const root = () => $('#tabWorld');
 let draft = '';
 let kind = 'detail';

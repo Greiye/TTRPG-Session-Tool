@@ -5,6 +5,13 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Changed
+- Player screen tabs are now Play, Sheet, Inventory, Journal and Misc. Tabs and their sections fade in.
+  - Play: a dice pool sits at the top. D4, D6, D8, D10, D12 and D20 each have an icon and ◀ ▶ arrows to remove or add a die, and Roll is at the bottom. Adv and Dis work when the pool is a single D20. The scene description is on the TV only. A point of interest appears on the phone only once the DM reveals it, so there are no ??? placeholders. Skill buttons and the hero Stats and Bio toggle are gone from the phone (stats are on the Sheet, the bio is in the profile).
+  - Sheet: tap a skill to roll it. Class features are buttons. Tap one to read its description, then press and hold Activate for 3 seconds to spend a use (the bar fills while you hold, and letting go early cancels). The table log records the use. This adds the `player:feature` socket and `useFeature` in `src/rests.js`.
+  - Inventory: a new tab with gold and items, moved from the Sheet.
+  - Journal: the Inbox, Map and Notes sections in one tab. Players no longer see road cards, and the server stops sending them to phones.
+  - Misc: a new tab with the Logs, World, Legends and Bond sections. Your bond moved here from the Play tab.
+  - The phone Shops tab is removed. Shopping only happens when the DM opens a shop, and that pop-up is being built separately. Browsing shops between sessions is set aside for later.
 - DM tools column can be minimized: « in its header slides it away (animated), and a grip on the left screen edge brings it back with a click, a drag to the right (the column follows the pointer; a short drag snaps shut), or the right arrow key. The choice is remembered on that laptop (`public/js/dm/dock.js`).
 - Chronicle look for the DM page and phones (`public/chronicle.css`, `public/chronicle.js`): charcoal panels, muted gold accents, small-caps labels. The TV is unchanged, and the TV preview on the DM page keeps the TV's look.
   - DM page in three columns: tools on the left (sidebar tabs now show a short label under each icon), the story in the middle, the hero on the right. Every existing card, tab and control is where it was inside its tab.

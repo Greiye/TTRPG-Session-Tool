@@ -87,7 +87,7 @@
   }
 
   // Hero panel: portrait, name with edit, level, HP and resource bars, then Stats or Bio.
-  function hero(c, S, { view = 'stats', editAttr = 'data-hero-edit', compact = false } = {}) {
+  function hero(c, S, { view = 'stats', editAttr = 'data-hero-edit', compact = false, seg = true } = {}) {
     if (!c) return '<p class="note">No one at the table yet.</p>';
     const pct = c.maxHp ? c.hp / c.maxHp : 1;
     const res = resource(c);
@@ -107,7 +107,7 @@
         ${bar('❤', 'HP', c.hp, c.maxHp, pct > 0.5 ? 'life' : pct > 0.2 ? 'life warn' : 'life crit')}
         ${res ? bar(res[0], res[1], res[2], res[3], 'res') : ''}
       </div>
-      <div class="seg" role="tablist"><button role="tab" data-hero-view="stats" class="${view === 'stats' ? 'on' : ''}" aria-selected="${view === 'stats'}">Stats</button><button role="tab" data-hero-view="bio" class="${view === 'bio' ? 'on' : ''}" aria-selected="${view === 'bio'}">Bio</button></div>
+      ${seg ? `<div class="seg" role="tablist"><button role="tab" data-hero-view="stats" class="${view === 'stats' ? 'on' : ''}" aria-selected="${view === 'stats'}">Stats</button><button role="tab" data-hero-view="bio" class="${view === 'bio' ? 'on' : ''}" aria-selected="${view === 'bio'}">Bio</button></div>` : ''}
       ${view === 'none' ? '' : `<div class="hero-body">${view === 'bio' ? `<div class="hero-bio">${bio}</div>` : `<ul class="stat-list">${stats}${extra}</ul>`}</div>`}
     </div>`;
   }

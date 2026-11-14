@@ -38,7 +38,44 @@ const SHOTS = process.env.SHOTS;
   await ph.click('[data-cls]');
   await ph.click('#joinBtn');
   await ph.waitForSelector('#gameView:not([hidden])', { timeout: 5000 });
-  await ph.click('[data-skill]');
+  // Player tabs (Nov 14): Play, Sheet, Inventory, Journal, Misc; no Shops tab. Dice pool on top of Play.
+  const tabNames = await ph.$$eval('#tabs [data-tab]', (bs) => bs.map((b) => b.dataset.tab).join());
+  if (tabNames !== 'play,sheet,inventory,journal,misc') errors.push('phone tabs: ' + tabNames);
+  if (await ph.isVisible('[data-skill]')) errors.push('skill buttons should be on the Sheet tab, not Play');
+  await ph.click('#dicePool [data-die="6"][data-step="1"]');
+  await ph.click('#dicePool [data-die="6"][data-step="1"]');
+  await ph.click('#dicePool [data-die="20"][data-step="1"]');
+  if ((await ph.textContent('#dieGo')).trim() !== 'Roll 2d6+1d20') errors.push('dice pool: ' + (await ph.textContent('#dieGo')));
+  await ph.click('#dieGo');
+  await ph.waitForFunction(() => /^2d6\+1d20 = \d+$/.test(document.querySelector('#dieOut')?.textContent || ''), null, { timeout: 3000 });
+  // Journal holds Inbox, Map and Notes; Misc holds Logs, World, Legends and Bond.
+  await ph.click('#tabs [data-tab="journal"]');
+  await ph.click('#tabJournal .subtabs [data-tab="map"]');
+  if (!(await ph.isVisible('#tabMap')) || await ph.isVisible('#tabInbox')) errors.push('journal map section did not open');
+  await ph.click('#tabs [data-tab="misc"]');
+  const misc = await ph.$$eval('#tabMisc .subtabs [data-tab]', (bs) => bs.map((b) => b.dataset.tab).join());
+  if (misc !== 'logs,world,legends,bond') errors.push('misc sections: ' + misc);
+  // Sheet: skills roll on tap; a class feature opens its description and activates after a 3 s hold.
+  await ph.click('#tabs [data-tab="sheet"]');
+  await ph.click('#tabSheet [data-skill]');
+  if (await ph.$('#tabSheet [data-feat]')) {
+    await ph.click('#tabSheet [data-feat]');
+    const go = await ph.waitForSelector('#tabSheet [data-feat-go]');
+    await go.scrollIntoViewIfNeeded();
+    const bb = await go.boundingBox();
+    await ph.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
+    await ph.mouse.down(); await ph.waitForTimeout(800); await ph.mouse.up(); // too short: nothing happens
+    await ph.waitForTimeout(300);
+    if (/activated/.test(await ph.textContent('#tabSheet'))) errors.push('a short press activated a feature');
+    await ph.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
+    await ph.mouse.down(); await ph.waitForTimeout(3300); await ph.mouse.up();
+    await ph.waitForFunction(() => /activated/.test(document.querySelector('#tabSheet').textContent), null, { timeout: 3000 }).catch(() => errors.push('holding Activate for 3 s did not activate the feature'));
+  }
+  await ph.click('#tabs [data-tab="inventory"]');
+  await ph.fill('#invName', 'Rope');
+  await ph.click('#invForm button');
+  await ph.waitForSelector('#tabInventory [data-item]', { timeout: 3000 }).catch(() => errors.push('inventory item was not added'));
+  await ph.click('#tabs [data-tab="play"]');
   await dm.evaluate(() => socket.emit('dm:mode', { mode: 'social' }));
   await tv.waitForSelector('.vn', { timeout: 5000 });
   await dm.waitForTimeout(800);

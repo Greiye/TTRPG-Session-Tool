@@ -1,11 +1,12 @@
-// Phone: the world map tab. Tap a place to see what is known, vote to go there, and remark on road cards.
-import { socket, $, emit, onState, state } from '../client.js';
-import { addTab, tab, onTab } from './tabs.js';
+// Phone: the world map, a section of the Journal tab. Tap a place to see what is known and vote to go there.
+// Road cards are DM and TV only: players don't see them on the phone (Mike, Nov 14).
+import { $, emit, onState, state } from '../client.js';
+import { addSection, tab, onTab } from './tabs.js';
 
 const { esc } = Stage;
 let sel = null; // place the phone has tapped
 
-addTab('map', '🧭 Map');
+addSection('journal', 'map', '🧭 Map');
 
 // A focused comment box holds its text: the re-render waits until it loses focus.
 const typing = () => { const el = $('#tabMap'); return !!el && el.contains(document.activeElement) && document.activeElement.tagName === 'INPUT'; };
@@ -37,16 +38,13 @@ function render() {
       ${wm.here === place.id ? '<p class="note">The party is here.</p>' : roadNote(wm, place)}
       ${v?.open && v.candidates.includes(place.id) ? `<button class="bigbtn" data-vote-node="${esc(place.id)}">Vote to go here</button>` : ''}
     </div>` : '<p class="note">Tap a place on the map.</p>';
-  const cards = wm.cards.length ? wm.cards.map((c) => WorldMap.card(c, { phone: true })).join('') : '<p class="note">No road cards yet. They come up while the party travels.</p>';
   el.innerHTML = `
     <div class="card">
       <h3>🧭 ${wm.travel ? esc(WorldMap.tripLine(wm)) : 'Where to?'}</h3>
       ${WorldMap.board(S, { selected: sel })}
       <div style="margin-top:8px">${voteBlock}</div>
     </div>
-    ${placeCard}
-    <h3 class="muted" style="font-family:var(--display);font-size:13px;letter-spacing:.1em">ROAD CARDS</h3>
-    ${cards}`;
+    ${placeCard}`;
 }
 
 onState(render);
@@ -57,14 +55,5 @@ $('#tabMap').addEventListener('click', (e) => {
   if (n) { sel = n.dataset.node; render(); return; }
   const b = e.target.closest('[data-vote-node]');
   if (b) { emit('player:worldmap:vote', { node: b.dataset.voteNode }); navigator.vibrate?.(30); }
-});
-$('#tabMap').addEventListener('submit', (e) => {
-  const f = e.target.closest('.wm-cform');
-  if (!f) return;
-  e.preventDefault();
-  const input = f.querySelector('input');
-  const text = input.value.trim();
-  if (text) socket.emit('player:worldmap:comment', { card: f.dataset.card, text });
-  input.value = '';
 });
 $('#tabMap').addEventListener('focusout', () => setTimeout(render, 0));

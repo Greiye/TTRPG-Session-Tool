@@ -1,6 +1,7 @@
-import { checkPrompt, skillButtons } from './common.js';
+import { checkPrompt } from './common.js';
 
 const { esc } = Stage;
+const shownPoi = new Set(); // points of interest already on this phone; a newly revealed one pops in once
 
 // Dungeon nodes on a phone: the board (scrolls sideways when wide) and a button for each way onward.
 function dungeonCard(S) {
@@ -18,12 +19,15 @@ function dungeonCard(S) {
   </div>`;
 }
 
+// The scene description is on the TV only. Points of interest appear once the DM reveals them, so the
+// phone gives nothing away (no "???" placeholders to count). Skill rolls live on the Sheet tab.
 export default function exploreView(S, c) {
   const sc = S.scene;
   const open = new Set(sc.revealed || []);
-  return `<div class="card"><h3>${esc(sc.title)}</h3><p style="margin:0">${esc(sc.text)}</p></div>
-    ${checkPrompt(S, c)}
+  const pois = (sc.poi || []).filter((p) => p !== null && open.has(p));
+  const html = `${checkPrompt(S, c)}
     ${dungeonCard(S)}
-    ${sc.poi.length ? `<div class="grid2">${sc.poi.map((p) => (p !== null && open.has(p) ? `<button class="btn" data-do="I investigate the ${esc(p.toLowerCase())}.">🔍 ${esc(p)}</button>` : '<button class="btn" disabled>☁ ???</button>')).join('')}</div>` : ''}
-    ${skillButtons(c, S.rules.skillGroups.exploration)}`;
+    ${pois.length ? `<div class="card"><h3>Points of interest</h3><div class="grid2 poi-grid">${pois.map((p) => `<button class="btn ${shownPoi.has(p) ? '' : 'poi-in'}" data-do="I investigate the ${esc(p.toLowerCase())}.">🔍 ${esc(p)}</button>`).join('')}</div></div>` : ''}`;
+  pois.forEach((p) => shownPoi.add(p));
+  return html;
 }
