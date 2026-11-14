@@ -6,9 +6,10 @@
   <title>Tavern Screen — DM</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/worldmap.css">
+  <link rel="stylesheet" href="/chronicle.css">
   <script src="/settings.js"></script>
 </head>
-<body class="dm">
+<body class="dm chron">
   <div class="dm-left">
     <div class="dm-bar">
       <h2>🐉 Tavern Screen · DM</h2>
@@ -19,15 +20,21 @@
       <label class="note tight">Join address <select id="hostSel"></select></label>
       <label class="note tight"><input type="checkbox" id="hideJoin"> Hide “Join the party” on TV</label>
     </div>
-    <div class="stage-wrap"><div id="stage" class="stage"></div></div>
-    <div class="card">
+    <div id="pills" class="pills" aria-label="Day, time, place, quest and coins"></div>
+    <div class="dm-scroll">
+      <div class="stage-wrap"><div id="stage" class="stage"></div></div>
+      <h3 class="col-sub">Story <span class="note">what the TV log shows, newest at the bottom</span></h3>
+      <section id="feed" class="feed" aria-live="polite" aria-label="Story so far"></section>
+    </div>
+    <div class="card composer">
       <h3>Narrate <span class="note">Enter to post to the TV log</span></h3>
-      <div class="row"><input id="narrate" class="grow" placeholder="The door creaks open…"><button class="btn" data-act="narrate">Post</button></div>
+      <div class="row"><input id="narrate" class="grow" placeholder="The door creaks open…"><button class="btn" data-act="narrate" aria-label="Post">➤</button></div>
       <div id="suggests"></div>
     </div>
   </div>
 
   <div class="dm-right">
+    <div class="col-head"><span>📖 Tools</span><span class="note" id="toolsMode"></span></div>
     <div id="auth" class="card" hidden>
       <h3>DM key</h3>
       <p class="note">You're not on the host laptop. Enter the key printed in the server console.</p>
@@ -519,10 +526,17 @@
     </form>
   </dialog>
 
+  <aside class="dm-hero" aria-label="Hero">
+    <div class="col-head"><span>🛡 Hero</span></div>
+    <div id="heroPick" class="hero-pick" role="tablist" aria-label="Party member"></div>
+    <div id="hero"></div>
+  </aside>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="/rollpop.js"></script>
   <script src="/anim.js"></script>
   <script src="/stage.js"></script>
+  <script src="/chronicle.js"></script>
   <script src="/worldmap.js"></script>
   <script src="/audio.js"></script>
   <script src="/soundboard.js"></script>
