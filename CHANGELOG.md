@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- Game menu look (`public/theme.css`, `public/theme/*.svg`): aged parchment panels in dark-iron corner frames, wooden plate buttons with an iron band, slate plates for primary actions, round gem sockets on mode buttons, big buttons, phone tabs and the TV mode pill, and parchment lists with coloured gem badges. Covers the DM page, co-DM, phones (one framed parchment page) and the TV (dialogue box, name plate, party plaques, log strips, join card, foes, clock, dungeon nodes). Textures are small SVG noise filters, no bitmaps. Gems glint every few seconds; reduce motion stops it.
 - Teamwork puzzles (`src/puzzle.js`): the DM starts a riddle, a Caesar cipher or an order puzzle. Clues are split over the seated players (or sent to every phone, or held back), so the table has to talk it out. Phones send guesses; the DM marks wrong ones and confirms the solve. The TV shows the prompt, then the solution with a pop and a word-by-word reveal.
 - NPC and faction relationship web (`src/web.js`): the DM draws NPCs, factions and places, and how each feels about the party or each other (-100 to +100). Faction nodes link to the reputation list. The DM reveals nodes and links as the story goes and turns the web on for the TV, which shows tiers only, never the number. Phones see nothing of the web.
 - Initiative spotlight on phones: your turn buzzes and glows with a "Your turn" tag; the next in order gets a short "on deck" buzz. Reduce motion keeps the glow still.
