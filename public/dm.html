@@ -33,8 +33,8 @@
     </div>
   </div>
 
-  <div class="dm-right">
-    <div class="col-head"><span>📖 Tools</span><span class="note" id="toolsMode"></span></div>
+  <div class="dm-right" id="toolsCol">
+    <div class="col-head"><span>📖 Tools</span><span class="note" id="toolsMode"></span><button class="tools-min" id="toolsMin" title="Minimize tools (drag the edge tab to bring them back)" aria-label="Minimize tools" aria-controls="toolsCol">«</button></div>
     <div id="auth" class="card" hidden>
       <h3>DM key</h3>
       <p class="note">You're not on the host laptop. Enter the key printed in the server console.</p>
@@ -526,6 +526,7 @@
     </form>
   </dialog>
 
+  <button class="tools-grip" id="toolsGrip" title="Click or drag right to bring the tools back" aria-label="Show tools" aria-controls="toolsCol" aria-expanded="false"></button>
   <aside class="dm-hero" aria-label="Hero">
     <div class="col-head"><span>🛡 Hero</span></div>
     <div id="heroPick" class="hero-pick" role="tablist" aria-label="Party member"></div>
