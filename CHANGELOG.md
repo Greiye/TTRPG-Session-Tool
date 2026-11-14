@@ -4,6 +4,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+- Sample backdrop "Tales of Artheria" (`public/samples/artheria-village.jpg`), bundled with the app and listed first in the backdrop library. A fresh table, or a save from before this change, starts on it. Choosing "Scene theme" is now saved as `'none'`, so it survives a restart. The sample has no ✕ and is never deleted from disk.
+
 ### Changed
 - DM screen notes (Nov 14):
   - The top bar folds to its title line with ▴ (▾ brings it back); remembered on that laptop.

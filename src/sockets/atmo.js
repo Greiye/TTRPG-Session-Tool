@@ -39,7 +39,7 @@ module.exports = function atmoSockets(socket) {
     if (bd.image?.id === id) bd.image = null;
     if (audio.music?.id === id) Object.assign(audio, { music: null, playing: false });
     audio.mix = audio.mix.filter((m) => m.id !== id);
-    removeUrl(`/uploads/${path.basename(id)}`);
+    if (!item.sample) removeUrl(`/uploads/${path.basename(id)}`);
   });
   atmo('atmo:effect', ({ effect, on }) => {
     if (!EFFECTS.includes(effect)) return;
