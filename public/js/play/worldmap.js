@@ -10,6 +10,15 @@ addTab('map', '🧭 Map');
 // A focused comment box holds its text: the re-render waits until it loses focus.
 const typing = () => { const el = $('#tabMap'); return !!el && el.contains(document.activeElement) && document.activeElement.tagName === 'INPUT'; };
 
+// "2 legs by road, via Mill" from where the party stands, over the roads this phone can see.
+function roadNote(wm, place) {
+  if (place.fogged) return '<p class="note">Lost in the fog.</p>';
+  const r = wm.here && WorldMap.route(wm, wm.here, place.id);
+  if (!r) return wm.here ? '<p class="note">No known road leads here.</p>' : '';
+  const via = r.path.slice(0, -1).map((id) => WorldMap.byId(wm, id)?.name).filter(Boolean);
+  return `<p class="note">${r.legs} leg${r.legs === 1 ? '' : 's'} by road${via.length ? `, via ${esc(via.join(', '))}` : ''}.</p>`;
+}
+
 function render() {
   const S = state();
   const el = $('#tabMap');
@@ -25,13 +34,13 @@ function render() {
   const placeCard = place ? `<div class="card">
       <h3>${esc(place.name)}</h3>
       <p>${place.info ? esc(place.info) : '<span class="note">Nothing known about this place yet.</span>'}</p>
-      ${wm.here === place.id ? '<p class="note">The party is here.</p>' : ''}
+      ${wm.here === place.id ? '<p class="note">The party is here.</p>' : roadNote(wm, place)}
       ${v?.open && v.candidates.includes(place.id) ? `<button class="bigbtn" data-vote-node="${esc(place.id)}">Vote to go here</button>` : ''}
     </div>` : '<p class="note">Tap a place on the map.</p>';
   const cards = wm.cards.length ? wm.cards.map((c) => WorldMap.card(c, { phone: true })).join('') : '<p class="note">No road cards yet. They come up while the party travels.</p>';
   el.innerHTML = `
     <div class="card">
-      <h3>🧭 ${wm.travel ? 'On the road' : 'Where to?'}</h3>
+      <h3>🧭 ${wm.travel ? esc(WorldMap.tripLine(wm)) : 'Where to?'}</h3>
       ${WorldMap.board(S, { selected: sel })}
       <div style="margin-top:8px">${voteBlock}</div>
     </div>

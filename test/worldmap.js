@@ -117,6 +117,91 @@ ok(map6.travel === null && map6.nodes.length === 1, 'removing the destination ca
 wm.setTiming(map6, { legSeconds: 1, cardSeconds: 9999 });
 ok(map6.legSeconds === 5 && map6.cardSeconds === 600, 'leg and card timers are clamped');
 
+// Roads: the party follows the shortest road route, one leg per road, and each leg is legSeconds x length
+{
+  const m = wm.fresh();
+  m.legSeconds = 10; m.cardSeconds = 600;
+  for (const [name, x] of [['Ash', 0], ['Bree', 0.3], ['Cole', 0.6], ['Dun', 1]]) wm.saveNode(m, { name, x, y: 0.5 }, c0);
+  const [A, B, C, D] = m.nodes.map((n) => n.id);
+  const ab = wm.saveRoad(m, { a: A, b: B, length: 1 }, c0);
+  wm.saveRoad(m, { a: B, b: C, length: 1 }, c0);
+  wm.saveRoad(m, { a: C, b: D, length: 2 }, c0);
+  const long = wm.saveRoad(m, { a: A, b: D, length: 9 }, c0);
+  ok(wm.saveRoad(m, { a: B, b: A, length: 3 }, c0) === ab && ab.length === 3 && m.roads.length === 4, 'the same pair edits the road, it is not doubled');
+  ok(!wm.saveRoad(m, { a: A, b: A }, c0) && !wm.saveRoad(m, { a: A, b: 'nope' }, c0), 'a road needs two different places');
+  wm.saveRoad(m, { id: ab.id, length: 99 }, c0);
+  ok(ab.length === 10, 'road length is clamped to 1..10 legs');
+  wm.saveRoad(m, { id: ab.id, length: 1 }, c0);
+  ok(JSON.stringify(wm.route(m, A, D)) === JSON.stringify([B, C, D]), 'shortest route: four legs by Bree and Cole beat the nine-leg road');
+  wm.saveRoad(m, { id: long.id, length: 3 }, c0);
+  ok(JSON.stringify(wm.route(m, A, D)) === JSON.stringify([D]), 'a shorter direct road wins');
+  wm.saveRoad(m, { id: long.id, length: 9 }, c0);
+
+  m.here = A;
+  const arrivals = [];
+  const c = (now) => ({ ...ctx(now), legFactor: 1, onArrive: (n) => arrivals.push(n.name) });
+  ok(wm.go(m, D, c(0)) && m.travel.to === B && m.travel.dest === D, 'the party sets out on the first road');
+  ok(m.travel.endAt === 10000, 'a one-leg road takes legSeconds');
+  ok(wm.go(m, D, c(1)) === false, 'sending the party to where it is already going is refused');
+  wm.tick(m, c(10000));
+  ok(m.here === B && m.travel?.to === C && arrivals.join() === 'Bree', 'it passes through Bree (the living world hears of it) and carries on');
+  wm.tick(m, c(20000));
+  ok(m.travel.to === D && m.travel.endAt - m.travel.startAt === 20000, 'a two-leg road takes twice as long');
+  wm.tick(m, c(40000));
+  ok(m.here === D && m.travel === null && arrivals.join() === 'Bree,Cole,Dun', 'the party reaches Dun at the end of the route');
+
+  // No road: straight there, as before
+  const m2 = wm.fresh();
+  wm.saveNode(m2, { name: 'P', x: 0, y: 0 }, c0); wm.saveNode(m2, { name: 'Q', x: 1, y: 1 }, c0);
+  m2.here = m2.nodes[0].id;
+  wm.go(m2, m2.nodes[1].id, ctx(0));
+  ok(m2.travel.road === null && m2.travel.route.length === 0, 'with no road the party heads straight there');
+
+  // Removing a place on the route cancels the trip and drops its roads
+  m.here = A;
+  wm.go(m, D, c(50000));
+  wm.removeNode(m, C);
+  ok(m.travel === null && !m.roads.some((r) => r.a === C || r.b === C), 'removing a place on the route cancels the trip and its roads');
+}
+
+// Fog: the table sees seen places and known roads; arriving uncovers the place, its roads and their far ends
+{
+  const m = wm.fresh();
+  m.legSeconds = 5;
+  for (const [name, x] of [['Home', 0], ['Ford', 0.4], ['Tower', 0.8], ['Cave', 0.9]]) wm.saveNode(m, { name, x, y: 0.5, info: 'x', revealed: true }, c0);
+  const [H, F, T, K] = m.nodes.map((n) => n.id);
+  wm.saveRoad(m, { a: H, b: F }, c0); wm.saveRoad(m, { a: F, b: T }, c0); wm.saveRoad(m, { a: T, b: K }, c0);
+  m.here = H;
+  wm.setFog(m, true);
+  const tv = () => wm.viewFor(m, { role: 'screen' }, 2);
+  ok(tv().nodes.map((n) => n.name).join() === 'Home,Ford' && tv().roads.length === 1, 'turning fog on uncovers where the party stands and the road out');
+  ok(wm.viewFor(m, { role: 'dm' }, 2).nodes.length === 4 && wm.viewFor(m, { role: 'dm' }, 2).roads.length === 3, 'the DM sees every place and road');
+  ok(wm.route(m, H, T) === null && JSON.stringify(wm.route(m, H, T, true)) === JSON.stringify([F, T]), 'the table cannot route by unknown roads; the DM can');
+  ok(wm.go(m, T, ctx(0), { anyRoad: true }) && m.travel.to === F, 'the DM override sends the party by any road');
+  const fogged = tv().nodes.find((n) => n.id === T);
+  ok(fogged && fogged.fogged && fogged.name === '???' && fogged.info === null, 'a fogged destination shows as ??? with no name or info');
+  wm.tick(m, ctx(5000));
+  ok(tv().nodes.some((n) => n.name === 'Tower') && tv().roads.length === 2, 'reaching Ford uncovers the road on and Tower at its end');
+  wm.tick(m, ctx(10000));
+  ok(m.here === T && tv().nodes.some((n) => n.name === 'Cave'), 'reaching Tower uncovers Cave');
+  m.nodes.find((n) => n.id === K).seen = false;
+  ok(!tv().nodes.some((n) => n.id === K), 'the DM can fog a place again');
+  wm.setFog(m, false);
+  ok(tv().nodes.length === 4 && tv().roads.every((r) => r.known), 'fog off: the table sees everything again');
+  ok(wm.startVote(m, null, ctx(20000)) && m.vote.candidates.length === 3, 'fog off: a vote offers every other place');
+  wm.cancelVote(m); wm.setFog(m, true); m.nodes.find((n) => n.id === K).seen = false;
+  wm.startVote(m, null, ctx(20001));
+  ok(m.vote.candidates.join() === [H, F].join(), 'under fog the default vote offers only seen places');
+  ok(wm.viewFor(m, { role: 'player', charId: 'a' }, 2).nodes.find((n) => n.id === T).town === undefined, 'town links are DM-only');
+}
+
+// Town links: a place carries a living-world town id
+{
+  const m = wm.fresh();
+  const n = wm.saveNode(m, { name: 'Ashford', town: 'tw7' }, c0);
+  ok(n.town === 'tw7' && wm.saveNode(m, { id: n.id, town: '' }, c0).town === null, 'a place links to a town by id, and the link can be cleared');
+}
+
 // Server: the DM edits the map, a phone votes, a phone sees only what it should
 (async () => {
   const srv = await h.boot();
@@ -146,5 +231,11 @@ ok(map6.legSeconds === 5 && map6.cardSeconds === 600, 'leg and card timers are c
   await h.until(() => dm.last.worldMap.table.some((e) => e.text.startsWith('A bird')));
   ok(!('deck' in a1.last.worldMap) && dm.last.worldMap.deck, 'the phone has no deck, the DM does');
   ok(dm.last.worldMap.travel?.to === n2.id, 'DM state shows the trip');
+  const road = await h.call(dm, 'dm:worldmap:road', { a: n1.id, b: n2.id, length: 2 });
+  ok(road?.id && (await h.call(a1, 'dm:worldmap:road', { a: n1.id, b: n2.id }))?.error, 'the DM adds a road; a phone cannot');
+  dm.emit('dm:worldmap:fog', { on: true });
+  ok(await h.until(() => a1.last.worldMap.fog === true), 'the DM turns fog on');
+  dm.emit('dm:worldmap:fog:all', { on: true });
+  ok(await h.until(() => a1.last.worldMap.roads.length === 1), 'revealing all shows every road to the table');
   await h.done(srv);
 })().catch((e) => { console.error(e); process.exit(1); });
