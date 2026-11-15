@@ -16,7 +16,7 @@ const creatures = require('../creatures');
 const { seedTestParty } = require('../testparty');
 const rolls = require('../rolls');
 
-// Log types the DM can hide on the TV (display setting hideLog).
+// Log types the DM can show on the TV (display setting showLog; none by default, Mike Nov 15).
 const camp = require('../camp');
 const houserules = require('../houserules');
 const NARRATION_MAX = 10; // narrate posts kept under the scene description
@@ -487,9 +487,9 @@ module.exports = function dmSockets(socket) {
     if (!display) return;
     const cur = state.settings.display || {};
     for (const [k, vals] of Object.entries(DISPLAY)) if (vals.includes(display[k])) cur[k] = display[k];
-    // Hide individual log types on the TV (DM choice; the phones keep their own log).
+    // Show individual log types on the TV (DM choice; the phones keep their own log). None by default.
     if (typeof display.hideJoin === 'boolean') cur.hideJoin = display.hideJoin; // hide the top-right join box on the TV
-    if (Array.isArray(display.hideLog)) cur.hideLog = display.hideLog.filter((k) => LOG_KINDS.includes(k));
+    if (Array.isArray(display.showLog)) cur.showLog = display.showLog.filter((k) => LOG_KINDS.includes(k));
     state.settings.display = cur;
   });
 

@@ -99,3 +99,9 @@ html[data-motion="reduce"] .wm-revealing * { animation-duration: .001ms !importa
 .wm-trail li small { margin-left: auto; color: var(--muted, #998); }
 .wm-trail li.k-enter, .wm-trail li.k-leave { font-style: italic; border-left: 3px solid #b06a4a; }
 @media (prefers-reduced-motion: reduce) { .wm-here, .wm-dg-pop { animation: none; } }
+/* Bigger hit area for places (Nov 15): a 36 px invisible ring around each dot. */
+.wm-node i { position: relative; }
+.wm-node i::before { content: ''; position: absolute; inset: -11px; border-radius: 50%; }
+.wm-tv .wm-node i::before { inset: -7px; }
+.wm-board.dm .wm-node { z-index: 2; }
+.wm-board.dm .wm-node:hover i { box-shadow: 0 0 0 2px #120d14, 0 0 0 5px #f4ead577; }

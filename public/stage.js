@@ -231,7 +231,7 @@
   }
 
   function party(s, showing = new Set()) {
-    if (!s.players.length) return '<div class="party empty">Scan the QR code to join the party</div>';
+    if (!s.players.length) return s.settings?.display?.hideJoin ? '' : '<div class="party empty">Scan the QR code to join the party</div>'; // no QR shown, no prompt
     const turn = s.combat.active ? s.combat.order[s.combat.turn]?.id : null;
     return `<div class="party">${s.players.map((p) => `
       <div class="pc ${p.hp === 0 ? 'down' : ''} ${turn === p.id ? 'turn' : ''} ${p.online ? '' : 'offline'} ${showing.has(p.id) ? 'hp-show' : ''}" data-pid="${esc(p.id)}" style="${accent(p)}">
@@ -242,8 +242,9 @@
 
   // Only entries new since the last render slide in; re-rendering the whole log must not replay old animations.
   let logSeen = null;
-  function logFeed(s, n = 9, hideKinds = null) {
-    const shown = (hideKinds ? s.log.filter((l) => !hideKinds.has(l.kind)) : s.log).slice(-n);
+  // showKinds: the log types the DM turned on for the TV (none by default).
+  function logFeed(s, n = 9, showKinds = null) {
+    const shown = (showKinds ? s.log.filter((l) => showKinds.has(l.kind)) : s.log).slice(-n);
     const first = !logSeen;
     const seen = logSeen || new Set();
     const fresh = (l) => !first && !seen.has(l.id);
@@ -394,6 +395,7 @@
     const prevEmo = root.querySelector('.vn-portrait')?.dataset.emo;
     root.className = `stage theme-${s.scene.theme} mode-${s.mode} layout-${s.stageLayout || 'auto'} ${s.backdrop?.image ? 'has-bd' : ''}`;
     root.classList.add(`light-${s.scene.light || 'day'}`);
+    root.classList.toggle('no-log', !(s.settings?.display?.showLog || []).length);
     root.classList.toggle('has-dungeon', s.mode === 'exploration' && !!s.dungeon?.on && !!s.dungeon.nodes?.length);
     for (const l of ['day', 'dusk', 'night', 'dawn', 'torchlight']) if (l !== (s.scene.light || 'day')) root.classList.remove(`light-${l}`);
     const ui = layers(root, s);
@@ -415,7 +417,7 @@
       </header>
       <main class="stage-main">
         <section class="stage-center">${s.mode === 'social' ? vn(s) : s.mode === 'combat' ? combat(s) : exploration(s)}</section>
-        <aside class="stage-log">${logFeed(s, 9, new Set(s.settings?.display?.hideLog || []))}</aside>
+        ${(s.settings?.display?.showLog || []).length ? `<aside class="stage-log">${logFeed(s, 9, new Set(s.settings.display.showLog))}</aside>` : ''}
       </main>
       <footer>${party(s, hpc.showing)}</footer>
       ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}${legendsCard(s)}${trophyCard(s)}${shopTv(s)}`;

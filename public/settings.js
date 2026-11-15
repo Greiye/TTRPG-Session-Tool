@@ -2,27 +2,32 @@
 //   data-text     md | lg | xl          (text scale via --ts)
 //   data-palette  default | cb | hc     (color-blind safe, high contrast)
 //   data-motion   auto | reduce | full  (auto follows the OS "reduce motion" setting)
-//   data-log      show | hide           (the action log on this screen)
+//   data-log      show | hide           (the logs on this screen; hidden by default, Mike Nov 15)
 //   data-dice     on | off              (3D dice tray on the TV; TV setting only)
 // Phones and the DM laptop keep their own choice in localStorage. The TV uses the table setting the DM picks.
 (() => {
   const KEY = 'tavernSettings';
-  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto', log: 'show', sprite: 'auto', anim: 'on', dice: 'on' };
+  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto', log: 'hide', sprite: 'auto', anim: 'on', dice: 'on' };
   const OPTIONS = {
     text: [['md', 'Normal'], ['lg', 'Large'], ['xl', 'Extra large']],
     palette: [['default', 'Default'], ['cb', 'Color-blind safe'], ['hc', 'High contrast']],
     motion: [['auto', 'Follow device'], ['reduce', 'Reduce'], ['full', 'Full']],
-    log: [['show', 'Show'], ['hide', 'Hide']],
+    log: [['hide', 'Off'], ['show', 'On']],
     sprite: [['auto', 'Auto'], ['webm', 'WebM'], ['sheet', 'Sheet']],
     anim: [['on', 'Animated'], ['off', 'Static']],
     dice: [['on', 'On'], ['off', 'Off']],
   };
-  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion', log: 'Action log', sprite: 'Sprite playback', anim: 'Sprite animation', dice: '3D dice tray' };
+  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion', log: 'Show logs', sprite: 'Sprite playback', anim: 'Sprite animation', dice: '3D dice tray' };
   const TV_ONLY = ['dice']; // the dice tray is drawn on the TV, so phones and the DM laptop don't offer it
   const clean = (o = {}) => Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, OPTIONS[k].some(([v]) => v === o[k]) ? o[k] : DEFAULTS[k]]));
 
   let local = DEFAULTS;
-  try { local = clean(JSON.parse(localStorage[KEY] || '{}')); } catch { /* private mode */ }
+  try {
+    const saved = JSON.parse(localStorage[KEY] || '{}');
+    // Logs went off by default (Nov 15): a screen saved before then starts with them off once.
+    if (!saved.quiet) { saved.log = 'hide'; saved.quiet = 1; localStorage[KEY] = JSON.stringify(saved); }
+    local = clean(saved);
+  } catch { /* private mode */ }
   let current = local;
 
   function apply(s) {
@@ -64,7 +69,7 @@
       const [scope, name] = e.target.name.split('-');
       if (scope === 'me') {
         local = { ...local, [name]: e.target.value };
-        try { localStorage[KEY] = JSON.stringify(local); } catch { /* ignore */ }
+        try { localStorage[KEY] = JSON.stringify({ ...local, quiet: 1 }); } catch { /* ignore */ }
         apply(local);
       } else if (table) {
         table.set({ ...clean(table.get()), [name]: e.target.value });
