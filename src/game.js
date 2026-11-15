@@ -5,6 +5,7 @@ const { roster } = require('./roster');
 const { BUILTIN_SFX } = require('./media');
 const absent = require('./absent');
 const timers = require('./timers');
+const iso = require('./iso');
 
 let spotlightTimer = null;
 function spotlight(id, kind) {
@@ -72,8 +73,21 @@ function applyDamage(target, amount) {
     log('combat', 'All enemies defeated. Victory!', { tone: 'good' });
   }
 }
+// On the battle map an attack needs line of sight, and the target may be in cover (src/iso.js).
+// Returns { blocked } and rolls nothing when the attacker cannot see the target.
+function sightAndCover(attacker, target) {
+  const a = state.map && state.tokens?.[attacker.id];
+  const t = state.map && state.tokens?.[target.id];
+  if (!a || !t) return { cover: 0 };
+  if (!iso.sees(state.map, a, t)) return { blocked: `${attacker.name} has no line of sight to ${target.name}.` };
+  state.tokens[attacker.id].facing = iso.facing([a.x, a.y], [t.x, t.y]);
+  return { cover: iso.cover(state.map, a, t) };
+}
 function attack(attacker, target, opts) {
-  const r = sys().attack(attacker, target, opts);
+  const sc = sightAndCover(attacker, target);
+  if (sc.blocked) return { blocked: sc.blocked };
+  const r = sys().attack(attacker, sc.cover ? { ...target, ac: target.ac + sc.cover } : target, opts);
+  if (sc.cover) r.text += ` (${sc.cover === 5 ? 'three-quarters' : 'half'} cover +${sc.cover})`;
   if (attacker.attackName) r.text = r.text.replace(' attacks ', ` attacks (${attacker.attackName}) `);
   if (state.combat.enemies.includes(attacker)) {
     // Creature bonuses and damage dice are DM-only (see FIELD_RULES in visibility.js). Phones and the TV
@@ -84,6 +98,7 @@ function attack(attacker, target, opts) {
   } else log('combat', r.text, { tone: r.hit ? 'good' : 'bad', roll: r.natural });
   if (r.crit && !attacker.enemy) spotlight(attacker.id, 'nat20');
   if (r.hit) applyDamage(target, r.damage);
+  return r;
 }
 function startCombat() {
   const c = state.combat;

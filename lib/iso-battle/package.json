@@ -1,0 +1,6 @@
+{
+  "name": "iso-battle",
+  "private": true,
+  "type": "module",
+  "description": "Isometric 3D battle map: rules core (grid, A*, LOS, cover) and a Three.js view. Built by tools/build-iso.mjs."
+}
