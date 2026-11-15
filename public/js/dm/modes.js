@@ -12,7 +12,7 @@ const KINDS = ['action', 'check', 'combat', 'downtime', 'narrate', 'npc', 'say',
 const KIND_NAMES = { action: 'Actions', check: 'Checks', combat: 'Combat', downtime: 'Downtime', narrate: 'Narration', npc: 'NPC speech', say: 'Player speech', shop: 'Shops', system: 'System', notice: 'Notices' };
 const SUB_NAMES = {
   scene: 'Scene', stage: 'Stage and music', clocks: 'Clocks', moments: 'TV moments', puzzle: 'Puzzles',
-  lights: 'Smart lights', table: 'Table tools', quiz: 'Recap quiz', web: 'Relations web', journal: 'Notes and journal', camp: 'Camp and downtime', codm: 'Co-DM', data: 'Campaign data',
+  npc: 'NPCs', legends: 'Legends', lights: 'Smart lights', table: 'Table tools', quiz: 'Recap quiz', web: 'Relations web', journal: 'Notes and journal', camp: 'Camp and downtime', codm: 'Co-DM', data: 'Campaign data',
 };
 const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
@@ -81,15 +81,15 @@ function showTab(id) {
 // Other modules can open a tab (and a part of it): window.dmShowTab('scene', 'clocks').
 window.dmShowTab = (id, sub) => { if (sub) { subs[id] = sub; save('dmSideSubs', JSON.stringify(subs)); } showTab(id); };
 
-// TV log filter: one checkbox per log type, saved to the table setting (hideLog).
+// TV log: one "Show ___ log" checkbox per log type, saved to the table setting (showLog). None by default.
 function drawKinds(s) {
   const box = $('#tvLogKinds');
   if (!box) return;
-  const hidden = new Set(s.settings?.display?.hideLog || []);
-  const key = [...hidden].sort().join();
+  const shown = new Set(s.settings?.display?.showLog || []);
+  const key = [...shown].sort().join();
   if (kindsKey === key) return;
   kindsKey = key;
-  box.innerHTML = KINDS.map((k) => `<label class="chk"><input type="checkbox" data-hide-kind="${k}" ${hidden.has(k) ? 'checked' : ''}> ${KIND_NAMES[k]}</label>`).join('');
+  box.innerHTML = KINDS.map((k) => `<label class="chk"><input type="checkbox" data-show-kind="${k}" ${shown.has(k) ? 'checked' : ''}> Show ${KIND_NAMES[k].toLowerCase()} log</label>`).join('');
 }
 
 onState((s) => {
@@ -100,11 +100,11 @@ onState((s) => {
 });
 
 $('#tvLogKinds')?.addEventListener('change', (e) => {
-  const kind = e.target.dataset.hideKind;
+  const kind = e.target.dataset.showKind;
   if (!kind) return;
-  const cur = new Set(state()?.settings?.display?.hideLog || []);
+  const cur = new Set(state()?.settings?.display?.showLog || []);
   if (e.target.checked) cur.add(kind); else cur.delete(kind);
-  emit('dm:settings', { display: { hideLog: [...cur] } });
+  emit('dm:settings', { display: { showLog: [...cur] } });
 });
 
 $('#sideTabs')?.addEventListener('click', (e) => {

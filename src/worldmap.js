@@ -47,7 +47,30 @@ function fresh() {
   };
 }
 
+// The example world (Mike, Nov 15): a small region with a village to start in, fog on, and one dungeon
+// entrance (The Sunken Crossroads) that opens the example dungeon in src/dungeon.js.
+const EXAMPLE_PLACES = [
+  ['w1', 'Millbrook', 0.2, 0.64, 'A quiet farming village. The party wakes at the Millbrook inn.', false],
+  ['w2', 'Old Stone Bridge', 0.4, 0.56, 'A moss-grown bridge over the Kell. Toll collectors left long ago.', false],
+  ['w3', 'Whispering Woods', 0.33, 0.27, 'Old trees that talk in the wind. Locals stay on the path.', false],
+  ['w4', 'The Sunken Crossroads', 0.6, 0.38, 'Stone stairs lead down where four roads meet. A dungeon entrance.', true],
+  ['w5', 'Harrowgate', 0.76, 0.64, 'A walled market town with a busy gate.', false],
+  ['w6', 'Watchtower Ruins', 0.82, 0.2, 'A broken tower on the ridge, watching the north road.', false],
+];
+const EXAMPLE_ROADS = [['w1', 'w2', 1], ['w2', 'w3', 2], ['w2', 'w4', 2], ['w2', 'w5', 2], ['w4', 'w6', 2], ['w5', 'w6', 3]];
+function example() {
+  const wm = fresh();
+  wm.nodes = EXAMPLE_PLACES.map(([id, name, x, y, info, dungeon]) => ({ id, name, x, y, info, revealed: true, town: null, seen: false, dungeon }));
+  wm.roads = EXAMPLE_ROADS.map(([a, b, length], i) => ({ id: `wr${i + 1}`, a, b, length, known: false }));
+  wm.fog = true;
+  wm.here = 'w1';
+  uncover(wm, 'w1');
+  return wm;
+}
+
 const find = (wm, id) => wm.nodes.find((n) => n.id === id);
+// The place the party stands on when it is a dungeon entrance and the party is not travelling.
+const dungeonHere = (wm) => (!wm.travel && wm.here && find(wm, wm.here)?.dungeon ? find(wm, wm.here) : null);
 const clamp01 = (v) => Math.min(1, Math.max(0, Number(v) || 0));
 const counts = (v) => v.candidates.map((id) => Object.values(v.votes).filter((x) => x === id).length);
 const votesFor = (v, id) => Object.values(v.votes).filter((x) => x === id).length;
@@ -79,6 +102,7 @@ function saveNode(wm, f, ctx) {
   if (f.revealed !== undefined) n.revealed = !!f.revealed;
   if (f.town !== undefined) n.town = f.town ? str(f.town, 40) || null : null; // living-world town id (src/living.js)
   if (f.seen !== undefined) n.seen = !!f.seen;
+  if (f.dungeon !== undefined) n.dungeon = !!f.dungeon; // a dungeon entrance: standing here opens the dungeon pop-up
   return n;
 }
 
@@ -383,7 +407,7 @@ function viewFor(wm, viewer, seated = 0) {
     fog: !!wm.fog,
     nodes: wm.nodes.filter((n) => dm || seenBy(wm, n)).map((n) => ({
       id: n.id, name: n.name, x: n.x, y: n.y, revealed: n.revealed, info: dm || n.revealed ? n.info : null,
-      seen: !wm.fog || !!n.seen, town: dm ? n.town || null : undefined,
+      seen: !wm.fog || !!n.seen, town: dm ? n.town || null : undefined, dungeon: !!n.dungeon,
     })).concat(dm ? [] : wm.nodes.filter((n) => !seenBy(wm, n) && pinned(wm, n.id)).map((n) => ({ id: n.id, name: '???', x: n.x, y: n.y, revealed: false, info: null, seen: false, fogged: true }))),
     roads: (wm.roads || []).filter((r) => dm || !wm.fog || r.known).map((r) => ({ id: r.id, a: r.a, b: r.b, length: r.length, known: !wm.fog || r.known })),
     vote: v ? {
@@ -415,7 +439,7 @@ function viewFor(wm, viewer, seated = 0) {
 }
 
 module.exports = {
-  fresh, posAt, saveNode, removeNode, reveal: (wm, id, on) => { const n = find(wm, id); if (n) n.revealed = !!on; return !!n; },
+  fresh, example, dungeonHere, posAt, saveNode, removeNode, reveal: (wm, id, on) => { const n = find(wm, id); if (n) n.revealed = !!on; return !!n; },
   startVote, castVote, closeVote, cancelVote, go, tick, drawNow, addDeck, removeDeck, saveTable, removeTable,
   vetoCard, revealLore, comment, setImage, setTiming, viewFor, counts, DEFAULT_TABLE,
   saveRoad, removeRoad, route, uncover, setFog, roadBetween,

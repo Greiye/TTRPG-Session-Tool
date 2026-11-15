@@ -12,19 +12,23 @@ const GROUPS = {
   checks: ['check', 'roll'],
   combat: ['combat'],
   other: ['system', 'action', 'downtime', 'shop', 'notice'],
+  places: 'trail', // the party trail (src/trail.js), not log lines
 };
-const NAMES = { all: 'All', story: 'Story', checks: 'Checks', combat: 'Combat', other: 'Other' };
+const NAMES = { all: 'All', story: 'Story', checks: 'Checks', combat: 'Combat', other: 'Other', places: 'Places' };
 let filter = 'all';
 
 function render() {
   const S = state();
   if (!S || tab() !== 'logs') return;
   const kinds = GROUPS[filter];
+  const off = '<p class="note logs-off">Logs are off on this phone. Turn them on in ⚙ Display settings › Show logs.</p>';
+  const chips = `${off}<div class="chips" role="group" aria-label="Filter the log">${Object.keys(GROUPS).map((g) => `<button class="chip ${g === filter ? 'on' : ''}" data-log-filter="${g}" aria-pressed="${g === filter}">${NAMES[g]}</button>`).join('')}</div>`;
+  if (kinds === 'trail') { root().innerHTML = `${chips}<div class="card">${WorldMap.trail(S.trail, { max: 40 })}</div>`; return; }
   root().innerHTML = `
     <div class="chips" role="group" aria-label="Filter the log">${Object.keys(GROUPS).map((g) => `<button class="chip ${g === filter ? 'on' : ''}" data-log-filter="${g}" aria-pressed="${g === filter}">${NAMES[g]}</button>`).join('')}</div>
     <section class="feed log-full" aria-label="Table log"></section>`;
   // Story-style feed (public/chronicle.js): speech in portrait boxes, newest at the bottom.
-  Chronicle.feed(root().querySelector('.feed'), S, { n: 40, kinds: kinds || Object.values(GROUPS).flat().filter(Boolean) });
+  Chronicle.feed(root().querySelector('.feed'), S, { n: 40, kinds: kinds || Object.values(GROUPS).filter(Array.isArray).flat() });
 }
 onState(render);
 onTab((id) => { if (id === 'logs') render(); });

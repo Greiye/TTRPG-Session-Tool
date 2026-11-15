@@ -46,8 +46,10 @@ const renderAtmo = Atmo.mount($('#atmo'), { emit, key: dmKey });
 const iso = isoStage($('#stage'), { role: 'dm', socket, emit, slotSel: '.stage-main' });
 window.IsoDm = iso; // handle for debugging
 
+// The preview mirrors the TV: the world map (with the dungeon pop-up over it) while it is on the TV in exploration.
 onState((s) => {
-  Stage.stage($('#stage'), s);
+  if (s.worldMap?.onTv && s.mode === 'exploration' && window.WorldMap) WorldMap.tv($('#stage'), s, { dm: true });
+  else Stage.stage($('#stage'), s);
   iso.update(s);
   renderAtmo(s);
 });

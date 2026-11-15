@@ -1,4 +1,4 @@
-// Tavern Screen: Jackbox-style D&D host. Laptop runs this server, TV shows /screen,
+// TTRPG Session Tool: Jackbox-style D&D host. Laptop runs this server, TV shows /screen,
 // DM drives /dm, players join /play from phones via QR code on the same Wi-Fi.
 // This file only wires modules together; see src/ for the pieces.
 const express = require('express');
@@ -30,7 +30,7 @@ let ready = 0;
 const listening = () => {
   if (++ready < servers.length) return;
   const { state } = require('./src/state');
-  console.log(`\n  Tavern Screen running\n`);
+  console.log(`\n  TTRPG Session Tool running\n`);
   console.log(`  DM controls : http://localhost:${PORT}/dm`);
   console.log(`  TV screen   : http://localhost:${PORT}/screen`);
   console.log(`  Players     : ${joinUrl(state.room)}  (QR on the TV, room ${state.room})`);

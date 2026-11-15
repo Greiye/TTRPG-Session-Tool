@@ -1,5 +1,5 @@
 #!/bin/sh
-# Start Tavern Screen on a machine that has Node 20 or newer (22 recommended).
+# Start the TTRPG Session Tool on a machine that has Node 20 or newer (22 recommended).
 # First run installs the packages; later runs start straight away.
 set -e
 cd "$(dirname "$0")"

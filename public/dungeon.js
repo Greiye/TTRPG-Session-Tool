@@ -1,5 +1,5 @@
 // Dungeon nodes (exploration): one drawing for the TV, the DM preview and the phones. The tree starts on the
-// left and branches to the right: each level is a column, joined by rope lines; torches flicker on a stone wall.
+// left and branches to the right: each level is a column, joined by rope lines, on a stone wall (no torches, Mike Nov 15).
 // The board adapts as the party moves: on the TV and phones, levels the party has left behind shrink to a
 // narrow trail of icons, so the rooms ahead get the room, and every card glides to its new place. The server
 // filters what each viewer sees (src/dungeon.js viewFor). Classic script: exposes the global Dungeon.
@@ -71,7 +71,7 @@
         <div class="dg-cards">${col.map((n) => card(n, d, opts, kids.has(n.id))).join('')}</div>
       </div>`).join('');
     return `<div class="dg ${opts.phone ? 'phone' : ''} ${opts.dm ? 'dm' : ''}" style="--cols:${R.length - nTrail};--trail:${nTrail};--rows:${maxRows}">
-      <div class="dg-wall" aria-hidden="true"><div class="dg-arch"></div><div class="dg-torch l"><i></i></div><div class="dg-torch r"><i></i></div></div>
+      <div class="dg-wall" aria-hidden="true"><div class="dg-arch"></div></div>
       ${opts.title ? `<div class="dg-title">${esc(opts.title)}</div>` : ''}
       <div class="dg-body">${body}</div>
       <svg class="dg-links" aria-hidden="true"></svg>

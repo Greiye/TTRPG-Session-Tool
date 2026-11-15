@@ -63,7 +63,7 @@ const state = {
   relations: {}, // NPC id -> character id -> stance (item 19, DM only)
   moodMap: {}, // mode -> music track id (item 21)
   map: null, // { image, cols, rows, terrain } battle map (item 24, src/grid.js)
-  worldMap: worldmap.fresh(), // world map: places, votes, travel and flavour cards (Phase G, src/worldmap.js)
+  worldMap: worldmap.example(), // starts on the example world (Mike, Nov 15); world map: places, votes, travel and flavour cards (Phase G, src/worldmap.js)
   tokens: {}, // id -> { x, y, z, light } on the map (light: none | torch | lantern | darkvision, src/vision.js)
   roll: null, // last creature randomizer result (item 26)
   plans: [], // imported session plans, DM only (src/plan.js)
@@ -88,6 +88,7 @@ const state = {
   living: living.fresh(), // living world: clocks, town standing, rumours, weather, tension, canon, oracles (src/living.js)
   puzzle: null, // teamwork puzzle: clues split over phones, guesses, DM-confirmed solve (src/puzzle.js)
   dungeon: dungeon.fresh(), // exploration dungeon nodes: rooms on levels joined by ropes (src/dungeon.js)
+  trail: [], // where the party has been: world places, dungeons and rooms (src/trail.js)
   web: web.fresh(), // NPC and faction relationship web, TV sees revealed parts (src/web.js)
   room: null, // join code, set by session.js
   houseRules: {}, // house rule id -> on (src/houserules.js); enforced by the tool
@@ -97,7 +98,7 @@ const state = {
   shopPop: null, // { shopId, n, done: [charId] } shop pop-up on the TV and phones (transient, src/shops.js)
   legendsShow: null, // 'hall' | 'shelf' | null: legends card on the TV (transient)
   // lighting preset is kept on the scene (src/world.js)
-  settings: { display: { text: 'md', palette: 'default', motion: 'auto', dice: 'on' }, host: null }, // table-wide (TV display, QR host)
+  settings: { display: { text: 'md', palette: 'default', motion: 'auto', dice: 'on', log: 'hide', showLog: [], hideJoin: true, quiet: 1 }, host: null }, // table-wide (TV display, QR host)
   bulbsOn: false, // smart bulbs follow the lighting (item 10, src/bulbs.js); off by default, DM toggle only
   bulbsTargets: 0, // how many bulbs are configured (count only; addresses and keys stay on the server)
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
@@ -109,7 +110,7 @@ store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations',
 store.EXTRA.push('living', 'weather'); // phase K living world and the shared weather
 store.EXTRA.push('houseRules', 'absent'); // phase J house rules and empty chairs
 store.EXTRA.push('intro', 'timers'); // phase D intro card text and timers
-store.EXTRA.push('dungeon'); // exploration dungeon nodes
+store.EXTRA.push('dungeon', 'trail'); // exploration dungeon nodes and the party trail
 store.EXTRA.push('puzzle', 'web'); // Phase F teamwork puzzle and relations web
 saves.backupOnStart();
 require('./srd').seed();
@@ -131,6 +132,19 @@ state.worldMap ??= worldmap.fresh();
 state.worldMap.roads ??= []; // roads and fog came after Phase G: older saves have neither
 state.worldMap.fog ??= false;
 state.worldMap.openOnSession ??= true;
+state.trail ??= [];
+// Mike, Nov 15: logs and the join QR are off by default on every screen. Older saves switch over once (quiet: 1);
+// after that the DM's choices stand. hideLog (a deny list) became showLog (an allow list).
+{
+  const d = (state.settings.display ||= {});
+  if (!d.quiet) Object.assign(d, { log: 'hide', showLog: [], hideJoin: true, quiet: 1 });
+  delete d.hideLog;
+  d.showLog ??= [];
+}
+if (!state.trail.length && state.worldMap.here) require('./trail').add(state, 'world', state.worldMap.nodes.find((n) => n.id === state.worldMap.here)?.name); // the trail starts where the party stands
+// The dungeon is a pop-up over a dungeon entrance on the world map (Mike, Nov 15). Older saves kept it shown
+// anywhere: close it unless the party stands on an entrance.
+if (state.dungeon.on && !worldmap.dungeonHere(state.worldMap)) state.dungeon.on = false;
 net.setHost(state.settings.host);
 const snap = () => store.snapshot(state, seq);
 

@@ -92,7 +92,8 @@
     const token = p
       ? `<div class="wm-token ${t ? 'moving' : ''}" ${t && to ? `data-travel="${t.fromPt.x},${t.fromPt.y},${to.x},${to.y},${t.startAt},${t.endAt}"` : ''} style="left:${pct(p.x)};top:${pct(p.y)}" title="The party"><span>⚑</span></div>`
       : '';
-    const nodes = wm.nodes.map((n) => `<div class="wm-node ${n.id === wm.here ? 'here' : ''} ${n.id === opts.selected ? 'sel' : ''} ${n.id === opts.from ? 'from' : ''} ${n.revealed ? '' : 'unrevealed'} ${n.fogged ? 'fogged' : ''} ${opts.dm && wm.fog && !n.seen ? 'unseen' : ''} ${t && n.id === (t.dest || t.to) ? 'dest' : ''}" data-node="${esc(n.id)}" style="left:${pct(n.x)};top:${pct(n.y)}"><i></i><span>${esc(n.name)}${opts.dm && !n.revealed ? ' <small>(hidden)</small>' : ''}</span></div>`).join('');
+    // The party's place is marked ("You are here"); a dungeon entrance carries a gate icon.
+    const nodes = wm.nodes.map((n) => `<div class="wm-node ${n.id === wm.here ? 'here' : ''} ${n.dungeon && !n.fogged ? 'dungeon' : ''} ${n.id === opts.selected ? 'sel' : ''} ${n.id === opts.from ? 'from' : ''} ${n.revealed ? '' : 'unrevealed'} ${n.fogged ? 'fogged' : ''} ${opts.dm && wm.fog && !n.seen ? 'unseen' : ''} ${t && n.id === (t.dest || t.to) ? 'dest' : ''}" data-node="${esc(n.id)}" style="left:${pct(n.x)};top:${pct(n.y)}"><i></i><span>${n.dungeon && !n.fogged ? '🏰 ' : ''}${esc(n.name)}${opts.dm && !n.revealed ? ' <small>(hidden)</small>' : ''}</span>${n.id === wm.here && !t ? '<b class="wm-here">You are here</b>' : ''}</div>`).join('');
     const pic = wm.image ? `<img src="${esc(wm.image)}" alt="">` : '<div class="wm-blank"></div>';
     return `<div class="wm-board ${opts.tv ? 'tv' : ''} ${opts.dm ? 'dm' : ''}"><div class="wm-pic">${pic}<div class="wm-layer">${roadsSvg(wm, opts)}${fogSvg(wm, p, opts)}${nodes}${token}</div></div></div>`;
   }
@@ -141,10 +142,29 @@
     root.innerHTML = `<div class="wm-tv${reveal}">
       <header class="wm-head"><div class="wm-title">🧭 ${esc(title)}</div>${wm.vote ? `<div class="wm-vote-line">${voteLine(wm)}</div>` : ''}</header>
       <main class="wm-main">${board(s, { tv: true })}</main>
-      ${showCard ? `<aside class="wm-card-tv" data-card="${esc(latest.id)}"><p>${esc(latest.text)}</p>${latest.lore ? `<p class="wm-lore"><b>Lore</b> ${esc(latest.lore)}</p>` : ''}</aside>` : ''}
+      ${showCard && !dungeonOn(s) ? `<aside class="wm-card-tv" data-card="${esc(latest.id)}"><p>${esc(latest.text)}</p>${latest.lore ? `<p class="wm-lore"><b>Lore</b> ${esc(latest.lore)}</p>` : ''}</aside>` : ''}
+      ${dungeonPop(s, here, opts)}
     </div>`;
     if (reveal) root.querySelectorAll('.wm-node').forEach((el, i) => el.style.setProperty('--i', i));
     if (showCard && window.Anim) Anim.once(root.querySelector('.wm-card-tv'), `wm:${latest.id}`, 'unfold');
+    const pop = root.querySelector('.wm-dg-pop');
+    if (pop) {
+      if (root.dataset.dgPop !== '1' && window.Anim) Anim.play(pop.firstElementChild, 'unfold', null);
+      window.Dungeon?.hydrate(pop, s.dungeon);
+    }
+    root.dataset.dgPop = pop ? '1' : '';
+  }
+
+  // The dungeon pop-up (Mike, Nov 15): while the party stands on a dungeon entrance and the DM has opened it,
+  // the dungeon's rooms show over the world map for everyone. Only discovered rooms reach the table.
+  const dungeonOn = (s) => !!(s.dungeon?.on && s.dungeon.nodes?.length && window.Dungeon);
+  function dungeonPop(s, here, opts = {}) {
+    if (!dungeonOn(s)) return '';
+    const exit = s.dungeon.canExit ? '<small class="wm-dg-exit ok">The way out is here</small>' : '<small class="wm-dg-exit">Leave from the entrance or the end</small>';
+    return `<div class="wm-dg-pop"><div class="wm-dg-box">
+      <header class="wm-dg-head"><b>🏰 ${esc(here?.name || 'The dungeon')}</b>${exit}</header>
+      ${Dungeon.board(s.dungeon, { dm: !!opts.dm, selected: opts.dm ? window.DungeonSel : null })}
+    </div></div>`;
   }
 
   // The party token glides along its leg. A timer moves it, so no re-render is needed while travelling.
@@ -158,5 +178,14 @@
     });
   }, 100);
 
-  window.WorldMap = { esc, posAt, board, voteLine, card, tv, byId, route, roadOf, tripLine };
+    // The party trail (src/trail.js): newest first. opts.max limits the rows.
+  const TRAIL_ICON = { world: '🧭', enter: '⬇', leave: '⬆', room: '⚑' };
+  const TRAIL_VERB = { world: 'At', enter: 'Entered', leave: 'Left', room: 'In' };
+  function trail(list, opts = {}) {
+    const rows = (list || []).slice(-(opts.max || 30)).reverse();
+    if (!rows.length) return '<p class="note">No places yet.</p>';
+    return `<ol class="wm-trail">${rows.map((e) => `<li class="k-${esc(e.kind)}"><span>${TRAIL_ICON[e.kind] || '•'}</span> ${TRAIL_VERB[e.kind] || 'At'} <b>${esc(e.where)}</b>${e.day ? ` <small>Day ${esc(e.day)}</small>` : ''}</li>`).join('')}</ol>`;
+  }
+
+  window.WorldMap = { esc, posAt, board, voteLine, card, tv, byId, route, roadOf, tripLine, trail };
 })();

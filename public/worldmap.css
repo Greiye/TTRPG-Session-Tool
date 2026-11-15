@@ -75,3 +75,33 @@ html[data-motion="reduce"] .wm-revealing * { animation-duration: .001ms !importa
 .wm-board.dm .wm-node { touch-action: none; }
 .wm-board.dm .wm-node.dragging { cursor: grabbing; z-index: 3; }
 .wm-board.dm .wm-node.dragging i { box-shadow: 0 0 0 2px #120d14, 0 0 0 6px #7fd4ff66; }
+/* The party's place (Nov 15): a "You are here" tag under the name; dungeon entrances wear a gate icon. */
+.wm-here { margin-top: 2px; white-space: nowrap; padding: 1px 7px; border-radius: 3px; background: #2d5a34; color: #e8ffe9; font: 600 11px/1.5 system-ui, sans-serif; box-shadow: 0 1px 4px #000a; animation: wm-here-bob 2.4s ease-in-out infinite; }
+.wm-tv .wm-here { font-size: 1.1em; }
+@keyframes wm-here-bob { 50% { translate: 0 -3px; } }
+.wm-node.dungeon i { border-radius: 3px; background: #b06a4a; }
+.wm-node.here i { background: #7fd48a; }
+/* The dungeon pop-up over the world map, for everyone while the party is inside. */
+.wm-dg-pop { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 3%; background: rgb(8 6 10 / .55); backdrop-filter: blur(2px); animation: wm-fade .4s ease-out both; }
+.wm-dg-box { width: min(100%, 1400px); height: min(100%, 860px); display: flex; flex-direction: column; gap: 6px; background: #17110d; border: 2px solid #6b5a3a; border-radius: 8px; box-shadow: 0 10px 50px #000c; padding: 10px; overflow: hidden; }
+.wm-dg-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; color: #e9cf96; font-family: var(--display, serif); letter-spacing: .08em; }
+.wm-dg-head b { font-size: 1.15em; }
+.wm-dg-exit { font: 12px system-ui, sans-serif; color: #b8a888; letter-spacing: 0; }
+.wm-dg-exit.ok { color: #9fe0a8; }
+.wm-tv .wm-dg-head b { font-size: 1.6em; }
+.wm-tv .wm-dg-exit { font-size: 16px; }
+.wm-dg-box .dg { flex: 1; min-height: 0; }
+/* The party trail: newest first */
+.wm-trail { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 260px; overflow: auto; }
+.wm-trail li { display: flex; gap: 6px; align-items: baseline; padding: 3px 6px; border-radius: 3px; font-size: 13px; }
+.wm-trail li:first-child { background: rgb(127 212 138 / .12); }
+.wm-trail li span { width: 1.3em; text-align: center; }
+.wm-trail li small { margin-left: auto; color: var(--muted, #998); }
+.wm-trail li.k-enter, .wm-trail li.k-leave { font-style: italic; border-left: 3px solid #b06a4a; }
+@media (prefers-reduced-motion: reduce) { .wm-here, .wm-dg-pop { animation: none; } }
+/* Bigger hit area for places (Nov 15): a 36 px invisible ring around each dot. */
+.wm-node i { position: relative; }
+.wm-node i::before { content: ''; position: absolute; inset: -11px; border-radius: 50%; }
+.wm-tv .wm-node i::before { inset: -7px; }
+.wm-board.dm .wm-node { z-index: 2; }
+.wm-board.dm .wm-node:hover i { box-shadow: 0 0 0 2px #120d14, 0 0 0 5px #f4ead577; }

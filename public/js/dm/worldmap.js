@@ -23,8 +23,9 @@ mount(`<div class="card wm-page-card">
     <button class="btn small" id="wmFogNone">Fog all</button>
     <span class="note">Under fog the table sees places the party has seen and roads it knows. Arriving uncovers the roads out and the places at their ends.</span>
   </div>
-  <div class="row"><button class="btn small" id="wmPlace">+ Place</button><button class="btn small" id="wmRoad">+ Road</button><span class="note" id="wmHint">Tap a place to edit it, drag it to move it.</span></div>
+  <div class="row"><button class="btn small" id="wmPlace">+ Place</button><button class="btn small" id="wmRoad">+ Road</button><button class="btn small" id="wmExample" title="Replace the places and roads with the example world">Load example world</button><span class="note" id="wmHint">Tap a place to edit it, drag it to move it.</span></div>
   <div id="wmBoard"></div>
+  <div id="wmDungeon"></div>
   <div id="wmEdit"></div>
   <h4>Vote</h4>
   <div id="wmVote"></div>
@@ -54,7 +55,8 @@ let roading = false; // road mode: tap one place, then another
 let roadFrom = null;
 let selRoad = null;
 const keys = {};
-const once = (name, key, html) => { if (keys[name] === key) return; keys[name] = key; $(name).innerHTML = html; };
+const once = (name, key, html) => { key ??= html; if (keys[name] === key) return; keys[name] = key; $(name).innerHTML = html; };
+let pressing = false; // a pointer is down on the board
 const setVal = (sel, v) => { const el = $(sel); if (el && document.activeElement !== el) el.value = v; };
 const nameOf = (S, charId) => S.players.find((p) => p.id === charId)?.name || '?';
 
@@ -95,6 +97,7 @@ function editorHtml(S, sel) {
     <label class="fld">Town <small class="muted">(living world: prices, clocks and rumours)</small><select id="wmTown">${townOpts}</select></label>
     <div class="row wrap">
       <label class="chk"><input type="checkbox" id="wmRev" ${sel.revealed ? 'checked' : ''}> Info revealed to the table</label>
+      <label class="chk" title="Standing here opens the dungeon pop-up for everyone"><input type="checkbox" id="wmDg" ${sel.dungeon ? 'checked' : ''}> 🏰 Dungeon entrance</label>
       ${wm.fog ? `<label class="chk"><input type="checkbox" id="wmSeen" ${sel.seen ? 'checked' : ''}> On the map (out of the fog)</label>` : ''}
       <button class="btn small primary" id="wmSave">Save place</button>
       <button class="btn small" id="wmGo" ${wm.here === sel.id && !wm.travel ? 'disabled' : ''}>Send the party here now</button>
@@ -104,6 +107,17 @@ function editorHtml(S, sel) {
     <h4>Roads</h4>
     <div class="wm-roadlist">${roadRows || '<p class="note">No roads. Use + Road, then tap two places.</p>'}</div>
   </div>`;
+}
+
+// The dungeon line: shown while the party stands on a dungeon entrance (or is inside one).
+function dungeonHtml(S) {
+  const wm = S.worldMap;
+  const at = !wm.travel && wm.nodes.find((n) => n.id === wm.here);
+  if (!at?.dungeon) return '';
+  const d = S.dungeon;
+  return `<div class="item row wrap"><span class="grow">🏰 <b>${esc(at.name)}</b> ${d?.on ? (d.canExit ? '· inside, at the way out' : '· inside, away from the entrance and end') : '· the party stands at the entrance'}</span>
+    ${d?.on ? `<button class="btn small" id="wmDgLeave" ${d.canExit ? '' : 'disabled'}>⬆ Leave dungeon</button>` : '<button class="btn small primary" id="wmDgEnter">⬇ Enter dungeon</button>'}
+    <span class="note" id="wmDgMsg"></span></div>`;
 }
 
 function cardHtml(c) {
@@ -132,10 +146,14 @@ function draw(S) {
   $('#wmFog').checked = !!wm.fog;
   hint();
 
-  if (!drag) $('#wmBoard').innerHTML = WM().board(S, { dm: true, selected: selId, selRoad, from: roadFrom });
+  // Redraw the board only when it changed, and never under a press: replacing the places between pointerdown
+  // and click lost the click, so places were hard to select (Mike, Nov 15).
+  if (!drag && !pressing) once('#wmBoard', null, WM().board(S, { dm: true, selected: selId, selRoad, from: roadFrom }));
   const sel = wm.nodes.find((n) => n.id === selId);
   if (!sel) selId = null;
   once('#wmEdit', JSON.stringify([sel, wm.here, !!wm.travel, wm.fog, wm.roads, selRoad, (S.living?.towns || []).map((t) => t.id + t.name)]), sel ? editorHtml(S, sel) : '');
+  once('#wmTrail', JSON.stringify(S.trail || []), WM().trail(S.trail, { max: 40 }));
+  once('#wmDungeon', JSON.stringify([wm.here, !!wm.travel, wm.nodes.map((n) => n.id + n.name + !!n.dungeon), !!S.dungeon?.on, !!S.dungeon?.canExit]), dungeonHtml(S));
   once('#wmVote', JSON.stringify([wm.vote, wm.nodes.map((n) => n.id + n.name), wm.here, S.players.map((p) => p.id + p.name)]), voteHtml(S));
   once('#wmDeckList', JSON.stringify(wm.deck), wm.deck.length
     ? wm.deck.map((d) => `<div class="item"><span>${esc(d.text)}${d.lore ? ' <small class="muted">+ lore</small>' : ''}</span><button class="btn small" data-wm-deck-rm="${esc(d.id)}">✕</button></div>`).join('')
@@ -160,6 +178,8 @@ function hint() {
 // Drag a place to move it. A press that moves less than a few pixels is a tap, so the click below still selects.
 let drag = null;
 let dragged = false;
+$('#wmBoard').addEventListener('pointerdown', () => { pressing = true; }, true);
+document.addEventListener('pointerup', () => { if (pressing) setTimeout(() => { pressing = false; if (last) draw(last); }, 0); }, true);
 $('#wmBoard').addEventListener('pointerdown', (e) => {
   const n = e.target.closest('[data-node]');
   if (!n || e.button !== 0 || placing || roading) return;
@@ -182,7 +202,7 @@ function dragEnd(e) {
   if (!drag) return;
   const d = drag;
   drag = null;
-  if (!d.moved || e.type === 'pointercancel') { if (last) draw(last); return; }
+  if (!d.moved || e.type === 'pointercancel') { keys['#wmBoard'] = null; if (last) draw(last); return; }
   dragged = true; // swallow the click that follows the drag
   setTimeout(() => { dragged = false; }, 0);
   selId = d.id;
@@ -221,6 +241,19 @@ $('#wmBoard').addEventListener('click', async (e) => {
   if (last) draw(last);
 });
 
+$('#wmDungeon').addEventListener('click', async (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const r = await call('dm:dungeon:show', { on: b.id === 'wmDgEnter' });
+  const m = $('#wmDgMsg');
+  if (m) m.textContent = r?.error || '';
+});
+$('#wmExample').onclick = async () => {
+  if (last?.worldMap.nodes.length && !confirm('Replace the places and roads with the example world?')) return;
+  const r = await call('dm:worldmap:example');
+  if (r?.error) alert(r.error);
+  selId = null; selRoad = null;
+};
 $('#wmPlace').onclick = () => { placing = !placing; roading = false; roadFrom = null; if (last) draw(last); };
 $('#wmRoad').onclick = () => { roading = !roading; placing = false; roadFrom = null; if (last) draw(last); };
 $('#wmFog').onchange = (e) => emit('dm:worldmap:fog', { on: e.target.checked });
@@ -243,7 +276,7 @@ $('#wmFile').onchange = async (e) => {
 $('#wmEdit').addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b || !selId) return;
-  if (b.id === 'wmSave') emit('dm:worldmap:node', { id: selId, name: $('#wmName').value.trim() || 'Unnamed place', info: $('#wmInfo').value, revealed: $('#wmRev').checked, town: $('#wmTown').value, ...($('#wmSeen') ? { seen: $('#wmSeen').checked } : {}) });
+  if (b.id === 'wmSave') emit('dm:worldmap:node', { id: selId, name: $('#wmName').value.trim() || 'Unnamed place', info: $('#wmInfo').value, revealed: $('#wmRev').checked, town: $('#wmTown').value, dungeon: $('#wmDg').checked, ...($('#wmSeen') ? { seen: $('#wmSeen').checked } : {}) });
   else if (b.dataset.wmRrm) { emit('dm:worldmap:road:remove', { id: b.dataset.wmRrm }); if (selRoad === b.dataset.wmRrm) selRoad = null; }
   else if (b.id === 'wmGo') emit('dm:worldmap:go', { node: selId });
   else if (b.id === 'wmDel') { emit('dm:worldmap:node:remove', { id: selId }); selId = null; }
