@@ -25,8 +25,9 @@ $('#system').onchange = (e) => {
 };
 $('#roomNew').onclick = () => confirm('Make a new room code? Phones that are already seated keep playing.') && emit('dm:room:new');
 $('#hostSel').onchange = (e) => emit('dm:host', { host: e.target.value });
-$('#hideJoin').onchange = (e) => emit('dm:settings', { display: { hideJoin: e.target.checked } });
-onState((s) => { $('#hideJoin').checked = !!s.settings?.display?.hideJoin; });
+// The join QR is hidden on the TV by default (Mike, Nov 15): tick to show it.
+$('#showJoin').onchange = (e) => emit('dm:settings', { display: { hideJoin: !e.target.checked } });
+onState((s) => { $('#showJoin').checked = s.settings?.display?.hideJoin === false; });
 
 // Top bar minimize (Mike, Nov 14): ▴ folds the bar to its title line; ▾ brings it back. Saved on this laptop.
 const BAR_KEY = 'dmBarMin';

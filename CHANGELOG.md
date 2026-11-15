@@ -4,6 +4,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Fixed
+- World map page: places were hard to select. The board was redrawn on every state update, which dropped clicks; it now redraws only when it changes and never under a press, and each place has a larger hit area.
+
 ### Added
 - World map and dungeon flow (Nov 15):
   - Exploration starts on the world map. A fresh table gets an example world: the party in Millbrook (marked "You are here"), fog on, roads out, and **The Sunken Crossroads** as a 🏰 dungeon entrance. The DM world map page has **Load example world**; any place can be ticked as a dungeon entrance.
@@ -15,6 +18,11 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Sample backdrop "Tales of Artheria" (`public/samples/artheria-village.jpg`), bundled with the app and listed first in the backdrop library. A fresh table, or a save from before this change, starts on it. Choosing "Scene theme" is now saved as `'none'`, so it survives a restart. The sample has no ✕ and is never deleted from disk.
 
 ### Changed
+- Quieter defaults and DM tabs (Nov 15, later):
+  - No logs on any screen by default. The TV log is an opt-in list of "Show ___ log" types (`display.showLog`, was `hideLog`); with none ticked the TV log column is gone. ⚙ Display settings › Show logs is Off by default on the DM laptop and phones (DM story feed, phone Logs). Older saves and screens switch over once.
+  - The "Join the party" QR on the TV is hidden by default; tick "Show “Join the party” QR on TV".
+  - Legends and NPCs are parts of the Miscellaneous tab, not tabs of their own.
+  - The dungeon board has no torches.
 - Phone and DM cleanup (Nov 15, later):
   - The dungeon board is gone from the phone: players follow the dungeon on the TV.
   - Phone dice pool is 2 across, 3 down, with wider buttons (icon beside the label).

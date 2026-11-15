@@ -98,7 +98,7 @@ const state = {
   shopPop: null, // { shopId, n, done: [charId] } shop pop-up on the TV and phones (transient, src/shops.js)
   legendsShow: null, // 'hall' | 'shelf' | null: legends card on the TV (transient)
   // lighting preset is kept on the scene (src/world.js)
-  settings: { display: { text: 'md', palette: 'default', motion: 'auto', dice: 'on' }, host: null }, // table-wide (TV display, QR host)
+  settings: { display: { text: 'md', palette: 'default', motion: 'auto', dice: 'on', log: 'hide', showLog: [], hideJoin: true, quiet: 1 }, host: null }, // table-wide (TV display, QR host)
   bulbsOn: false, // smart bulbs follow the lighting (item 10, src/bulbs.js); off by default, DM toggle only
   bulbsTargets: 0, // how many bulbs are configured (count only; addresses and keys stay on the server)
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
@@ -133,6 +133,14 @@ state.worldMap.roads ??= []; // roads and fog came after Phase G: older saves ha
 state.worldMap.fog ??= false;
 state.worldMap.openOnSession ??= true;
 state.trail ??= [];
+// Mike, Nov 15: logs and the join QR are off by default on every screen. Older saves switch over once (quiet: 1);
+// after that the DM's choices stand. hideLog (a deny list) became showLog (an allow list).
+{
+  const d = (state.settings.display ||= {});
+  if (!d.quiet) Object.assign(d, { log: 'hide', showLog: [], hideJoin: true, quiet: 1 });
+  delete d.hideLog;
+  d.showLog ??= [];
+}
 if (!state.trail.length && state.worldMap.here) require('./trail').add(state, 'world', state.worldMap.nodes.find((n) => n.id === state.worldMap.here)?.name); // the trail starts where the party stands
 // The dungeon is a pop-up over a dungeon entrance on the world map (Mike, Nov 15). Older saves kept it shown
 // anywhere: close it unless the party stands on an entrance.

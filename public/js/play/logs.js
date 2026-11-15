@@ -21,7 +21,8 @@ function render() {
   const S = state();
   if (!S || tab() !== 'logs') return;
   const kinds = GROUPS[filter];
-  const chips = `<div class="chips" role="group" aria-label="Filter the log">${Object.keys(GROUPS).map((g) => `<button class="chip ${g === filter ? 'on' : ''}" data-log-filter="${g}" aria-pressed="${g === filter}">${NAMES[g]}</button>`).join('')}</div>`;
+  const off = '<p class="note logs-off">Logs are off on this phone. Turn them on in ⚙ Display settings › Show logs.</p>';
+  const chips = `${off}<div class="chips" role="group" aria-label="Filter the log">${Object.keys(GROUPS).map((g) => `<button class="chip ${g === filter ? 'on' : ''}" data-log-filter="${g}" aria-pressed="${g === filter}">${NAMES[g]}</button>`).join('')}</div>`;
   if (kinds === 'trail') { root().innerHTML = `${chips}<div class="card">${WorldMap.trail(S.trail, { max: 40 })}</div>`; return; }
   root().innerHTML = `
     <div class="chips" role="group" aria-label="Filter the log">${Object.keys(GROUPS).map((g) => `<button class="chip ${g === filter ? 'on' : ''}" data-log-filter="${g}" aria-pressed="${g === filter}">${NAMES[g]}</button>`).join('')}</div>

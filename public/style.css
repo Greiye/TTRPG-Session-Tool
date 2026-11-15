@@ -88,6 +88,7 @@ code { font-family: ui-monospace, Menlo, monospace; }
 
 .stage-main { display: grid; grid-template-columns: 1fr 27cqw; gap: 1.5cqw; padding: 1cqw 2cqw; min-height: 0; z-index: 1; }
 .stage-center { min-height: 0; position: relative; }
+.stage.no-log .stage-main { grid-template-columns: 1fr; } /* no log types shown on the TV: the scene takes the width */
 .stage-log { min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
 
 .log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .45em; font-size: .78em; }
@@ -921,3 +922,8 @@ html[data-motion="reduce"] .shop-tv { animation-duration: .001ms; }
 .inv-new { animation: slidein .3s ease-out; }
 .inv-gone { opacity: 0; transform: translateX(-1em); transition: opacity .18s, transform .18s; }
 html[data-motion="reduce"] .tab-body, html[data-motion="reduce"] .tab-sec, html[data-motion="reduce"] .die-face, html[data-motion="reduce"] .die-n, html[data-motion="reduce"] .poi-in, html[data-motion="reduce"] .feat-desc, html[data-motion="reduce"] .inv-new { animation: none; }
+/* Logs are off by default on every screen (Mike, Nov 15): ⚙ Display settings > Show logs turns them on. */
+html[data-log="hide"] body.dm #feed, html[data-log="hide"] body.dm #tablePage > .col-sub { display: none; }
+html[data-log="hide"] #tabLogs .chips, html[data-log="hide"] #tabLogs .log-full, html[data-log="hide"] #tabLogs .card { display: none; }
+#tabLogs .logs-off { display: none; }
+html[data-log="hide"] #tabLogs .logs-off { display: block; }

@@ -4,11 +4,11 @@
 // and every phone (one pop-up at a time, see src/popups.js).
 import { $, emit, call, onState, state, mount } from '../client.js';
 
-const popCard = mount(`<div class="card" data-tab="npc" data-panel="exploration social" id="shopPopCard">
+const popCard = mount(`<div class="card" data-tab="misc" data-sub="npc" data-panel="exploration social" id="shopPopCard">
   <h3>Shop pop-up <span class="note" id="shPopStatus"></span></h3>
   <div class="row"><select id="shPopPick" class="grow" aria-label="Shop to open"></select><button class="btn primary" id="shPopOpen">Pop up</button><button class="btn" id="shPopClose">Close</button></div>
   <p class="note">The TV shows the shop and how many are still shopping; phones get a buy and sell list. Make shops in Planning Mode.</p>
-</div>`, '[data-tab="npc"]');
+</div>`, '[data-sub="npc"]');
 let popKey = '';
 
 const { esc } = Stage;

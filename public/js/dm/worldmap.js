@@ -55,7 +55,8 @@ let roading = false; // road mode: tap one place, then another
 let roadFrom = null;
 let selRoad = null;
 const keys = {};
-const once = (name, key, html) => { if (keys[name] === key) return; keys[name] = key; $(name).innerHTML = html; };
+const once = (name, key, html) => { key ??= html; if (keys[name] === key) return; keys[name] = key; $(name).innerHTML = html; };
+let pressing = false; // a pointer is down on the board
 const setVal = (sel, v) => { const el = $(sel); if (el && document.activeElement !== el) el.value = v; };
 const nameOf = (S, charId) => S.players.find((p) => p.id === charId)?.name || '?';
 
@@ -145,7 +146,9 @@ function draw(S) {
   $('#wmFog').checked = !!wm.fog;
   hint();
 
-  if (!drag) $('#wmBoard').innerHTML = WM().board(S, { dm: true, selected: selId, selRoad, from: roadFrom });
+  // Redraw the board only when it changed, and never under a press: replacing the places between pointerdown
+  // and click lost the click, so places were hard to select (Mike, Nov 15).
+  if (!drag && !pressing) once('#wmBoard', null, WM().board(S, { dm: true, selected: selId, selRoad, from: roadFrom }));
   const sel = wm.nodes.find((n) => n.id === selId);
   if (!sel) selId = null;
   once('#wmEdit', JSON.stringify([sel, wm.here, !!wm.travel, wm.fog, wm.roads, selRoad, (S.living?.towns || []).map((t) => t.id + t.name)]), sel ? editorHtml(S, sel) : '');
@@ -175,6 +178,8 @@ function hint() {
 // Drag a place to move it. A press that moves less than a few pixels is a tap, so the click below still selects.
 let drag = null;
 let dragged = false;
+$('#wmBoard').addEventListener('pointerdown', () => { pressing = true; }, true);
+document.addEventListener('pointerup', () => { if (pressing) setTimeout(() => { pressing = false; if (last) draw(last); }, 0); }, true);
 $('#wmBoard').addEventListener('pointerdown', (e) => {
   const n = e.target.closest('[data-node]');
   if (!n || e.button !== 0 || placing || roading) return;
@@ -197,7 +202,7 @@ function dragEnd(e) {
   if (!drag) return;
   const d = drag;
   drag = null;
-  if (!d.moved || e.type === 'pointercancel') { if (last) draw(last); return; }
+  if (!d.moved || e.type === 'pointercancel') { keys['#wmBoard'] = null; if (last) draw(last); return; }
   dragged = true; // swallow the click that follows the drag
   setTimeout(() => { dragged = false; }, 0);
   selId = d.id;
