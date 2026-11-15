@@ -23,7 +23,7 @@ function render() {
   // Hero card (public/chronicle.js): portrait and bars only. Stats live on the Sheet tab, the bio in the profile.
   $('#me').innerHTML = `${Chronicle.hero(c, S, { view: 'none', editAttr: 'data-prof', compact: true, seg: false })}<div class="me-tools"><button class="btn small" id="profBtn">✎ Profile</button><button class="btn small" id="fsBtn" title="Full screen" aria-label="Full screen">⛶</button><button class="btn small" id="awakeBtn" title="Keep the screen on" aria-pressed="${Fx.awake()}">☀</button></div>`;
   Anim.hydrate($('#me'));
-  $('#pills').innerHTML = Chronicle.pills(S, c);
+  // The day / time / place / quest / coins bar is gone from every screen (Mike, Nov 15).
   $('#profBtn').onclick = openProfile;
   $('#me [data-prof]').onclick = openProfile;
   $('#fsBtn').onclick = () => Fx.fullscreen();
@@ -34,7 +34,6 @@ function render() {
   $('#tabPlay').classList.toggle('combat-quiet', S.mode === 'combat'); // combat: no spectator notes, no free-text box
   $('#main').innerHTML = (VIEWS[S.mode] || exploreView)(S, c);
   Anim.hydrate($('#main'));
-  if (S.mode === 'exploration' && S.dungeon?.on) window.Dungeon?.hydrate($('#main'), S.dungeon);
   const sug = (S.suggestions || []).slice(-5).reverse();
   $('#suggest').innerHTML = sug.length && S.mode !== 'combat' ? `<details class="card suggest" open><summary>👀 Spectator suggestions (${sug.length})</summary>${sug.map((x) => `<p><b>${esc(x.name)}:</b> ${esc(x.text)}</p>`).join('')}</details>` : '';
 }

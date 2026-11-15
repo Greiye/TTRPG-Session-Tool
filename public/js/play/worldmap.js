@@ -44,8 +44,7 @@ function render() {
       ${WorldMap.board(S, { selected: sel })}
       <div style="margin-top:8px">${voteBlock}</div>
     </div>
-    ${placeCard}
-    <div class="card"><h3>Party trail</h3>${WorldMap.trail(S.trail, { max: 15 })}</div>`;
+    ${placeCard}`;
 }
 
 onState(render);

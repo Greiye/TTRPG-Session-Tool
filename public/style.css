@@ -880,14 +880,14 @@ html[data-motion="reduce"] .shop-tv { animation-duration: .001ms; }
 .subtabs .chip i { min-width: 16px; padding: 0 4px; border-radius: 99px; background: var(--bad); color: #1b1420; font-style: normal; font-size: calc(11px * var(--ts)); font-weight: 700; }
 
 .dice-pool { margin-top: 12px; }
-.dice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
-.die { display: grid; grid-template-columns: 26px 1fr 26px; align-items: center; border: 1px solid var(--line); border-radius: 10px; background: rgb(0 0 0 / .12); transition: border-color .15s, background .15s; }
+.dice-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px; } /* 2 across, 3 down: wide buttons (Mike, Nov 15) */
+.die { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; border: 1px solid var(--line); border-radius: 10px; background: rgb(0 0 0 / .12); transition: border-color .15s, background .15s; }
 .die.has { border-color: var(--gold); background: rgb(224 176 74 / .14); }
 .die.bump .die-face { animation: die-bump .25s ease-out; }
 @keyframes die-bump { 40% { transform: scale(1.15) rotate(-6deg); } }
 .die-step { height: 100%; min-height: 54px; border: 0; background: none; color: inherit; font-size: calc(14px * var(--ts)); padding: 0; touch-action: manipulation; }
 .die-step:disabled { opacity: .25; }
-.die-face { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; }
+.die-face { position: relative; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 8px 0; }
 .die-face b { font-family: var(--display); font-size: calc(13px * var(--ts)); }
 .die-ico { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
 .die.has .die-ico { stroke: var(--gold); }

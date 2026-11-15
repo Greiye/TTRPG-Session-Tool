@@ -17,7 +17,6 @@ function renderHero(S) {
 }
 
 onState((S) => {
-  $('#pills').innerHTML = Chronicle.pills(S);
   Chronicle.feed($('#feed'), S);
   renderHero(S);
 });
