@@ -107,7 +107,7 @@
 .hero-bio .quote { color: var(--gold); font-style: italic; }
 
 /* ================= DM page: tools | story | hero ================= */
-body.dm.chron { --tools-w: 380px; --tools-full: 380px; grid-template-columns: var(--tools-w) minmax(0, 1fr) 300px; grid-template-areas: 'tools main hero'; transition: grid-template-columns .32s cubic-bezier(.2, .8, .2, 1); }
+body.dm.chron { --tools-w: 380px; --tools-full: 380px; --hero-w: 300px; --hero-full: 300px; grid-template-columns: var(--tools-w) minmax(0, 1fr) var(--hero-w); grid-template-areas: 'tools main hero'; transition: grid-template-columns .32s cubic-bezier(.2, .8, .2, 1); }
 .chron .dm-left { grid-area: main; padding: 0; gap: 0; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
 .chron .dm-right { grid-area: tools; border-left: 0; border-right: 1px solid var(--line); background: var(--panel); }
 .chron .dm-hero { grid-area: hero; background: var(--panel); border-left: 1px solid var(--line); overflow: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
@@ -141,8 +141,19 @@ body.dm.chron .dm-right > * { min-width: calc(var(--tools-full) - 28px); }
 .tools-grip::before { content: ''; width: 4px; height: 36px; border-left: 2px dotted currentColor; border-right: 2px dotted currentColor; opacity: .7; }
 .tools-grip:hover { background: #222; }
 body.dm.chron.tools-hidden .tools-grip { transform: none; }
-body.dm.chron.tools-dragging .tools-grip { cursor: grabbing; transition: none; transform: translateX(var(--grip-x, 0px)); }
-@media (prefers-reduced-motion: reduce) { body.dm.chron, .chron .dm-right, .tools-grip { transition: none; } }
+body.dm.chron.tools-dragging .tools-grip { cursor: grabbing; transition: none; transform: translateX(var(--tools-grip-x, 0px)); }
+/* the hero column hides the same way, from the right edge */
+.chron .dm-hero { min-width: 0; transition: opacity .25s, padding .32s; }
+body.dm.chron.hero-hidden { --hero-w: 0px; }
+body.dm.chron.hero-hidden .composer { padding-right: 70px; } /* keep the send button clear of the settings gear */
+body.dm.chron.hero-hidden .dm-hero { opacity: 0; padding-left: 0; padding-right: 0; overflow: hidden; border-left-width: 0; pointer-events: none; }
+body.dm.chron.hero-dragging { transition: none; user-select: none; cursor: ew-resize; }
+body.dm.chron.hero-dragging .dm-hero { opacity: 1; transition: none; padding-left: 14px; padding-right: 14px; }
+body.dm.chron .dm-hero > * { min-width: calc(var(--hero-full) - 28px); }
+.tools-grip.right { left: auto; right: 0; border-left: 1px solid var(--line); border-right: 0; border-radius: 6px 0 0 6px; box-shadow: -2px 0 10px rgb(0 0 0 / .4); transform: translateX(110%); }
+body.dm.chron.hero-hidden .tools-grip.right { transform: none; }
+body.dm.chron.hero-dragging .tools-grip.right { cursor: grabbing; transition: none; transform: translateX(var(--hero-grip-x, 0px)); }
+@media (prefers-reduced-motion: reduce) { body.dm.chron, .chron .dm-right, .chron .dm-hero, .tools-grip { transition: none; } }
 
 /* sidebar tabs: icon over a small label, like a toolbar */
 .chron .side-tabs { display: block; flex: none; }
@@ -163,7 +174,7 @@ body.dm.chron.tools-dragging .tools-grip { cursor: grabbing; transition: none; t
 .av-pick { width: 34px; height: 34px; }
 .chron .dm-hero .hero-body { overflow: visible; }
 
-@media (max-width: 1300px) { body.dm.chron { --tools-w: 340px; --tools-full: 340px; grid-template-columns: var(--tools-w) minmax(0, 1fr) 260px; } }
+@media (max-width: 1300px) { body.dm.chron { --tools-w: 340px; --tools-full: 340px; --hero-w: 260px; --hero-full: 260px; } body.dm.chron.hero-hidden { --hero-w: 0px; } }
 @media (max-width: 1100px) {
   body.dm.chron { --tools-w: 340px; --tools-full: 340px; grid-template-columns: var(--tools-w) minmax(0, 1fr); grid-template-areas: 'tools main' 'hero hero'; height: auto; }
   .chron .dm-left { height: 100vh; }
@@ -171,12 +182,15 @@ body.dm.chron.tools-dragging .tools-grip { cursor: grabbing; transition: none; t
   .chron .dm-hero .hero { display: grid; grid-template-columns: 200px 1fr; gap: 10px 16px; }
   .chron .dm-hero .hero > :not(.hero-art) { grid-column: 2; }
   .chron .dm-hero .hero-art { grid-row: 1 / span 6; }
+  body.dm.chron.hero-hidden .dm-hero { display: none; }
 }
 @media (max-width: 900px) {
   body.dm.chron { grid-template-columns: 1fr; grid-template-areas: 'main' 'tools' 'hero'; }
   .chron .dm-left { height: auto; overflow: visible; }
   .dm-scroll { overflow: visible; }
   body.dm.chron.tools-hidden .dm-right { display: none; }
+  body.dm.chron.hero-hidden .dm-hero { display: none; }
+  body.dm.chron .dm-hero > * { min-width: 0; }
   body.dm.chron .dm-right > * { min-width: 0; }
 }
 

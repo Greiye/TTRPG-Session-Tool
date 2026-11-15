@@ -5,9 +5,17 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- World map and dungeon flow (Nov 15):
+  - Exploration starts on the world map. A fresh table gets an example world: the party in Millbrook (marked "You are here"), fog on, roads out, and **The Sunken Crossroads** as a 🏰 dungeon entrance. The DM world map page has **Load example world**; any place can be ticked as a dungeon entrance.
+  - The dungeon is a pop-up over the world map, for everyone, while the party stands on a dungeon entrance. Arriving there opens it; the DM can also Enter / Leave from the Scene tab or the world map page. The DM preview now mirrors the TV world map.
+  - The party can leave the dungeon only from its entrance or its end room. No world map travel or votes while inside.
+  - Every dungeon room is hidden from the TV and phones until it is revealed or the party moves into it (no more "???" cards). The example dungeon starts fully hidden.
+  - **Party trail**: a simple log of where the party has been (places, dungeons entered and left, rooms), on the DM world map page and the phone Map section.
+- The hero column on the DM screen hides like the tools column: » tucks it away, and an edge tab on the right brings it back with a click or a drag.
 - Sample backdrop "Tales of Artheria" (`public/samples/artheria-village.jpg`), bundled with the app and listed first in the backdrop library. A fresh table, or a save from before this change, starts on it. Choosing "Scene theme" is now saved as `'none'`, so it survives a restart. The sample has no ✕ and is never deleted from disk.
 
 ### Changed
+- The app no longer calls itself "Tavern Screen": the DM page is titled **DM Screen**, and the pages, server banner and certificate say **TTRPG Session Tool**.
 - DM screen notes (Nov 14):
   - The top bar folds to its title line with ▴ (▾ brings it back); remembered on that laptop.
   - The sidebar's first card is now **Modes**: Explore, Combat and Social, then **Planning** and **World map** toggles, then every tab as a labelled list. Tabs are Rolls, Combat, Party, Messages, Logs, Legends, Scene, NPCs and a new **Miscellaneous**. Scene and Miscellaneous have small part chips at the top.

@@ -11,7 +11,15 @@ const living = require('../living');
 const legFactor = () => living.travelCost(living.weatherOf(state), state.scene?.light).factor;
 // A place linked to a town by id uses that town; an unlinked place falls back to a town of the same name.
 const townOf = (node) => (node?.town && state.living.towns.find((t) => t.id === node.town)) || living.townFor(state.living, node?.name);
-const onArrive = (node) => require('./living').flush(living.onTravel(state, townOf(node)?.id));
+const trail = require('../trail');
+// Arriving: the living world ticks, the trail logs the place, and a dungeon entrance opens its pop-up for all.
+const onArrive = (node) => {
+  require('./living').flush(living.onTravel(state, townOf(node)?.id));
+  if (node) trail.add(state, 'world', node.name);
+};
+const afterTick = () => { if (wm.dungeonHere(state.worldMap) && !state.dungeon.on) require('./dungeon').open(); };
+// While the dungeon pop-up is open the party is underground: no travel until it leaves from the start or end.
+const inDungeon = () => (state.dungeon?.on ? { error: 'The party is in the dungeon. Leave it from its entrance or end first.' } : null);
 const ctx = (extra = {}) => ({ now: Date.now(), seated: Object.keys(state.players).length, log, nextId, random: Math.random, legFactor: legFactor(), onArrive, ...extra });
 
 // A session opens on the world map: exploration mode, map on the TV. Runs when the server starts (game night)
@@ -26,7 +34,7 @@ function openSession() {
 openSession();
 
 // Travel and card timers run on the server, so they keep going with no phone open.
-setInterval(() => { if (wm.tick(state.worldMap, ctx())) broadcast(); }, 500).unref?.();
+setInterval(() => { if (wm.tick(state.worldMap, ctx())) { afterTick(); broadcast(); } }, 500).unref?.();
 
 module.exports = function worldSockets(socket) {
   // DM events: payload defaults to {}, and an ack gets the result when there is one.
@@ -48,11 +56,24 @@ module.exports = function worldSockets(socket) {
   });
   dm('dm:worldmap:node:remove', ({ id }) => wm.removeNode(W(), id));
   dm('dm:worldmap:reveal', ({ id, on }) => wm.reveal(W(), id, on));
-  dm('dm:worldmap:vote:start', ({ candidates }) => wm.startVote(W(), candidates, ctx()));
+  dm('dm:worldmap:vote:start', ({ candidates }) => inDungeon() || wm.startVote(W(), candidates, ctx()));
   dm('dm:worldmap:vote:close', () => wm.closeVote(W(), ctx()));
   dm('dm:worldmap:vote:cancel', () => wm.cancelVote(W()));
   // The DM's override: send the party to a place now, whatever the vote says.
-  dm('dm:worldmap:go', ({ node }) => wm.go(W(), node, ctx(), { anyRoad: true }));
+  dm('dm:worldmap:go', ({ node }) => inDungeon() || wm.go(W(), node, ctx(), { anyRoad: true }));
+  // Start from an empty map: no places, roads, trip, vote or fog (the picture and the card tables stay).
+  dm('dm:worldmap:clear', () => {
+    if (state.dungeon.on) return inDungeon();
+    Object.assign(W(), { nodes: [], roads: [], here: null, travel: null, vote: null, fog: false });
+    return { ok: true };
+  });
+  // Load the example world: a village to start in, fog, and a dungeon entrance.
+  dm('dm:worldmap:example', () => {
+    if (state.dungeon.on) return inDungeon();
+    state.worldMap = { ...wm.example(), openOnSession: W().openOnSession, onTv: W().onTv, legSeconds: W().legSeconds, cardSeconds: W().cardSeconds, deck: W().deck, table: W().table };
+    trail.add(state, 'world', wm.example().nodes[0].name);
+    return { ok: true };
+  });
   // Roads and fog: a road joins two places and is `length` legs long; under fog the table sees known roads only.
   dm('dm:worldmap:road', (f) => {
     const r = wm.saveRoad(W(), f, ctx());
@@ -72,7 +93,7 @@ module.exports = function worldSockets(socket) {
   // Phone events: one seated character, acting through its claim (src/control.js).
   socket.on('player:worldmap:vote', ({ node } = {}) => {
     const p = control.actorOf(state, socket);
-    if (!p || !wm.castVote(W(), p.id, node, ctx())) return;
+    if (!p || state.dungeon?.on || !wm.castVote(W(), p.id, node, ctx())) return;
     broadcast();
   });
   socket.on('player:worldmap:comment', ({ card, text } = {}, ack) => {

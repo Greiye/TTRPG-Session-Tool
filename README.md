@@ -1,4 +1,4 @@
-# Tavern Screen
+# TTRPG Session Tool
 
 Jackbox-style D&D for a laptop + TV. The laptop runs the server and shows the table on the TV; players join from their phones by scanning the QR code (same Wi-Fi).
 

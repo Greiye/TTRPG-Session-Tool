@@ -1,4 +1,4 @@
-# Packaging (item 29): run Tavern Screen without installing Node on the host.
+# Packaging (item 29): run the TTRPG Session Tool without installing Node on the host.
 # Build:  docker build -t tavern-screen .
 # Run:    docker run --rm -p 3000:3000 -p 3443:3443 -v tavern-data:/app/data -v tavern-uploads:/app/uploads tavern-screen
 FROM node:22-alpine

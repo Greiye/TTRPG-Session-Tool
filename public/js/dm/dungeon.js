@@ -8,14 +8,16 @@ const kindOpts = (sel) => KINDS.map((k) => `<option value="${k}" ${k === sel ? '
 
 mount(`<div class="card" data-tab="scene" data-sub="scene" data-panel="exploration" id="dgCard">
   <h3>Dungeon nodes <span class="note">rooms on levels, joined by ropes</span></h3>
+  <p class="note" id="dgWhere"></p>
   <div class="row wrap">
-    <label class="chk"><input type="checkbox" id="dgShow"> Show on TV</label>
+    <button class="btn small primary" id="dgEnter">⬇ Enter dungeon</button>
+    <button class="btn small" id="dgLeave">⬆ Leave dungeon</button>
     <button class="btn small" id="dgRevealAll">👁 Reveal all</button>
     <button class="btn small" id="dgHideAll">☁ Hide all</button>
     <button class="btn small" id="dgExample">Load example</button>
     <button class="btn small" id="dgClear">Clear</button>
   </div>
-  <p class="note">Click a room on the stage to edit it. Double-click to move the party there. Unrevealed rooms show as <b>???</b> on the TV once a room before them is revealed.</p>
+  <p class="note">The dungeon pops up over the world map for everyone while the party stands on a 🏰 dungeon entrance. Every room is hidden from the table until it is revealed or the party moves into it. The party can leave only from the entrance or the end room. Click a room on the stage to edit it; double-click to move the party there.</p>
   <form id="dgAdd" class="row wrap">
     <input id="dgName" class="grow" maxlength="40" placeholder="New room, e.g. Flooded Cellar" aria-label="Room name">
     <select id="dgKind" style="width:auto" aria-label="Kind">${kindOpts('room')}</select>
@@ -45,7 +47,16 @@ function select(id) {
 function render(s) {
   const d = s?.dungeon;
   if (!d) return;
-  $('#dgShow').checked = !!d.on;
+  const wm = s.worldMap;
+  const at = wm && !wm.travel ? wm.nodes.find((n) => n.id === wm.here) : null;
+  const atGate = !!at?.dungeon;
+  $('#dgEnter').hidden = !!d.on;
+  $('#dgEnter').disabled = !atGate;
+  $('#dgLeave').hidden = !d.on;
+  $('#dgLeave').disabled = !d.canExit;
+  $('#dgWhere').textContent = d.on
+    ? `Inside ${at?.name || 'the dungeon'}.${d.canExit ? ' The party can leave from here.' : ' Move the party to the entrance or the end room to leave.'}`
+    : atGate ? `The party stands at ${at.name}, a dungeon entrance.` : 'Send the party to a 🏰 dungeon entrance on the world map to open the dungeon.';
   const from = $('#dgFrom');
   const opts = `<option value="">— top level —</option>${d.nodes.map((n) => `<option value="${esc(n.id)}">from ${esc(n.name)}</option>`).join('')}`;
   if (from.dataset.k !== opts) { const v = from.value; from.innerHTML = opts; from.dataset.k = opts; from.value = v; }
@@ -76,7 +87,8 @@ function render(s) {
 }
 onState(render);
 
-$('#dgShow').addEventListener('change', (e) => emit('dm:dungeon:show', { on: e.target.checked }));
+$('#dgEnter').onclick = async () => msg(await call('dm:dungeon:show', { on: true }));
+$('#dgLeave').onclick = async () => msg(await call('dm:dungeon:show', { on: false }));
 $('#dgRevealAll').onclick = () => emit('dm:dungeon:reveal', { id: '*', on: true });
 $('#dgHideAll').onclick = () => emit('dm:dungeon:reveal', { id: '*', on: false });
 $('#dgExample').onclick = () => { if (!D()?.nodes.length || confirm('Replace the dungeon with the example?')) { select(null); emit('dm:dungeon:example'); } };
