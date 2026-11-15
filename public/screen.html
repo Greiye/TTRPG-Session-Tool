@@ -35,9 +35,15 @@
   <script src="/rollpop.js"></script>
   <script src="/dice3d.js"></script>
   <script src="/weather.js"></script>
+  <script type="module">
+    import { isoStage } from '/js/iso3d.js';
+    window.IsoTv = isoStage(document.getElementById('stage'), { role: 'screen', socket: window.tvSocket, layerClass: 'tv' });
+    if (window.tvLast) window.IsoTv.update(window.tvLast); // a state that arrived before this module loaded
+  </script>
   <script>
     const root = document.getElementById('stage');
     const socket = io();
+    window.tvSocket = socket;
     socket.on('connect', () => socket.emit('screen:hello'));
     // TV follows the table setting; the world map takes over while the DM shows it, and unrolls when it arrives.
     let mapOn = null; let revealAt = 0;
@@ -47,6 +53,8 @@
       if (on && mapOn === false) revealAt = Date.now();
       mapOn = on;
       if (on) WorldMap.tv(root, s, { revealAt }); else Stage.stage(root, s);
+      window.tvLast = s;
+      window.IsoTv?.update(s); // 3D battle map in combat (public/js/iso3d.js)
       Moments.render(s);
     });
     AudioOut.init(socket); // the TV is the speaker

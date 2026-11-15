@@ -346,6 +346,11 @@
         <button class="btn small" id="mapSet">Set grid</button>
       </div>
       <div class="row">
+        <input id="mapSeed" placeholder="seed (optional)" style="width:110px" title="Same seed, same terrain">
+        <button class="btn small" id="mapGen" title="Fill the map with hills, water, ruined walls, trees and rocks. Replaces the terrain.">⛰ Generate terrain</button>
+        <span class="note tight" id="mapSeedNow"></span>
+      </div>
+      <div class="row">
         <select id="mapTool" style="width:auto"><option value="place">Place token</option><option value="difficult">Paint difficult</option><option value="wall">Paint wall</option><option value="clear">Clear tile</option></select>
         <select id="mapToken" class="grow"></select>
         <label class="note tight">Height <input id="mapZ" type="number" min="0" max="10" value="0" style="width:56px"></label>

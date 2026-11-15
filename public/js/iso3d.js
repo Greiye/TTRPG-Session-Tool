@@ -1,0 +1,230 @@
+// 3D isometric battle map (replaces the flat image grid). Shared by the DM page, the TV and phones.
+// The server stays the authority: this file turns the table state into the iso view's units and tiles,
+// and turns clicks in the view into the socket events the tool already has (player:move, dm:token:move, ...).
+// The view itself is lib/iso-battle, built to /iso/iso-battle.js (npm run build:iso).
+import { mountBattle, diffView } from '/iso/iso-battle.js';
+
+const STEP_FT = 5;
+const COVER = { rock: 2, crate: 2, tree: 5, wall: 5 }; // same as src/iso.js
+const GROUNDS = ['grass', 'dirt', 'stone', 'sand', 'water', 'snow', 'floor'];
+
+// Sprite looks. Each unit picks one by class or creature name; a character's colour tints the clothes.
+const KINDS = {
+  hero: { name: 'Hero', palette: { skin: '#e0ac7e', cloth: '#3f6fb5', trim: '#c9c9d6', hair: '#5a3a1e', weapon: 'sword' } },
+  archer: { name: 'Archer', palette: { skin: '#c98e62', cloth: '#3d7a3a', trim: '#7a5a32', hair: '#2b1d12', weapon: 'bow' } },
+  caster: { name: 'Caster', palette: { skin: '#f0c8a0', cloth: '#7b3fa8', trim: '#e8c64a', hair: '#d8d8d8', weapon: 'staff' } },
+  rogue: { name: 'Rogue', palette: { skin: '#d9a47a', cloth: '#3a3a48', trim: '#8a2a2a', hair: '#1a1410', weapon: 'dagger' } },
+  goblin: { name: 'Goblin', palette: { skin: '#7fae3e', cloth: '#7a4b2a', trim: '#4a3020', hair: '#2a3a14', weapon: 'dagger' } },
+  skeleton: { name: 'Skeleton', palette: { skin: '#e8e4d0', cloth: '#5a5a66', trim: '#8a2a2a', hair: '#e8e4d0', weapon: 'sword', body: 'skeleton' } },
+  brute: { name: 'Brute', palette: { skin: '#b08a5a', cloth: '#6a4a2a', trim: '#3a2a1a', hair: '#3a2a1a', weapon: 'club', scale: 1.6 } },
+  slime: { name: 'Ooze', palette: { skin: '#4ac0c0', cloth: '#2a8a9a', trim: '#ffffff', hair: '#2a8a9a', body: 'slime' } },
+  bandit: { name: 'Bandit', palette: { skin: '#c99a72', cloth: '#6a3a2a', trim: '#2a2a2a', hair: '#3a2614', weapon: 'sword' } },
+};
+const CLASS_KIND = [[/wizard|sorcer|warlock|cleric|druid|bard|mage|priest/i, 'caster'], [/ranger|archer|hunter/i, 'archer'], [/rogue|thief|assassin/i, 'rogue']];
+const FOE_KIND = [[/skelet|zombie|undead|ghoul|wight|lich/i, 'skeleton'], [/ooze|slime|jelly|pudding/i, 'slime'], [/ogre|troll|giant|bear|owlbear|brute/i, 'brute'], [/goblin|kobold|hobgob|orc|gnoll/i, 'goblin'], [/archer|scout/i, 'archer'], [/mage|cultist|priest|shaman|witch/i, 'caster'], [/bandit|guard|thug|knight|soldier|veteran/i, 'bandit']];
+const kindOf = (c) => {
+  const list = c.enemy || c.side ? FOE_KIND : CLASS_KIND;
+  const text = c.enemy || c.side ? `${c.name} ${c.ref || ''} ${c.kind || ''}` : c.cls || '';
+  return (list.find(([re]) => re.test(text)) || [null, c.enemy || c.side ? 'goblin' : 'hero'])[1];
+};
+function hueHex(h, s = 0.45, l = 0.42) {
+  const f = (n) => { const k = (n + h / 30) % 12; const a = s * Math.min(l, 1 - l); return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))).toString(16).padStart(2, '0'); };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+const key = (x, y) => `${x},${y}`;
+const speedOf = (c) => {
+  const fly = c.speed?.fly || 0;
+  return fly > 0 && c.flying !== false ? fly : (c.speed?.walk ?? (typeof c.speed === 'number' ? c.speed : 30));
+};
+
+function tilesOf(m) {
+  const tiles = [];
+  for (let y = 0; y < m.rows; y++) for (let x = 0; x < m.cols; x++) {
+    const k = key(x, y);
+    const t = m.terrain?.[k];
+    tiles.push({ h: m.elev?.[k] || 0, type: t === 'difficult' ? 'difficult' : m.ground?.[k] || 'grass', obstacle: t === 'wall' ? 'wall' : m.props?.[k] || null });
+  }
+  return tiles;
+}
+
+// Rules the iso view needs: tile costs and heights (as in src/iso.js), sprite looks, and one ability per attack.
+function rulesOf(s) {
+  const abilities = { attack: { name: 'Attack', ap: 0, range: 99, accuracy: 0, damage: '', needsLOS: true } };
+  for (const e of s.combat.enemies) (e.attacks || []).forEach((a, i) => { abilities[`${e.id}:${i}`] = { name: a.name || `Attack ${i + 1}`, ap: 0, range: 99, accuracy: 0, damage: '', needsLOS: true }; });
+  return {
+    heightStep: 0.5, visionHeight: 1.2, abilities,
+    grid: { maxClimb: 2, maxDrop: 3, climbCostPerStep: 1 },
+    obstacles: { wall: { height: 2.5, blocksMove: true, cover: true }, tree: { height: 2.5, blocksMove: true, cover: true }, rock: { height: 1, blocksMove: true, cover: true }, crate: { height: 1, blocksMove: true, cover: true } },
+    terrain: Object.fromEntries([...GROUNDS.map((g) => [g, { moveCost: g === 'water' ? 2 : 1 }]), ['difficult', { moveCost: 2 }]]),
+    combat: { coverPenalty: 0, heightBonusPerStep: 0, maxHeightBonus: 0, minHit: 0, maxHit: 100 },
+    units: Object.fromEntries(Object.entries(KINDS).map(([k, v]) => [k, { ...v, team: 'monsters', hp: 1, ap: 6, init: 0, defense: 10, sight: 8, abilities: [] }])),
+  };
+}
+
+// The table state as the iso view's { meta, tiles, units, visible, log }.
+function viewOf(s, you) {
+  const m = s.map;
+  const c = s.combat;
+  const all = [...s.players, ...c.enemies];
+  const byId = Object.fromEntries(all.map((x) => [x.id, x]));
+  const turnId = c.active ? c.order[c.turn]?.id : null;
+  const units = {};
+  for (const [id, t] of Object.entries(s.tokens || {})) {
+    const x = byId[id];
+    if (!x || t.x >= m.cols || t.y >= m.rows) continue;
+    const pc = !!s.players.find((p) => p.id === id);
+    const speedTiles = Math.floor(speedOf(x) / STEP_FT);
+    const left = Math.max(0, Math.floor((speedOf(x) - (c.moved?.[id] || 0)) / STEP_FT));
+    const kind = kindOf(x);
+    units[id] = {
+      id, kind, name: x.name, x: t.x, y: t.y, z: t.z || 0, facing: t.facing ?? (pc ? 0 : 4),
+      team: pc || x.side === 'ally' ? 'players' : x.side === 'neutral' ? 'neutral' : 'monsters',
+      owner: pc ? id : null, hp: x.hp ?? 0, maxHp: x.maxHp || x.hp || 1, dead: (x.hp ?? 1) <= 0,
+      ap: id === turnId ? left : speedTiles, maxAp: speedTiles, defense: x.ac,
+      abilities: pc ? ['attack'] : (x.attacks?.length ? x.attacks.map((_, i) => `${id}:${i}`) : ['attack']),
+      palette: pc && x.hue != null ? { cloth: hueHex(x.hue) } : undefined,
+    };
+  }
+  const order = c.order.map((o) => o.id);
+  const visible = s.mapVision ? s.mapVision.map((k) => { const [x, y] = k.split(',').map(Number); return y * m.cols + x; }) : null;
+  return {
+    meta: { w: m.cols, h: m.rows, round: c.round || 1, turn: Math.max(0, order.indexOf(turnId)), initiative: order, fog: !!m.fog, seed: m.seed || 0, active: turnId && units[turnId] ? turnId : null, players: [] },
+    tiles: tilesOf(m), units, visible, revealed: [],
+    log: (s.log || []).filter((l) => l.kind === 'combat').slice(-30).map((l) => ({ seq: l.id, msg: l.text })),
+    you,
+  };
+}
+
+// A transport for mountBattle that reads the table state and writes socket events.
+class TableTransport {
+  constructor({ role, charId, socket, emit }) { this.role = role; this.charId = charId; this.socket = socket; this.emitDm = emit; this.status = ''; }
+  connect(onMsg) { this.onMsg = onMsg; if (this.pending) this.push(this.pending); }
+  get you() { return this.role === 'dm' ? { name: 'dm', isDM: true } : { name: this.charId || this.role, isDM: false }; }
+  push(s) {
+    if (!this.onMsg) { this.pending = s; return; }
+    const next = viewOf(s, this.you);
+    const rules = rulesOf(s);
+    const rkey = Object.keys(rules.abilities).join();
+    const events = [];
+    const lm = s.combat.lastMove;
+    if (this.view && lm && lm.n !== this.moveN && next.units[lm.id]) events.push({ type: 'move', unitId: lm.id, path: lm.path });
+    this.moveN = lm?.n;
+    if (this.view) for (const u of Object.values(next.units)) {
+      const was = this.view.units[u.id];
+      if (was && was.hp !== u.hp) events.push({ type: 'attack', unitId: next.meta.active !== u.id ? next.meta.active : null, targetId: u.id, hit: true, amount: was.hp - u.hp });
+    }
+    if (!this.view || rkey !== this.rulesKey) {
+      this.rulesKey = rkey;
+      this.onMsg({ t: 'welcome', you: this.you, view: next, rules });
+    } else {
+      const d = diffView(this.view, next);
+      if (d || events.length) this.onMsg({ t: 'diff', diff: d || {}, events });
+    }
+    this.view = next;
+  }
+  send({ intent: i, reqId }) {
+    const done = (error) => this.onMsg({ t: 'ack', reqId, ok: !error, error });
+    const dm = (ev, data) => { this.emitDm(ev, data); done(); };
+    const isDm = this.role === 'dm';
+    switch (i.type) {
+      case 'move':
+        if (isDm) return dm('dm:token:move', { id: i.unitId, x: i.to[0], y: i.to[1] });
+        return this.socket.emit('player:move', { x: i.to[0], y: i.to[1] }, (r) => done(r?.error));
+      case 'attack':
+        if (isDm) { const n = Number(String(i.ability).split(':')[1]) || 0; return dm('dm:enemy:attack', { target: i.targetId, attack: n }); }
+        this.socket.emit('player:combat', { act: 'attack', target: i.targetId }); return done();
+      case 'endTurn': return isDm ? dm('dm:combat:next') : done('Pick an action below to end your turn.');
+      case 'teleport': return isDm ? dm('dm:token', { id: i.unitId, x: i.to[0], y: i.to[1] }) : done('DM only');
+      case 'setFog': return isDm ? dm('dm:fog', { on: i.enabled }) : done('DM only');
+      case 'setTile': {
+        if (!isDm) return done('DM only');
+        const at = { x: i.x, y: i.y };
+        if (i.h !== undefined) return dm('dm:map:tile', { ...at, elev: i.h });
+        if (i.type2 === 'difficult') return dm('dm:map:paint', { ...at, kind: 'difficult' });
+        if (i.type2) { this.emitDm('dm:map:paint', { ...at, kind: null }); return dm('dm:map:tile', { ...at, ground: i.type2 }); }
+        if (i.obstacle === 'wall') return dm('dm:map:paint', { ...at, kind: 'wall' });
+        if (i.obstacle === null) { this.emitDm('dm:map:paint', { ...at, kind: null }); return dm('dm:map:tile', { ...at, prop: null }); }
+        return dm('dm:map:tile', { ...at, prop: i.obstacle });
+      }
+      default: return done('Use the Combat tab for that.');
+    }
+  }
+  close() {}
+}
+
+// Cover the target would get, as the server works it out (src/iso.js), for the hover hint.
+function coverOf(v, a, b) {
+  if (Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) <= 1) return 0;
+  const dx = Math.sign(a.x - b.x); const dy = Math.sign(a.y - b.y);
+  const at = (x, y) => (x < 0 || y < 0 || x >= v.meta.w || y >= v.meta.h ? null : v.tiles[y * v.meta.w + x]);
+  const hb = at(b.x, b.y).h;
+  let best = 0;
+  for (const [x, y] of [[b.x + dx, b.y + dy], ...(dx && dy ? [[b.x + dx, b.y], [b.x, b.y + dy]] : [])]) {
+    const t = at(x, y); if (!t) continue;
+    if (t.obstacle) best = Math.max(best, COVER[t.obstacle] || 0);
+    if (t.h - hb >= 2) best = Math.max(best, 2);
+  }
+  return best;
+}
+
+/**
+ * Show the 3D battle map over `slotSel` inside `root` while the table is in combat on a battle map.
+ * role: 'dm' | 'player' | 'screen'. emit: DM socket emit (dm events). socket: the page socket.
+ * when(state): extra condition for showing it. Returns { update(state) }: call it after each state render.
+ */
+export function isoStage(root, { role, socket, emit = () => {}, charId = () => null, slotSel = '.stage-center', layerClass = '', when = null } = {}) {
+  let layer = null; let battle = null; let transport = null; let last = null; let ro = null;
+
+  function place() {
+    if (!layer) return;
+    if (!slotSel) { Object.assign(layer.style, { left: '0', top: '0', width: '100%', height: '100%' }); battle?.resize(); return; }
+    const slot = root.querySelector(slotSel);
+    if (!slot) return;
+    const r = slot.getBoundingClientRect(); const rr = root.getBoundingClientRect();
+    Object.assign(layer.style, { left: `${r.left - rr.left + root.scrollLeft}px`, top: `${r.top - rr.top + root.scrollTop}px`, width: `${r.width}px`, height: `${r.height}px` });
+    battle?.resize();
+  }
+  function mount() {
+    layer = document.createElement('div');
+    layer.className = `iso-layer ${layerClass}`;
+    root.appendChild(layer);
+    transport = new TableTransport({ role, charId: charId(), socket, emit });
+    const dm = role === 'dm';
+    battle = mountBattle(layer, {
+      transport,
+      keyboard: role !== 'screen',
+      ui: { topBar: role !== 'screen', initiative: false, actions: role !== 'screen', log: false, dmPanel: dm, hint: role !== 'screen', party: false },
+      dmTools: ['select', 'teleport', 'raise', 'lower', 'paint', 'obstacle'],
+      dmOptions: { inspector: false, initiative: false, fog: false, maps: false },
+      terrainChoices: [...GROUNDS, 'difficult'],
+      obstacleChoices: ['none', 'wall', 'rock', 'tree', 'crate'],
+      // A creature the DM just added must be placed first: the next tile clicked puts it there.
+      onTileClick: dm ? ({ x, y }) => { const pend = (last?.pendingPlace || [])[0]; if (!pend) return false; emit('dm:token', { id: pend, x, y }); return true; } : undefined,
+      moveLabel: (u) => `Move · ${u.ap * STEP_FT} ft left [M]`,
+      formatCost: (tiles) => `${tiles * STEP_FT} ft`,
+      showPips: false,
+      transparent: role === 'screen', // the TV keeps its backdrop behind the map
+      camera: { followActive: true, zoom: 6 },
+      describeAttack: (u, ab, tgt) => { const cv = coverOf(battle.getView(), u, tgt); return `Attack ${tgt.name} · AC ${tgt.defense ?? '?'}${cv ? ` +${cv} ${cv === 5 ? 'three-quarters' : 'half'} cover` : ''}`; },
+    });
+    ro = new ResizeObserver(place); ro.observe(root);
+  }
+  function unmount() { ro?.disconnect(); battle?.destroy(); layer?.remove(); layer = battle = transport = ro = null; }
+
+  return {
+    update(s) {
+      last = s;
+      const on = s.mode === 'combat' && !!s.map && (!when || when(s));
+      root.classList.toggle('iso-on', on);
+      if (!on) { if (battle) unmount(); return; }
+      if (!battle) mount();
+      if (!layer.isConnected) root.appendChild(layer);
+      place();
+      transport.charId = charId();
+      transport.push(s);
+      battle.setGroundImage(s.map.image || null);
+    },
+    get battle() { return battle; },
+  };
+}

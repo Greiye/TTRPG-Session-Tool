@@ -42,6 +42,7 @@ Automation counts and shows; the DM decides. Every value below can be overridden
 | Foreshadowing | Hints are DM only. Payoffs are shown to everyone in the recap. | Secret plans stay secret until paid off. | `addHint`, `payOff`, `recapFor` |
 | Framing | DM grants one token at a time (max 3). A phone spends one to add a detail, which goes straight to canon on the TV. DM can remove it. | Player agency with a DM override. | `grantToken`, `spendToken`, `removeCanon` |
 | Montage | Phones see the count until the reveal. After the reveal the TV and every phone see all answers. | Everyone answers in private, then together. | `askMontage`, `montageView` |
+| Iso map | **3D isometric battle map** (Three.js, bundled with esbuild into `public/iso/iso-battle.js`; no CDN). Geometry (A* over heights, 3D line of sight, cover, map generation) lives in `lib/iso-battle` and is wrapped by `src/iso.js`; the rules adapter still rolls every attack. Map layers stay sparse (`elev`, `ground`, `props`, keyed `"x,y"`) so old saves load as flat grass. | Mike asked for the iso prototype to replace the flat combat map. Keeping 5e authoritative means one source of truth for hits and damage. | `src/iso.js`, `public/js/iso3d.js`, `lib/iso-battle/` |
 | Layouts | `auto`, `social`, `combat`, `exploration`, `rest`. The TV adds a `layout-*` class and CSS hides what that moment does not need. | One tap, no per-element setup. | `setLayout`, `public/style.css` |
 
 State defaults live in `src/table-state.js` so `src/state.js` can load them first (no require cycle).

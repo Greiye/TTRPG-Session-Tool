@@ -34,6 +34,7 @@ import './moments.js';
 import './table.js';
 import './chronicle.js';
 import './dock.js';
+import { isoStage } from '../iso3d.js';
 
 
 window.dmEmit = emit; // used by voice.js (classic script)
@@ -41,8 +42,12 @@ Settings.mount({ table: { get: () => state()?.settings.display || {}, set: (disp
 // The laptop is the speaker only when no /screen tab is open (e.g. TV mirroring the laptop).
 AudioOut.init(socket, { isOutput: (s) => !s || !s.screens });
 const renderAtmo = Atmo.mount($('#atmo'), { emit, key: dmKey });
+// The 3D battle map sits over the stage's main area in combat (public/js/iso3d.js).
+const iso = isoStage($('#stage'), { role: 'dm', socket, emit, slotSel: '.stage-main' });
+window.IsoDm = iso; // handle for debugging
 
 onState((s) => {
   Stage.stage($('#stage'), s);
+  iso.update(s);
   renderAtmo(s);
 });
