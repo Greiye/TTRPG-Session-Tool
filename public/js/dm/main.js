@@ -42,7 +42,9 @@ Settings.mount({ table: { get: () => state()?.settings.display || {}, set: (disp
 AudioOut.init(socket, { isOutput: (s) => !s || !s.screens });
 const renderAtmo = Atmo.mount($('#atmo'), { emit, key: dmKey });
 
+// The preview mirrors the TV: the world map (with the dungeon pop-up over it) while it is on the TV in exploration.
 onState((s) => {
-  Stage.stage($('#stage'), s);
+  if (s.worldMap?.onTv && s.mode === 'exploration' && window.WorldMap) WorldMap.tv($('#stage'), s, { dm: true });
+  else Stage.stage($('#stage'), s);
   renderAtmo(s);
 });

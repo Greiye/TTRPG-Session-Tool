@@ -1,7 +1,9 @@
 // Dungeon nodes (exploration): a branching tree of rooms the party moves through, drawn on the TV as cards
 // on levels joined by ropes. Each node lists its parents, so a room can be reached from more than one place.
-// The DM sees everything. The TV and phones see revealed rooms, plus a fogged "???" card for each unrevealed
-// room that leads off a revealed one, so the party knows a way exists without knowing what is there.
+// The DM sees everything. The TV and phones see only the rooms the party has discovered (Mike, Nov 15).
+//
+// The dungeon is a pop-up over the world map. It opens only while the party stands on a dungeon entrance
+// place on the world map, and the party can leave it only from its start or its end room (enter, canExit).
 //
 // Pure logic: functions take the dungeon object; the socket layer (src/sockets/dungeon.js) broadcasts.
 const { str } = require('./util');
@@ -30,12 +32,13 @@ const EXAMPLE = [
   ['d16', 'Way Out', 'exit', ['d13', 'd14'], ''],
 ];
 
+// Every room starts hidden; entering the dungeon puts the party in the entrance, which reveals it.
 function example() {
-  const nodes = EXAMPLE.map(([id, name, kind, parents, pill]) => ({ id, name, kind, parents, pill, note: '', revealed: id === 'd1', visited: id === 'd1' }));
-  return { on: true, here: 'd1', nodes, seq: EXAMPLE.length };
+  const nodes = EXAMPLE.map(([id, name, kind, parents, pill]) => ({ id, name, kind, parents, pill, note: '', revealed: false, visited: false }));
+  return { on: false, here: null, nodes, seq: EXAMPLE.length };
 }
 const fresh = example;
-const blank = () => ({ on: true, here: null, nodes: [], seq: 0 });
+const blank = () => ({ on: false, here: null, nodes: [], seq: 0 });
 
 const byId = (d, id) => d.nodes.find((n) => n.id === id);
 
@@ -122,21 +125,46 @@ function moveTo(d, id) {
   return n;
 }
 
-// What a viewer sees. The DM gets everything; anyone else gets revealed rooms, and fogged rooms one step
-// past a revealed room (no name, kind, pill or note). DM notes never leave the DM.
-function viewFor(d, viewer) {
-  if (!d) return null;
-  if (viewer.role === 'dm') return d;
-  if (!d.on) return { on: false, here: null, nodes: [] };
-  const open = new Set(d.nodes.filter((n) => n.revealed).map((n) => n.id));
-  const nodes = [];
-  for (const n of d.nodes) {
-    if (open.has(n.id)) nodes.push({ id: n.id, name: n.name, kind: n.kind, pill: n.pill, parents: n.parents, revealed: true, visited: n.visited });
-    else if (n.parents.some((p) => open.has(p))) nodes.push({ id: n.id, name: null, kind: null, pill: '', parents: n.parents.filter((p) => open.has(p)), revealed: false, visited: false, fog: true });
-  }
-  const shown = new Set(nodes.map((n) => n.id));
-  nodes.forEach((n) => { n.parents = n.parents.filter((p) => shown.has(p)); });
-  return { on: true, here: open.has(d.here) ? d.here : null, nodes };
+// ----- the way in and the way out -----
+// Start rooms: the entrance rooms, or the rooms with no way in when none is marked as an entrance.
+function starts(d) {
+  const ent = d.nodes.filter((n) => n.kind === 'entrance');
+  return ent.length ? ent : d.nodes.filter((n) => !n.parents.length);
+}
+// End rooms: the exit rooms, or the rooms with no way on when none is marked as an exit.
+function ends(d) {
+  const ex = d.nodes.filter((n) => n.kind === 'exit');
+  return ex.length ? ex : d.nodes.filter((n) => !d.nodes.some((c) => c.parents.includes(n.id)));
+}
+// The party may leave the dungeon from a start or an end room (or before it has stepped into any room).
+function canExit(d) {
+  if (!d.here || !byId(d, d.here)) return true;
+  return starts(d).some((n) => n.id === d.here) || ends(d).some((n) => n.id === d.here);
+}
+// Open the dungeon. A party that is not inside yet steps into the first start room, which reveals it.
+function enter(d) {
+  if (!d.nodes.length) return { error: 'The dungeon has no rooms yet.' };
+  d.on = true;
+  if (!byId(d, d.here)) moveTo(d, starts(d)[0]?.id || d.nodes[0].id);
+  return { ok: true, here: byId(d, d.here) };
+}
+// Close the dungeon, only from a start or end room. The party's room is kept for the next visit.
+function leave(d) {
+  if (!d.on) return { ok: true };
+  if (!canExit(d)) return { error: 'The party can only leave the dungeon from its entrance or its end.' };
+  d.on = false;
+  return { ok: true };
 }
 
-module.exports = { KINDS, MAX_NODES, fresh, blank, example, byId, levels, save, link, remove, reveal, moveTo, viewFor, isAncestor };
+// What a viewer sees. The DM gets everything; anyone else gets the discovered (revealed) rooms only, with
+// ropes between them. Hidden rooms do not reach the table at all. DM notes never leave the DM.
+function viewFor(d, viewer) {
+  if (!d) return null;
+  if (viewer.role === 'dm') return { ...d, canExit: canExit(d) };
+  if (!d.on) return { on: false, here: null, nodes: [] };
+  const open = new Set(d.nodes.filter((n) => n.revealed).map((n) => n.id));
+  const nodes = d.nodes.filter((n) => open.has(n.id)).map((n) => ({ id: n.id, name: n.name, kind: n.kind, pill: n.pill, parents: n.parents.filter((p) => open.has(p)), revealed: true, visited: n.visited }));
+  return { on: true, here: open.has(d.here) ? d.here : null, nodes, canExit: canExit(d) };
+}
+
+module.exports = { KINDS, MAX_NODES, fresh, blank, example, byId, levels, save, link, remove, reveal, moveTo, viewFor, isAncestor, starts, ends, canExit, enter, leave };

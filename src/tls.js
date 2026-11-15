@@ -39,7 +39,7 @@ function loadOrCreate() {
   }
   const selfsigned = require('selfsigned');
   const altNames = [...names.dns.map((value) => ({ type: 2, value })), ...names.ips.map((ip) => ({ type: 7, ip }))];
-  const pems = selfsigned.generate([{ name: 'commonName', value: 'Tavern Screen (this laptop)' }, { name: 'organizationName', value: 'Tavern Screen' }], {
+  const pems = selfsigned.generate([{ name: 'commonName', value: 'TTRPG Session Tool (this laptop)' }, { name: 'organizationName', value: 'TTRPG Session Tool' }], {
     days: 825, keySize: 2048, algorithm: 'sha256',
     extensions: [{ name: 'basicConstraints', cA: true }, { name: 'keyUsage', keyCertSign: true, digitalSignature: true, keyEncipherment: true }, { name: 'extKeyUsage', serverAuth: true }, { name: 'subjectAltName', altNames }],
   });

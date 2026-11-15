@@ -211,6 +211,7 @@ ok(map6.legSeconds === 5 && map6.cardSeconds === 600, 'leg and card timers are c
   const a1 = await h.player(room, 'Thorn', 'Fighter');
   const a2 = await h.player(room, 'Lyra', 'Cleric');
   await h.until(() => a2.last && a2.last.players.length === 2);
+  ok((await h.call(dm, 'dm:worldmap:clear'))?.ok, 'the DM clears the example world');
   const n1 = await h.call(dm, 'dm:worldmap:node', { name: 'Hollow', x: 0.3, y: 0.3, info: 'Secret cellar below the inn.', revealed: false });
   const n2 = await h.call(dm, 'dm:worldmap:node', { name: 'Keep', x: 0.7, y: 0.6, info: 'The keep gate is open.', revealed: true });
   ok(n1.id && n2.id, 'DM places two places on the map');

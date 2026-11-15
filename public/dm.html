@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tavern Screen — DM</title>
+  <title>DM Screen — TTRPG Session Tool</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/dungeon.css">
   <link rel="stylesheet" href="/worldmap.css">
@@ -14,7 +14,7 @@
 <body class="dm chron">
   <div class="dm-left">
     <div class="dm-bar" id="dmBar">
-      <h2>🐉 Tavern Screen · DM</h2>
+      <h2>🐉 DM Screen</h2>
       <button class="bar-min" id="barMin" title="Minimize the top bar" aria-label="Minimize the top bar" aria-expanded="true" aria-controls="dmBar">▴</button>
       <a href="/screen" target="_blank">Open TV screen ↗</a>
       <span class="note">Drag that window to the TV, double-click for fullscreen.</span>
@@ -530,8 +530,9 @@
   </dialog>
 
   <button class="tools-grip" id="toolsGrip" title="Click or drag right to bring the tools back" aria-label="Show tools" aria-controls="toolsCol" aria-expanded="false"></button>
-  <aside class="dm-hero" aria-label="Hero">
-    <div class="col-head"><span>🛡 Hero</span></div>
+  <button class="tools-grip right" id="heroGrip" title="Click or drag left to bring the hero back" aria-label="Show hero" aria-controls="heroCol" aria-expanded="false"></button>
+  <aside class="dm-hero" id="heroCol" aria-label="Hero">
+    <div class="col-head"><span>🛡 Hero</span><button class="tools-min" id="heroMin" title="Minimize the hero column (drag the edge tab to bring it back)" aria-label="Minimize hero" aria-controls="heroCol">»</button></div>
     <div id="heroPick" class="hero-pick" role="tablist" aria-label="Party member"></div>
     <div id="hero"></div>
   </aside>
