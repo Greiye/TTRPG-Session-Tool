@@ -13,6 +13,7 @@ const entities = require('../entities');
 const { release, newRoomCode } = require('../session');
 const net = require('../net');
 const creatures = require('../creatures');
+const iso = require('../iso');
 const { seedTestParty } = require('../testparty');
 const rolls = require('../rolls');
 
@@ -86,6 +87,22 @@ module.exports = function dmSockets(socket) {
   const mustPlaceFirst = () => (state.pendingPlace || []).length > 0;
   const queueForMap = (ids) => { if (state.map) state.pendingPlace = [...(state.pendingPlace || []), ...ids]; };
   dm('dm:map:paint', ({ x, y, kind }) => { if (!mustPlaceFirst()) grid.paint(Number(x), Number(y), kind); });
+  // 3D map (src/iso.js): one tile's height, ground and prop, or generated terrain for the whole grid.
+  dm('dm:map:tile', (f = {}) => {
+    if (mustPlaceFirst() || !state.map) return;
+    if (iso.editTile(state.map, f) && f.prop && f.prop !== 'none') delete state.map.terrain?.[`${f.x},${f.y}`]; // a prop replaces a wall
+  });
+  dm('dm:map:generate', ({ seed } = {}) => {
+    if (mustPlaceFirst() || !state.map) return;
+    iso.generate(state.map, seed === undefined || seed === '' ? undefined : Number(seed));
+    // Tokens left standing in a wall or a prop move to the nearest open tile.
+    for (const [id, t] of Object.entries(state.tokens || {})) {
+      const open = (x, y) => x >= 0 && y >= 0 && x < state.map.cols && y < state.map.rows && !state.map.terrain[`${x},${y}`] && !state.map.props[`${x},${y}`];
+      if (open(t.x, t.y)) continue;
+      outer: for (let r = 1; r < 6; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (open(t.x + dx, t.y + dy)) { state.tokens[id] = { ...t, x: t.x + dx, y: t.y + dy }; break outer; }
+    }
+    log('system', 'The battle map gets new terrain.', { vis: 'dm' });
+  });
   dm('dm:token', ({ id, x, y, z }) => {
     const q = state.pendingPlace || [];
     if (q.length && id !== q[0]) return;
@@ -346,7 +363,11 @@ module.exports = function dmSockets(socket) {
   dm('dm:enemy:attack', ({ target, attack, mode }) => {
     const e = game.combatant(game.currentTurnId());
     const t = game.combatant(target);
-    if (e && !state.players[e.id] && t && t !== e && e.hp > 0) { game.attack(creatures.withAttack(e, Number(attack) || 0), t, { mode }); game.advanceTurn(); }
+    if (e && !state.players[e.id] && t && t !== e && e.hp > 0) {
+      const r = game.attack(creatures.withAttack(e, Number(attack) || 0), t, { mode });
+      if (r.blocked) { log('combat', r.blocked, { tone: 'bad', vis: 'dm' }); return; } // no roll, the creature's turn goes on
+      game.advanceTurn();
+    }
   });
   dm('dm:hp', ({ id, delta }) => {
     const t = game.combatant(id);

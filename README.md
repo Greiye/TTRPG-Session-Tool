@@ -122,6 +122,17 @@ Everything is saved as you play: the table (scene, mode, combat, NPC dialogue, l
 
 If ffmpeg is installed, animated WebM portraits are cropped square and re-encoded small (256 px, creatures 384 px) with transparency kept. Without ffmpeg they're stored as uploaded.
 
+## Battle map (3D)
+
+In combat with a battle map set, the DM stage, the TV and each phone show the map as a 3D isometric view (Three.js) instead of the flat image grid. Creatures are pixel-art sprites that turn to face where they move or attack.
+
+- **Camera**: right-drag or Alt+drag to orbit (snaps to 8 compass views or overhead), wheel to zoom, middle-drag or WASD to pan, Q/E rotate, R overhead. The camera follows the active creature.
+- **Terrain**: each tile has a height (0 to 12 steps), a ground (grass, dirt, stone, sand, water, snow, floor) and an optional prop (rock, tree, crate). Walls and difficult ground are painted as before. **Generate terrain** on the Battle map card fills the map with hills, water, ruined walls, trees and rocks; the same seed gives the same map. On the stage, the DM tools Raise, Lower, Paint and Obstacle edit tiles; Teleport moves a creature anywhere.
+- **Movement**: each step up costs 5 ft more; a walker climbs at most 2 steps and drops at most 3 in one stride; water and difficult ground cost double. Fliers ignore height and ground cost and pass over rocks and crates. On a phone, tap a lit tile once to see the path and its cost, again to move.
+- **Line of sight and cover** (5e): an attack needs line of sight in 3D (walls, trees, rocks and higher ground block); without it nothing is rolled and the turn goes on. A rock or crate next to the target on the attacker's side gives half cover (+2 AC), a wall or tree three-quarters (+5 AC), ground two steps higher half cover. Adjacent attackers ignore cover. Fog of war uses the same line of sight.
+
+The rules system still decides every roll. `src/iso.js` only answers "can it get there", "can it see" and "is it in cover". The view is the `lib/iso-battle` module; `public/js/iso3d.js` turns table state into its view and its clicks into the existing socket events. After changing `lib/iso-battle/src`, run `npm run build:iso` (rebuilds `lib/iso-battle/dist/core.cjs` and `public/iso/iso-battle.js`, both committed).
+
 ## Development
 
 ```bash
@@ -131,8 +142,8 @@ npm run test:ui   # browser tests (Playwright): DM, TV and phone pages, settings
 
 Layout:
 
-- `server.js`: wiring only. `src/`: `config`, `net` (LAN IPs), `tls` (HTTPS cert), `state` (live state + broadcast), `store` (saving), `visibility` (who sees what), `session` (room code, seats), `roster` (characters), `game` (combat flow), `dice`, `rules/` (5e, Daggerheart), `assets` + `media` (uploads), `entities` + `bundle` (Arthuria), `routes`, `sockets/` (player, dm, atmo).
-- `public/`: `stage.js` (TV renderer, shared), `anim.js`, `settings.js`, `atmo.js`, `audio.js`, `voice.js`; `js/client.js` (the one socket); `js/dm/*` and `js/play/*` feature modules.
+- `server.js`: wiring only. `src/`: `config`, `net` (LAN IPs), `tls` (HTTPS cert), `state` (live state + broadcast), `store` (saving), `visibility` (who sees what), `session` (room code, seats), `roster` (characters), `game` (combat flow), `dice`, `rules/` (5e, Daggerheart), `assets` + `media` (uploads), `entities` + `bundle` (Arthuria), `routes`, `sockets/` (player, dm, atmo), `iso` + `grid` + `vision` (battle map geometry).
+- `public/`: `stage.js` (TV renderer, shared), `anim.js`, `settings.js`, `atmo.js`, `audio.js`, `voice.js`; `js/client.js` (the one socket); `js/iso3d.js` (3D battle map adapter); `iso/iso-battle.js` (built view bundle); `js/dm/*` and `js/play/*` feature modules.
 - `schema/`: JSON Schemas for the Arthuria bundle. `docs/decisions.md`: Phase 0 choices.
 
 

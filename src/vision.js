@@ -1,7 +1,9 @@
 // Light and vision on the battle map (Phase B). Fog of war hides every tile no party token can see.
-// A party token sees its own tile and the tiles inside its light radius (one tile is 5 ft). Walls block sight.
+// A party token sees its own tile and the tiles inside its light radius (one tile is 5 ft). Walls block sight,
+// and so do hills, trees and rocks: sight is a 3D ray over the map's heights (src/iso.js).
 // Enemies carry light too, but only party tokens reveal the map.
 const { WALL } = require('./grid');
+const iso = require('./iso');
 
 // Radius in tiles: torch 20 ft, lantern 30 ft, darkvision 60 ft.
 const LIGHTS = { none: 0, torch: 4, lantern: 6, darkvision: 12 };
@@ -25,6 +27,7 @@ function lineClear(terrain, x0, y0, x1, y1) {
 function visibleTiles(map, tokens, party) {
   const seen = new Set();
   if (!map) return seen;
+  const g = iso.toGrid(map);
   for (const [id, t] of Object.entries(tokens || {})) {
     if (!party.has(id)) continue;
     seen.add(`${t.x},${t.y}`);
@@ -33,7 +36,7 @@ function visibleTiles(map, tokens, party) {
       if (dx * dx + dy * dy > r * r + r) continue; // a round radius, not a square
       const x = t.x + dx; const y = t.y + dy;
       if (x < 0 || y < 0 || x >= map.cols || y >= map.rows) continue;
-      if (lineClear(map.terrain, t.x, t.y, x, y)) seen.add(`${x},${y}`);
+      if (iso.sees(map, t, { x, y }, g)) seen.add(`${x},${y}`);
     }
   }
   return seen;

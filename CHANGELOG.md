@@ -15,6 +15,12 @@ All notable changes to this project are recorded here. The format follows [Keep 
   - Every dungeon room is hidden from the TV and phones until it is revealed or the party moves into it (no more "???" cards). The example dungeon starts fully hidden.
   - **Party trail**: a simple log of where the party has been (places, dungeons entered and left, rooms), on the DM world map page and the phone Map section.
 - The hero column on the DM screen hides like the tools column: » tucks it away, and an edge tab on the right brings it back with a click or a drag.
+- **3D battle map** replaces the flat image grid in combat on the DM stage, the TV and phones (`lib/iso-battle`, `public/js/iso3d.js`). Tiles have heights, grounds (grass, dirt, stone, sand, water, snow, floor) and props (rock, tree, crate). Pixel-art sprites face where they move and attack; the camera orbits and snaps to 8 views or overhead.
+  - Movement routes over heights (`src/iso.js`): climbing costs 5 ft a step, at most 2 up and 3 down per stride, water costs double, fliers ignore height and ground.
+  - Attacks need 3D line of sight (no roll and no lost turn without it) and the target gets half or three-quarters cover from props, walls, trees or higher ground. Fog of war uses the same line of sight.
+  - DM: Raise, Lower, Paint, Obstacle and Teleport tools on the stage; **Generate terrain** with an optional seed on the Battle map card. New sockets `dm:map:tile` and `dm:map:generate`.
+  - Phones: tap a tile to preview the path and cost, tap again to move. The arrow movepad is gone.
+  - `npm run build:iso` rebuilds the module bundles. Tests in `test/iso.js`.
 - Sample backdrop "Tales of Artheria" (`public/samples/artheria-village.jpg`), bundled with the app and listed first in the backdrop library. A fresh table, or a save from before this change, starts on it. Choosing "Scene theme" is now saved as `'none'`, so it survives a restart. The sample has no ✕ and is never deleted from disk.
 
 ### Changed

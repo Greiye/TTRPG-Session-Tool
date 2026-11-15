@@ -27,6 +27,7 @@ onState((s) => {
   if (lit) $('#mapLight').value = lit.light || 'none';
   if (m) {
     $('#mapCols').value = m.cols; $('#mapRows').value = m.rows;
+    $('#mapSeedNow').textContent = m.seed != null ? `seed ${m.seed}` : '';
     const pend = (s.pendingPlace || []).map((id) => tokenList.find((c) => c.id === id)).find(Boolean);
     $('#mapInfo').textContent = pend
       ? `Place ${pend.name} on the battle map first. Other changes wait until it is placed.`
@@ -49,6 +50,12 @@ onState((s) => {
 });
 
 $('#mapSet').onclick = () => emit('dm:map', { cols: $('#mapCols').value, rows: $('#mapRows').value, image: state()?.map?.image || null });
+$('#mapGen').onclick = () => {
+  if (!state()?.map) return alert('Set a grid first.');
+  if (!confirm('Replace the terrain (heights, ground, walls, trees, rocks) with a generated map?')) return;
+  const seed = $('#mapSeed').value.trim();
+  emit('dm:map:generate', seed ? { seed: Number(seed) || [...seed].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) } : {});
+};
 $('#mapFile').onchange = async (e) => {
   const file = e.target.files[0];
   e.target.value = '';

@@ -216,7 +216,8 @@ module.exports = function playerSockets(socket) {
     if (act === 'attack') {
       const t = state.combat.enemies.find((e) => e.id === target && e.hp > 0 && e.side !== 'ally');
       if (!t) return;
-      game.attack(p, t);
+      const r = game.attack(p, t);
+      if (r.blocked) { log('combat', r.blocked, { tone: 'bad', vis: { to: [p.id] } }); broadcast(); return; } // no roll, the turn goes on
     } else if (['dodge', 'dash', 'help', 'hide'].includes(act)) {
       log('combat', `${p.name} takes the ${act[0].toUpperCase() + act.slice(1)} action.`);
     } else if (act === 'potion') {
