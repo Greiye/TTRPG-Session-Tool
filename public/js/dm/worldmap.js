@@ -27,8 +27,6 @@ mount(`<div class="card wm-page-card">
   <div id="wmBoard"></div>
   <div id="wmDungeon"></div>
   <div id="wmEdit"></div>
-  <h4>Party trail <span class="note">where the party has been, newest first</span></h4>
-  <div id="wmTrail"></div>
   <h4>Vote</h4>
   <div id="wmVote"></div>
   <h4>Road cards <span class="note">drawn on their own while the party travels · edit them in Planning Mode</span></h4>

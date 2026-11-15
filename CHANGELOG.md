@@ -15,6 +15,11 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Sample backdrop "Tales of Artheria" (`public/samples/artheria-village.jpg`), bundled with the app and listed first in the backdrop library. A fresh table, or a save from before this change, starts on it. Choosing "Scene theme" is now saved as `'none'`, so it survives a restart. The sample has no ✕ and is never deleted from disk.
 
 ### Changed
+- Phone and DM cleanup (Nov 15, later):
+  - The dungeon board is gone from the phone: players follow the dungeon on the TV.
+  - Phone dice pool is 2 across, 3 down, with wider buttons (icon beside the label).
+  - The party trail lives with the other logs: the DM Logs tab and the phone's Misc › Logs (**Places** filter). It is off the world map pages.
+  - The day / time / place / quest / coins bar is hidden on every screen.
 - The app no longer calls itself "Tavern Screen": the DM page is titled **DM Screen**, and the pages, server banner and certificate say **TTRPG Session Tool**.
 - DM screen notes (Nov 14):
   - The top bar folds to its title line with ▴ (▾ brings it back); remembered on that laptop.
