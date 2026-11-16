@@ -10,6 +10,9 @@ const config = {
   DM_KEY: process.env.DM_KEY || crypto.randomBytes(3).toString('hex'),
   // Co-DM runs atmosphere (backdrops, effects, music, SFX) from their own device; no game controls.
   CODM_KEY: process.env.CODM_KEY || crypto.randomBytes(3).toString('hex'),
+  // Battle Master (combat, battle map, the DM's creatures) and Social Master (NPC dialogue). See src/roles.js.
+  BATTLE_KEY: process.env.BATTLE_KEY || crypto.randomBytes(3).toString('hex'),
+  SOCIAL_KEY: process.env.SOCIAL_KEY || crypto.randomBytes(3).toString('hex'),
   // HTTPS for phones (mic + speech need a secure origin). HTTPS=0 turns it off.
   HTTPS: process.env.HTTPS !== '0',
   HTTPS_PORT: Number(process.env.HTTPS_PORT) || 3443,

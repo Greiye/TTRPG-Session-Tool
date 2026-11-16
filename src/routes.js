@@ -2,7 +2,8 @@
 const express = require('express');
 const path = require('path');
 const QRCode = require('qrcode');
-const { PUBLIC_DIR, UPLOAD_DIR, MODEL_DIR, DM_KEY, CODM_KEY } = require('./config');
+const { PUBLIC_DIR, UPLOAD_DIR, MODEL_DIR, DM_KEY, CODM_KEY, BATTLE_KEY, SOCIAL_KEY } = require('./config');
+const roles = require('./roles');
 const { joinUrl, codmUrl, isLocalAddr } = require('./net');
 const { state, broadcast } = require('./state');
 const { roster } = require('./roster');
@@ -34,12 +35,15 @@ module.exports = function routes(app) {
   const raw = express.raw({ type: () => true, limit: Math.max(...Object.values(assets.KINDS).map((k) => k.maxBytes)) });
   const isDm = (req) => isLocalAddr(req.socket.remoteAddress) || req.get('x-dm-key') === DM_KEY;
   const isCodm = (req) => req.get('x-dm-key') === CODM_KEY;
+  // Battle or Social Master, by the key their page sends (src/roles.js).
+  const masterOf = (req) => ({ [BATTLE_KEY]: 'battle', [SOCIAL_KEY]: 'social' })[req.get('x-dm-key')] || null;
+  const isBattle = (req) => masterOf(req) === 'battle';
   const fail = (res, e) => res.status(e.status || 500).json({ error: e.status ? e.message : 'Upload failed' });
 
   async function upload(req, res, kind) {
     if (kind === 'portrait') return portrait(req, res);
     const atmo = kind === 'backdrop' || kind === 'audio';
-    if (!isDm(req) && !(atmo && isCodm(req))) return res.status(403).json({ error: atmo ? 'DM or co-DM only' : 'DM only' });
+    if (!isDm(req) && !(atmo && isCodm(req)) && !roles.canUpload(masterOf(req), kind)) return res.status(403).json({ error: atmo ? 'DM or co-DM only' : 'DM only' });
     try {
       const a = await assets.store(kind, req.body, req.get('content-type'), { name: req.query.name });
       if (!atmo) return res.json(a);
@@ -112,16 +116,16 @@ module.exports = function routes(app) {
   const creatures = require('./creatures');
   const spells = require('./spells');
   const srd = require('./srd');
-  app.get('/api/creatures', (req, res) => (isDm(req) || dmOnly(req) ? res.json(creatures.lib.list()) : res.sendStatus(403)));
+  app.get('/api/creatures', (req, res) => (isDm(req) || dmOnly(req) || isBattle(req) ? res.json(creatures.lib.list()) : res.sendStatus(403)));
   app.get('/api/spells', (_req, res) => res.json(spells.lib.list()));
   app.post('/api/srd/import', express.json({ limit: '60mb' }), (req, res) => {
-    if (!isDm(req)) return res.sendStatus(403);
+    if (!isDm(req) && !isBattle(req)) return res.sendStatus(403);
     const out = srd.importJson(req.body, typeof req.query.source === 'string' ? req.query.source.slice(0, 60) : undefined);
     broadcast();
     res.json(out);
   });
   app.get('/api/srd/search', async (req, res) => {
-    if (!isDm(req) && !dmOnly(req)) return res.sendStatus(403);
+    if (!isDm(req) && !dmOnly(req) && !isBattle(req)) return res.sendStatus(403);
     try { res.json({ results: await srd.search(req.query.kind === 'spell' ? 'spell' : 'monster', req.query.q || '') }); } catch (e) {
       res.status(502).json({ error: `Could not reach Open5e (${e.message}). The laptop needs internet for search; importing a JSON file works offline.` });
     }
@@ -138,13 +142,15 @@ module.exports = function routes(app) {
   app.get('/api/templates', (_req, res) => res.json(Object.fromEntries(Object.entries(require('./world').TEMPLATES).map(([k, t]) => [k, t.name]))));
   app.get('/api/assets', (_req, res) => res.json(Object.fromEntries(Object.entries(assets.KINDS).map(([k, v]) => [k, { formats: v.ext, maxMB: v.maxBytes / assets.MB }]))));
 
+  // Co-DM invites, DM only: ?role=codm (atmosphere, default), battle or social.
+  const inviteRole = (req) => (['battle', 'social'].includes(req.query.role) ? req.query.role : 'codm');
   app.get('/codm-qr.svg', async (req, res) => {
     if (!dmOnly(req)) return res.sendStatus(403);
-    res.type('image/svg+xml').send(await QRCode.toString(codmUrl(), { type: 'svg', margin: 1, color: QR_COLORS }));
+    res.type('image/svg+xml').send(await QRCode.toString(codmUrl(inviteRole(req)), { type: 'svg', margin: 1, color: QR_COLORS }));
   });
   app.get('/api/codm-url', (req, res) => {
     if (!dmOnly(req)) return res.sendStatus(403);
-    res.json({ url: codmUrl() });
+    res.json({ url: codmUrl(inviteRole(req)) });
   });
   // The join QR carries the room code, so only the laptop (or a TV opened with ?key=) may fetch it.
   app.get('/qr.svg', async (req, res) => {

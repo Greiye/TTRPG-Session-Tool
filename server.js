@@ -35,6 +35,8 @@ const listening = () => {
   console.log(`  TV screen   : http://localhost:${PORT}/screen`);
   console.log(`  Players     : ${joinUrl(state.room)}  (QR on the TV, room ${state.room})`);
   console.log(`  Co-DM       : ${codmUrl()}  (QR on the DM page)`);
+  console.log(`  Battle Mstr : ${codmUrl('battle')}`);
+  console.log(`  Social Mstr : ${codmUrl('social')}`);
   console.log(`  Remote DM   : ${baseUrl()}/dm?key=${DM_KEY}`);
   if (HTTPS) console.log(`  HTTPS       : on, port ${HTTPS_PORT}. Phones show a one-time certificate warning; see README.`);
   console.log('');

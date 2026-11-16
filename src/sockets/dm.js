@@ -40,11 +40,13 @@ const legacy = require('../legacy');
 const moments = require('../moments');
 const speech = require('../speech');
 const timers = require('../timers');
+const roles = require('../roles');
 
 module.exports = function dmSockets(socket) {
   const { io } = hub;
+  // DM events. A Battle or Social Master may run the ones src/roles.js lists for their role.
   const dm = (event, fn) => socket.on(event, (payload = {}) => {
-    if (socket.data.role !== 'dm') return;
+    if (!roles.can(socket.data.role, event)) return;
     fn(payload || {});
     broadcast();
   });
@@ -325,7 +327,7 @@ module.exports = function dmSockets(socket) {
   });
   // ----- creature library (stat blocks) -----
   socket.on('dm:creature:save', (f = {}, ack) => {
-    if (socket.data.role !== 'dm') return;
+    if (!roles.can(socket.data.role, 'dm:creature:save')) return;
     const c = creatures.upsert(f);
     ack?.({ id: c.id });
     broadcast();
@@ -395,7 +397,7 @@ module.exports = function dmSockets(socket) {
     cast.mirror(state.social);
   });
   socket.on('dm:cast:add', (f = {}, ack) => {
-    if (socket.data.role !== 'dm') return ack?.({ error: 'DM only.' });
+    if (!roles.can(socket.data.role, 'dm:cast:add')) return ack?.({ error: 'DM only.' });
     const r = cast.add(state.social, f || {}, nextId);
     if (r.ok) log('system', `${f.name} joins the scene.`);
     broadcast();
@@ -421,7 +423,7 @@ module.exports = function dmSockets(socket) {
   });
   // The DM picks which uploaded sprite an NPC (target 'npc') or a character (target = its id) wears.
   socket.on('dm:sprite', ({ target, sprite } = {}, ack) => {
-    if (socket.data.role !== 'dm') return ack?.({ error: 'DM only.' });
+    if (!roles.can(socket.data.role, 'dm:sprite')) return ack?.({ error: 'DM only.' });
     const s = sprites.clean(sprite);
     if (s === undefined) return ack?.({ error: 'Sprite ids use lowercase letters, digits, - and _.' });
     if (target === 'npc') {

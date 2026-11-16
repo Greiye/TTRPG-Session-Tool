@@ -1,5 +1,5 @@
 // Socket wiring: every connection gets the state, then role-gated handlers.
-const { DM_KEY, CODM_KEY } = require('../config');
+const { DM_KEY, CODM_KEY, BATTLE_KEY, SOCIAL_KEY } = require('../config');
 const { isLocalAddr } = require('../net');
 const { stateFor, broadcast } = require('../state');
 const worldSockets = require('./worldmap');
@@ -24,10 +24,13 @@ module.exports = function sockets(io) {
     // TV pages announce themselves so the DM laptop knows whether it should output audio.
     socket.on('screen:hello', () => { socket.data.screen = true; broadcast(); });
 
-    // Roles: DM (localhost or DM_KEY), co-DM (CODM_KEY).
+    // Roles: DM (localhost or DM_KEY), co-DM (CODM_KEY), Battle Master (BATTLE_KEY), Social Master (SOCIAL_KEY).
+    // A co-DM key wins over localhost, so a helper link opened on the laptop still gets the helper's view.
     socket.on('dm:auth', ({ key } = {}, ack) => {
-      socket.data.role = isLocalAddr(socket.handshake.address) || key === DM_KEY ? 'dm' : key === CODM_KEY ? 'codm' : null;
-      if (socket.data.role === 'dm') socket.join('dms'); else socket.leave('dms');
+      const byKey = { [CODM_KEY]: 'codm', [BATTLE_KEY]: 'battle', [SOCIAL_KEY]: 'social' };
+      socket.data.role = key === DM_KEY ? 'dm' : (key && byKey[key]) || (isLocalAddr(socket.handshake.address) ? 'dm' : null);
+      // The 'dms' room gets secret rolls; the Battle Master rolls for the DM's creatures, so they get them too.
+      if (['dm', 'battle'].includes(socket.data.role)) socket.join('dms'); else socket.leave('dms');
       ack?.({ ok: !!socket.data.role, role: socket.data.role });
       broadcast();
     });

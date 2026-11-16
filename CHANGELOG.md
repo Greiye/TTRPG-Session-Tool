@@ -4,6 +4,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+- **Battle Master** and **Social Master** co-DM roles (Mike, Nov 16), each with its own private QR on the DM page's Co-DM card (`BATTLE_KEY`, `SOCIAL_KEY`). The Battle Master runs combat, the battle map and the DM's creatures; the Social Master runs NPC dialogue. Both open the DM page showing only their cards, and the server allows only the events listed per role in `src/roles.js`. A helper key now wins over localhost, so a helper link opened on the laptop gets the helper view.
+
 ### Changed
 - Combat screen, from Mike's Nov 16 feedback:
   - In combat the DM's 3D battle map fills the main column. **⛶ Fit** shows the whole field and a **Coverage** slider sets how much of it the view shows (mouse wheel zooms out further too).
