@@ -607,3 +607,31 @@ body.chron .btn.go:hover { background-color: #379a3b; }
 .sel-h { margin: 10px 0 2px; font-size: calc(11px * var(--ts, 1)); letter-spacing: .12em; text-transform: uppercase; color: var(--muted, #8f7e62); }
 .sel-traits p { margin: 4px 0; font-size: calc(13px * var(--ts, 1)); color: #c9c3b4; }
 @media (prefers-reduced-motion: reduce) { #hero.sel-in > *, .mv-left.over, .sel-facts b.over { animation: none; } }
+
+/* Phone emotion wheel (Mike, Nov 16): 8 ring segments around a round Send button; drag one onto Send. */
+.convo-textwrap { margin: 10px 0 12px; }
+.convo-textwrap textarea { margin: 0; }
+.convo-tip { margin: 4px 2px 0; font-size: calc(11px * var(--ts)); line-height: 1.35; color: var(--ink, #2b2118); opacity: .45; text-align: center; font-style: italic; }
+.convo-wheel { position: relative; width: min(300px, 80vw); aspect-ratio: 1; margin: 6px auto 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.wheel-emo { position: absolute; inset: 0; padding: 0; border: 0; cursor: pointer; color: #f3e6c8;
+  background: radial-gradient(circle at 50% 50%, transparent 30%, #6b4426 31%, #4a2d18 70%, #2e1c0f 100%);
+  transform: translate(calc(var(--dx) * 3px), calc(var(--dy) * 3px)); transition: transform .18s cubic-bezier(.2, .8, .2, 1), filter .2s, background .2s;
+  -webkit-tap-highlight-color: transparent; }
+.wheel-emo:active { transform: translate(calc(var(--dx) * 6px), calc(var(--dy) * 6px)); }
+.wheel-emo.on { background: radial-gradient(circle at 50% 50%, transparent 30%, #e9cf8f 31%, #c99a45 70%, #8a6224 100%); color: #2b1a0c; transform: translate(calc(var(--dx) * 8px), calc(var(--dy) * 8px)); filter: drop-shadow(0 0 6px rgb(240 190 90 / .8)); }
+.wheel-lbl { position: absolute; left: calc(50% + var(--dx) * 34%); top: calc(50% + var(--dy) * 34%); transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: none; }
+.wheel-lbl > span { font-size: calc(24px * var(--ts)); line-height: 1; }
+.wheel-lbl small { font-size: calc(10px * var(--ts)); letter-spacing: .03em; white-space: nowrap; }
+.wheel-send { position: absolute; left: 50%; top: 50%; z-index: 2; width: 38%; aspect-ratio: 1; padding: 0; transform: translate(-50%, -50%); border-radius: 50% !important; font-size: calc(17px * var(--ts)); font-weight: 600; box-shadow: 0 0 0 6px var(--panel, #e8d6ae), 0 3px 10px rgb(0 0 0 / .4); transition: transform .15s, box-shadow .2s; }
+.wheel-send.drop { transform: translate(-50%, -50%) scale(1.12); box-shadow: 0 0 0 6px var(--panel, #e8d6ae), 0 0 22px 6px rgb(240 190 90 / .85); }
+.wheel-send.sent { animation: wheelsend .35s ease-out; }
+@keyframes wheelsend { 40% { transform: translate(-50%, -50%) scale(.88); } }
+.convo-wheel.dragging .wheel-emo:not(.on) { filter: brightness(.7); }
+.wheel-ghost { position: fixed; left: 0; top: 0; z-index: 2000; margin: -28px 0 0 -20px; font-size: 40px; line-height: 1; pointer-events: none; filter: drop-shadow(0 4px 8px rgb(0 0 0 / .5)); animation: ghostin .15s ease-out; }
+@keyframes ghostin { from { opacity: 0; scale: .6; } }
+@media (prefers-reduced-motion: reduce) { .wheel-emo, .wheel-send { transition: none; } .wheel-send.sent, .wheel-ghost { animation: none; } }
+/* .btn:active nudges buttons with a transform; keep Send centred while pressed. */
+.convo-wheel .wheel-send:active { transform: translate(-50%, -50%) scale(.95); }
+.convo-wheel .wheel-send.drop { transform: translate(-50%, -50%) scale(1.12); }
+.convo-wheel .wheel-send { border: 0; border-image: none; box-shadow: 0 0 0 2px #1a1612, 0 0 0 4px #9b9183, 0 0 0 9px var(--panel, #e8d6ae), 0 4px 12px rgb(0 0 0 / .45); display: flex; align-items: center; justify-content: center; gap: 6px; }
+.convo-wheel .wheel-send.drop { box-shadow: 0 0 0 2px #1a1612, 0 0 0 4px #f2c96e, 0 0 24px 8px rgb(240 190 90 / .85); }

@@ -100,9 +100,22 @@ const SHOTS = process.env.SHOTS;
   await ph.waitForSelector('.convo-pop [data-cv="yes"]', { timeout: 5000 });
   await ph.click('.convo-pop [data-cv="yes"]');
   await ph.fill('#convoText', 'Hello there.');
-  await ph.click('.convo-pad [data-emo="happy"]');
-  await ph.click('.convo-pad [data-cv="send"]');
+  // Emotion wheel: segments are clipped, so tap where the label sits.
+  const tapAt = async (sel) => { const r = await ph.locator(sel).boundingBox(); await ph.mouse.click(r.x + r.width / 2, r.y + r.height / 2); };
+  await tapAt('.convo-wheel [data-emo="happy"] .wheel-lbl');
+  if (await ph.getAttribute('.convo-wheel [data-emo="happy"]', 'aria-pressed') !== 'true') errors.push('tapping an emotion segment did not pick it');
+  if ((await ph.$$('.convo-tip')).length !== 2) errors.push('the speech-to-text and drag tips should show');
+  await ph.click('.convo-wheel [data-cv="send"]');
   await tv.waitForFunction(() => document.querySelector('.vn-box.emo-happy') && /Hello there/.test(document.querySelector('.vn-box').textContent), null, { timeout: 5000 }).catch(() => errors.push('phone line and emotion did not reach the TV'));
+  // Drag an emotion onto Send: the line goes out with that emotion.
+  await ph.fill('#convoText', 'Back off.');
+  const from = await ph.locator('.convo-wheel [data-emo="angry"] .wheel-lbl').boundingBox();
+  const to = await ph.locator('.convo-wheel .wheel-send').boundingBox();
+  await ph.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await ph.mouse.down();
+  await ph.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
+  await ph.mouse.up();
+  await tv.waitForFunction(() => document.querySelector('.vn-box.emo-angry') && /Back off/.test(document.querySelector('.vn-box').textContent), null, { timeout: 5000 }).catch(() => errors.push('dragging an emotion onto Send did not send the line'));
   await ph.click('.convo-pop [data-cv="no"]');
   // End conversation: concluded card on the TV, then back to exploration.
   await dm.click('#convoEnd');
