@@ -12,8 +12,7 @@ const WM = () => window.WorldMap;
 mount(`<div class="card wm-page-card">
   <h3>World map <span class="note">places, votes, travel and road cards</span></h3>
   <div class="row wrap">
-    <label class="btn small">⬆ Map picture<input type="file" accept="image/*" id="wmFile" hidden></label>
-    <label class="chk"><input type="checkbox" id="wmTv"> Show on TV</label>
+    <label class="chk" title="Shows on the TV in any mode. Changing mode gives the TV back to the scene."><input type="checkbox" id="wmTv"> Show on TV</label>
     <label class="chk" title="When the server starts and on Next session: exploration mode with the world map on the TV"><input type="checkbox" id="wmOpen"> Open each session here</label>
     <label class="note tight">Leg (s) <input id="wmLeg" type="number" min="5" max="1800" style="width:72px"></label>
   </div>
@@ -23,7 +22,15 @@ mount(`<div class="card wm-page-card">
     <button class="btn small" id="wmFogNone">Fog all</button>
     <span class="note">Under fog the table sees places the party has seen and roads it knows. Arriving uncovers the roads out and the places at their ends.</span>
   </div>
-  <div class="row"><button class="btn small" id="wmPlace">+ Place</button><button class="btn small" id="wmRoad">+ Road</button><button class="btn small" id="wmExample" title="Replace the places and roads with the example world">Load example world</button><span class="note" id="wmHint">Tap a place to edit it, drag it to move it.</span></div>
+  <div class="row wrap wm-tools">
+    <span class="note">Drag onto the map:</span>
+    <span class="wm-chip" data-wm-new="town" title="Drag onto the map to add a town">🏘 Town</span>
+    <span class="wm-chip" data-wm-new="site" title="Drag onto the map to add a site">📍 Site</span>
+    <span class="wm-chip" data-wm-new="dungeon" title="Drag onto the map to add a dungeon entrance">🏰 Dungeon</span>
+    <button class="btn small" id="wmRoad">+ Road</button>
+    <span class="wm-trash" id="wmTrash" title="Drag a place here to delete it">🗑</span>
+    <span class="note" id="wmHint">Tap a place to edit it, drag it to move it.</span>
+  </div>
   <div id="wmBoard"></div>
   <div id="wmDungeon"></div>
   <div id="wmEdit"></div>
@@ -31,6 +38,10 @@ mount(`<div class="card wm-page-card">
   <div id="wmVote"></div>
   <h4>Road cards <span class="note">drawn on their own while the party travels · edit them in Planning Mode</span></h4>
   <div id="wmCards"></div>
+  <div class="row wrap wm-foot">
+    <label class="btn small">⬆ Map picture<input type="file" accept="image/*" id="wmFile" hidden></label>
+    <button class="btn small" id="wmExample" title="Replace the places and roads with the example world">Load example world</button>
+  </div>
 </div>`, '#wmPageEnd');
 
 // Planning Mode: the road card deck, the auto table and how often a card comes up.
@@ -168,11 +179,10 @@ function draw(S) {
 }
 
 function hint() {
-  $('#wmPlace').classList.toggle('on', placing);
   $('#wmRoad').classList.toggle('on', roading);
-  $('#wmHint').textContent = placing ? 'Tap the picture to place a new place.'
+  $('#wmHint').textContent = placing ? 'Tap the picture to place it there.'
     : roading ? (roadFrom ? 'Now tap the place the road leads to.' : 'Tap the place the road starts from.')
-    : 'Tap a place to edit it, drag it to move it, or tap a road to pick it.';
+    : 'Tap a place to edit it, drag it to move it or into the bin, or tap a road to pick it.';
 }
 
 // Drag a place to move it. A press that moves less than a few pixels is a tap, so the click below still selects.
@@ -197,7 +207,11 @@ $('#wmBoard').addEventListener('pointermove', (e) => {
   drag.y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
   drag.el.style.left = `${drag.x * 100}%`;
   drag.el.style.top = `${drag.y * 100}%`;
+  drag.trash = overTrash(e);
+  $('#wmTrash').classList.toggle('hot', drag.trash);
+  drag.el.classList.toggle('binning', drag.trash);
 });
+const overTrash = (e) => { const r = $('#wmTrash').getBoundingClientRect(); return e.clientX >= r.left - 8 && e.clientX <= r.right + 8 && e.clientY >= r.top - 8 && e.clientY <= r.bottom + 8; };
 function dragEnd(e) {
   if (!drag) return;
   const d = drag;
@@ -205,11 +219,56 @@ function dragEnd(e) {
   if (!d.moved || e.type === 'pointercancel') { keys['#wmBoard'] = null; if (last) draw(last); return; }
   dragged = true; // swallow the click that follows the drag
   setTimeout(() => { dragged = false; }, 0);
+  $('#wmTrash').classList.remove('hot');
+  if (d.trash || overTrash(e)) {
+    // Dropped in the bin: delete the place. The board is redrawn without it.
+    if (selId === d.id) selId = null;
+    keys['#wmBoard'] = null;
+    emit('dm:worldmap:node:remove', { id: d.id });
+    return;
+  }
   selId = d.id;
   emit('dm:worldmap:node', { id: d.id, x: d.x, y: d.y });
 }
 $('#wmBoard').addEventListener('pointerup', dragEnd);
 $('#wmBoard').addEventListener('pointercancel', dragEnd);
+
+// Palette: drag a Town, Site or Dungeon chip onto the picture to add a place there. A tap on a chip arms it
+// instead, and the next tap on the picture places it (for touch screens where dragging is awkward).
+const NEW_PLACE = { town: { name: 'New town' }, site: { name: 'New site' }, dungeon: { name: 'New dungeon', dungeon: true } };
+let newKind = null;
+let ghost = null;
+async function addPlace(kind, e, pic) {
+  const r = pic.getBoundingClientRect();
+  const res = await call('dm:worldmap:node', { ...NEW_PLACE[kind], x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height, info: '', revealed: false });
+  if (res?.error) alert(res.error);
+  if (res?.id) selId = res.id;
+  if (last) draw(last);
+}
+document.querySelector('.wm-tools').addEventListener('pointerdown', (e) => {
+  const chip = e.target.closest('[data-wm-new]');
+  if (!chip || e.button !== 0) return;
+  e.preventDefault();
+  const kind = chip.dataset.wmNew;
+  const x0 = e.clientX; const y0 = e.clientY;
+  let moved = false;
+  const move = (ev) => {
+    if (!moved && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 5) return;
+    if (!moved) { moved = true; ghost = chip.cloneNode(true); ghost.classList.add('wm-ghost'); document.body.append(ghost); }
+    ghost.style.left = `${ev.clientX}px`; ghost.style.top = `${ev.clientY}px`;
+  };
+  const up = (ev) => {
+    document.removeEventListener('pointermove', move);
+    document.removeEventListener('pointerup', up);
+    ghost?.remove(); ghost = null;
+    if (!moved) { placing = newKind !== kind || !placing; newKind = placing ? kind : null; roading = false; roadFrom = null; hint(); chips(); return; }
+    const pic = document.elementsFromPoint(ev.clientX, ev.clientY).map((el) => el.closest?.('#wmBoard .wm-pic')).find(Boolean);
+    if (pic) addPlace(kind, ev, pic);
+  };
+  document.addEventListener('pointermove', move);
+  document.addEventListener('pointerup', up);
+});
+const chips = () => document.querySelectorAll('[data-wm-new]').forEach((c) => c.classList.toggle('on', placing && c.dataset.wmNew === newKind));
 
 // Board: tap a place to select it; with Place on, tap the picture to add one there; with Road on, tap two places.
 $('#wmBoard').addEventListener('click', async (e) => {
@@ -234,11 +293,9 @@ $('#wmBoard').addEventListener('click', async (e) => {
   if (!placing) return;
   const pic = e.target.closest('.wm-pic');
   if (!pic) return;
-  const r = pic.getBoundingClientRect();
-  const res = await call('dm:worldmap:node', { name: 'New place', x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height, info: '', revealed: false });
-  placing = false;
-  if (res?.id) selId = res.id;
-  if (last) draw(last);
+  const kind = newKind || 'site';
+  placing = false; newKind = null; chips();
+  addPlace(kind, e, pic);
 });
 
 $('#wmDungeon').addEventListener('click', async (e) => {
@@ -254,8 +311,7 @@ $('#wmExample').onclick = async () => {
   if (r?.error) alert(r.error);
   selId = null; selRoad = null;
 };
-$('#wmPlace').onclick = () => { placing = !placing; roading = false; roadFrom = null; if (last) draw(last); };
-$('#wmRoad').onclick = () => { roading = !roading; placing = false; roadFrom = null; if (last) draw(last); };
+$('#wmRoad').onclick = () => { roading = !roading; placing = false; newKind = null; chips(); roadFrom = null; if (last) draw(last); };
 $('#wmFog').onchange = (e) => emit('dm:worldmap:fog', { on: e.target.checked });
 $('#wmFogAll').onclick = () => emit('dm:worldmap:fog:all', { on: true });
 $('#wmFogNone').onclick = () => emit('dm:worldmap:fog:all', { on: false });
