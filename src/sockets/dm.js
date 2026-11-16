@@ -83,7 +83,15 @@ module.exports = function dmSockets(socket) {
     });
     state.scene.secrets ??= [];
     // A new place: TV fade and chapter card, and planned choice echoes count down a scene (src/moments.js).
-    if (state.scene.title !== before) { moments.onNewScene(state); state.narration = []; } // a new place starts a clean narration list
+    // Points of interest start covered: a renamed POI list keeps only the uncovered points still in it,
+    // and a new place starts with all of them hidden from the TV (Mike, Nov 16).
+    state.scene.revealed = (state.scene.revealed || []).filter((p) => state.scene.poi.includes(p));
+    if (state.scene.title !== before) {
+      const { chapter } = moments.onNewScene(state);
+      if (chapter) log('narrate', moments.chapterLine(chapter), { tone: 'chapter' });
+      state.narration = []; // a new place starts a clean narration list
+      state.scene.revealed = [];
+    }
   });
   dm('dm:system', ({ id }) => {
     if (!rules.list().some((x) => x.id === id) || id === state.system) return;

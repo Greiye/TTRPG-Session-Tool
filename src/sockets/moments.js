@@ -1,6 +1,6 @@
 // DM events for TV moments (src/moments.js). The DM drives every one; the TV only shows them.
 const hub = require('../hub');
-const { state, broadcast } = require('../state');
+const { state, broadcast, log } = require('../state');
 const moments = require('../moments');
 const { BUILTIN_SFX } = require('../media');
 
@@ -14,7 +14,10 @@ module.exports = function momentSockets(socket) {
 
   dm('dm:tv:transition', ({ kind }) => moments.transition(tv(), kind));
   dm('dm:tv:pause', ({ on, text }) => moments.pause(tv(), !!on, text));
-  dm('dm:tv:chapter', ({ title, sub }) => moments.chapter(tv(), title, sub));
+  dm('dm:tv:chapter', ({ title, sub }) => {
+    const c = moments.chapter(tv(), title, sub);
+    if (c) log('narrate', moments.chapterLine(c), { tone: 'chapter' });
+  });
   dm('dm:tv:entrance', (f) => {
     const e = moments.entrance(tv(), f, BUILTIN_SFX);
     if (e?.sfx) hub.io.emit('sfx', { builtin: e.sfx });

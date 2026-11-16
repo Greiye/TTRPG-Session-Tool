@@ -25,6 +25,13 @@ All notable changes to this project are recorded here. The format follows [Keep 
   - The 3D map shows health bars only to the DM. The TV map shows names only (new `showHp` option in `lib/iso-battle`). Phones no longer show creature HP in the initiative strip or on attack buttons.
 - **Creature actions** on the DM combat cards and the 3D battle map's action bar are icon buttons with the name underneath (Mike, Nov 16, PR O). Hovering shows the details and the maths: to-hit as 1d20 + bonus vs AC, the damage dice with their average and type, and the key to press on the map. Move and End turn use the same style.
 - **Dramatic pause** on the TV drops the "Hold" label. The screen fades to partial black first and the text fades in half a second later (Mike, Nov 16, PR P).
+- TV moments and rolls, from Mike's Nov 16 notes:
+  - Roll results (popup and 3D dice tray) sit in the centre of the TV and fade out instead of vanishing.
+  - A **natural 20** shows a gold "Natural 20!" banner, sparks and turning light rays, and the TV brightens while it shows. A **natural 1** shows a red "Natural 1" banner, the total shakes and sags, and the TV darkens with a pulsing red edge. The dice tray starts the mood as the dice settle. TV only; phones and the DM page keep normal light.
+  - Covered exploration points of interest are hidden from the TV (no more "??? " chips). A point pops in when the DM uncovers it. A new place starts with every point covered, and points removed from the list leave the uncovered set.
+  - Switching modes quickly replaces the previous mode title instead of stacking on it.
+  - Chapter cards, entrances, choice echoes and the day/time card fade out at the end. Every chapter card is saved to the log as `Chapter: <title> (<subtitle>)`. The first chapter card, entrance, echo or relic of a session now plays on the TV (it was skipped).
+  - Segment clocks are round, cut into wedges from the centre, on the TV and in the DM's Clocks and Living world lists. Newly filled wedges sweep out from the middle.
 - Co-DM and combat tools, from Mike's Nov 16 notes:
   - The **co-DM** now has every DM permission: the invite opens the DM page with the co-DM key (`/codm` stays as a phone soundboard).
   - Co-DM card: each role (Co-DM, Battle Master, Social Master) is a title with one centred **Invite** button under it.
