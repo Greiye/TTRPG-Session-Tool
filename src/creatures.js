@@ -6,7 +6,6 @@
 //   boss, title, source }
 const crypto = require('crypto');
 const { library } = require('./library');
-const dice = require('./dice');
 const { str, int } = require('./util');
 
 const SIDES = ['enemy', 'ally', 'neutral'];
@@ -72,6 +71,5 @@ function withAttack(c, index) {
   const a = c.attacks?.[index] || c.attacks?.[0];
   return a ? { ...c, atk: a.atk, dmg: dmgTriple(a.dmg), attackName: a.name } : c;
 }
-const rollHp = (expr) => dice.roll(expr)?.total;
 
-module.exports = { lib, SIDES, normalize, upsert, spawn, withAttack, dmgTriple, dmgText, rollHp };
+module.exports = { lib, SIDES, normalize, upsert, spawn, withAttack, dmgTriple, dmgText };

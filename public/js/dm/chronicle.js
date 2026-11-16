@@ -11,7 +11,7 @@ let selShown = null; // last unit drawn, so a new selection animates in
 let view = 'bio';
 
 
-const esc = (t) => Stage.esc(String(t ?? ''));
+const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
 const speedOf = (c) => ((c.speed?.fly || 0) > 0 && c.flying !== false ? c.speed.fly : (c.speed?.walk ?? (typeof c.speed === 'number' ? c.speed : 30)));
 
 // Combat facts for whoever is selected on the map: movement left (red past its speed), initiative, tile, light, conditions.

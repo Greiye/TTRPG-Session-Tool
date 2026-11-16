@@ -8,7 +8,7 @@ import { current } from './nav.js';
 import { addTab, setTabOn, setBadge } from './tabs.js';
 import { holdButton } from '../dm/hold.js';
 
-const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
 addTab('dungeon', '🏰 Dungeon');
 setTabOn('dungeon', false);
 

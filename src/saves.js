@@ -4,13 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const { DATA_DIR } = require('./config');
 const { writeJson, readJson } = require('./store');
+const util = require('./util');
 
 const SAVE_DIR = path.join(DATA_DIR, 'saves');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const KEEP_BACKUPS = 8;
 fs.mkdirSync(SAVE_DIR, { recursive: true });
 
-const slug = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+const slug = (s) => util.slug(s, 40);
 const fileOf = (id) => path.join(SAVE_DIR, `${slug(id)}.json`);
 
 let cache = null;

@@ -78,7 +78,6 @@ code { font-family: ui-monospace, Menlo, monospace; }
 .mode-combat   { box-shadow: inset 0 0 8cqw rgb(160 20 20 / .45); }
 
 .stage-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.4cqw 2cqw 0; z-index: 1; }
-.mode-pill { font-family: var(--display); text-transform: uppercase; letter-spacing: .2em; font-size: calc(1.1cqw * var(--ts)); padding: .5cqw 1.2cqw; border: 1px solid var(--gold); color: var(--gold); border-radius: 99px; background: rgb(0 0 0 / .35); }
 .join { margin-left: auto; display: flex; gap: 1cqw; align-items: center; background: rgb(0 0 0 / .45); padding: .7cqw; border-radius: .8cqw; border: 1px solid rgb(255 255 255 / .1); }
 .join img { width: 7.5cqw; height: 7.5cqw; border-radius: .4cqw; background: #f4ead5; }
 .join div { display: flex; flex-direction: column; gap: .2cqw; }
@@ -213,9 +212,6 @@ body.tv .stage-wrap { width: min(100vw, 177.78vh); border-radius: 0; }
 body.dm { display: grid; grid-template-columns: minmax(0, 1fr) 420px; height: 100vh; }
 .dm-left { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: auto; }
 .dm-right { background: var(--panel); border-left: 1px solid var(--line); overflow: auto; padding: 14px; display: flex; flex-direction: column; gap: 14px; }
-.side-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
-.side-tabs button { width: 38px; height: 38px; font-size: 18px; padding: 0; border-radius: 8px; background: #1a131d; border: 1px solid var(--line); cursor: pointer; }
-.side-tabs button.on { border-color: var(--gold); background: #2a1f2e; }
 .side-title { margin: -6px 0 0; font-family: var(--display); font-size: 13px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
 .dm-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .dm-bar h2 { font-family: var(--display); margin: 0 auto 0 0; color: var(--gold); font-size: calc(20px * var(--ts)); }
@@ -280,14 +276,6 @@ body.phone { max-width: 520px; margin: 0 auto; padding: 14px 14px 120px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .grid3 .btn, .grid2 .btn { padding: 12px 4px; font-size: calc(15px * var(--ts)); }
 .turn-banner { text-align: center; font-family: var(--display); font-size: calc(24px * var(--ts)); color: var(--gold); animation: pulse 1.2s infinite; }
-.phone .vn-mini { container-type: inline-size; position: relative; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: linear-gradient(180deg, #2a2030, #120d14); }
-.phone .vn-mini .vn-portrait { width: 48cqw; bottom: 26cqw; transform: translateX(-50%); }
-.phone .vn-mini .vn-portrait.changed { animation: none; }
-.phone .vn-mini .vn-box { min-height: 28cqw; padding: 5cqw 4cqw 3cqw; }
-.phone .vn-mini .vn-name { font-size: calc(4cqw * var(--ts)); top: -4cqw; left: 4cqw; }
-.phone .vn-mini .vn-text { font-size: calc(5cqw * var(--ts)); }
-.phone .vn-mini .vn-caption { font-size: calc(3.6cqw * var(--ts)); }
-.phone .vn-mini .vn-box.emo-surprised .vn-text { font-size: calc(5.6cqw * var(--ts)); }
 .phone .log { font-size: calc(14px * var(--ts)); }
 .sayform { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: var(--panel); border-top: 1px solid var(--line); display: flex; gap: 8px; max-width: 520px; margin: 0 auto; }
 .sayform input { font-size: calc(16px * var(--ts)); padding: 10px; }
@@ -334,7 +322,6 @@ span.av svg { width: 100%; height: 100%; display: block; transform: scale(1.35) 
 .turn-card small { display: block; font-size: calc(1cqw * var(--ts)); letter-spacing: .2em; text-transform: uppercase; color: hsl(var(--hue) 80% 75%); }
 .turn-card b { font-family: var(--display); font-size: calc(2.4cqw * var(--ts)); }
 .turn-card q { display: block; font-style: italic; color: var(--muted); font-size: calc(1.2cqw * var(--ts)); }
-.vn-pc { position: absolute; right: 4cqw; bottom: 9cqw; animation: slidein .4s ease-out; }
 .av-vn { width: 16cqw; height: 16cqw; border-width: .4cqw; box-shadow: 0 1cqw 3cqw rgb(0 0 0 / .6); }
 .vn.pc-speaking .vn-portrait { filter: brightness(.55) drop-shadow(0 1cqw 2cqw rgb(0 0 0 / .6)); }
 .vn-box.player-line { border-color: hsl(var(--hue, 210) 70% 65%); }
@@ -355,7 +342,6 @@ span.av svg { width: 100%; height: 100%; display: block; transform: scale(1.35) 
 .rcard small { font-size: calc(13px * var(--ts)); }
 .rcard em { position: absolute; top: 6px; right: 6px; font-size: calc(11px * var(--ts)); font-style: normal; background: #5a1f1f; padding: 1px 6px; border-radius: 99px; }
 .av-rc { width: 76px; height: 76px; border-width: 3px; margin-bottom: 4px; }
-.av-me { width: 44px; height: 44px; }
 .av-prof { width: 110px; height: 110px; border-width: 3px; }
 .me { grid-template-columns: auto 1fr auto; }
 .me-tools { display: flex; gap: 6px; }
@@ -403,7 +389,6 @@ span.av svg { width: 100%; height: 100%; display: block; transform: scale(1.35) 
 @keyframes hp-flash { 0% { opacity: 1; } 100% { opacity: 0; } }
 html[data-motion="reduce"] .hp-flash.on { animation-duration: .01ms; }
 .log-full { font-size: calc(15px * var(--ts)); margin-top: 10px; }
-.me-info { display: flex; flex-direction: column; min-width: 0; }
 .profile { display: flex; flex-direction: column; gap: 10px; }
 .prof-top { display: flex; gap: 14px; align-items: center; }
 .prof-photo { display: flex; flex-direction: column; gap: 6px; }
@@ -564,8 +549,6 @@ html[data-motion="reduce"] .rollpop.tumble, html[data-motion="reduce"] .rollpop.
 html[data-motion="reduce"] .rollpop.crit .big, html[data-motion="reduce"] .rollpop.fumble .big, html[data-motion="reduce"] .rollpop .rp-nat, html[data-motion="reduce"] .roll-mood .rays, html[data-motion="reduce"] .roll-mood b, html[data-motion="reduce"] .roll-mood .crack { animation: none; }
 html[data-motion="reduce"] .roll-mood b { display: none; }
 
-.roll-box { display: flex; gap: 6px; }
-.roll-box input { flex: 1; }
 
 /* ================= Phase 3: TV enemy pips, boss cards, fog ================= */
 .pips-hp { display: flex; gap: .25cqw; margin-top: .3cqw; }
@@ -730,27 +713,15 @@ html[data-motion="reduce"] .vn .vn-cast-m.rise { animation: none; }
 .vn-full-art svg, .vn-full-art img, .vn-full-art video { height: 100%; width: auto; max-width: 100%; }
 .vn-full-art .vn-item { font-size: 40vh; }
 .vn-full-back { position: absolute; top: 16px; left: 16px; }
-.phone .vn-mini .vn-left, .phone .vn-mini .vn-right { bottom: 31cqw; }
-.phone .vn-mini .vn-pc-l { width: 15cqw; }
-.phone .vn-mini .vn-pc-l .av, .phone .vn-mini .vn-pc-l .lay { width: 15cqw; height: 15cqw; }
-.phone .vn-mini .vn-pc-l small { font-size: calc(3cqw * var(--ts)); }
-.phone .vn-mini .vn-cast-m { width: 20cqw; }
-.phone .vn-mini .vn-cast-m.on { width: 30cqw; }
-.phone .vn-mini .vn-cast-m small { font-size: calc(3cqw * var(--ts)); }
-.phone .vn-mini .vn-right .vn-portrait { width: 100%; bottom: auto; transform: none; }
-.phone .vn-mini .vn-item { font-size: 12cqw; }
-.phone .vn-mini .vn-cast-m.on .vn-item { font-size: 18cqw; }
 /* Phone pop-up when the DM enters social mode */
 .pop-scrim { position: fixed; inset: 0; z-index: 900; background: rgb(0 0 0 / .6); display: flex; align-items: flex-end; justify-content: center; }
 .pop-sheet { width: min(520px, 100%); background: var(--panel, #1d1622); border: 1px solid var(--gold); border-radius: 16px 16px 0 0; padding: 18px 16px 22px; }
 .pop-sheet h3 { margin: 0 0 12px; font-family: var(--display); color: var(--gold); }
 .pop-sheet .list { display: grid; gap: 8px; }
 .pop-sheet .btn { text-align: left; padding: 12px; }
-.pop-emos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
 .cast-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
 .cast-list .btn.on { border-color: var(--gold); color: var(--gold); }
 .cast-list .x { padding: 0 8px; }
-.cast-pick { margin-top: 10px; padding: 10px; border: 1px dashed var(--gold); border-radius: 8px; display: grid; gap: 6px; }
 
 /* Phase 4 phone controls: press-and-hold ability rolls, condition icons, stamina and mana. */
 .ab { position: relative; user-select: none; -webkit-user-select: none; touch-action: manipulation; overflow: hidden; }
@@ -774,10 +745,8 @@ html[data-motion="reduce"] .vn .vn-cast-m.rise { animation: none; }
 @keyframes modefade { 0% { opacity: 0; transform: scale(.96); } 15% { opacity: 1; transform: scale(1); } 75% { opacity: 1; } 100% { opacity: 0; } }
 
 /* Sidebar groups (dm.html): each group is a row of tab buttons; empty groups hide with their tabs. */
-.side-tabs { flex-direction: column; align-items: flex-start; gap: 6px; }
 .tab-group { display: flex; flex-wrap: wrap; gap: 4px; }
 .tab-group[hidden] { display: none; }
-.side-tabs button[hidden] { display: none; }
 
 /* DM takeover (src/control.js): the phone's "DM is controlling your character" banner, and the takeover tab bar. */
 .dm-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 60; padding: 14px 16px; text-align: center; background: rgba(20, 10, 25, .94); border-bottom: 2px solid var(--gold); pointer-events: none; font-size: 1.15rem; display: flex; flex-direction: column; gap: 4px; align-items: center; }
@@ -1067,7 +1036,6 @@ body.battle-waiting #tablePage, body.battle-waiting #toolsCol .modes-card, body.
 .shop-pgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .shop-sheet .shop-ware { font-size: calc(12px * var(--ts)); min-height: 64px; color: inherit; cursor: pointer; }
 .shop-sheet .shop-ware.on { outline: 3px solid var(--gold); outline-offset: 1px; }
-.shop-pickbar { margin-top: 8px; }
 .shop-wait { text-align: center; }
 .shop-wait-msg { font-family: var(--display); font-size: calc(20px * var(--ts)); margin: 12px 0 4px; }
 

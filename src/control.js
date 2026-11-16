@@ -25,7 +25,6 @@ function actorOf(state, socket) {
   return owners.has(c.id) ? null : c;
 }
 
-function isControlled(charId) { return owners.has(charId); }
 
 // The DM drops a character from any DM tab. The holding tab can no longer act as it.
 function drop(state, charId) {
@@ -59,4 +58,4 @@ function releaseAll(state, socket) {
   for (const [charId, sid] of [...owners]) if (sid === socket.id) release(state, charId, socket);
 }
 
-module.exports = { seatOf, actorOf, isControlled, take, release, drop, releaseAll, owners };
+module.exports = { seatOf, actorOf, take, release, drop, releaseAll, owners };

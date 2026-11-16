@@ -106,9 +106,8 @@ const state = {
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story', 'narration');
-store.EXTRA.push('cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'worldMap', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
+// Durable campaign keys saved with the table (src/store.js); one list, each key once.
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story', 'narration', 'cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'worldMap');
 store.EXTRA.push('living', 'weather'); // phase K living world and the shared weather
 store.EXTRA.push('houseRules', 'absent'); // phase J house rules and empty chairs
 store.EXTRA.push('intro', 'timers'); // phase D intro card text and timers

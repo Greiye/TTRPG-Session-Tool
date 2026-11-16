@@ -12,7 +12,6 @@ const freshPool = () => POOL.map(([id, name, hue]) => ({ id: `pool-${id}`, name,
 // How a phone line reads in the log: "Vex looks to be angry. She says "...""
 const SAYS = { he: 'He says', she: 'She says', they: 'They say' };
 const MOOD = { neutral: 'calm' };
-const PRONOUNS = Object.keys(SAYS);
 
 // Ensure older saves have the new fields.
 function ensure(social) {
@@ -109,4 +108,4 @@ function close(social) {
 
 const sentence = (name, pronoun, emotion, text) => `${name} looks to be ${MOOD[emotion] || emotion}. ${SAYS[pronoun] || SAYS.they} "${text}"`;
 
-module.exports = { MAX_CAST, MAX_PARTY, EMOTIONS, PRONOUNS, ensure, add, remove, pick, mirror, setExpression, start, end, close, sentence };
+module.exports = { MAX_CAST, MAX_PARTY, EMOTIONS, ensure, add, remove, pick, mirror, setExpression, start, end, close, sentence };

@@ -6,7 +6,7 @@
 (() => {
   let tray = null;
   let timer = null; let outTimer = null; let seq = 0;
-  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
   const rnd = (a, b) => a + Math.random() * (b - a);
   const SHOW_MS = 3200;
   const FADE_MS = 450;

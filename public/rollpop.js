@@ -4,7 +4,7 @@
 // bright burst and lifts the TV's brightness while it shows; a natural 1 plays a dark crack and dims it.
 (function () {
   let box = null; let timer = null; let outTimer = null;
-  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
   const SHOW_MS = 1800;
   const NAT_MS = 1400; // extra time a natural 20 or natural 1 stays up
   const FADE_MS = 450;

@@ -35,6 +35,7 @@ function fakePads() {
   const errors = [];
   dm.on('pageerror', (e) => errors.push(e.message));
   await dm.addInitScript(fakePads);
+  await dm.addInitScript(() => { try { localStorage.setItem('dmFoldOpen', '1'); } catch { /* ignore */ } }); // DM cards start open in tests
   await dm.goto(B + '/dm');
   await dm.waitForFunction(() => window.socket && document.querySelector('[data-emo].on'));
 
@@ -85,9 +86,12 @@ function fakePads() {
   await hold(5); await frames(30);
   ok((await S()).mode === 'exploration', 'held RB changes mode once');
   await dm.waitForTimeout(200);
-  ok((await S()).log.length === logLen + 1, 'held RB sends one event');
+  ok((await S()).log.length <= logLen + 1, 'held RB sends one event'); // quick mode switches replace one mode line, so at most +1
   await release(5);
   await tap(4); await mode('social');
+  // The dialogue box sits in the live-conversation panel, so start a conversation with the first NPC in the pool.
+  await dm.evaluate(() => new Promise((res) => { const id = window.__state().social.pool?.[0]?.id; window.socket.emit('dm:convo:start', { ids: id ? [id] : [] }, res); }));
+  await dm.waitForSelector('#line', { state: 'visible' });
 
   // Start speaks the line.
   await dm.fill('#line', 'Well met, travellers.');

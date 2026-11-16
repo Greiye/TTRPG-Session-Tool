@@ -1,9 +1,8 @@
 // Spell library (item 3b): data/spells.json. Characters keep a list of spell IDs on their sheet.
 const { library } = require('./library');
-const { str, int } = require('./util');
+const { str, int, slug } = require('./util');
 
 const lib = library('spells');
-const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
 
 function normalize(f) {
   return {

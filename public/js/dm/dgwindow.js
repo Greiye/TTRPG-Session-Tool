@@ -8,7 +8,7 @@ import { $, call, onState, state } from '../client.js';
 import { dmKey } from './auth.js';
 
 const KINDS = ['entrance', 'passage', 'room', 'crypt', 'trap', 'treasure', 'monster', 'scroll', 'puzzle', 'secret', 'boss', 'exit'];
-const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
 
 const host = document.createElement('section');
 host.className = 'dgw';

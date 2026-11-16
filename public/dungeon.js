@@ -4,7 +4,7 @@
 // narrow trail of icons, so the rooms ahead get the room, and every card glides to its new place. The server
 // filters what each viewer sees (src/dungeon.js viewFor). Classic script: exposes the global Dungeon.
 (function () {
-  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
   const ICON = { entrance: '🚪', passage: '👣', room: '🏛', crypt: '⚰', trap: '🗡', treasure: '💰', monster: '💀', scroll: '📜', puzzle: '🧩', secret: '🗝', boss: '👑', exit: '🌅' };
 
   function levels(nodes) {

@@ -50,7 +50,6 @@ function readSeg(v) {
   const n = Number(v);
   return Number.isInteger(n) && n >= 0 && n < 5 ? n : -1;
 }
-const storyLight = (story) => SEG_LIGHT[segOf(story)];
 const clockLabel = (story) => `Day ${story.day} · ${SEG_NAMES[segOf(story)]}`;
 // What the TV and phones get: the label and light are derived here, so every screen agrees.
 // moved counts clock changes, so the TV shows its time card and plays the segment sound once per change.
@@ -189,7 +188,7 @@ function onNewScene(s) {
 }
 
 module.exports = {
-  TRANSITIONS, SEGMENTS, SEG_NAMES, defaults, storyDefault, storyLight, storyView, clockLabel, setTime, advance, segOf,
+  TRANSITIONS, SEGMENTS, SEG_NAMES, defaults, storyDefault, storyView, clockLabel, setTime, advance, segOf,
   transition, pause, chapter, chapterLine, entrance, quoteAdd, quoteRemove, echoPlant, echoFire, echoCancel, echoTick,
   relicAdd, relicReveal, relicRemove, relicClose, bookSet, epilogueStart, epilogueEnd, onNewScene,
 };

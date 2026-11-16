@@ -6,7 +6,7 @@
 (() => {
   const VIDEO = /\.(webm|mp4)(\?|$)/i;
   const reduced = () => !!window.Settings?.reducedMotion();
-  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
   const isVideo = (url) => VIDEO.test(url || '');
 
   // Markup for a portrait/creature image. Videos become a slot that hydrate() fills with a live element.

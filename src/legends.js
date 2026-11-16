@@ -91,4 +91,4 @@ function view() {
   return { cats: CATS, nat1, kill: byCat('kill'), plan: byCat('plan'), trophies: data.trophies };
 }
 
-module.exports = { CATS, AWARD_CATS, MAX_AWARDS, MAX_TROPHIES, SHOWN, recordNat1, award, removeAward, addTrophy, removeTrophy, trophy, view, flush, _data: () => data };
+module.exports = { CATS, AWARD_CATS, MAX_AWARDS, MAX_TROPHIES, SHOWN, recordNat1, award, removeAward, addTrophy, removeTrophy, trophy, view, flush };

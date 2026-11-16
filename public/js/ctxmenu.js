@@ -15,7 +15,7 @@ let menu = null;
 let current = null; // the spec the menu shows
 let returnFocus = null;
 
-const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
 
 function html(spec) {
   const head = spec.title || spec.sub ? `<header><b>${esc(spec.title || '')}</b>${spec.sub ? `<small>${esc(spec.sub)}</small>` : ''}</header>` : '';

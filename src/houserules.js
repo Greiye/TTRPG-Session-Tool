@@ -35,4 +35,4 @@ function blockCamp(state) {
   return on(state, 'no-camp-in-combat') && state.combat.active ? 'No camp during combat (house rule). Switch the rule off to override.' : null;
 }
 
-module.exports = { RULES, list, set, on, blockPotion, markPotion, blockCamp, _potionTurns: potionTurns };
+module.exports = { RULES, list, set, on, blockPotion, markPotion, blockCamp };

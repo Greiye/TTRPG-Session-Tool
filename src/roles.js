@@ -30,10 +30,9 @@ const ROLES = {
   social: { name: 'Social Master', icon: '💬', events: new Set(SOCIAL), assets: [], rolls: false },
 };
 
-const MASTER_ROLES = Object.keys(ROLES);
 // May this role run this DM event?
 const can = (role, event) => role === 'dm' || !!ROLES[role]?.events.has(event);
 // May this role upload this asset kind?
 const canUpload = (role, kind) => role === 'dm' || !!ROLES[role]?.assets.includes(kind);
 
-module.exports = { ROLES, MASTER_ROLES, BATTLE, SOCIAL, can, canUpload };
+module.exports = { ROLES, BATTLE, SOCIAL, can, canUpload };
