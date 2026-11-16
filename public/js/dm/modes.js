@@ -7,6 +7,7 @@
 //   data-panel="combat"  the live modes the card shows in (no attribute: every mode)
 // Planning Mode (a DM-only view, saved on this laptop) shows the tab groups marked data-plan.
 import { $, $$, emit, onState, onClick, state } from '../client.js';
+import { masterRole } from './auth.js';
 
 const KINDS = ['action', 'check', 'combat', 'downtime', 'narrate', 'npc', 'say', 'shop', 'system', 'notice'];
 const KIND_NAMES = { action: 'Actions', check: 'Checks', combat: 'Combat', downtime: 'Downtime', narrate: 'Narration', npc: 'NPC speech', say: 'Player speech', shop: 'Shops', system: 'System', notice: 'Notices' };
@@ -26,16 +27,21 @@ let mode = 'exploration';
 let kindsKey = null;
 
 const inMode = (c) => !c.dataset.panel || c.dataset.panel.split(' ').includes(mode);
+// Battle and Social Masters (src/roles.js) see only their cards, in every mode, so they can prep ahead.
+const MASTER_CARDS = { battle: (c) => c.dataset.tab === 'combat', social: (c) => c.dataset.tab === 'misc' && c.dataset.sub === 'npc' };
+// data-dm-only keeps a card from helpers even when it sits in their tab.
+const fits = (c) => { const m = MASTER_CARDS[masterRole()]; return m ? m(c) && !c.hasAttribute('data-dm-only') : inMode(c); };
 const planTab = (id) => !!$(`[data-group][data-plan] [data-stab="${id}"]`);
 
 // A tab shows when a card under it fits this mode; planning tabs only in Planning Mode.
 function visibleTabs() {
   const ok = new Set();
-  $$('[data-tab]').forEach((c) => { if (inMode(c) && (planning || !planTab(c.dataset.tab))) ok.add(c.dataset.tab); });
+  $$('[data-tab]').forEach((c) => { if (fits(c) && (masterRole() || planning || !planTab(c.dataset.tab))) ok.add(c.dataset.tab); });
   return ok;
 }
 
 function apply() {
+  if (masterRole()) { planning = false; mapPage = false; } // not saved: the laptop keeps the DM's choice
   document.body.classList.toggle('planning', planning);
   document.body.classList.toggle('map-page', mapPage);
   $('#planToggle')?.classList.toggle('on', planning);
@@ -59,7 +65,7 @@ function apply() {
 
   // Parts of the open tab that have a card in this mode, in SUB_NAMES order.
   const parts = [];
-  $$(`[data-tab="${tab}"][data-sub]`).forEach((c) => { if (inMode(c) && !parts.includes(c.dataset.sub)) parts.push(c.dataset.sub); });
+  $$(`[data-tab="${tab}"][data-sub]`).forEach((c) => { if (fits(c) && !parts.includes(c.dataset.sub)) parts.push(c.dataset.sub); });
   const order = Object.keys(SUB_NAMES);
   parts.sort((a, b) => order.indexOf(a) - order.indexOf(b));
   let sub = subs[tab];
@@ -68,7 +74,7 @@ function apply() {
   $('#subTabs').hidden = parts.length < 2;
 
   $$('[data-tab]').forEach((c) => {
-    c.hidden = !(c.dataset.tab === tab && inMode(c) && (!c.dataset.sub || c.dataset.sub === sub));
+    c.hidden = !(c.dataset.tab === tab && fits(c) && (!c.dataset.sub || c.dataset.sub === sub));
   });
   $$('[data-panel]:not([data-tab])').forEach((p) => { p.hidden = !p.dataset.panel.split(' ').includes(mode); });
 }
@@ -106,6 +112,8 @@ $('#tvLogKinds')?.addEventListener('change', (e) => {
   if (e.target.checked) cur.add(kind); else cur.delete(kind);
   emit('dm:settings', { display: { showLog: [...cur] } });
 });
+
+window.addEventListener('dm:role', () => { if (state()) apply(); });
 
 $('#sideTabs')?.addEventListener('click', (e) => {
   const b = e.target.closest('[data-stab]');
