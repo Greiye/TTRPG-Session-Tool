@@ -80,6 +80,7 @@ const SHOTS = process.env.SHOTS;
   await ph.click('#invForm button');
   await ph.waitForSelector('#tabInventory [data-item]', { timeout: 3000 }).catch(() => errors.push('inventory item was not added'));
   await ph.click('#tabs [data-tab="play"]');
+  await dm.evaluate(() => socket.emit('dm:worldmap:show', { on: false })); // the world map stays on the TV in every mode until the DM takes it off
   await dm.evaluate(() => socket.emit('dm:mode', { mode: 'social' }));
   await tv.waitForSelector('.vn', { timeout: 5000 });
   await dm.waitForTimeout(800);

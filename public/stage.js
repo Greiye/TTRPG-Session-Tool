@@ -281,7 +281,7 @@
       <h1>${esc(sc.title)}</h1>
       <p class="scene-text">${esc(sc.text)}</p>
       ${narration(s)}
-      <div class="poi">${poi}</div>
+      ${poi ? `<div class="poi">${poi}</div>` : ''}
       ${checkBanner(s)}
     </div>`;
   }

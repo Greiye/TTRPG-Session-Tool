@@ -55,7 +55,7 @@ module.exports = function dmSockets(socket) {
     if (!['exploration', 'combat', 'social'].includes(mode)) return;
     state.mode = mode;
     world.applyMood(mode);
-    if (mode !== 'exploration') state.worldMap.onTv = false; // the world map belongs to exploration: combat and social take the TV
+    // The world map stays on the TV in every mode (Mike, Nov 16); the DM's Show on TV is the only switch.
     state.check = null;
     log('system', `— ${mode.toUpperCase()} —`);
     void bulbs.sync(state);
@@ -71,8 +71,9 @@ module.exports = function dmSockets(socket) {
       title: String(title ?? state.scene.title).slice(0, 80),
       text: String(text ?? state.scene.text).slice(0, 600),
       theme: String(theme ?? state.scene.theme),
-      poi: Array.isArray(poi) ? poi.map((s) => String(s).slice(0, 60)).filter(Boolean).slice(0, 8) : state.scene.poi,
+      poi: Array.isArray(poi) ? poi.map((s) => String(s ?? '').trim().slice(0, 60)).filter(Boolean).slice(0, 8) : state.scene.poi,
     });
+    state.scene.revealed = (state.scene.revealed || []).filter((p) => state.scene.poi.includes(p)); // a removed point leaves no stale reveal
     state.scene.secrets ??= [];
     // A new place: TV fade and chapter card, and planned choice echoes count down a scene (src/moments.js).
     if (state.scene.title !== before) { moments.onNewScene(state); state.narration = []; } // a new place starts a clean narration list

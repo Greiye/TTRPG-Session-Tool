@@ -13,6 +13,9 @@ const { ok, until } = h;
   ok(await until(() => players.every((p) => p.last.players.length === 4)), 'every phone sees all four');
 
   // Fog of war (7c)
+  ok(dm.last.scene.poi.length === 0, 'a scene starts with no points of interest (the DM adds them)');
+  dm.emit('dm:scene', { title: dm.last.scene.title, text: dm.last.scene.text, theme: dm.last.scene.theme, poi: ['Toppled shrine', '', '  ', 'Cart tracks', 'Old mill in the fog'] });
+  ok(await until(() => dm.last.scene.poi.length === 3), 'blank points of interest are dropped');
   ok(dm.last.scene.revealed.length === 0, 'points of interest start covered');
   dm.emit('dm:reveal', { poi: 'Toppled shrine' });
   ok(await until(() => dm.last.scene.revealed.includes('Toppled shrine')), 'DM uncovers one point of interest');

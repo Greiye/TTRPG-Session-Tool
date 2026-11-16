@@ -27,6 +27,8 @@ function readJson(file) {
 }
 
 // Only durable fields; transient ones (spotlight, caption, connections) are rebuilt at runtime.
+const OLD_POI = 'Toppled shrine|Cart tracks|Old mill in the fog';
+
 function snapshot(state, seq) {
   return {
     version: VERSION,
@@ -54,6 +56,13 @@ function restore(state, roster, saved) {
   const pick = (k) => { if (saved[k] !== undefined) state[k] = saved[k]; };
   ['system', 'mode', 'room', 'scene', 'check', 'combat', 'social', 'log', ...EXTRA].forEach(pick);
   if (saved.settings) Object.assign(state.settings, saved.settings);
+  // Older saves carry the old placeholder points of interest, or blank ones; scenes start with none now.
+  if (Array.isArray(state.scene?.poi)) {
+    const poi = state.scene.poi.map((p) => String(p ?? '').trim()).filter(Boolean);
+    state.scene.poi = poi.join('|') === OLD_POI ? [] : poi;
+    state.scene.revealed = (state.scene.revealed || []).filter((p) => state.scene.poi.includes(p));
+  }
+  if (state.worldMap) require('./worldmap').migrate(state.worldMap);
   state.players = Object.create(null);
   for (const id of saved.party || []) if (roster[id]) state.players[id] = roster[id];
   state.combat.order = (state.combat.order || []).filter((o) => state.players[o.id] || state.combat.enemies.some((e) => e.id === o.id));

@@ -120,3 +120,37 @@ html[data-motion="reduce"] .wm-revealing * { animation-duration: .001ms !importa
 .wm-trash.hot { opacity: 1; background: #a3332b; color: #fff; transform: scale(1.2); }
 .wm-node.binning { opacity: .4; }
 .wm-foot { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgb(127 127 127 / .3); }
+
+/* Paper map (Mike, Nov 16): parchment with light watercolour washes, a paper grain and darkened edges over any
+   picture, sepia ink for roads, places and labels, and a compass rose at the bottom right. Fog is unpainted
+   parchment. The SVG comes from public/worldmap.js (watercolor, paperSvg, compass). */
+.wm-board.paper .wm-pic { background: #efe2c4; border-radius: 4px; box-shadow: 0 0 0 1px #8a6a3e, 0 0 0 4px #e9dab6, 0 0 0 5px #8a6a3e, 0 8px 28px #0009; }
+.wm-board.paper .wm-blank { position: relative; background: #efe2c4; }
+.wm-wc { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.wm-paper { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: multiply; }
+.wm-compass { position: absolute; right: 2.5%; bottom: 3%; width: clamp(54px, 11%, 150px); height: auto; pointer-events: none; opacity: .88; filter: drop-shadow(0 1px 0 #f4ead5aa); transform-origin: 50% 50%; animation: wm-compass-sway 9s ease-in-out infinite alternate; animation-delay: var(--wm-sway, 0ms); }
+/* The rose spins in as the map unrolls on the TV; the sway delay comes from the clock, so a redraw does not jump. */
+.wm-revealing .wm-compass { animation: wm-compass-in 1.4s cubic-bezier(.2,.9,.3,1.2) both; animation-delay: calc(var(--wm-t, 0ms) + 1200ms); }
+@keyframes wm-compass-in { from { opacity: 0; transform: rotate(-200deg) scale(.4); } }
+@keyframes wm-compass-sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+.wm-board.paper .wm-node span { color: #3b2a18; font-family: Georgia, 'Times New Roman', serif; font-weight: 600; letter-spacing: .02em; text-shadow: 0 0 3px #f4ead5, 0 0 3px #f4ead5, 0 0 6px #f4ead5; }
+.wm-board.paper .wm-node span small { color: #7a5a3a; }
+.wm-board.paper .wm-node i { background: #8a5a2e; box-shadow: 0 0 0 2px #f4ead5, 0 0 0 3px #4a3420; }
+.wm-board.paper .wm-node.unrevealed i { background: #b49870; }
+.wm-board.paper .wm-node.here i { background: #3f8a4a; }
+.wm-board.paper .wm-node.dungeon i { background: #9a3f2a; }
+.wm-board.paper .wm-node.fogged i { background: #b8a888; box-shadow: 0 0 0 2px #f4ead5, 0 0 8px #7a6040; }
+.wm-board.paper .wm-node.fogged span { color: #7a6448; }
+.wm-board.paper .wm-road { stroke: #6b4a2a; opacity: .85; filter: none; }
+.wm-board.paper .wm-road.unknown { opacity: .35; }
+.wm-board.paper .wm-road.trip { stroke: #b0402a; opacity: 1; }
+.wm-board.paper .wm-road.sel { stroke: #1f6fa0; opacity: 1; }
+.wm-board.paper .wm-fog.dm { opacity: .5; }
+.wm-board.paper .wm-token { filter: drop-shadow(0 2px 2px #3b2a18aa); }
+/* Road drawing (Nov 16): the ink line that follows the pointer while dragging from one place to another. */
+.wm-road.draft { stroke: #1f6fa0; stroke-dasharray: 4 5; opacity: .9; animation: wm-march .6s linear infinite; }
+.wm-road.draft.hit { stroke: #2f8a3a; stroke-dasharray: none; stroke-width: 4; }
+.wm-node.road-to i { outline: 3px solid #2f8a3a; outline-offset: 3px; animation: wm-road-to .6s ease-in-out infinite alternate; }
+@keyframes wm-road-to { to { outline-offset: 6px; } }
+@media (prefers-reduced-motion: reduce) { .wm-compass, .wm-road.draft, .wm-node.road-to i { animation: none; } }
+html[data-motion="reduce"] .wm-compass, html[data-motion="reduce"] .wm-road.draft { animation: none; }

@@ -66,7 +66,8 @@
     return `<svg class="wm-roads" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>`;
   }
 
-  // Fog of war: a cloud layer with clear holes around seen places and the party. Light on the DM page.
+  // Fog of war: unpainted parchment (Nov 16 paper look) with clear holes around seen places and the party.
+  // Light on the DM page.
   let fogSeq = 0;
   function fogSvg(wm, p, opts) {
     if (!wm.fog) return '';
@@ -76,10 +77,70 @@
     return `<svg class="wm-fog ${opts.dm ? 'dm' : ''}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <filter id="${id}b" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter>
-        <filter id="${id}t"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="7"/><feColorMatrix values="0 0 0 0 .08  0 0 0 0 .07  0 0 0 0 .1  0 0 0 -1.1 1.25"/></filter>
+        <filter id="${id}t"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="7"/><feColorMatrix values="0 0 0 0 .55  0 0 0 0 .44  0 0 0 0 .3  0 0 0 -1.1 1.05"/></filter>
         <mask id="${id}m"><rect width="100" height="100" fill="#fff"/><g fill="#000" filter="url(#${id}b)">${holes}</g></mask>
       </defs>
-      <g mask="url(#${id}m)"><rect width="100" height="100" fill="#120d16"/><rect class="wm-fog-drift" width="100" height="100" filter="url(#${id}t)"/></g>
+      <g mask="url(#${id}m)"><rect width="100" height="100" fill="#e3d2ac"/><rect class="wm-fog-drift" width="100" height="100" filter="url(#${id}t)"/></g>
+    </svg>`;
+  }
+
+  // Paper map look (Mike, Nov 16): a parchment sheet with light watercolour washes when no picture is
+  // uploaded, a paper grain and darkened edges over any picture, and a compass rose at the bottom right.
+  // All plain SVG (filters, no images), so it works offline. Ids are unique per drawing.
+  let paperSeq = 0;
+  function watercolor() {
+    const id = `wmwc${++paperSeq}`;
+    // [cx, cy, rx, ry, colour, opacity]: soft land and water washes on a 160 x 100 sheet.
+    const washes = [
+      [38, 62, 34, 22, '#9fbf8a', 0.55], [52, 30, 30, 16, '#7fa772', 0.5], [118, 40, 30, 20, '#b7c68e', 0.5],
+      [128, 74, 28, 16, '#c9b98a', 0.45], [86, 52, 18, 12, '#a7c49a', 0.4], [20, 20, 22, 12, '#93b4c4', 0.45],
+      [150, 14, 18, 10, '#93b4c4', 0.4], [100, 92, 40, 9, '#8fb0c6', 0.4], [74, 18, 10, 7, '#6f9a6a', 0.45],
+    ];
+    const blobs = washes.map(([cx, cy, rx, ry, c, o]) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${c}" fill-opacity="${o}"/>`).join('');
+    return `<svg class="wm-wc" viewBox="0 0 160 100" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <filter id="${id}w" x="-20%" y="-20%" width="140%" height="140%">
+          <feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="3" seed="11" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="14" result="d"/>
+          <feGaussianBlur in="d" stdDeviation="1.4" result="b"/>
+          <feComposite in="b" in2="d" operator="arithmetic" k1="0" k2=".7" k3=".5" k4="0"/>
+        </filter>
+        <filter id="${id}r"><feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4"/></filter>
+      </defs>
+      <rect width="160" height="100" fill="#efe2c4"/>
+      <g filter="url(#${id}w)">${blobs}</g>
+      <path filter="url(#${id}r)" d="M-2 34 C 22 40, 40 30, 62 42 S 98 64, 118 58 S 150 70, 164 66" fill="none" stroke="#7fa6c0" stroke-width="1.6" stroke-opacity=".7" stroke-linecap="round"/>
+    </svg>`;
+  }
+  function paperSvg() {
+    const id = `wmpp${++paperSeq}`;
+    return `<svg class="wm-paper" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <filter id="${id}g"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"/><feColorMatrix values="0 0 0 0 .45  0 0 0 0 .34  0 0 0 0 .2  0 0 0 .22 0"/></filter>
+        <radialGradient id="${id}v" cx="50%" cy="50%" r="72%"><stop offset="62%" stop-color="#5a3d1c" stop-opacity="0"/><stop offset="100%" stop-color="#5a3d1c" stop-opacity=".42"/></radialGradient>
+      </defs>
+      <rect width="100" height="100" filter="url(#${id}g)"/>
+      <rect width="100" height="100" fill="url(#${id}v)"/>
+    </svg>`;
+  }
+  function compass() {
+    // Eight-point rose in sepia ink: long N/E/S/W points, short diagonals, a ring and an N.
+    const pt = (a, len, w, dark) => {
+      const r = (d) => (d * Math.PI) / 180;
+      const tip = [50 + Math.sin(r(a)) * len, 50 - Math.cos(r(a)) * len];
+      const l = [50 + Math.sin(r(a - 90)) * w, 50 - Math.cos(r(a - 90)) * w];
+      const rr = [50 + Math.sin(r(a + 90)) * w, 50 - Math.cos(r(a + 90)) * w];
+      const f = (q) => q.map((v) => v.toFixed(2)).join(' ');
+      return `<path d="M50 50 L${f(l)} L${f(tip)} Z" fill="${dark ? '#4a3420' : '#e9d9b4'}"/><path d="M50 50 L${f(tip)} L${f(rr)} Z" fill="${dark ? '#e9d9b4' : '#4a3420'}"/>`;
+    };
+    const diag = [45, 135, 225, 315].map((a) => pt(a, 22, 5, false)).join('');
+    const main = [0, 90, 180, 270].map((a) => pt(a, 38, 7, true)).join('');
+    return `<svg class="wm-compass" viewBox="0 0 100 100" aria-hidden="true" style="--wm-sway:${-(Date.now() % 18000)}ms">
+      <circle cx="50" cy="50" r="30" fill="none" stroke="#4a3420" stroke-width="1.2" opacity=".8"/>
+      <circle cx="50" cy="50" r="26" fill="none" stroke="#4a3420" stroke-width=".6" stroke-dasharray="1.5 2.5" opacity=".8"/>
+      <g stroke="#4a3420" stroke-width=".6" stroke-linejoin="round">${diag}${main}</g>
+      <circle cx="50" cy="50" r="2.6" fill="#b0402a" stroke="#4a3420" stroke-width=".6"/>
+      <text x="50" y="9" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="11" fill="#4a3420">N</text>
     </svg>`;
   }
 
@@ -94,8 +155,8 @@
       : '';
     // The party's place is marked ("You are here"); a dungeon entrance carries a gate icon.
     const nodes = wm.nodes.map((n) => `<div class="wm-node ${n.id === wm.here ? 'here' : ''} ${n.dungeon && !n.fogged ? 'dungeon' : ''} ${n.id === opts.selected ? 'sel' : ''} ${n.id === opts.from ? 'from' : ''} ${n.revealed ? '' : 'unrevealed'} ${n.fogged ? 'fogged' : ''} ${opts.dm && wm.fog && !n.seen ? 'unseen' : ''} ${t && n.id === (t.dest || t.to) ? 'dest' : ''}" data-node="${esc(n.id)}" style="left:${pct(n.x)};top:${pct(n.y)}"><i></i><span>${n.dungeon && !n.fogged ? '🏰 ' : ''}${esc(n.name)}${opts.dm && !n.revealed ? ' <small>(hidden)</small>' : ''}</span>${n.id === wm.here && !t ? '<b class="wm-here">You are here</b>' : ''}</div>`).join('');
-    const pic = wm.image ? `<img src="${esc(wm.image)}" alt="">` : '<div class="wm-blank"></div>';
-    return `<div class="wm-board ${opts.tv ? 'tv' : ''} ${opts.dm ? 'dm' : ''}"><div class="wm-pic">${pic}<div class="wm-layer">${roadsSvg(wm, opts)}${fogSvg(wm, p, opts)}${nodes}${token}</div></div></div>`;
+    const pic = wm.image ? `<img src="${esc(wm.image)}" alt="">` : `<div class="wm-blank">${watercolor()}</div>`;
+    return `<div class="wm-board paper ${opts.tv ? 'tv' : ''} ${opts.dm ? 'dm' : ''}"><div class="wm-pic">${pic}${paperSvg()}<div class="wm-layer">${roadsSvg(wm, opts)}${fogSvg(wm, p, opts)}${nodes}${token}</div>${compass()}</div></div>`;
   }
 
   // "Travelling to Dun, via Bree and Cole" for the title lines.

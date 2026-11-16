@@ -5,12 +5,18 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- World map, from Mike's Nov 16 notes:
+  - **Roads by drag:** with **+ Road** on, press on a place, drag to another and let go to lay a road. A blue ink line follows the pointer and turns green over the place it will join. Road mode stays on, so several roads can be drawn in a row; tapping one place and then another still works.
+  - **Paper map look:** the map is a parchment sheet with light watercolour washes (land, lakes and a river) when no picture is uploaded, and a paper grain with darkened edges over an uploaded picture. Roads, places and labels are sepia ink, fog is unpainted parchment, and a **compass rose** sits at the bottom right (it spins in as the map unrolls on the TV, then sways gently). All SVG, no images, so it works offline.
 - **Battle Master** and **Social Master** co-DM roles (Mike, Nov 16), each with its own private QR on the DM page's Co-DM card (`BATTLE_KEY`, `SOCIAL_KEY`). The Battle Master runs combat, the battle map and the DM's creatures; the Social Master runs NPC dialogue. Both open the DM page showing only their cards, and the server allows only the events listed per role in `src/roles.js`. A helper key now wins over localhost, so a helper link opened on the laptop gets the helper view.
 
 ### Fixed
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- The world map stays on the TV in every mode (Mike, Nov 16). Switching to combat or social no longer takes it off; untick **Show on TV** to give the TV back. Rolling initiative still hands the TV to the battle map.
+- A world map travel leg takes **5 seconds** by default (was 60). Saves still on the old 60 s default move to 5 s once; a leg the DM sets is kept.
+- Scenes start with **no points of interest**; the DM adds them. Blank entries are dropped, the TV no longer shows an empty points row, and saves holding the old three placeholder points (Toppled shrine, Cart tracks, Old mill in the fog) are cleared on load.
 - Co-DM and combat tools, from Mike's Nov 16 notes:
   - The **co-DM** now has every DM permission: the invite opens the DM page with the co-DM key (`/codm` stays as a phone soundboard).
   - Co-DM card: each role (Co-DM, Battle Master, Social Master) is a title with one centred **Invite** button under it.
