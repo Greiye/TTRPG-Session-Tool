@@ -633,5 +633,5 @@ body.chron .btn.go:hover { background-color: #379a3b; }
 /* .btn:active nudges buttons with a transform; keep Send centred while pressed. */
 .convo-wheel .wheel-send:active { transform: translate(-50%, -50%) scale(.95); }
 .convo-wheel .wheel-send.drop { transform: translate(-50%, -50%) scale(1.12); }
-.convo-wheel .wheel-send { border: 0; border-image: none; box-shadow: 0 0 0 2px #1a1612, 0 0 0 4px #9b9183, 0 0 0 9px var(--panel, #e8d6ae), 0 4px 12px rgb(0 0 0 / .45); display: flex; align-items: center; justify-content: center; gap: 6px; }
+body.chron .convo-wheel .wheel-send, .convo-wheel .wheel-send { border: 0; border-image: none; box-shadow: 0 0 0 2px #1a1612, 0 0 0 4px #9b9183, 0 0 0 9px var(--panel, #e8d6ae), 0 4px 12px rgb(0 0 0 / .45); display: flex; align-items: center; justify-content: center; gap: 6px; }
 .convo-wheel .wheel-send.drop { box-shadow: 0 0 0 2px #1a1612, 0 0 0 4px #f2c96e, 0 0 24px 8px rgb(240 190 90 / .85); }
