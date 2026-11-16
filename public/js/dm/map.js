@@ -3,6 +3,7 @@
 import { $, emit, onState, state } from '../client.js';
 import { dmKey } from './auth.js';
 import { holdButton } from './hold.js';
+import { setFold } from './fold.js';
 
 const { esc } = Stage;
 let mapKey = null;
@@ -74,13 +75,8 @@ holdButton($('#mapGen'), {
     fold(true);
   },
 });
-// The Battle map card folds by its title.
-function fold(on) {
-  $('#mapCard').classList.toggle('folded', on);
-  $('#mapFold').setAttribute('aria-expanded', String(!on));
-  $('#mapBody').hidden = on;
-}
-$('#mapFold').onclick = () => fold(!$('#mapCard').classList.contains('folded'));
+// The Battle map card folds by its title (fold.js); it starts folded (Mike, Nov 15 and 16).
+const fold = (on) => setFold($('#mapCard'), on);
 $('#mapFile').onchange = async (e) => {
   const file = e.target.files[0];
   e.target.value = '';

@@ -481,17 +481,13 @@ body.chron .btn.danger.enc-end:hover { background-color: #cf2c21; }
 .cbt.acted .cbt-head b { color: #6b6158; }
 
 /* Battle map card (Mike, Nov 16): centred buttons with their fields underneath, a green hold-to-generate at the
-   bottom, and a title that folds the card. */
+   bottom. The title folds the card (fold.js). */
 .map-stack { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 .map-stack > .btn { min-width: 60%; justify-content: center; }
 .map-stack .map-under { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: -2px; }
 .map-stack .note { margin: 0; }
 body.chron .btn.go, .btn.go { background: linear-gradient(180deg, rgb(210 255 200 / .22), transparent 45%, rgb(0 0 0 / .35)), #2f7d32; border-color: #5fbf5f; color: #fff; }
 body.chron .btn.go:hover { background-color: #379a3b; }
-.fold-head { all: unset; cursor: pointer; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; }
-.fold-head i { display: inline-block; font-style: normal; transition: transform .2s; }
-.fold-card.folded .fold-head i { transform: rotate(-90deg); }
-.fold-head:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 /* Co-DM card: each role is a title, one centred Invite button under it, then its QR. */
 .invite-role { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-bottom: 10px; }
@@ -499,3 +495,45 @@ body.chron .btn.go:hover { background-color: #379a3b; }
 .invite-role h3 { align-self: stretch; }
 .invite-role > .btn { min-width: 50%; }
 .invite-role .codm-invite { align-self: stretch; }
+
+/* DM tabs and Party sidebar (Mike, Nov 15 PR D, Nov 16 PR H and S) ------------------------------- */
+/* The live mode's button is pressed in: a darker plate and an inset shadow, not only gold text. */
+.modes .btn[data-mode] { transition: filter .15s, transform .12s, box-shadow .2s, background-color .2s; }
+body.chron .modes .btn[data-mode].on {
+  color: #ffe2a0;
+  background: linear-gradient(180deg, rgb(0 0 0 / .72), rgb(0 0 0 / .5) 55%, rgb(40 20 0 / .45)), #2b1a0c var(--tx-wood) center / 400px 120px;
+  text-shadow: 0 0 6px rgb(240 190 90 / .6);
+  box-shadow: inset 0 3px 8px rgb(0 0 0 / .75), 0 0 0 1px #e6b65a, 0 0 10px rgb(240 190 90 / .45);
+  transform: translateY(1px);
+  animation: mode-press .28s ease-out;
+}
+@keyframes mode-press { 0% { transform: translateY(-1px); filter: brightness(1.3); } 60% { transform: translateY(2px); } 100% { transform: translateY(1px); filter: none; } }
+
+/* The Modes card folds to its title, which then names the live mode. The tab list is its own card under it. */
+.modes-card .mode-now { display: none; color: var(--gold); }
+.modes-card.folded .mode-now { display: inline; animation: fade-in .25s ease-out; }
+.tab-card { padding-top: 4px; padding-bottom: 4px; }
+.tab-card .tab-list { margin-top: 0; }
+.tab-card .tab-list .tab-group:first-child { border-top: 0; }
+body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / .55); }
+
+/* Opening a folded card slides its contents in. */
+.card[data-fold]:not(.folded) > :not(h3:first-of-type) { animation: fold-open .22s ease-out; }
+@keyframes fold-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .card[data-fold]:not(.folded) > *, .modes .btn[data-mode].on, .modes-card .mode-now { animation: none; } }
+
+/* Party sidebar on the right (was the Party tab): the hero, then the party list, conditions and characters. */
+.dm-hero .party-side { margin: 0; }
+.dm-hero .party-side .row { flex-wrap: wrap; }
+.dm-hero .party-side select { width: 100%; }
+.dm-hero .party-side h3 .btn { margin-left: 6px; }
+
+/* Buttons sit in the middle of their card where a row holds only buttons (Mike, Nov 15 item 8). */
+.dm-right .card > .row:not(:has(input, select, textarea, label, .grow, .note, span)),
+.dm-hero .card > .row:not(:has(input, select, textarea, label, .grow, .note, span)) { justify-content: center; }
+
+/* Logs tab: show or hide the logs on this screen (the same switch as Display settings). */
+.log-toggle { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; font-weight: 600; }
+#tabLogs .log-toggle { padding: 4px 2px; }
+.dm-hero .party-side h3 .note { display: none; } /* the sidebar is narrow: titles only */

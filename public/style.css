@@ -964,12 +964,13 @@ html[data-log="hide"] #tabLogs .logs-off { display: block; }
 /* Battle and Social Masters (src/roles.js): the DM page without the DM's own controls. */
 body[data-role] .dm-bar > :not(h2):not(.bar-min),
 body[data-role] .composer,
-body[data-role] .modes-card .modes,
+body[data-role] .modes-card,
+body[data-role] .party-side,
 body[data-role] #wmPage { display: none !important; }
 /* Battle Master outside combat: one message instead of the table. */
 .battle-wait { flex: 1; display: grid; place-items: center; padding: 24px; text-align: center; }
 .battle-wait p { font-family: var(--display); color: var(--gold); font-size: calc(26px * var(--ts)); margin: 0; animation: pulse 2s infinite; }
-body.battle-waiting #tablePage, body.battle-waiting #toolsCol .modes-card, body.battle-waiting #sideTitle, body.battle-waiting #subTabs { display: none !important; }
+body.battle-waiting #tablePage, body.battle-waiting #toolsCol .modes-card, body.battle-waiting #toolsCol .tab-card, body.battle-waiting #sideTitle, body.battle-waiting #subTabs { display: none !important; }
 
 /* Phone tabs (Mike, Nov 16): symbols only, every tab shares the width, never a sideways scroll. */
 .tabs { overflow: visible; }
@@ -996,8 +997,9 @@ body.battle-waiting #tablePage, body.battle-waiting #toolsCol .modes-card, body.
 .shop-wait-msg { font-family: var(--display); font-size: calc(20px * var(--ts)); margin: 12px 0 4px; }
 
 /* Folding cards (Nov 15): data-fold cards fold to their title; ▸ / ▾ shows which way. */
-.card[data-fold] > h3 { cursor: pointer; user-select: none; }
-.card[data-fold] > h3::after { content: '▾'; float: right; opacity: .6; transition: transform .2s; }
-.card[data-fold].folded > h3::after { transform: rotate(-90deg); }
-.card[data-fold].folded > :not(h3) { display: none !important; }
-.card[data-fold].folded > h3 { margin-bottom: 0; }
+/* Only the first title folds the card; later titles inside it fold away with the rest. */
+.card[data-fold] > h3:first-of-type { cursor: pointer; user-select: none; }
+.card[data-fold] > h3:first-of-type::after { content: '▾'; float: right; opacity: .6; transition: transform .2s; }
+.card[data-fold].folded > h3:first-of-type::after { transform: rotate(-90deg); }
+.card[data-fold].folded > :not(h3:first-of-type) { display: none !important; }
+.card[data-fold].folded > h3:first-of-type { margin-bottom: 0; }

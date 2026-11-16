@@ -18,7 +18,6 @@
       <button class="bar-min" id="barMin" title="Minimize the top bar" aria-label="Minimize the top bar" aria-expanded="true" aria-controls="dmBar">▴</button>
       <a href="/screen" target="_blank">Open TV screen ↗</a>
       <span class="note">Drag that window to the TV, double-click for fullscreen.</span>
-      <label class="note tight">Rules <select id="system"></select></label>
       <span class="note tight">Room <b id="roomCode"></b> <button class="btn small" id="roomNew" title="New phones need the new QR; seated phones stay">New code</button></span>
       <label class="note tight">Join address <select id="hostSel"></select></label>
       <label class="note tight"><input type="checkbox" id="showJoin"> Show “Join the party” QR on TV</label>
@@ -45,15 +44,15 @@
       <div class="row"><input id="key" class="grow"><button class="btn primary" id="authBtn">Unlock</button></div>
     </div>
 
-    <div class="card modes-card">
-      <h3>Modes <span class="note" id="padStatus"></span></h3>
+    <div class="card modes-card" data-fold data-fold-key="modes">
+      <h3>Modes <span class="note mode-now" id="modeNow"></span> <span class="note" id="padStatus"></span></h3>
       <div class="modes">
         <button class="btn" data-mode="exploration">🧭 Explore</button>
         <button class="btn" data-mode="combat">⚔️ Combat</button>
         <button class="btn" data-mode="social">💬 Social</button>
       </div>
       <div class="modes modes-alt">
-        <button class="btn" id="planToggle" aria-pressed="false" title="Prep between sessions: shops and road cards. The table does not see it.">📝 Planning</button>
+        <button class="btn" id="planToggle" aria-pressed="false" title="Prep between sessions: shops and choice echoes. The table does not see it.">📝 Planning</button>
         <button class="btn" id="mapToggle" aria-pressed="false" title="Turn your main page into the world map">🗺 World map</button>
       </div>
       <div id="castPick" class="cast-pick" hidden>
@@ -61,13 +60,16 @@
         <div id="castPickList" class="cast-list"></div>
         <button class="btn small" data-enter="none">Enter without picking</button>
       </div>
-      <nav class="tab-list" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Rolls"><i>🎲</i><span>Rolls</span></button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat"><i>⚔️</i><span>Combat</span></button><button role="tab" data-stab="party" title="Party and conditions" aria-label="Party"><i>👥</i><span>Party</span></button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages"><i>✉</i><span>Messages</span></button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs"><i>📜</i><span>Logs</span></button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene, points of interest, stage and music, clocks, TV moments and puzzles" aria-label="Scene"><i>🎬</i><span>Scene</span></button><button role="tab" data-stab="misc" title="NPCs, legends, lights, table tools, quiz, relations, journal, camp, co-DM and campaign data" aria-label="Miscellaneous"><i>🧰</i><span>Miscellaneous</span></button></div><div class="tab-group" data-group="plan" data-plan aria-label="Planning"><button role="tab" data-stab="shops" title="Shops and party gold" aria-label="Shops"><i>🛒</i><span>Shops</span></button><button role="tab" data-stab="roads" title="Road card deck, auto table and timing" aria-label="Road cards"><i>🃏</i><span>Road cards</span></button></div></nav>
+    </div>
+    <div class="card tab-card">
+      <nav class="tab-list" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Rolls"><i>🎲</i><span>Rolls</span></button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat"><i>⚔️</i><span>Combat</span></button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages"><i>✉</i><span>Messages</span></button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs"><i>📜</i><span>Logs</span></button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene, points of interest, stage and music, clocks, TV moments and puzzles" aria-label="Scene"><i>🎬</i><span>Scene</span></button><button role="tab" data-stab="misc" title="NPCs, legends, lights, table tools, quiz, relations, journal, camp, road cards, rules system, co-DM and campaign data" aria-label="Miscellaneous"><i>🧰</i><span>Miscellaneous</span></button></div><div class="tab-group" data-group="plan" data-plan aria-label="Planning"><button role="tab" data-stab="shops" title="Shops and party gold" aria-label="Shops"><i>🛒</i><span>Shops</span></button><button role="tab" data-stab="echo" title="Choice echoes: plant a consequence now, it fires after N scenes" aria-label="Choice echo"><i>🔁</i><span>Choice echo</span></button></div></nav>
     </div>
 
     <p class="side-title" id="sideTitle"></p>
     <div class="sub-tabs" id="subTabs" role="tablist" aria-label="Section parts"></div>
 
 <div class="card" data-tab="misc" data-sub="codm">
+      <h3>Co-DM and helpers <span class="note">invite by QR</span></h3>
       <div class="invite-role">
         <h3>🐉 Co-DM <span id="codmCount" class="note"></span></h3>
         <button class="btn" data-invite="codm" aria-expanded="false" aria-controls="codmInvite">Invite</button>
@@ -107,12 +109,13 @@
       <div id="trStatus" class="note" role="status"></div>
       <div id="trList" class="list"></div>
       <div class="row"><button class="btn small" id="trClose">Close story on TV</button></div>
-      <h3>House rules <span class="note">the tool enforces each one while it is on</span></h3>
-      <div id="ruleList" class="list"></div>
-      <div id="ruleStatus" class="note" role="status"></div>
       <h3>Empty chairs <span class="note">a character whose phone is gone</span></h3>
       <div id="chairList" class="list"></div>
       <div id="chairStatus" class="note" role="status"></div>
+    </div>
+    <div class="card" data-tab="misc" data-sub="rules">
+      <h3>Rules system <span class="note">checks and new characters use it</span></h3>
+      <div class="row"><select id="system" class="grow" aria-label="Rules system"></select></div>
     </div>
     <div class="card" data-tab="misc" data-sub="data">
       <h3>Campaign data <span class="note" id="dataStatus"></span></h3>
@@ -127,11 +130,6 @@
       <p class="note">One file with characters, NPCs, places and lore (plus portraits) for Arthuria or another laptop. The transcript is Markdown.</p>
       <div class="row"><input id="saveName" class="grow" placeholder="Save point name, e.g. Before the vault"><button class="btn small" id="saveBtn">💾 Save point</button></div>
       <div id="saves" class="list"></div>
-    </div>
-
-    <div class="card" data-tab="party">
-      <h3>Party <button class="btn small danger" data-act="reset" title="Clears log, enemies, heals party">Reset session</button></h3>
-      <div id="party" class="list"></div>
     </div>
 
     <div class="card" data-tab="scene" data-sub="puzzle">
@@ -261,23 +259,11 @@
       <h3>Rests <span class="note">short and long</span></h3>
       <div class="row"><button class="btn" data-act="restShort">☕ Short rest</button><button class="btn" data-act="restLong">🛏 Long rest</button></div>
     </div>
-    <div class="card" data-tab="party">
-      <h3>Conditions <span class="note">on players and creatures in the encounter</span></h3>
-      <select id="condWho"></select>
-      <div id="condBtns" class="dm-conds"></div>
-      <div class="row"><input id="condRounds" type="number" min="0" max="99" value="0" style="width:90px" title="Rounds a condition lasts. 0 means until you clear it." aria-label="Rounds"><small class="note">rounds (0 = until cleared)</small></div>
-      <h3>Concentration <span class="note">for the player picked above</span></h3>
-      <div class="row"><input id="concSpell" class="grow" maxlength="60" placeholder="Spell, e.g. Hold Person" aria-label="Spell"><button class="btn small" data-conc="start">Concentrate</button><button class="btn small" data-conc="drop">Drop</button></div>
-      <div id="timerList" class="list"></div>
-    </div>
+    
     <div class="card" data-tab="scene" data-sub="clocks">
       <h3>Clocks <span class="note">countdowns on the TV</span></h3>
       <div class="row"><input id="clockName" class="grow" placeholder="The ritual completes"><input id="clockSegs" type="number" min="2" max="12" value="4" style="width:64px" title="Segments"><button class="btn small" id="clockAdd">Add</button></div>
       <div id="clockList" class="list"></div>
-    </div>
-    <div class="card" data-tab="party">
-      <h3>Characters <button class="btn small" id="charNew">+ New</button></h3>
-      <div id="chars" class="chars"></div>
     </div>
 
     <!-- EXPLORATION -->
@@ -343,17 +329,19 @@
       <div id="secList" class="list"></div>
     </div>
     <div class="card" data-tab="logs" data-panel="exploration">
-      <h3>TV log <span class="note">nothing shows until you tick a type</span></h3>
+      <h3>Logs <span class="note">on this screen and the TV</span></h3>
+      <label class="chk log-toggle"><input type="checkbox" id="logShowHere" data-log-here> Show logs on this screen</label>
+      <h4>TV log <span class="note">nothing shows until you tick a type</span></h4>
       <div id="tvLogKinds" class="row" style="flex-wrap:wrap"></div>
-      <h3>Dice log</h3>
+      <h4>Dice log</h4>
       <div id="rollLog" class="list roll-log"></div>
-      <h3>Party trail <span class="note">where the party has been, newest first</span></h3>
+      <h4>Party trail <span class="note">where the party has been, newest first</span></h4>
       <div id="wmTrail"></div>
     </div>
 
     <!-- COMBAT -->
-    <div class="card fold-card" data-tab="combat" data-panel="combat" id="mapCard">
-      <h3><button class="fold-head" id="mapFold" aria-expanded="true" aria-controls="mapBody">Battle map <i aria-hidden="true">▾</i></button> <span class="note">drag tokens onto the 3D map</span></h3>
+    <div class="card" data-tab="combat" data-panel="combat" id="mapCard" data-fold="closed" data-fold-key="battle-map">
+      <h3>Battle map <span class="note">drag tokens onto the 3D map</span></h3>
       <div class="fold-body map-stack" id="mapBody">
         <label class="btn">⬆ Map image<input type="file" accept="image/*" id="mapFile" hidden></label>
         <button class="btn" id="mapSet">Set grid</button>
@@ -386,17 +374,8 @@
       </div>
       <div id="initOrder" class="init-order" aria-live="polite"></div>
     </div>
-    <div class="card" data-tab="combat" data-panel="combat">
-      <h3>Creature randomizer <span class="note">seed locks a result</span></h3>
-      <div class="row">
-        <select id="rndTable" class="grow"></select>
-        <input id="rndSeed" placeholder="seed (optional)" style="width:130px">
-        <button class="btn primary" id="rndRoll">Roll</button>
-      </div>
-      <div id="rndOut" class="list"></div>
-      <div class="row"><span class="note">Token accessory colour</span><select id="rndAccWho" class="grow" aria-label="Creature"></select><button class="btn small" id="rndAcc" title="Random accessory colour for the creature's 2D token">🎨 Randomize</button></div>
-    </div>
-    <div class="card" data-tab="combat" data-panel="combat">
+    
+    <div class="card" data-tab="combat" data-panel="combat" data-fold="closed" data-fold-key="creatures">
       <h3>Creatures <span><button class="btn small" id="crNew">+ New</button> <button class="btn small" id="crImportBtn">Import</button></span></h3>
       <input id="crSearch" placeholder="Search stat blocks…">
       <div id="crList" class="list cr-list"></div>
@@ -416,6 +395,16 @@
         <input id="enDmg" type="number" placeholder="+Dmg" style="width:60px">
         <button class="btn" data-act="enemyAdd">Add</button>
       </div>
+    </div>
+    <div class="card" data-tab="combat" data-panel="combat" data-fold="closed" data-fold-key="creature-randomizer">
+      <h3>Creature randomizer <span class="note">seed locks a result</span></h3>
+      <div class="row">
+        <select id="rndTable" class="grow"></select>
+        <input id="rndSeed" placeholder="seed (optional)" style="width:130px">
+        <button class="btn primary" id="rndRoll">Roll</button>
+      </div>
+      <div id="rndOut" class="list"></div>
+      <div class="row"><span class="note">Token accessory colour</span><select id="rndAccWho" class="grow" aria-label="Creature"></select><button class="btn small" id="rndAcc" title="Random accessory colour for the creature's 2D token">🎨 Randomize</button></div>
     </div>
 
     <!-- SOCIAL -->
@@ -561,10 +550,27 @@
   </dialog>
 
   <button class="tools-grip" id="toolsGrip" title="Click or drag right to bring the tools back" aria-label="Show tools" aria-controls="toolsCol" aria-expanded="false"></button>
-  <button class="tools-grip right" id="heroGrip" title="Click or drag left to bring the hero back" aria-label="Show hero" aria-controls="heroCol" aria-expanded="false"></button>
-  <aside class="dm-hero" id="heroCol" aria-label="Hero">
-    <div class="col-head"><span>🛡 Hero</span><button class="tools-min" id="heroMin" title="Minimize the hero column (drag the edge tab to bring it back)" aria-label="Minimize hero" aria-controls="heroCol">»</button></div>
+  <button class="tools-grip right" id="heroGrip" title="Click or drag left to bring the party sidebar back" aria-label="Show party sidebar" aria-controls="heroCol" aria-expanded="false"></button>
+  <aside class="dm-hero" id="heroCol" aria-label="Party">
+    <div class="col-head"><span>👥 Party</span><button class="tools-min" id="heroMin" title="Minimize the party sidebar (drag the edge tab to bring it back)" aria-label="Minimize party sidebar" aria-controls="heroCol">»</button></div>
     <div id="heroPick" class="hero-pick" role="tablist" aria-label="Party member"></div>
+    <div class="card party-side" data-fold="closed" data-fold-key="party-list">
+      <h3>Party <button class="btn small danger" data-act="reset" title="Clears log, enemies, heals party">Reset session</button></h3>
+      <div id="party" class="list"></div>
+    </div>
+    <div class="card party-side" data-fold="closed" data-fold-key="party-conds">
+      <h3>Conditions <span class="note">on players and creatures in the encounter</span></h3>
+      <select id="condWho"></select>
+      <div id="condBtns" class="dm-conds"></div>
+      <div class="row"><input id="condRounds" type="number" min="0" max="99" value="0" style="width:90px" title="Rounds a condition lasts. 0 means until you clear it." aria-label="Rounds"><small class="note">rounds (0 = until cleared)</small></div>
+      <h3>Concentration <span class="note">for the player picked above</span></h3>
+      <div class="row"><input id="concSpell" class="grow" maxlength="60" placeholder="Spell, e.g. Hold Person" aria-label="Spell"><button class="btn small" data-conc="start">Concentrate</button><button class="btn small" data-conc="drop">Drop</button></div>
+      <div id="timerList" class="list"></div>
+    </div>
+    <div class="card party-side" data-fold="closed" data-fold-key="party-chars">
+      <h3>Characters <button class="btn small" id="charNew">+ New</button></h3>
+      <div id="chars" class="chars"></div>
+    </div>
     <div id="hero"></div>
   </aside>
 

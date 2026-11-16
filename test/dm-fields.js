@@ -29,6 +29,8 @@ const SKIP = ['checkbox', 'radio', 'range', 'color', 'file', 'hidden'];
         const subs = await p.$$eval('[data-sub-pick]', (b) => b.map((x) => x.dataset.subPick));
         for (const sub of subs.length ? subs : [null]) {
           if (sub) await p.click(`[data-sub-pick="${sub}"]`);
+          // Cards start folded (Mike, Nov 16): open them all so every field is measured.
+          await p.evaluate(() => document.querySelectorAll('.card.folded').forEach((c) => c.classList.remove('folded')));
           await p.waitForTimeout(100);
           const found = await p.evaluate((skip) => {
             const ctx = document.createElement('canvas').getContext('2d');
