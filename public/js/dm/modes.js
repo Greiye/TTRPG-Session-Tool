@@ -13,7 +13,7 @@ const KINDS = ['action', 'check', 'combat', 'downtime', 'narrate', 'npc', 'say',
 const KIND_NAMES = { action: 'Actions', check: 'Checks', combat: 'Combat', downtime: 'Downtime', narrate: 'Narration', npc: 'NPC speech', say: 'Player speech', shop: 'Shops', system: 'System', notice: 'Notices' };
 const SUB_NAMES = {
   scene: 'Scene', stage: 'Stage and music', clocks: 'Clocks', moments: 'TV moments', puzzle: 'Puzzles',
-  npc: 'NPCs', legends: 'Legends', lights: 'Smart lights', table: 'Table tools', quiz: 'Recap quiz', web: 'Relations web', journal: 'Notes and journal', camp: 'Camp and downtime', codm: 'Co-DM', data: 'Campaign data',
+  npc: 'NPCs', legends: 'Legends', lights: 'Smart lights', table: 'Table tools', quiz: 'Recap quiz', web: 'Relations web', journal: 'Notes and journal', camp: 'Camp and downtime', codm: 'Co-DM', data: 'Campaign data', roads: 'Road cards',
 };
 const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
@@ -133,7 +133,7 @@ $('#subTabs')?.addEventListener('click', (e) => {
 $('#planToggle')?.addEventListener('click', () => {
   planning = !planning;
   save('dmPlanning', planning ? '1' : '');
-  if (planning) tab = 'shops'; // open on the first planning tab
+  if (planning) tab = 'shops'; // open on the first planning tab (Road cards moved to Miscellaneous, Nov 15)
   apply();
 });
 $('#mapToggle')?.addEventListener('click', () => {

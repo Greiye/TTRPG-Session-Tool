@@ -999,7 +999,7 @@ body.battle-waiting #tablePage, body.battle-waiting #toolsCol .modes-card, body.
 .card[data-fold] > h3 { cursor: pointer; user-select: none; }
 .card[data-fold] > h3::after { content: '▾'; float: right; opacity: .6; transition: transform .2s; }
 .card[data-fold].folded > h3::after { transform: rotate(-90deg); }
-.card[data-fold].folded > :not(h3) { display: none !important; }
+.card[data-fold].folded > :not(:first-child) { display: none !important; }
 .card[data-fold].folded > h3 { margin-bottom: 0; }
 
 /* End of session (Mike, Nov 16): red hold button at the bottom of the DM tools sidebar, TV and phone end cards, DM dialog. */
@@ -1033,3 +1033,40 @@ body .dm-right .btn.end-session.ended { background: linear-gradient(180deg, rgb(
 .end-log-row small { opacity: .6; }
 .end-log-row b { opacity: .8; font-weight: 600; }
 .end-foot { justify-content: flex-end; }
+/* Effects and weather draw over the 3D combat map (Mike, Nov 15). The backdrop shows behind the map. */
+.stage > .fx, .stage > .wx { z-index: 3; }
+
+/* Combat prep filter on the TV (Nov 15): "Combat · Get ready" over the map, shaking while the DM holds Roll
+   initiative, then lifting away when the roll lands. */
+.prep-tv { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; background: radial-gradient(ellipse at center, rgb(60 8 8 / .82), rgb(8 2 2 / .96)); animation: fadein .5s; pointer-events: none; }
+.prep-box { text-align: center; color: #f4ead5; }
+.prep-box h1 { margin: 0; font-family: var(--display); font-size: 11cqw; letter-spacing: .08em; text-transform: uppercase; color: #ffdfa0; text-shadow: 0 0 2cqw rgb(255 80 40 / .7), 0 .4cqw 0 #5a1208; }
+.prep-box p { margin: .5cqw 0 0; font-family: var(--display); font-size: 3.4cqw; letter-spacing: .4em; text-transform: uppercase; color: #f0c9a0; }
+.prep-tv.shaking .prep-box { animation: prep-shake .09s linear infinite; }
+.prep-tv.shaking { background: radial-gradient(ellipse at center, rgb(110 12 8 / .85), rgb(12 2 2 / .96)); }
+@keyframes prep-shake { 0% { transform: translate(0, 0) rotate(0); } 20% { transform: translate(-1.2cqw, .6cqw) rotate(-1.5deg); } 40% { transform: translate(1cqw, -.8cqw) rotate(1.2deg); } 60% { transform: translate(-.8cqw, -.5cqw) rotate(-.8deg); } 80% { transform: translate(1.1cqw, .7cqw) rotate(1.5deg); } 100% { transform: translate(0, 0) rotate(0); } }
+.prep-tv.lift { animation: prep-lift .85s cubic-bezier(.6,0,.4,1) forwards; }
+@keyframes prep-lift { 0% { opacity: 1; transform: none; } 30% { opacity: 1; transform: scale(1.06); } 100% { opacity: 0; transform: translateY(-100%) scale(1.06); } }
+html[data-motion="reduce"] .prep-tv.shaking .prep-box { animation: none; }
+html[data-motion="reduce"] .prep-tv.lift { animation: fadeout .3s forwards; }
+@keyframes fadeout { to { opacity: 0; } }
+
+/* Join QR card slides in and out from the right (Nov 15). */
+.join-dock { position: absolute; top: 1.2cqw; right: 1.6cqw; z-index: 4; transform: translateX(calc(100% + 3cqw)); opacity: 0; transition: transform .7s cubic-bezier(.2,.8,.2,1), opacity .5s; pointer-events: none; }
+.join-dock.shown { transform: none; opacity: 1; }
+.join-dock .join { margin-left: 0; }
+html[data-motion="reduce"] .join-dock { transition: opacity .3s; transform: none; }
+/* The DM sets the field under the filter, so the DM page shows only a small "TV: Get ready" tag instead. */
+body:not(.tv) .prep-tv { inset: auto auto 1cqw 50%; transform: translateX(-50%); background: rgb(90 12 8 / .9); padding: .3em 1em; border-radius: 999px; animation: none; }
+body:not(.tv) .prep-tv .prep-box h1 { font-size: 14px; display: inline; text-shadow: none; }
+body:not(.tv) .prep-tv .prep-box p { display: inline; font-size: 12px; margin-left: .6em; letter-spacing: .2em; }
+body:not(.tv) .prep-tv.lift { display: none; }
+
+/* DM column layout (Nov 15): a row of buttons alone in a card is centred, and so is a lone button. */
+body.dm .card > .row:not(:has(input, select, textarea, .grow, .note, label, .chip)) { justify-content: center; }
+body.dm .card > .btn, body.dm .card > button { display: block; margin-inline: auto; }
+/* Party, Conditions and Characters in the right sidebar. */
+.dm-hero .hero-card { margin: 0; }
+.dm-hero .hero-card #party .item { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.dm-hero .hero-card #party .item > .row { flex-wrap: nowrap; justify-content: space-between; gap: 4px; }
+.dm-hero .hero-card #party .item > .row .btn { flex: 1; padding-inline: 0; min-width: 0; }

@@ -374,6 +374,35 @@
   const KEY_QS = (() => { const k = new URLSearchParams(location.search).get('key'); return k ? `&key=${encodeURIComponent(k)}` : ''; })();
   const SIDE_ICON = { enemy: '👹', ally: '🛡', neutral: '🕊' };
 
+  // Combat prep (Mike, Nov 15): while the DM sets up a fight the TV shows "Combat · Get ready" over the map.
+  // It shakes while the DM holds Roll initiative and lifts away when the roll lands. The overlay lives outside
+  // the re-rendered UI so its animations run straight through state updates.
+  function prepTv(root, s) {
+    let el = root.querySelector(':scope > .prep-tv');
+    const on = s.mode === 'combat' && !!s.combatPrep;
+    if (on) {
+      if (!el || el.classList.contains('lift')) { el?.remove(); el = document.createElement('div'); el.className = 'prep-tv'; el.innerHTML = '<div class="prep-box"><h1>Combat</h1><p>Get Ready</p></div>'; root.appendChild(el); }
+      el.classList.toggle('shaking', !!s.combatPrep.holding);
+    } else if (el && !el.classList.contains('lift')) {
+      el.classList.remove('shaking');
+      if (s.mode === 'combat') { el.classList.add('lift'); setTimeout(() => el.remove(), 900); } else el.remove();
+    }
+  }
+
+  // Join the party QR: slides in from the right when the DM shows it and slides out when hidden. It stays one
+  // element across re-renders so the slide can play.
+  function joinDock(root, s) {
+    let el = root.querySelector(':scope > .join-dock');
+    if (!el) { el = document.createElement('div'); el.className = 'join-dock'; root.appendChild(el); }
+    const show = !!s.room && !s.settings?.display?.hideJoin;
+    const key = show ? `${s.room}|${s.joinUrl}|${s.players.length}` : el.dataset.key || '';
+    if (show && el.dataset.key !== key) {
+      el.dataset.key = key;
+      el.innerHTML = `<div class="join"><img src="/qr.svg?r=${esc(s.room)}${KEY_QS}" alt="Join QR"><div><b>Join the party</b><span class="room-code">Room <b>${esc(s.room)}</b></span><code>${esc(s.joinUrl.replace(/\/play\?room=.*/, '/j/' + s.room))}</code><small>${s.players.length} adventurer${s.players.length === 1 ? '' : 's'}</small></div></div>`;
+    }
+    el.classList.toggle('shown', show);
+  }
+
   // Backdrop and effect layers persist across re-renders so videos and animations don't restart.
   function layers(root, s) {
     if (!root.querySelector(':scope > .bd')) {
@@ -439,7 +468,6 @@
     const hpc = hpChanges(root, s);
     ui.innerHTML = `
       <header class="stage-top">
-        ${s.room && !s.settings?.display?.hideJoin ? `<div class="join"><img src="/qr.svg?r=${esc(s.room)}${KEY_QS}" alt="Join QR"><div><b>Join the party</b><span class="room-code">Room <b>${esc(s.room)}</b></span><code>${esc(s.joinUrl.replace(/\/play\?room=.*/, '/j/' + s.room))}</code><small>${s.players.length} adventurer${s.players.length === 1 ? '' : 's'}</small></div></div>` : ''}
       </header>
       <main class="stage-main">
         <section class="stage-center">${s.mode === 'social' ? vn(s) : s.mode === 'combat' ? combat(s) : exploration(s)}</section>
@@ -447,6 +475,8 @@
       </main>
       <footer>${party(s, hpc.showing)}</footer>
       ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}${legendsCard(s)}${trophyCard(s)}${shopTv(s)}`;
+    prepTv(root, s);
+    joinDock(root, s);
     if (hpc.fresh.length) requestAnimationFrame(() => requestAnimationFrame(() => hpc.fresh.forEach((id) => root.querySelector(`.pc[data-pid="${CSS.escape(id)}"]`)?.classList.add('hp-show'))));
     // Puzzle solve: the card pops once, then the solution words land one by one.
     const pz = ui.querySelector('.pz-card.solved');

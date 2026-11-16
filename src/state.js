@@ -137,6 +137,7 @@ state.worldMap.openOnSession ??= true;
 state.trail ??= [];
 // Every table starts with Greer's Trinkets (Mike, Nov 15). Seeded once: removing it keeps it gone.
 if (!state.shopSeed) { state.shops ??= []; if (!state.shops.some((x) => x.name === "Greer's Trinkets")) state.shops.unshift(require('./shops').greer('greer')); state.shopSeed = 1; }
+state.combatPrep = null; // transient: the TV's combat prep filter (src/sockets/dm.js)
 // Mike, Nov 15: logs and the join QR are off by default on every screen. Older saves switch over once (quiet: 1);
 // after that the DM's choices stand. hideLog (a deny list) became showLog (an allow list).
 {
