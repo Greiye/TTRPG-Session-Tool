@@ -276,9 +276,10 @@
   function checkBanner(s) {
     const c = s.check;
     if (!c) return '';
-    const res = Object.values(c.results);
-    return `<div class="check-banner"><b>${esc(c.skill)} check</b> · DC ${c.dc}
-      <div class="check-res">${res.map((r) => `<span class="${r.pass ? 'pass' : 'fail'}">${esc(r.name)} ${r.total}</span>`).join('') || '<span class="wait">Roll on your phone!</span>'}</div></div>`;
+    // The DC is left out when the DM keeps it secret; results are then uncoloured until the DM calls them.
+    const dc = c.dc == null ? '' : ` · ${esc(s.rules?.dcLabel || 'DC')} ${c.dc}`;
+    return `<div class="check-banner" data-cid="${esc(c.id ?? '')}"><b>${esc(c.label || c.skill)}</b>${dc}
+      <div class="check-res">${Object.entries(c.results).map(([id, r]) => `<span data-rid="${esc(id)}" class="${r.pass == null ? '' : r.pass ? 'pass' : 'fail'}">${esc(r.name)} ${r.total}</span>`).join('') || '<span class="wait">Roll on your phone!</span>'}</div></div>`;
   }
 
   // Fog of war (item 7c): POIs the party has not uncovered stay hidden.

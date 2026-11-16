@@ -141,7 +141,14 @@ function viewState(base, viewer) {
     if (!targeted) out.check = null;
     else {
       out.check = { ...base.check };
-      if (viewer.role !== 'dm') { delete out.check.outcome; if (base.check.hideDc) delete out.check.dc; }
+      if (viewer.role !== 'dm') {
+        delete out.check.outcome;
+        // A secret DC also hides who passed: the TV must not colour results the DM has not called yet.
+        if (base.check.hideDc) {
+          delete out.check.dc;
+          out.check.results = Object.fromEntries(Object.entries(base.check.results || {}).map(([id, r]) => [id, { ...r, pass: null }]));
+        }
+      }
     }
   }
   // The room code is the join secret: only the DM and the TV (which displays it) get it.
