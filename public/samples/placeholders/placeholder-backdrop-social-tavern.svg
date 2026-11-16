@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="hsl(28 40% 18%)"/>
+  <g fill="hsl(28 35% 24%)"><rect x="0" y="0" width="180" height="640"/><rect x="192" y="0" width="180" height="640"/><rect x="384" y="0" width="180" height="640"/><rect x="576" y="0" width="180" height="640"/><rect x="768" y="0" width="180" height="640"/><rect x="960" y="0" width="180" height="640"/><rect x="1152" y="0" width="180" height="640"/><rect x="1344" y="0" width="180" height="640"/><rect x="1536" y="0" width="180" height="640"/><rect x="1728" y="0" width="180" height="640"/></g>
+  <rect y="640" width="1920" height="440" fill="hsl(25 40% 28%)"/>
+  <rect x="260" y="700" width="1400" height="60" rx="12" fill="hsl(25 45% 38%)"/>
+  <g fill="hsl(40 90% 65% / .8)"><circle cx="420" cy="300" r="30"/><circle cx="960" cy="300" r="30"/><circle cx="1500" cy="300" r="30"/></g>
+  <text x="50%" y="140" text-anchor="middle" font-family="Georgia, serif" font-size="64" fill="hsl(0 0% 100% / .7)">Social placeholder</text>
+  <text x="50%" y="200" text-anchor="middle" font-family="sans-serif" font-size="28" letter-spacing="2" fill="hsl(0 0% 100% / .55)">PLACEHOLDER</text>
+</svg>

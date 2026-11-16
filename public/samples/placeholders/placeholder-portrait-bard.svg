@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260" width="512" height="666">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(320 45% 32%)"/><stop offset="1" stop-color="hsl(320 50% 12%)"/></linearGradient></defs>
+  <rect width="200" height="260" fill="url(#g)"/>
+  <circle cx="100" cy="96" r="44" fill="hsl(320 30% 70% / .25)"/>
+  <path d="M30 260 q0 -78 70 -84 q70 6 70 84z" fill="hsl(320 35% 20%)"/>
+  <circle cx="100" cy="128" r="34" fill="hsl(320 25% 22%)"/>
+  <path d="M92 106 a10 8 0 1 1 0 -1 v-54 l24 -6 v46 a10 8 0 1 1 0 -1 v-30 l-24 6" fill="none" stroke="hsl(320 80% 80%)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+  <text x="50%" y="226" text-anchor="middle" font-family="Georgia, serif" font-size="22" fill="hsl(320 60% 90%)">Bard</text>
+  <text x="50%" y="248" text-anchor="middle" font-family="sans-serif" font-size="11" letter-spacing="2" fill="hsl(0 0% 100% / .55)">PLACEHOLDER</text>
+</svg>

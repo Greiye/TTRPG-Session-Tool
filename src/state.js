@@ -218,9 +218,11 @@ function flushAll() {
   }
 }
 for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK']) process.once(sig, () => { flushAll(); process.exit(0); });
+require('./safety').install(process, { flush: flushAll }); // errors outside socket handlers log and save instead of ending the game
 
 module.exports = { state, log, nextId, fullState, stateFor, broadcast, EMOTIONS, EFFECTS };
 
+module.exports.flushAll = flushAll;
 module.exports.sys = () => rules.get(state.system);
 // Phase I table tools (src/table.js) load after this module's exports exist; fill in fields older saves lack.
 require('./table-state').ensure(state);

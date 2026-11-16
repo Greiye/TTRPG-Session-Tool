@@ -23,6 +23,15 @@ The console prints:
 
 Env: `PORT` (3000), `HTTPS_PORT` (3443), `HTTPS=0` (turn HTTPS off), `HTTPS_CERT` + `HTTPS_KEY` (use your own certificate, e.g. from mkcert), `DM_KEY`, `CODM_KEY`, `BATTLE_KEY`, `SOCIAL_KEY`, `PUBLIC_HOST` (force the address in the QR), `DATA_DIR`, `UPLOAD_DIR`. Allow Node through the OS firewall on first run (both ports).
 
+### Game night routine
+
+1. `npm run doctor`: checks ports, folders, Wi-Fi address, certificate and disk. Fix anything marked FAIL.
+2. `npm start`, open `/dm` on the laptop and `/screen` on the TV; click once on the TV to enable sound.
+3. Show the join QR (DM settings) and let everyone scan it.
+4. At the end, hold **End Session** and make a save point.
+
+Testing alone: **Add test party** (placeholder portraits included) and `npm run bots -- 4` for fake phones that answer rolls, votes and pop-ups. Placeholder art lives in `public/samples/placeholders/`.
+
 ### Joining, room codes and reconnects
 
 - The TV shows a 4-letter **room code** next to the QR. Phones need it to sit down, so old tabs and neighbours can't walk in. **New code** in the DM top bar makes a fresh one; phones already seated keep playing.
