@@ -16,9 +16,9 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 
 ### PR A: World map window
 `public/js/dm/worldmap.js`, `public/worldmap.js`, `public/worldmap.css`, `public/js/dm/modes.js`, `src/sockets/worldmap.js`
-- [ ] 2. The World map opens from any mode, not only exploration.
-- [ ] 3. Places are dragged onto the map from a palette. Dragging a place onto a trash-can icon deletes it.
-- [ ] 4. "Map picture" and "Load example world" sit at the bottom of the World map window.
+- [x] 2. The World map opens from any mode, not only exploration.
+- [x] 3. Places are dragged onto the map from a palette. Dragging a place onto a trash-can icon deletes it.
+- [x] 4. "Map picture" and "Load example world" sit at the bottom of the World map window.
 - [x] (Nov 15) Bug: the TV world map was cut off at the bottom. Fixed in PR #73.
 - [x] (Nov 15) The current-location title on the world map was too big. Fixed in PR #73.
 

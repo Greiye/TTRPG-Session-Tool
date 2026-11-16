@@ -110,3 +110,13 @@ html[data-motion="reduce"] .wm-revealing * { animation-duration: .001ms !importa
 .wm-tv .wm-node i::before { inset: -7px; }
 .wm-board.dm .wm-node { z-index: 2; }
 .wm-board.dm .wm-node:hover i { box-shadow: 0 0 0 2px #120d14, 0 0 0 5px #f4ead577; }
+
+/* DM world map tools (Nov 15): drag Town / Site / Dungeon chips onto the map; drag a place into the bin. */
+.wm-tools { align-items: center; }
+.wm-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; border: 1px dashed currentColor; cursor: grab; user-select: none; touch-action: none; font-size: 13px; }
+.wm-chip.on { background: rgb(201 168 106 / .3); border-style: solid; }
+.wm-ghost { position: fixed; z-index: 2000; pointer-events: none; transform: translate(-50%, -50%); background: #2b2236; color: #f4ead5; box-shadow: 0 4px 12px #0008; }
+.wm-trash { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; border: 2px dashed currentColor; font-size: 20px; opacity: .7; transition: transform .15s, background .15s, opacity .15s; }
+.wm-trash.hot { opacity: 1; background: #a3332b; color: #fff; transform: scale(1.2); }
+.wm-node.binning { opacity: .4; }
+.wm-foot { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgb(127 127 127 / .3); }

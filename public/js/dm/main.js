@@ -48,7 +48,7 @@ window.IsoDm = iso; // handle for debugging
 
 // The preview mirrors the TV: the world map (with the dungeon pop-up over it) while it is on the TV in exploration.
 onState((s) => {
-  if (s.worldMap?.onTv && s.mode === 'exploration' && window.WorldMap) WorldMap.tv($('#stage'), s, { dm: true });
+  if (s.worldMap?.onTv && window.WorldMap) WorldMap.tv($('#stage'), s, { dm: true });
   else Stage.stage($('#stage'), s);
   iso.update(s);
   renderAtmo(s);
