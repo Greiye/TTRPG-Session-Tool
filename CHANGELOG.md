@@ -47,6 +47,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- Party sidebar follow-up (Mike, Nov 16):
+  - Conditions are small round buttons on the bottom right of the hero portrait, for party members and for creatures picked on the 3D map. Click one, or right-click the portrait, to open the conditions menu: toggle any of the 15 conditions, pick how long a new one lasts (until cleared, 1, 3 or 10 rounds) and start or drop concentration. A new badge pops in, and the party picker shows a red count per member. The Conditions card is gone.
+  - The **Reset session** button is gone from the Party card (End session covers the end of a night).
+  - The hero opens on **Bio**; Stats is one tap away.
 - **New sample backdrop** (Mike, Nov 16): "Tales of Artheria" is now a medieval village with a stone church, shown at 50% opacity on the TV and DM preview. It fades in up to that level. Backdrops can carry their own `opacity` (only the sample sets one); the file path and id are unchanged, so saves keep it.
 - DM Screen tabs and Party sidebar, from Mike's Nov 16 notes (backlog PR H and S):
   - The live mode's button is pressed in: a darker plate with an inset shadow and glowing gold text, with a short press animation.

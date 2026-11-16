@@ -163,7 +163,6 @@ $('#mapToggle')?.addEventListener('click', () => {
 // Entering social mode opens the Social window's NPC list (public/js/dm/social.js).
 onClick('mode', (m) => emit('dm:mode', { mode: m }));
 onClick('act', (act) => {
-  if (act === 'reset' && confirm('Reset log, remove enemies and heal the party?')) emit('dm:reset');
   if (act === 'testparty') emit('dm:testparty');
 });
 apply();
