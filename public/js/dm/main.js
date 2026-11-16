@@ -44,7 +44,8 @@ Settings.mount({ table: { get: () => state()?.settings.display || {}, set: (disp
 AudioOut.init(socket, { isOutput: (s) => !masterRole() && (!s || !s.screens) }); // never a helper's phone
 const renderAtmo = Atmo.mount($('#atmo'), { emit, key: dmKey });
 // The 3D battle map sits over the stage's main area in combat (public/js/iso3d.js).
-const iso = isoStage($('#stage'), { role: 'dm', socket, emit, slotSel: '.stage-main' });
+// Clicking a unit on it shows that unit's stats in the hero column (public/js/dm/chronicle.js listens).
+const iso = isoStage($('#stage'), { role: 'dm', socket, emit, slotSel: '.stage-main', onSelect: (id) => window.dispatchEvent(new CustomEvent('iso:select', { detail: id })) });
 window.IsoDm = iso; // handle for debugging
 
 // The preview mirrors the TV: the world map (with the dungeon pop-up over it) while it is on the TV in exploration.

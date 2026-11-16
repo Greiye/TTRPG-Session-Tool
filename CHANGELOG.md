@@ -5,12 +5,19 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- DM combat controls, from Mike's Nov 16 backlog (PR G):
+  - **Right-click a unit** on the 3D battle map for a menu: attack it with the creature whose turn it is (one entry per attack), HP −5/−1/+1/+5, toggle Prone, Restrained, Grappled, Frightened, Poisoned or Invisible, set its light, centre the camera, give its movement back, show the boss card, take it off the map (back to the tray) or remove the creature (click twice). The menu animates in and its numbers stay live; Esc or a click outside closes it.
+  - **Arrow keys** move the selected unit one tile in the direction the arrow points on screen, whatever the camera angle.
+  - **Selection stats**: clicking a unit on the map shows it in the right-hand hero column. A creature gets its portrait, HP, AC, movement left, initiative, tile, light, conditions, attacks and traits; a party member gets the same combat facts above the hero card. ✕ goes back to the party. The panel slides in on each new selection.
 - **Battle Master** and **Social Master** co-DM roles (Mike, Nov 16), each with its own private QR on the DM page's Co-DM card (`BATTLE_KEY`, `SOCIAL_KEY`). The Battle Master runs combat, the battle map and the DM's creatures; the Social Master runs NPC dialogue. Both open the DM page showing only their cards, and the server allows only the events listed per role in `src/roles.js`. A helper key now wins over localhost, so a helper link opened on the laptop gets the helper view.
 
 ### Fixed
+- The DM can no longer move creatures around in combat without using their movement. Dragging, arrow keys and clicking a tile all use the creature's movement (path cost over heights and terrain). The DM may still go past its speed: the movement count then shows how far over it is in red, on the map's Move button, the creature's Encounter card, the hero column and the right-click menu, and the DM's log notes it. On the 3D map, tiles past the creature's movement are red. Before initiative, set-up moves stay free; the Teleport tool stays free.
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- **DM tools** on the 3D battle map are in two sections, **Unit actions** (select, teleport) and **Landscaping** (raise, lower, paint, obstacle); the section of the active tool is highlighted.
+- **End combat** clears the combat window for the next fight: creatures, tokens, the battle map, initiative and movement go (the party and the creature library stay), and the Battle map card unfolds. Because it clears so much, End is now a red hold-for-2-seconds button.
 - Co-DM and combat tools, from Mike's Nov 16 notes:
   - The **co-DM** now has every DM permission: the invite opens the DM page with the co-DM key (`/codm` stays as a phone soundboard).
   - Co-DM card: each role (Co-DM, Battle Master, Social Master) is a title with one centred **Invite** button under it.

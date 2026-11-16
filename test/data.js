@@ -71,7 +71,7 @@ const { ok, call, until } = h;
   ok(allyActed && /Guard attacks \(Spear\) Goblin/.test(text), 'DM-run ally attacks an enemy with a named attack');
   ok(wailUsed && /attacks \(Wail\)/.test(text), 'DM picks which attack a creature uses');
   ok(dm.last.combat.enemies[3].hp === dm.last.combat.enemies[3].maxHp || /Goblin/.test(text), 'players cannot target allies');
-  dm.emit('dm:combat:end', {});
+  // (combat stays running: ending it clears the encounter, and the restart check below needs it saved)
 
   // --- SRD import (3b)
   const open5e = { results: [{ slug: 'adult-red-dragon', name: 'Adult Red Dragon', size: 'Huge', type: 'dragon', armor_class: 19, hit_points: 256, speed: { walk: 40, climb: 40, fly: 80 }, strength: 27, dexterity: 10, challenge_rating: '17',

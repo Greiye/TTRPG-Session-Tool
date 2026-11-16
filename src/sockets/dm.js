@@ -122,7 +122,14 @@ module.exports = function dmSockets(socket) {
   dm('dm:weather', ({ kind, intensity } = {}) => { require('../living').setWeather(state, kind === 'clear' ? 'none' : kind, intensity); });
   dm('dm:token:move', ({ id, x, y }) => {
     if (mustPlaceFirst()) return;
-    const c = game.combatant(id); if (c) grid.move(c, Number(x), Number(y), { dm: true });
+    const c = game.combatant(id); if (c && state.tokens?.[id]) grid.move(c, Number(x), Number(y), { dm: true });
+  });
+  // Right-click menu on the battle map: give a creature its movement back, or take its token off the map (back to the tray).
+  dm('dm:move:reset', ({ id } = {}) => { if (game.combatant(id)) grid.resetMove(id); });
+  dm('dm:token:remove', ({ id } = {}) => {
+    if (!state.tokens?.[id]) return;
+    delete state.tokens[id];
+    if (state.combat.lastMove?.id === id) state.combat.lastMove = null;
   });
   // Art for each pick of a roll: { slot: url } for the picks that have art.
   const artsFor = (r) => {
@@ -366,8 +373,13 @@ module.exports = function dmSockets(socket) {
     list.forEach((e, i) => { e.accent = randomizer.accent(s0 === undefined ? undefined : (s0 + i) >>> 0); });
   });
   dm('dm:combat:start', () => game.startCombat());
+  // Ending combat clears the combat window for the next fight (Mike, Nov 16): creatures, tokens, the battle map,
+  // initiative and movement all go. The party and the creature library stay.
   dm('dm:combat:end', () => {
-    Object.assign(state.combat, { active: false, order: [], turn: 0, round: 0, acted: {} });
+    Object.assign(state.combat, { active: false, order: [], turn: 0, round: 0, acted: {}, moved: {}, enemies: [], lastMove: null });
+    state.tokens = {};
+    state.pendingPlace = [];
+    state.map = null;
     log('combat', 'Combat ends.');
   });
   dm('dm:combat:next', () => { if (!mustPlaceFirst()) game.advanceTurn(); });
