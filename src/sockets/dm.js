@@ -57,7 +57,9 @@ module.exports = function dmSockets(socket) {
     if (mode === state.mode) { if (mode === 'social' && npcId) cast.pick(state.social, npcId); return; }
     state.mode = mode;
     world.applyMood(mode);
-    if (mode !== 'exploration') state.worldMap.onTv = false; // the world map belongs to exploration: combat and social take the TV
+    // The world map stays on the TV in social and exploration (Mike, Nov 16). Entering combat hands the TV to the
+    // combat prep filter below; Show on TV can still put the map back up during a fight.
+    if (mode === 'combat') state.worldMap.onTv = false;
     // Combat prep (Mike, Nov 15): entering combat puts a "Combat · Get ready" filter on the TV while the DM sets
     // the field. It lifts when the DM's 3-second initiative hold rolls initiative (dm:combat:start).
     state.combatPrep = mode === 'combat' && !state.combat.active ? { holding: false } : null;
@@ -100,8 +102,9 @@ module.exports = function dmSockets(socket) {
       title: String(title ?? state.scene.title).slice(0, 80),
       text: String(text ?? state.scene.text).slice(0, 600),
       theme: String(theme ?? state.scene.theme),
-      poi: Array.isArray(poi) ? poi.map((s) => String(s).slice(0, 60)).filter(Boolean).slice(0, 8) : state.scene.poi,
+      poi: Array.isArray(poi) ? poi.map((s) => String(s ?? '').trim().slice(0, 60)).filter(Boolean).slice(0, 8) : state.scene.poi,
     });
+    state.scene.revealed = (state.scene.revealed || []).filter((p) => state.scene.poi.includes(p)); // a removed point leaves no stale reveal
     state.scene.secrets ??= [];
     // A new place: TV fade and chapter card, and planned choice echoes count down a scene (src/moments.js).
     // Points of interest start covered: a renamed POI list keeps only the uncovered points still in it,

@@ -5,6 +5,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- World map, from Mike's Nov 16 notes:
+  - **Roads by drag:** with **+ Road** on, press on a place, drag to another and let go to lay a road. A blue ink line follows the pointer and turns green over the place it will join. Road mode stays on, so several roads can be drawn in a row; tapping one place and then another still works.
+  - **Paper map look:** the map is a parchment sheet with light watercolour washes (land, lakes and a river) when no picture is uploaded, and a paper grain with darkened edges over an uploaded picture. Roads, places and labels are sepia ink, fog is unpainted parchment, and a **compass rose** sits at the bottom right (it spins in as the map unrolls on the TV, then sways gently). All SVG, no images, so it works offline.
 - **Undo and Redo for the DM** (Nov 16), the one-tap override for anything the tool or anyone at the table did. **↶ Undo** sits in the DM's top bar (it stays when the bar is minimized) and names what it would take back: the log line the change added ("Goblin hits Thorn for 7") or what changed ("Change to Thorn", "Change to world map"). **↷ Redo** appears after an undo until something new happens. **Ctrl+Z** undoes and **Ctrl+Shift+Z** or **Ctrl+Y** redoes, except while typing in a field. A burst of quick changes (a drag, a run of clicks) settles into one step after 0.7 s; the last 15 steps are kept. Each step holds the whole campaign and every character sheet, so it covers HP, conditions, rolls, rests, travel, clocks, shops and anything added later, for any rules system. Phones stay seated; characters made since are left alone. DM and co-DM only (`dm:undo`, `dm:redo`, `src/undo.js`); Battle and Social Masters do not get it. The DM stage fades back as a step is undone.
 - **Social mode flow** (Mike, Nov 16, backlog PR J):
   - Entering Social mode opens a **Social window** on the DM page, under the TV preview and above the narration bar. It lists the NPCs (placeholders Albert, Brent and Christina): pick one or more, then press and hold **Start conversation** for 1 second. The TV shows "A conversation is about to begin…" until then.
@@ -99,6 +102,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Timers (`src/timers.js`): a condition can run for a set number of rounds and ends by itself. Concentration starts from the DM's Conditions panel; damage to the caster asks their phone for a DC 10 (or half the damage) Constitution save. The DM drops concentration.
 
 ### Changed
+- The world map stays on the TV in exploration and social (Mike, Nov 16): switching between them no longer takes it off; untick **Show on TV** to give the TV back. Entering combat hands the TV to the combat prep filter, and **Show on TV** can put the map back up mid-fight.
+- A world map travel leg takes **5 seconds** by default (was 60). Saves still on the old 60 s default move to 5 s once; a leg the DM sets is kept.
+- Scenes start with **no points of interest**; the DM adds them. Blank entries are dropped, the TV no longer shows an empty points row, and saves holding the old three placeholder points (Toppled shrine, Cart tracks, Old mill in the fog) are cleared on load.
 - Party sidebar follow-up (Mike, Nov 16):
   - Conditions are small round buttons on the bottom right of the hero portrait, for party members and for creatures picked on the 3D map. Click one, or right-click the portrait, to open the conditions menu: toggle any of the 15 conditions, pick how long a new one lasts (until cleared, 1, 3 or 10 rounds) and start or drop concentration. A new badge pops in, and the party picker shows a red count per member. The Conditions card is gone.
   - The **Reset session** button is gone from the Party card (End session covers the end of a night).

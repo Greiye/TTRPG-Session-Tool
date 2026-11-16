@@ -35,6 +35,7 @@ ok(!wm.castVote(map, 'c', oak, ctx(4, 3)), 'no vote once the vote is closed');
 // Travel: slow, token glides, arrives at the end of the leg, cards come up on the way
 const t0 = 10000;
 const map2 = wm.fresh();
+map2.legSeconds = 60; // a long leg so the clock can be stepped through it
 wm.saveNode(map2, { name: 'A', x: 0, y: 0 }, c0); wm.saveNode(map2, { name: 'B', x: 1, y: 1 }, c0);
 const [a, b] = map2.nodes.map((n) => n.id);
 map2.here = a; // the party starts at A
@@ -117,6 +118,11 @@ ok(map6.travel === null && map6.nodes.length === 1, 'removing the destination ca
 // Timing limits
 wm.setTiming(map6, { legSeconds: 1, cardSeconds: 9999 });
 ok(map6.legSeconds === 5 && map6.cardSeconds === 600, 'leg and card timers are clamped');
+ok(wm.fresh().legSeconds === 5 && wm.example().legSeconds === 5, 'a travel leg takes 5 s by default');
+const oldMap = { ...wm.fresh(), legSeconds: 60 }; delete oldMap.v;
+ok(wm.migrate(oldMap).legSeconds === 5 && wm.migrate({ ...oldMap, legSeconds: 60 }).legSeconds === 60, 'an old save on the 60 s default moves to 5 s once; a 60 s leg set later stays');
+const oldSet = { ...wm.fresh(), legSeconds: 90 }; delete oldSet.v;
+ok(wm.migrate(oldSet).legSeconds === 90, 'an old save with its own leg keeps it');
 
 // Roads: the party follows the shortest road route, one leg per road, and each leg is legSeconds x length
 {
@@ -240,10 +246,18 @@ ok(map6.legSeconds === 5 && map6.cardSeconds === 600, 'leg and card timers are c
   dm.emit('dm:worldmap:fog:all', { on: true });
   ok(await h.until(() => a1.last.worldMap.roads.length === 1), 'revealing all shows every road to the table');
   dm.emit('dm:mode', { mode: 'combat' });
-  ok(await h.until(() => a1.last.mode === 'combat' && a1.last.worldMap.onTv === false), 'combat takes the TV back from the world map');
+  ok(await h.until(() => a1.last.mode === 'combat'), 'the DM switches to combat');
+  ok(a1.last.worldMap.onTv === false, 'entering combat hands the TV to the combat prep filter');
+  dm.emit('dm:worldmap:show', { on: true });
+  ok(await h.until(() => a1.last.worldMap.onTv === true), 'the DM can still show the map during combat');
+  dm.emit('dm:mode', { mode: 'social' });
+  ok(await h.until(() => a1.last.mode === 'social') && a1.last.worldMap.onTv === true, 'social keeps the world map on the TV');
+  dm.emit('dm:worldmap:show', { on: false });
+  ok(await h.until(() => a1.last.worldMap.onTv === false), 'Show on TV off gives the TV back');
   dm.emit('dm:session:next', {});
   ok(await h.until(() => a1.last.mode === 'exploration' && a1.last.worldMap.onTv === true), 'a new session opens in exploration with the world map on the TV');
   dm.emit('dm:worldmap:opensession', { on: false });
+  dm.emit('dm:worldmap:show', { on: false });
   dm.emit('dm:mode', { mode: 'social' });
   await h.until(() => a1.last.mode === 'social');
   dm.emit('dm:session:next', {});
