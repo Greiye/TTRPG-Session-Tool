@@ -93,6 +93,7 @@ const state = {
   room: null, // join code, set by session.js
   houseRules: {}, // house rule id -> on (src/houserules.js); enforced by the tool
   absent: {}, // empty chairs: charId -> { away, autopilot, missed } (src/absent.js)
+  ended: null, // { n, at, session } while the DM has ended the session: TV and phones show the end card (transient)
   trophy: null, // { id, n } trophy story card on the TV (transient)
   narration: [], // { id, text } the DM's last 10 narrate posts, shown under the scene description
   shopPop: null, // { shopId, n, done: [charId] } shop pop-up on the TV and phones (transient, src/shops.js)

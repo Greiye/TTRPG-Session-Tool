@@ -478,7 +478,20 @@
     </div>
     <div class="card" data-tab="scene" data-sub="moments" data-panel="exploration social combat" id="momentsCard"></div>
     <div id="atmo" data-tab="scene" data-sub="stage"></div>
+    <div class="end-session-bar" data-dm-only><button class="btn hold-btn end-session" id="endSession" title="Press and hold for 1 second to end the session"><i class="hold-fill"></i><span>End Session</span></button></div>
   </div>
+
+  <dialog id="endDlg" class="end-dlg" aria-labelledby="endTitle">
+    <div class="row"><h3 class="grow" id="endTitle">🌙 Session ended</h3><button class="btn" id="endClose" aria-label="Close">✕</button></div>
+    <p class="note">The TV shows “End of Session” and the phones show “Thanks for playing.”</p>
+    <h4>Save the session</h4>
+    <div class="row"><input id="endSaveName" class="grow" maxlength="60"><button class="btn primary" id="endSave">💾 Save point</button></div>
+    <p class="note" id="endSaved" aria-live="polite"></p>
+    <h4>Explore the logs</h4>
+    <div class="row end-log-tools"><input id="endLogFind" class="grow" placeholder="Search the log"><select id="endLogKind" style="width:auto"><option value="">Every type</option></select><a class="btn" id="endTranscript" download>📜 Transcript</a></div>
+    <div id="endLog" class="end-log" role="log"></div>
+    <div class="row end-foot"><button class="btn" id="endResume" title="Take the TV and phones back to the game">↩ Resume session</button></div>
+  </dialog>
 
   <dialog id="charDlg" class="char-dlg">
     <form method="dialog" id="charForm">

@@ -21,6 +21,7 @@ import './control.js';
 import './socialpop.js';
 import './table.js';
 import './spotlight.js';
+import './ended.js';
 
 
 Settings.mount();
