@@ -18,6 +18,7 @@ const SHOTS = process.env.SHOTS;
   const page = async (url, opts = {}) => {
     const ctx = await br.newContext(opts);
     const p = await ctx.newPage();
+    await p.addInitScript(() => { try { localStorage.setItem('dmFoldOpen', '1'); } catch { /* ignore */ } }); // DM cards start open in tests
     p.on('pageerror', (e) => errors.push(`${url}: ${e.message}`));
     p.on('console', (m) => m.type() === 'error' && !/fonts\.g|ERR_|Failed to load resource/.test(m.text()) && errors.push(`${url}: ${m.text()}`));
     await p.goto(B + url);

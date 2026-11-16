@@ -10,10 +10,11 @@ import { $, $$, emit, onState, onClick, state } from '../client.js';
 import { masterRole } from './auth.js';
 
 const KINDS = ['action', 'check', 'combat', 'downtime', 'narrate', 'npc', 'say', 'shop', 'system', 'notice'];
+const MODE_NAMES = { exploration: '🧭 Explore', combat: '⚔️ Combat', social: '💬 Social' };
 const KIND_NAMES = { action: 'Actions', check: 'Checks', combat: 'Combat', downtime: 'Downtime', narrate: 'Narration', npc: 'NPC speech', say: 'Player speech', shop: 'Shops', system: 'System', notice: 'Notices' };
 const SUB_NAMES = {
   scene: 'Scene', stage: 'Stage and music', clocks: 'Clocks', moments: 'TV moments', puzzle: 'Puzzles',
-  npc: 'NPCs', legends: 'Legends', lights: 'Smart lights', table: 'Table tools', quiz: 'Recap quiz', web: 'Relations web', journal: 'Notes and journal', camp: 'Camp and downtime', codm: 'Co-DM', data: 'Campaign data', roads: 'Road cards',
+  npc: 'NPCs', legends: 'Legends', lights: 'Smart lights', table: 'Table tools', quiz: 'Recap quiz', web: 'Relations web', journal: 'Notes and journal', camp: 'Camp and downtime', roads: 'Road cards', rules: 'Rules system', codm: 'Co-DM', data: 'Campaign data',
 };
 const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
@@ -106,7 +107,14 @@ function drawKinds(s) {
 
 onState((s) => {
   mode = s.mode;
-  $$('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === s.mode));
+  // The live mode's button is pressed in (darker), not only gold text (Mike, Nov 16). The folded Modes card
+  // names the live mode in its title.
+  $$('[data-mode]').forEach((b) => {
+    b.classList.toggle('on', b.dataset.mode === s.mode);
+    b.setAttribute('aria-pressed', String(b.dataset.mode === s.mode));
+  });
+  const now = $('#modeNow');
+  if (now) now.textContent = MODE_NAMES[s.mode] || '';
   apply();
   drawKinds(s);
 });
@@ -118,6 +126,13 @@ $('#tvLogKinds')?.addEventListener('change', (e) => {
   if (e.target.checked) cur.add(kind); else cur.delete(kind);
   emit('dm:settings', { display: { showLog: [...cur] } });
 });
+
+// Logs on this screen: the same switch as Display settings > Show logs, also in the Logs tab (Mike, Nov 16).
+const logBox = $('#logShowHere');
+const syncLog = () => { if (logBox) logBox.checked = window.Settings?.local().log === 'show'; };
+logBox?.addEventListener('change', () => window.Settings?.setLocal('log', logBox.checked ? 'show' : 'hide'));
+window.addEventListener('settings:local', syncLog);
+syncLog();
 
 window.addEventListener('dm:role', () => { if (state()) apply(); });
 

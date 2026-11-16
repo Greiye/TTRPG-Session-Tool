@@ -16,7 +16,7 @@ const toLore = async (cat, name, text = '') => {
   if (r?.error) alert(r.error);
 };
 // Fold a sidebar card open and bring it into view (used by "Edit" items that show an editor).
-const reveal = (el) => { if (!el) return; el.closest('[data-fold]')?.setAttribute('data-fold', 'open'); el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+const reveal = (el) => { if (!el) return; const card = el.closest('.card[data-fold]'); if (card?.classList.contains('folded')) card.querySelector(':scope > h3')?.click(); el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
 
 // ---------- characters and creatures ----------
 

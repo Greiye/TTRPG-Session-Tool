@@ -51,6 +51,17 @@
   const group = (name, prefix, value) => `<fieldset><legend>${LABELS[name]}</legend><div class="seg">${OPTIONS[name].map(([v, l]) =>
     `<label><input type="radio" name="${prefix}${name}" value="${v}" ${value[name] === v ? 'checked' : ''}>${l}</label>`).join('')}</div></fieldset>`;
 
+  // Change one setting on this device and save it. The Logs tabs use it for their show/hide switch (Mike, Nov 16).
+  // Fires "settings:local" on window so other switches for the same setting can follow.
+  function setLocal(name, value) {
+    if (!OPTIONS[name]?.some(([v]) => v === value)) return;
+    local = { ...local, [name]: value };
+    try { localStorage[KEY] = JSON.stringify({ ...local, quiet: 1 }); } catch { /* ignore */ }
+    apply(local);
+    window.dispatchEvent(new CustomEvent('settings:local', { detail: { name, value } }));
+    window.dispatchEvent(new CustomEvent('settings:change', { detail: { name } }));
+  }
+
   // Adds a ⚙ button and dialog. `table` (DM only): { get: () => settings, set: (settings) => void } for the TV.
   function mount({ table } = {}) {
     const btn = document.createElement('button');
@@ -72,15 +83,12 @@
     dlg.addEventListener('change', (e) => {
       const [scope, name] = e.target.name.split('-');
       if (scope === 'me') {
-        local = { ...local, [name]: e.target.value };
-        try { localStorage[KEY] = JSON.stringify({ ...local, quiet: 1 }); } catch { /* ignore */ }
-        apply(local);
-        window.dispatchEvent(new CustomEvent('settings:change', { detail: { name } }));
+        setLocal(name, e.target.value);
       } else if (table) {
         table.set({ ...clean(table.get()), [name]: e.target.value });
       }
     });
   }
 
-  window.Settings = { apply, applyLocal: () => apply(local), clean, reducedMotion, mount, OPTIONS, get: () => current };
+  window.Settings = { apply, applyLocal: () => apply(local), clean, reducedMotion, mount, setLocal, local: () => local, OPTIONS, get: () => current };
 })();

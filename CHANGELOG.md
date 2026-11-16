@@ -47,6 +47,15 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- DM Screen tabs and Party sidebar, from Mike's Nov 16 notes (backlog PR H and S):
+  - The live mode's button is pressed in: a darker plate with an inset shadow and glowing gold text, with a short press animation.
+  - The **Modes** card folds to its title, which then names the live mode. The tab list is its own card under it.
+  - Every tab card starts folded for now (click a title to open it; the laptop remembers). Opening a card slides its contents in. Party, Conditions and Characters in the right **Party** sidebar sit above the hero sheet and start folded too.
+  - **Creature randomizer** is the last card in the Combat tab; it and **Creatures** start folded.
+  - **Choice echo** moved from Scene > TV moments to its own Planning Mode tab.
+  - The **rules system** picker moved from the top bar to Miscellaneous > Rules system.
+  - The **House rules** section is gone from the DM's Legends card and the phone's Legends. A save that had a rule on loads with them all off, so nothing is enforced unseen.
+  - The DM's **Logs** tab and the phone's Misc > Logs have a **Show logs on this screen/phone** switch (the same setting as ⚙ Display settings > Show logs).
 - Phone: ✎ Profile, ⛶ Full screen and ☀ Keep screen on moved from the hero card to the bottom of the page.
 - Entering Social mode no longer asks the DM who speaks first, and no longer pops up on phones; both now happen when the DM starts the conversation.
 - **DM tools** on the 3D battle map are in two sections, **Unit actions** (select, teleport) and **Landscaping** (raise, lower, paint, obstacle); the section of the active tool is highlighted.

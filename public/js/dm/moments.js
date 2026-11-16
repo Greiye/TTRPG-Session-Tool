@@ -1,5 +1,5 @@
 // DM controls for TV moments (src/moments.js): transitions, dramatic pause, chapter and entrance cards,
-// quote wall, choice echoes, relics and the journal book. The TV shows them. The story clock has its own card
+// quote wall, choice echoes (a Planning Mode tab), relics and the journal book. The TV shows them. The story clock has its own card
 // under Scene > Clocks. The epilogue controls moved to archive/ (Mike, Nov 14: too close to other features).
 import { $, emit, onState, mount } from '../client.js';
 
@@ -8,6 +8,7 @@ const SFX = ['', 'thunder', 'hit', 'magic', 'roar', 'bell', 'door', 'clash'];
 const card = $('#momentsCard');
 
 card.innerHTML = `
+  <h3>TV moments <span class="note">transitions, cards, quotes, relics</span></h3>
   <div class="row"><b>Scene transition</b>
     <select id="moTrans"><option value="fade">Fade</option><option value="wipe">Wipe</option><option value="ink">Ink</option></select>
     <button class="btn small" data-act="trans">Play</button></div>
@@ -29,12 +30,6 @@ card.innerHTML = `
     <input id="moWho" placeholder="Who said it">
     <button class="btn small" data-act="quote">Pin</button></div>
   <div id="moQuotes" class="list"></div>
-  <div class="row"><b>Choice echo</b> <small class="muted">planned now, fires after N scenes</small>
-    <input id="moDec" placeholder="What the party chose">
-    <input id="moCons" placeholder="What comes back later">
-    <input id="moAfter" type="number" min="1" max="20" value="3" title="Scenes until it fires" style="width:5em">
-    <button class="btn small" data-act="echo">Plant</button></div>
-  <div id="moEchoes" class="list"></div>
   <div class="row"><b>Relics</b>
     <input id="moRelName" placeholder="Name">
     <input id="moRelIcon" placeholder="Icon" value="✨" maxlength="4" style="width:4em">
@@ -45,6 +40,16 @@ card.innerHTML = `
   <div class="row"><b>Journal book</b>
     <button class="btn small" data-act="book" id="moBook">Open on the TV</button></div>
 `;
+
+// Choice echoes are prep, so they live in Planning Mode (Mike, Nov 16): plant one now, it fires after N scenes.
+const echoCard = mount(`<div class="card" data-tab="echo" data-fold-key="choice-echo">
+  <h3>Choice echo <span class="note">planned now, fires after N scenes</span></h3>
+  <input id="moDec" placeholder="What the party chose">
+  <input id="moCons" placeholder="What comes back later">
+  <div class="row"><label class="note tight">Fires after <input id="moAfter" type="number" min="1" max="20" value="3" title="Scenes until it fires" style="width:5em"> scenes</label>
+    <button class="btn small primary" data-act="echo">Plant</button></div>
+  <div id="moEchoes" class="list"></div>
+</div>`);
 
 // Story clock (Mike, Nov 14): five segments, Dawn, Day, Noon, Dusk and Night, and no clock hours. Each move
 // shows the day and segment on the TV for a few seconds with that segment's sound.
@@ -119,7 +124,9 @@ clockCard.addEventListener('click', (e) => {
   else if (b.id === 'moDaySet') emit('dm:story:set', { day: Number(val('moDay')), seg: story?.seg ?? 1 });
   else if (b.id === 'moNext') emit('dm:story:advance', { segs: 1 });
 });
-card.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-act]');
-  if (b && actions[b.dataset.act]) actions[b.dataset.act](b);
-});
+for (const c of [card, echoCard]) {
+  c.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]');
+    if (b && actions[b.dataset.act]) actions[b.dataset.act](b);
+  });
+}
