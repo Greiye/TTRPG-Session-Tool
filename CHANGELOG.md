@@ -47,6 +47,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- **New sample backdrop** (Mike, Nov 16): "Tales of Artheria" is now a medieval village with a stone church, shown at 50% opacity on the TV and DM preview. It fades in up to that level. Backdrops can carry their own `opacity` (only the sample sets one); the file path and id are unchanged, so saves keep it.
 - DM Screen tabs and Party sidebar, from Mike's Nov 16 notes (backlog PR H and S):
   - The live mode's button is pressed in: a darker plate with an inset shadow and glowing gold text, with a short press animation.
   - The **Modes** card folds to its title, which then names the live mode. The tab list is its own card under it.
