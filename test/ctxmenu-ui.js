@@ -31,7 +31,7 @@ const h = harness('ctxmenu');
   h.ok(await menu.count() === 1, 'the menu stays open for repeated HP taps');
   await menu.locator('button', { hasText: 'Prone' }).click();
   h.ok(await h.until(() => dm.last.players.find((p) => p.id === pc.id).conditions?.includes('Prone')), 'condition toggled from the menu');
-  h.ok(await h.until(async () => (await menu.locator('button.on', { hasText: 'Prone' }).count()) === 1, 1500), 'the open menu updates live');
+  h.ok(await menu.locator('button.on', { hasText: 'Prone' }).waitFor({ timeout: 2000 }).then(() => true, () => false), 'the open menu updates live');
   await close();
   h.ok(await menu.count() === 0, 'Escape closes the menu');
 
@@ -39,6 +39,17 @@ const h = harness('ctxmenu');
   dm.emit('dm:mode', { mode: 'combat' }); await d.waitForTimeout(500);
   await tab('combat');
   const foe = dm.last.combat.enemies[0];
+  // The 3D battle map's unit menu is the same shared menu.
+  dm.emit('dm:map', { cols: 10, rows: 8 });
+  await h.until(() => dm.last.map);
+  dm.emit('dm:token', { id: foe.id, x: 3, y: 3 });
+  if (await h.until(() => dm.last.tokens?.[foe.id]) && await d.waitForFunction(() => window.IsoDm?.battle, null, { timeout: 5000 }).then(() => true, () => false)) {
+    await d.evaluate((id) => window.IsoDm.menu(id, 600, 300), foe.id);
+    h.ok((await menu.locator('header b').textContent()) === 'Goblin', '3D map unit menu uses the shared menu');
+    await menu.locator('button', { hasText: 'Torch' }).click();
+    h.ok(await h.until(() => dm.last.tokens[foe.id]?.light === 'torch'), '3D map menu sets a light');
+    await close();
+  } else h.ok(false, '3D map mounted for the unit menu');
   await d.click(`[data-oid="${foe.id}"] .cbt-head b`, { button: 'right' });
   h.ok((await menu.locator('header b').textContent()) === 'Goblin', 'right-click on a creature card opens its menu');
   const rm = menu.locator('button.danger');

@@ -85,12 +85,12 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR G: DM combat controls (movement, selection, tools)
 `lib/iso-battle/src/client/battle.js`, `lib/iso-battle/src/client/scene.js`, `public/js/dm/combat.js`, `public/js/dm/map.js`, `src/iso.js`, `src/grid.js`, `src/sockets/dm.js`, `public/dm.html`
-- [ ] Fix how enemies can move anywhere without using movement. DM's can move the creatures beyond the limit, past -5 movement ft or more. If they do, the movement count turns red.
-- [ ] DM can move creatures with keyboard arrow keys.
-- [ ] DM can right click enemies in the combat window and that will open up an options menu. LLM chooses what those options are.
-- [ ] DM's Combat DM Tools has sections. one for Unit actions and one for landscaping (raise/lower/paint/obstacle, etc.)
-- [ ] When DM clicks on a unit on the map, the right side bar changes dynamically so the DM can see the selection stats. [DM Screen right-hand sidebar]
-- [ ] When DM ends combat, clear the combat window so that the DM can do another combat another time.
+- [x] Fix how enemies can move anywhere without using movement. DM's can move the creatures beyond the limit, past -5 movement ft or more. If they do, the movement count turns red.
+- [x] DM can move creatures with keyboard arrow keys.
+- [x] DM can right click enemies in the combat window and that will open up an options menu. LLM chooses what those options are.
+- [x] DM's Combat DM Tools has sections. one for Unit actions and one for landscaping (raise/lower/paint/obstacle, etc.)
+- [x] When DM clicks on a unit on the map, the right side bar changes dynamically so the DM can see the selection stats. [DM Screen right-hand sidebar]
+- [x] When DM ends combat, clear the combat window so that the DM can do another combat another time.
 
 ### PR H: DM Screen tabs and layout
 `public/dm.html`, `public/style.css`, `public/theme.css`, `public/js/dm/fold.js`, `public/js/dm/dock.js`, `public/js/dm/modes.js`, `public/js/dm/header.js`, `public/js/dm/legends.js`, `public/js/dm/moments.js`
@@ -139,12 +139,12 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR N: Shops and items
 `src/shops.js`, `public/js/dm/shops.js`, `public/js/play/shops.js`, `public/js/play/inventory.js`, `public/stage.js`, `src/sockets/dm.js`, `src/sockets/player.js`, `public/dm.html`
-- [ ] In NPC's Tab, shop pop up shouldn't be there. Have a separate tab for shops. [DM Screen, Misc > NPCs]
-- [ ] On player phone, remove item description from item button. Players must press/hold the item button to get another pop up. This pop up will show the item description. Player can buy the item from the description window.
-- [ ] Merchant Image only shows underneath the shop title on the TV Screen. It does not show on the player phone screen.
-- [ ] On player phone screen, Gold is just a symbol and number. Players can't add items, the DM does that.
-- [ ] Add an Items Tab for the DM. [DM Screen]
-- [ ] DM can pop up shops right from planning mode. [DM Screen, Planning mode]
+- [x] In NPC's Tab, shop pop up shouldn't be there. Have a separate tab for shops. [DM Screen, Misc > NPCs]
+- [x] On player phone, remove item description from item button. Players must press/hold the item button to get another pop up. This pop up will show the item description. Player can buy the item from the description window.
+- [x] Merchant Image only shows underneath the shop title on the TV Screen. It does not show on the player phone screen.
+- [x] On player phone screen, Gold is just a symbol and number. Players can't add items, the DM does that.
+- [x] Add an Items Tab for the DM. [DM Screen]
+- [x] DM can pop up shops right from planning mode. [DM Screen, Planning mode]
 
 ## Mike's notes, 2026-11-16 (third list, grouped into PRs by the code they touch)
 
@@ -167,11 +167,11 @@ Items are as Mike wrote them. Bracketed notes say which screen a tab or setting 
 
 ### PR R: Dungeon entry, exit and editing
 `src/dungeon.js`, `src/sockets/dungeon.js`, `public/dungeon.js`, `public/dungeon.css`, `public/js/dm/dungeon.js`, `public/js/play/`
-- [ ] When the Party goes to a dungeon location, they get a phone tab. TV screen gets a pop up too, showing the dungeon image and a count of ready party members. The player phones get a window that shows the dungeon name, the description, and a button that says 'Enter Dungeon'. When all players have held-pressed enter dungeon for 1 second (counter on the TV), Then enter the dungeon.
-- [ ] When all players are at the end of the dungeon, they get an 'exit dungeon' pop up. They just have to press the exit dungeon button which sends them back to the TV Screen world map.
-- [ ] When Party is in a dungeon, A dungeon editing tab appears underneath world map. [DM Screen, World map window]
-- [ ] DM can edit the nodes right from the dungeon window. Can click/drag/etc. nodes and right click nodes for menu. [DM Screen, dungeon window]
-- [ ] Party Dungeon Location node is centered on TV Screen. [TV]
+- [x] When the Party goes to a dungeon location, they get a phone tab. TV screen gets a pop up too, showing the dungeon image and a count of ready party members. The player phones get a window that shows the dungeon name, the description, and a button that says 'Enter Dungeon'. When all players have held-pressed enter dungeon for 1 second (counter on the TV), Then enter the dungeon.
+- [x] When all players are at the end of the dungeon, they get an 'exit dungeon' pop up. They just have to press the exit dungeon button which sends them back to the TV Screen world map.
+- [x] When Party is in a dungeon, A dungeon editing tab appears underneath world map. [DM Screen, World map window]
+- [x] DM can edit the nodes right from the dungeon window. Can click/drag/etc. nodes and right click nodes for menu. [DM Screen, dungeon window]
+- [x] Party Dungeon Location node is centered on TV Screen. [TV]
 
 ### PR S: DM Screen mode buttons and sidebar
 `public/dm.html`, `public/style.css`, `public/js/dm/modes.js`, `public/js/dm/dock.js`

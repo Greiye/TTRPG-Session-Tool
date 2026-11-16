@@ -57,11 +57,13 @@ function applySheet(c, f, isDm) {
   if (f.inv) {
     const { op, id } = f.inv;
     const item = c.inventory.find((x) => x.id === id);
-    if (op === 'add' && c.inventory.length < 200 && str(f.inv.name, 60)) {
+    // Players can't add items or raise a count (Mike, Nov 16): the DM gives items from the Items tab.
+    // A phone may still use one up (lower the count) or drop an item.
+    if (op === 'add' && isDm && c.inventory.length < 200 && str(f.inv.name, 60)) {
       c.inventory.push({ id: crypto.randomBytes(4).toString('hex'), name: str(f.inv.name, 60), qty: int(f.inv.qty, 0, 9999, 1), note: str(f.inv.note, 200) });
     } else if (op === 'set' && item) {
-      if (f.inv.name !== undefined) item.name = str(f.inv.name, 60) || item.name;
-      if (f.inv.qty !== undefined) item.qty = int(f.inv.qty, 0, 9999, item.qty);
+      if (f.inv.name !== undefined && isDm) item.name = str(f.inv.name, 60) || item.name;
+      if (f.inv.qty !== undefined) item.qty = int(f.inv.qty, 0, isDm ? 9999 : item.qty, item.qty);
       if (f.inv.note !== undefined) item.note = str(f.inv.note, 200);
     } else if (op === 'del' && item) c.inventory = c.inventory.filter((x) => x !== item);
   }

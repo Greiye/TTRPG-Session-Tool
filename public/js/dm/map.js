@@ -36,6 +36,7 @@ onState((s) => {
       : m.image ? 'Edit on the battle map: click a tile, drag a token, or select one and use the arrow keys.' : 'No image yet: the grid shows on a plain background.';
   } else {
     $('#mapInfo').textContent = 'Set a grid to start a battle map. Then edit it on the stage during combat.';
+    if ($('#mapCard').classList.contains('folded')) fold(false); // combat ended: open the card for the next fight
   }
   const rk = JSON.stringify(s.roll);
   if (rk !== rndKey) {
@@ -130,19 +131,22 @@ stage.addEventListener('drop', (e) => {
   const id = e.dataTransfer?.getData('text/plain');
   if (!at || !id) return;
   e.preventDefault();
-  emit('dm:token', { id, ...at, z: Number($('#mapZ').value) || 0 });
+  // A token already on the map moves (using its movement); a new one is placed.
+  if (state().tokens?.[id] && !(state().pendingPlace || []).length) emit('dm:token:move', { id, ...at });
+  else emit('dm:token', { id, ...at, z: Number($('#mapZ').value) || 0 });
 });
 // Arrow keys nudge the selected token one tile (not while typing in a field).
 document.addEventListener('keydown', (e) => {
   const d = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
   if (!d || !selTok || !state()?.map || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) return;
+  if (stage.classList.contains('iso-on') || e.defaultPrevented) return; // the 3D map handles its own arrow keys
   const pos = state().tokens?.[selTok];
   if (!pos) return;
   e.preventDefault();
   const m = state().map;
   const x = Math.min(m.cols - 1, Math.max(0, pos.x + d[0]));
   const y = Math.min(m.rows - 1, Math.max(0, pos.y + d[1]));
-  if (x !== pos.x || y !== pos.y) emit('dm:token', { id: selTok, x, y, z: pos.z || 0 });
+  if (x !== pos.x || y !== pos.y) emit('dm:token:move', { id: selTok, x, y }); // uses movement, may go past speed
 });
 
 // Fog of war and light (Phase B). Only party tokens reveal the map; the light is set on the token selected on the map.

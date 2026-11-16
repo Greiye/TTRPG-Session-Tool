@@ -24,12 +24,47 @@ function close() {
   const r = dg.leave(state.dungeon);
   if (r.error) return r;
   const at = state.worldMap.nodes.find((n) => n.id === state.worldMap.here);
+  state.dungeon.skipAt = state.worldMap.here; // the gate stays shut here until the party moves on
   log('narrate', `The party leaves ${at?.name || 'the dungeon'}.`);
   if (at) trail.add(state, 'leave', at.name);
   return { ok: true };
 }
 
+// Every online player held Enter Dungeon: the party goes in, and the TV shows the dungeon over the world map.
+function enterTogether() {
+  const r = open();
+  if (r.ok) state.worldMap.onTv = true;
+  return r;
+}
+// Exit Dungeon from an end room: the party is back on the world map, on the TV too.
+function exitTogether() {
+  const r = close();
+  if (r.ok) state.worldMap.onTv = true;
+  return r;
+}
+const playersNow = () => Object.values(state.players).map((p) => ({ id: p.id, online: !!p.socketId }));
+
 module.exports = function dungeonSockets(socket) {
+  // Phones (PR R): hold Enter Dungeon at the gate; press Exit Dungeon in an end room.
+  const control = require('../control');
+  const me = () => control.actorOf(state, socket);
+  socket.on('player:dungeon:ready', ({ on = true } = {}, ack) => {
+    const p = me();
+    if (!p) return ack?.({ error: 'Join the party first.' });
+    const g = dg.setReady(state.dungeon, state.worldMap, playersNow(), p.id, !!on);
+    if (!g) return ack?.({ error: 'There is no dungeon gate here.' });
+    if (dg.allReady(g)) enterTogether();
+    broadcast();
+    ack?.({ ok: true });
+  });
+  socket.on('player:dungeon:exit', (_p, ack) => {
+    if (!me()) return ack?.({ error: 'Join the party first.' });
+    if (!dg.atEnd(state.dungeon)) return ack?.({ error: 'The way out is not here.' });
+    const r = exitTogether();
+    broadcast();
+    ack?.(r);
+  });
+
   const dm = (event, fn) => socket.on(event, (payload = {}, ack) => {
     if (socket.data.role !== 'dm') return ack?.({ error: 'DM only' });
     const out = fn(payload || {}) ?? {};
@@ -58,6 +93,7 @@ module.exports = function dungeonSockets(socket) {
     if (D().on) trail.add(state, 'room', n.name);
     return { ok: true };
   });
+  dm('dm:dungeon:image', ({ url }) => { state.dungeon.image = String(url || '').slice(0, 300); return { ok: true }; });
   dm('dm:dungeon:example', () => { state.dungeon = dg.example(); });
   dm('dm:dungeon:clear', () => { state.dungeon = dg.blank(); });
 };

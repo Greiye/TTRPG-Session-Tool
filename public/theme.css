@@ -509,3 +509,25 @@ body.chron .btn.go:hover { background-color: #379a3b; }
 .invite-role h3 { align-self: stretch; }
 .invite-role > .btn { min-width: 50%; }
 .invite-role .codm-invite { align-self: stretch; }
+
+/* PR G (Nov 16): DM combat controls. */
+/* Movement past a creature's speed shows red, on the creature card, in the hero column and in the right-click menu. */
+.mv-left.over, .sel-facts b.over { color: #ff6a5a; font-weight: 700; animation: mv-over .5s ease-out; }
+@keyframes mv-over { 0% { text-shadow: 0 0 10px #ff4a3a; } 100% { text-shadow: none; } }
+
+/* The right-click menu on a 3D map unit is the shared DM menu: public/ctxmenu.css. */
+
+/* Hero column: the unit selected on the 3D battle map. */
+.sel-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; background: #2a1f16; border: 1px solid #8a6a3a; border-radius: 4px; color: #f2c96e; font-size: calc(12px * var(--ts, 1)); }
+.sel-bar b { color: #ffe7b0; }
+#hero.sel-in > * { animation: sel-slide .32s cubic-bezier(.2, .8, .2, 1) both; }
+#hero.sel-in > *:nth-child(2) { animation-delay: .05s; }
+@keyframes sel-slide { from { opacity: 0; transform: translateX(16px); } }
+.sel-foe .hero-art { background: radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--acc) 35%, #1a1010), #121212 70%); }
+.sel-foe .sel-sprite { width: 70%; height: auto; image-rendering: pixelated; font-size: 64px; }
+.sel-facts { margin-top: 6px; }
+.sel-conds { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.sel-cond { padding: 2px 8px; border: 1px solid #8a4a3a; border-radius: 999px; background: #3a1a14; color: #ffc4b8; font-size: calc(12px * var(--ts, 1)); }
+.sel-h { margin: 10px 0 2px; font-size: calc(11px * var(--ts, 1)); letter-spacing: .12em; text-transform: uppercase; color: var(--muted, #8f7e62); }
+.sel-traits p { margin: 4px 0; font-size: calc(13px * var(--ts, 1)); color: #c9c3b4; }
+@media (prefers-reduced-motion: reduce) { #hero.sel-in > *, .mv-left.over, .sel-facts b.over { animation: none; } }
