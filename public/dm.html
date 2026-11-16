@@ -284,15 +284,15 @@
     </div>
     <div class="card" data-tab="rolls" data-panel="exploration social combat">
       <h3>Roll call <span class="note" id="callStatus"></span></h3>
+      <!-- Each drop-down gets its own row so its text is not cut off in the tools column (Mike, Nov 15). -->
+      <label class="fld call-fld">Preset<select id="callPreset"><option value="">Custom</option></select></label>
+      <label class="fld call-fld">Roll type<select id="callKind"><option value="skill">Skill</option><option value="save">Save</option><option value="ability">Ability</option></select></label>
+      <label class="fld call-fld">Skill or ability<select id="checkSkill"></select></label>
+      <label class="fld call-fld">Advantage<select id="callMode" title="Advantage or disadvantage for the whole call"><option value="">Normal</option><option value="adv">Adv</option><option value="dis">Dis</option></select></label>
       <div class="row">
-        <select id="callPreset" class="grow"><option value="">Custom</option></select>
+        <label class="note tight">DC <input id="checkDc" type="number" value="13" style="width:64px" title="DC"></label>
+        <span class="grow"></span>
         <button class="btn small" id="presetSave" title="Save this as a preset">★ Save preset</button>
-      </div>
-      <div class="row">
-        <select id="callKind" style="width:auto"><option value="skill">Skill</option><option value="save">Save</option><option value="ability">Ability</option></select>
-        <select id="checkSkill" class="grow"></select>
-        <input id="checkDc" type="number" value="13" style="width:64px" title="DC">
-        <select id="callMode" style="width:auto" title="Advantage or disadvantage for the whole call"><option value="">Normal</option><option value="adv">Adv</option><option value="dis">Dis</option></select>
       </div>
       <div class="row">
         <label class="chk"><input type="checkbox" id="callHide"> Hide the DC from phones</label>
@@ -310,9 +310,10 @@
     </div>
     <div class="card" data-tab="rolls" data-panel="exploration social combat">
       <h3>Roll dice <span class="note">Secret rolls only show here</span></h3>
+      <div id="dmDicePool" class="dm-dice"></div>
+      <input id="rollExpr" placeholder="2d6+3, 4d6kh3, d20" aria-label="Dice to roll">
       <div class="row">
-        <input id="rollExpr" class="grow" placeholder="2d6+3, 4d6kh3, d20">
-        <input id="rollLabel" placeholder="Label" style="width:110px">
+        <input id="rollLabel" class="grow" placeholder="Label">
         <label class="chk"><input type="checkbox" id="rollSecret"> Secret</label>
         <button class="btn" data-act="roll">Roll</button>
       </div>
