@@ -31,8 +31,10 @@ const blankMap = () => ({ image: '', seq: 1, nodes: [{ id: 't1', name: 'Settleme
 
 // state.town: the maps by world place id, and the visit in progress.
 const fresh = () => ({ maps: {}, on: false, at: null, here: null, ready: [], readyAt: null, skipAt: null, picks: {}, n: 0 });
-// A new table: Millbrook (w1 in the example world) has the starter town (Mike, Nov 16).
-const withStarter = () => { const t = fresh(); t.maps.w1 = starter(); return t; };
+// A new table: Millbrook (w1 in the example world) has the starter town (Mike, Nov 16). The party wakes there
+// with the gate shut, so phones are not greeted by a pop-up on joining; arriving by road, or the DM's Open the
+// gate, offers Enter Town.
+const withStarter = () => { const t = fresh(); t.maps.w1 = starter(); t.skipAt = 'w1'; return t; };
 function ensure(T) {
   const t = T && typeof T === 'object' ? T : fresh();
   t.maps ||= {};

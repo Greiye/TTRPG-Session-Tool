@@ -54,7 +54,8 @@ function visitHtml(S, at) {
   if (!inside) {
     const g = T.gate;
     return `<div class="item row wrap"><span class="grow">${atGate ? `The party stands at ${esc(at.name)}.${g ? ` ${g.ready.length} / ${g.total} holding Enter Town.` : ''}` : `The party is not at ${esc(at.name)}.`}</span>
-      <button class="btn small primary" data-tn="enter" ${atGate && !S.dungeon?.on ? '' : 'disabled'}>⬇ Enter town</button></div>`;
+      ${atGate && !g && !S.dungeon?.on ? '<button class="btn small" data-tn="gate" title="Give phones the Enter Town window">🚪 Open the gate</button>' : ''}
+      <button class="btn small primary" data-tn="enter" ${atGate && !S.dungeon?.on ? '' : 'disabled'} title="Take the party in now">⬇ Enter town</button></div>`;
   }
   const here = m.nodes.find((n) => n.id === T.here);
   const picks = Object.entries(T.picks || {}).map(([cid, p]) => `<li>${esc(nameOf(S, cid))}: ${esc(m.nodes.find((n) => n.id === p.node)?.name || '?')} ${p.at ? '✔' : '<small class="muted">(not held yet)</small>'}</li>`).join('');
@@ -128,6 +129,7 @@ host.addEventListener('click', async (e) => {
   if (k === 'enter') act('dm:town:show', { on: true });
   else if (k === 'leave') act('dm:town:show', { on: false });
   else if (k === 'resolve') act('dm:town:resolve');
+  else if (k === 'gate') act('dm:town:gate');
   else if (k === 'clearpicks') act('dm:town:clearpicks');
   else if (k === 'revealAll') act('dm:town:reveal', { id: '*', on: true });
   else if (k === 'hideAll') act('dm:town:reveal', { id: '*', on: false });

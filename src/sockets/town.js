@@ -110,6 +110,8 @@ module.exports = function townSockets(socket) {
     return { ok: true };
   });
   dm('dm:town:show', ({ on }) => (on ? enter() : leave(true)));
+  // Offer Enter Town on the phones again where the party stands (the gate stays shut after leaving, and at the start).
+  dm('dm:town:gate', () => { T().skipAt = null; T().ready = []; return town.settlementHere(state.worldMap) ? { ok: true } : { error: 'The party is not on a town.' }; });
   dm('dm:town:here', ({ id, spend }) => {
     const n = town.moveTo(T(), id);
     if (!n) return { error: 'Open the town first, and pick one of its places.' };

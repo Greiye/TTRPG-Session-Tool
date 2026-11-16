@@ -146,7 +146,7 @@ state.town = require('./town').ensure(state.town);
 // Town visits (PR V) came after the example world: an older save's Millbrook gets the starter town once.
 if (!state.townSeed) {
   const mb = state.worldMap.nodes.find((n) => n.id === 'w1' && n.name === 'Millbrook');
-  if (mb && !Object.keys(state.town.maps).length) { mb.settlement = true; state.town.maps.w1 = require('./town').starter(); }
+  if (mb && !Object.keys(state.town.maps).length) { mb.settlement = true; state.town.maps.w1 = require('./town').starter(); state.town.skipAt = 'w1'; }
   state.townSeed = 1;
 }
 state.lore = require('./lore').ensure(state.lore);

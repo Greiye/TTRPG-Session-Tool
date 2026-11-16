@@ -14,6 +14,8 @@ const m = T.maps.w1;
 ok(m.nodes.map((n) => n.name).join() === 'Settlement entrance,Farm,Marketplace,Smithy,Wizards Tower' && m.nodes.every((n) => !n.seen), 'the starting town has five hidden places');
 ok(W.nodes.find((n) => n.id === 'w1').settlement && town.settlementHere(W)?.id === 'w1', 'Millbrook is a town with a town map, and the party starts on it');
 
+ok(town.gate(T, W, players) === null, 'a new table wakes in Millbrook with the gate shut (no pop-up on joining)');
+T.skipAt = null; // the DM opens the gate
 let g = town.gate(T, W, players);
 ok(g && g.name === 'Millbrook' && g.total === 2 && g.ready.length === 0, 'standing on a town opens the Enter Town gate for the online players');
 ok(town.viewFor(T, W, { role: 'screen' }, players).contents.w1.places.length === 0 && town.viewFor(T, W, { role: 'screen' }, players).contents.w1.hidden === 5, 'the TV hover list shows no hidden places, only how many are left');
@@ -70,6 +72,9 @@ ok(legs.length === 2, 'with Travel uses time off, legs cost nothing');
     const p1 = await h.player(room, 'Ana');
     const p2 = await h.player(room, 'Bo');
     const until = h.until;
+    await h.wait(200);
+    ok(p1.last?.town && p1.last.town.gate === null, 'no Enter Town window on joining a new table');
+    ok((await h.call(dm, 'dm:town:gate')).ok, 'the DM opens the gate');
     ok(await until(() => p1.last?.town?.gate?.name === 'Millbrook'), 'a phone gets the Enter Town gate at Millbrook');
     ok((await h.call(p1, 'player:town:pick', { node: 't2', confirm: true })).error, 'no picks before the party is in town');
     await h.call(p1, 'player:town:ready', { on: true });
