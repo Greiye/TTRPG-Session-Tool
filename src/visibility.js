@@ -1,6 +1,6 @@
 // One rule for who sees what. Every state broadcast goes through viewState(), per viewer.
 //
-// Viewers: dm, codm (atmosphere helper), player (one character), screen (the TV), guest (unjoined phone).
+// Viewers: dm (Battle and Social Masters see the DM view, minus prep: see viewState), codm (atmosphere helper), player (one character), screen (the TV), guest (unjoined phone).
 // Item-level visibility, the `vis` field on any list item (log entries, whispers, handouts, objectives, spoils):
 //   undefined | 'all'        everyone
 //   'dm'                     DM only
@@ -20,6 +20,7 @@ function viewerOf(socket) {
   if (d.takeover) return { role: 'player', charId: d.takeover }; // a DM tab playing a character sees that character's view
   if (d.role === 'dm') return { role: 'dm' };
   if (d.role === 'codm') return { role: 'codm' };
+  if (d.role === 'battle' || d.role === 'social') return { role: 'dm', master: d.role }; // co-DM helpers (src/roles.js)
   if (d.charId) return { role: 'player', charId: d.charId };
   if (d.screen) return { role: 'screen' };
   if (d.spectator) return { role: 'spectator' };
@@ -46,7 +47,7 @@ function sceneFor(scene, viewer) {
   const open = new Set(scene.revealed || []);
   return { ...scene, poi: scene.poi.map((p) => (open.has(p) ? p : null)) };
 }
-const viewerKey = (v) => `${v.role}:${v.charId || ''}`;
+const viewerKey = (v) => `${v.role}:${v.charId || ''}:${v.master || ''}`;
 
 function canSee(vis, viewer) {
   if (viewer.role === 'dm' || vis === undefined || vis === null || vis === 'all') return true;
@@ -161,6 +162,9 @@ function viewState(base, viewer) {
     out.entities = Object.values(require('./entities').entities); // world library (Arthuria), DM only for now
     out.saves = require('./saves').list();
   }
+  // Battle and Social Masters run the table live, so they get the DM view without the DM's prep and admin:
+  // session plans (DM notes), save slots, the world library and the laptop's network addresses.
+  if (viewer.master) for (const k of ['plans', 'saves', 'entities', 'lan']) delete out[k];
   return out;
 }
 

@@ -960,3 +960,9 @@ html[data-log="hide"] body.dm #feed, html[data-log="hide"] body.dm #tablePage > 
 html[data-log="hide"] #tabLogs .chips, html[data-log="hide"] #tabLogs .log-full, html[data-log="hide"] #tabLogs .card { display: none; }
 #tabLogs .logs-off { display: none; }
 html[data-log="hide"] #tabLogs .logs-off { display: block; }
+
+/* Battle and Social Masters (src/roles.js): the DM page without the DM's own controls. */
+body[data-role] .dm-bar > :not(h2):not(.bar-min),
+body[data-role] .composer,
+body[data-role] .modes-card .modes,
+body[data-role] #wmPage { display: none !important; }
