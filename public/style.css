@@ -1170,3 +1170,20 @@ body.dm .card > .btn, body.dm .card > button { display: block; margin-inline: au
 @keyframes lore-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 @keyframes lore-flash { 0% { box-shadow: 0 0 0 2px #f2c96e; } 100% { box-shadow: none; } }
 .lore-phone .lore-entry p { margin: 0; padding: 0 8px 8px; white-space: pre-wrap; }
+
+/* Connection pill (public/conn.js): slides down while the page has lost the laptop. */
+.conn-pill { position: fixed; top: 10px; left: 50%; z-index: 9999; display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: var(--panel2, #222); color: var(--ink, #eee); border: 1px solid var(--line, #444); box-shadow: 0 4px 16px rgb(0 0 0 / .5); font-size: calc(14px * var(--ts, 1)); pointer-events: none; opacity: 0; transform: translate(-50%, -140%); transition: transform .35s cubic-bezier(.2, .9, .3, 1.2), opacity .35s; }
+.conn-pill.on { opacity: 1; transform: translate(-50%, 0); }
+.conn-pill i { width: 10px; height: 10px; border-radius: 50%; background: var(--bad, #e55); animation: conn-pulse 1s ease-in-out infinite; }
+.conn-pill.back i { background: var(--good, #6d6); animation: none; }
+@keyframes conn-pulse { 50% { opacity: .3; transform: scale(.7); } }
+
+/* Animation audit (Nov 16): screens, pages and dialogs that used to snap in without motion.
+   Opacity only on whole pages, so fixed-position children are never thrown off by a transform. */
+#joinView:not([hidden]), #specView:not([hidden]), #profile:not([hidden]), #gameView:not([hidden]),
+#tablePage:not([hidden]), #wmPage:not([hidden]) { animation: page-in .28s ease-out; }
+#newForm:not([hidden]), #roomForm:not([hidden]), body.dm [data-panel]:not([data-tab]):not([hidden]) { animation: tab-in .22s ease-out; }
+.char-dlg[open], .settings-dlg[open] { animation: dlg-in .26s cubic-bezier(.2, .9, .3, 1.2) both; }
+.char-dlg::backdrop, .settings-dlg::backdrop, .end-dlg::backdrop { animation: page-in .26s ease both; }
+@keyframes page-in { from { opacity: 0; } }
+@keyframes dlg-in { from { opacity: 0; transform: translateY(14px) scale(.97); } }

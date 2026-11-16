@@ -1,6 +1,6 @@
 // Phase D timers. A condition with a timer counts down one round at a time (tick, called when a round
 // begins). Concentration lasts until the DM drops it; when the caster takes damage, a Constitution save
-// goes to their phone (src/rolls.js), DC 10 or half the damage, whichever is higher.
+// goes to their phone (src/rolls.js), DC 10 or half the damage, whichever is higher. A failed save drops it.
 const { state, log, nextId } = require('./state');
 const { str, int } = require('./util');
 
@@ -54,7 +54,7 @@ function onDamage(target, dealt) {
   const dc = Math.max(10, Math.floor(dealt / 2));
   require('./rolls').call({
     kind: 'save', key: 'con', dc, targets: [target.id],
-    pass: `keeps concentrating on ${t.name}.`, fail: `loses concentration on ${t.name}.`,
+    pass: `keeps concentrating on ${t.name}.`, fail: `loses concentration on ${t.name}.`, concentration: true,
   });
 }
 

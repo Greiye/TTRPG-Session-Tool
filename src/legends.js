@@ -5,7 +5,7 @@
 //   - Trophy shelf: items the group won, each with the story of how they won it.
 const crypto = require('crypto');
 const { LEGENDS_FILE } = require('./config');
-const { readJson, writeJson } = require('./store');
+const { readJson, saver } = require('./store');
 const { str } = require('./util');
 
 const MAX_AWARDS = 500;
@@ -26,9 +26,9 @@ function normalize(d) {
   };
 }
 
-let timer = null;
-function save() { clearTimeout(timer); timer = setTimeout(() => writeJson(LEGENDS_FILE, data), 300); }
-function flush() { clearTimeout(timer); writeJson(LEGENDS_FILE, data); }
+const disk = saver(LEGENDS_FILE, () => data);
+const save = () => disk.schedule();
+const flush = () => disk.flush();
 
 const newId = () => crypto.randomBytes(4).toString('hex');
 const playerOf = (c) => str(c.player, 24) || c.name; // the real player's name, falling back to the character

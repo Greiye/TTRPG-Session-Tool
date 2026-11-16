@@ -1,31 +1,22 @@
 // Persistent character roster (data/characters.json). Characters outlive sessions.
 // `secret` and `hooks` are DM-only.
 const crypto = require('crypto');
-const fs = require('fs');
 const { ROSTER_FILE } = require('./config');
 const rules = require('./rules');
 const { str, int } = require('./util');
 const { ensureSheet, applySheet } = require('./sheet');
 
-const { readJson } = require('./store');
+const { readJson, saver } = require('./store');
 // Null-prototype map: a character id such as "constructor" or "__proto__" must never resolve to a built-in.
 const roster = Object.assign(Object.create(null), readJson(ROSTER_FILE) || {}); // a corrupt file is kept as *.corrupt-<time>, not a crash
 for (const c of Object.values(roster)) ensureSheet(c); // upgrade characters saved before sheets existed
 
-let saveTimer = null;
-function writeRoster() {
-  const out = Object.fromEntries(Object.entries(roster).map(([id, c]) => {
-    const { socketId, ...rest } = c;
-    return [id, rest];
-  }));
-  fs.writeFileSync(ROSTER_FILE + '.tmp', JSON.stringify(out, null, 2));
-  fs.renameSync(ROSTER_FILE + '.tmp', ROSTER_FILE);
-}
-function saveRoster() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(writeRoster, 500);
-}
-saveRoster.flush = () => { clearTimeout(saveTimer); writeRoster(); };
+const disk = saver(ROSTER_FILE, () => Object.fromEntries(Object.entries(roster).map(([id, c]) => {
+  const { socketId, ...rest } = c;
+  return [id, rest];
+})), 500);
+function saveRoster() { disk.schedule(); }
+saveRoster.flush = () => disk.flush();
 
 function newCharacter({ name, cls, race, player }, systemId) {
   const sys = rules.get(systemId);

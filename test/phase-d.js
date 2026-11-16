@@ -73,6 +73,27 @@ const { ok, until } = h;
   ok(await until(() => dm.last.timers.some((t) => t.kind === 'concentration' && t.name === 'Hold Person')), 'the caster concentrates on a spell');
   dm.emit('dm:hp', { id: a.me.id, delta: -6 });
   ok(await until(() => dm.last.check?.kind === 'save' && dm.last.check.key === 'con' && dm.last.check.dc === 10 && dm.last.check.targets?.includes(a.me.id)), 'damage asks the caster for a DC 10 Constitution save');
+  // A failed save drops the spell on its own; a passed one keeps it. The roll is random, so try until both happen.
+  const seen = {};
+  for (let i = 0; i < 30 && !(seen.pass && seen.fail); i++) {
+    dm.emit('dm:call', { clear: true });
+    dm.emit('dm:concentrate', { id: a.me.id, spell: 'Hold Person' });
+    await until(() => dm.last.timers.some((t) => t.kind === 'concentration'));
+    dm.emit('dm:hp', { id: a.me.id, delta: 20 });
+    dm.emit('dm:hp', { id: a.me.id, delta: -1 });
+    await until(() => dm.last.check?.key === 'con' && !dm.last.check.results[a.me.id]);
+    a.emit('player:answer', {});
+    const r = await until(() => dm.last.check?.results?.[a.me.id]);
+    await h.wait(80);
+    const kept = dm.last.timers.some((t) => t.kind === 'concentration');
+    if (r && r.pass === false) seen.fail = !kept;
+    if (r && r.pass === true) seen.pass = kept;
+  }
+  ok(seen.fail === true, 'a failed concentration save drops the spell automatically');
+  ok(seen.pass === true, 'a passed concentration save keeps the spell');
+  dm.emit('dm:call', { clear: true });
+  dm.emit('dm:concentrate', { id: a.me.id, spell: 'Hold Person' });
+  await until(() => dm.last.timers.some((t) => t.kind === 'concentration'));
   dm.emit('dm:concentrate:drop', { id: a.me.id });
   ok(await until(() => !dm.last.timers.some((t) => t.kind === 'concentration')), 'the DM drops concentration');
 

@@ -28,6 +28,8 @@
   <button class="tv-ver" id="tvVer" title="Project stats">v…</button>
   <div class="tv-stats" id="tvStats" hidden><div class="box" id="tvStatsBox"></div></div>
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/conn.js"></script>
+  <script src="/awake.js"></script>
   <script src="/anim.js"></script>
   <script src="/dungeon.js"></script>
   <script src="/town.js"></script>
@@ -46,6 +48,7 @@
   <script>
     const root = document.getElementById('stage');
     const socket = io();
+    ConnPill(socket);
     window.tvSocket = socket;
     socket.on('connect', () => socket.emit('screen:hello'));
     // TV follows the table setting; the world map takes over while the DM shows it, and unrolls when it arrives.

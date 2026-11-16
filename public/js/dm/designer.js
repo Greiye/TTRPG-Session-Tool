@@ -40,8 +40,8 @@ mount(`
   <div class="row"><label class="chk"><input type="radio" name="cdMode" value="github"> GitHub</label><label class="chk"><input type="radio" name="cdMode" value="folder"> Folder on this laptop</label><label class="chk"><input type="radio" name="cdMode" value="off"> Off</label></div>
   <div class="cd-gh">
     <label class="fld">Repository<input id="cdRepo" placeholder="Greiye/Artheria.ES.3D.Lore.Game"></label>
-    <div class="row"><label class="fld grow">Branch<input id="cdBranch" placeholder="main"></label><label class="fld grow">Folder<input id="cdFolder" placeholder="content/creatures"></label></div>
-    <label class="fld">Token <small class="muted" id="cdTokenState"></small><input id="cdToken" type="password" autocomplete="off" placeholder="Paste a fine-grained token (Contents: read and write)"></label>
+    <div class="row"><label class="fld grow">Branch<input id="cdBranch" placeholder="main"></label><label class="fld grow" style="flex:2">Folder<input id="cdFolder" placeholder="content/creatures"></label></div>
+    <label class="fld">Token <small class="muted" id="cdTokenState"></small><input id="cdToken" type="password" autocomplete="off" placeholder="Paste a fine-grained token" title="A fine-grained GitHub token with Contents: read and write"></label>
     <p class="note">Make one at GitHub › Settings › Developer settings › Fine-grained tokens, for the lore repo only. It stays on this laptop.</p>
   </div>
   <div class="cd-dir"><label class="fld">Folder of the local clone<input id="cdDir" placeholder="C:\\Users\\you\\Documents\\GitHub\\Artheria.ES.3D.Lore.Game"></label><p class="note">Pages are written into the clone; commit and push them with GitHub Desktop.</p></div>

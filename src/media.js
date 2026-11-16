@@ -10,6 +10,8 @@ const MIX_MAX = 6; // ambience layers that can play at once on the soundboard
 // backdrop on a fresh table. They are not files in uploads/, so deleting one only hides it until restart.
 const SAMPLE_BACKDROPS = [
   { id: 'sample-artheria-village', url: '/samples/artheria-village.jpg', video: false, audio: false, name: 'Tales of Artheria', sample: true, opacity: 0.5 },
+  // Placeholder art for testing, one per pillar (public/samples/placeholders/, tools/make-placeholders.js).
+  ...['explore-road', 'combat-arena', 'social-tavern'].map((k) => ({ id: `placeholder-${k}`, url: `/samples/placeholders/placeholder-backdrop-${k}.svg`, video: false, audio: false, name: `[Placeholder] ${k.replace('-', ' ')}`, sample: true, placeholder: true })),
 ];
 const defaultBackdrop = (library) => library.find((b) => b.id === SAMPLE_BACKDROPS[0].id) || null;
 const LIB_EXT = [...new Set([...KINDS.backdrop.ext, ...KINDS.audio.ext])];

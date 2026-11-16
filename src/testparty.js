@@ -48,6 +48,8 @@ function seedTestParty() {
     c.hp = c.maxHp; // full health, as a fresh party
     c.spells = [...def.spells];
     c.notes = def.notes;
+    // Placeholder art (public/samples/placeholders/) only when the character has no portrait yet.
+    if (!c.portrait) c.portrait = `/samples/placeholders/placeholder-portrait-${def.cls.toLowerCase()}.svg`;
     c.slots = Object.fromEntries(Object.entries(def.slots).map(([lvl, max]) => [lvl, { max, used: 0 }]));
     c.inventory = def.weapon ? [{ id: `test-${def.cls.toLowerCase()}`, name: def.weapon, qty: 1, note: 'test kit' }] : [];
     if (!state.players[c.id]) { state.players[c.id] = c; log('system', `${c.name} joins the party (test).`); }
