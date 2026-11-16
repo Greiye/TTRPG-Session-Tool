@@ -5,6 +5,17 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Soundscape for the DM and a Music Co-DM** (Mike, Nov 16). A new card under Scene › **🎧 Soundscape** builds the table's sound as a scene, on top of the existing soundboard and music decks (no second audio system):
+  - **Mood wheel**: Calm, Happy, Funny, Epic, Sad, Creepy, Tense, Mystic and Magical round a hub that names the mood playing. A tap cross-fades the music to that mood; tapping it again stops the music.
+  - **Environment**: Forest, Town, Tavern, Dungeon, Cave, Coast and Camp each load a base stack of ambience layers.
+  - **Weather** (sun to storm: Clear, Light rain, Rain, Heavy rain, Storm) writes the one shared weather, so the TV, travel and sight follow, and adds rain and storm layers. The weather buttons, oracles and undo move the layers too. Set by hand only. **Intensity** (sparse to dense) turns every soundscape layer down or up.
+  - **Layer chips**: each layer has its own volume and a ✕; **+ Layer** adds any built-in loop or uploaded sound (up to 6). Soundscape layers play beside manual soundboard layers, and stopping one on the soundboard removes it from the soundscape.
+  - **Favourites**: **☆ Save** keeps the mood, environment, layers and intensity under a name; one tap plays it again.
+  - **DM output**: a master volume over music, layers and SFX, and where the sound plays: Auto (the TV when a TV tab is open, else the laptop), 📺 TV or 💻 Laptop.
+  - **Automation with an override**: when combat starts a playing soundscape shifts to Epic, and back when combat ends. A banner says what changed and why, with **↶ Keep (old mood)**. The DM can switch the shift off; a mood track mapped to the mode wins over it. **Undo** (Ctrl+Z) also covers every soundscape change.
+  - The mood hub pops when the mood changes and breathes while music plays, the selected mood glows and steps out of the wheel, and chips pop in.
+- **🎻 Music Co-DM**, a fourth helper (Misc › Co-DM, invite by QR, `MUSIC_KEY`). Opens the DM page with only the Soundscape card. Can change the mood, environment, layers, intensity and favourites, undo an automatic shift and upload audio. Cannot change the master volume, output, weather, the combat shift or the lock (`src/roles.js`). The DM sees "Last change by the Music Co-DM", can override anything, and can **🔒 Lock** the soundscape so the Music Co-DM only watches.
+- **Placeholder sounds**: eight more generated ambience loops (creek, birdsong, fire, cave drips, waves, town crowd, storm wind, night crickets) and nine eight-second mood music pads, all marked placeholder or PLACEHOLDER, made in memory like the first four (`src/placeholder-sounds.js`). Swap for real files by uploading under Scene › Stage and music.
 - **Exports design** (Mike, Nov 16, docs only): `docs/exports.md` plans how sessions turn into material for artists, musicians, animators and comic makers: a full session journal with a one-tap Keep button, a DM-reviewed story pack, a comic panel format, a mood timeline for music, TV and battle map stills, character reference sheets and TV clips. Secrets and DM-only fields stay out. Nothing built yet.
 - **Town visits and the segmented time clock** (Mike, Nov 16, backlog PR V):
   - **Travel uses time.** Each road leg on the world map moves the story clock (Dawn, Day, Noon, Dusk, Night) on one segment, so a two-leg road takes two. A straight trip with no road takes one. The DM can switch it off with **Travel uses time** on the world map page.

@@ -71,11 +71,127 @@ const LOOPS = {
   },
 };
 
+// Soundscape ambience (Nov 16): more placeholder layers for the environments in src/soundscape.js.
+Object.assign(LOOPS, {
+  'loop-creek': {
+    name: 'Creek (placeholder)',
+    make(n, r) {
+      const h = hiss(n, r, 0.5); const b = blips(n, r, 0.004, 600, 1400, 0.012, 0.18);
+      return at(h, (i) => h[i] * 0.25 * swell(n, i, 4, 0.3) + b[i]);
+    },
+  },
+  'loop-birds': {
+    name: 'Birdsong (placeholder)',
+    make(n, r) {
+      const b = blips(n, r, 0.0006, 2600, 4600, 0.025, 0.35); const w = hiss(n, r, 0.02);
+      return at(b, (i) => b[i] + w[i] * 0.1);
+    },
+  },
+  'loop-fire': {
+    name: 'Fire crackle (placeholder)',
+    make(n, r) {
+      const roar = hiss(n, r, 0.03); const c = blips(n, r, 0.002, 900, 3000, 0.002, 0.5);
+      return at(roar, (i) => roar[i] * 0.9 + c[i]);
+    },
+  },
+  'loop-drips': {
+    name: 'Cave drips (placeholder)',
+    make(n, r) {
+      const d = blips(n, r, 0.00025, 700, 1300, 0.06, 0.5); const air = hiss(n, r, 0.008);
+      return at(d, (i) => d[i] + air[i] * 0.2);
+    },
+  },
+  'loop-waves': {
+    name: 'Waves (placeholder)',
+    make(n, r) {
+      const h = hiss(n, r, 0.15);
+      return at(h, (i) => h[i] * 0.6 * swell(n, i, 2, 1) ** 3);
+    },
+  },
+  'loop-crowd': {
+    name: 'Town crowd (placeholder)',
+    make(n, r) {
+      const m = hiss(n, r, 0.07); const v = blips(n, r, 0.0008, 180, 420, 0.08, 0.15);
+      return at(m, (i) => m[i] * 1.1 * swell(n, i, 5, 0.4) + v[i]);
+    },
+  },
+  'loop-storm': {
+    name: 'Storm wind (placeholder)',
+    make(n, r) {
+      const w = hiss(n, r, 0.02); const g = hiss(n, r, 0.2);
+      return at(w, (i) => w[i] * 2.4 * swell(n, i, 1, 0.7) + g[i] * 0.3);
+    },
+  },
+  'loop-night': {
+    name: 'Night crickets (placeholder)',
+    make(n, r) {
+      const c = blips(n, r, 0.0015, 4200, 4800, 0.006, 0.3); const a = hiss(n, r, 0.01);
+      return at(c, (i) => c[i] * swell(n, i, 8, 0.9) + a[i] * 0.15);
+    },
+  },
+});
+
 const LOOP_IDS = Object.keys(LOOPS);
+
+// Mood music for the soundscape mood wheel: eight-second PLACEHOLDER pads, one per mood, so the wheel can be
+// tried without real music. Each mood is a short chord loop (Hz) plus a flavour; swap for licensed tracks later.
+const NOTE = (m) => 440 * 2 ** ((m - 69) / 12); // MIDI note to Hz
+const MOOD_SECS = 8;
+const MOOD_MUSIC = {
+  calm: { chords: [[60, 64, 67, 71], [57, 60, 64, 67]], pulse: 0, arp: 0 },
+  happy: { chords: [[60, 64, 67], [65, 69, 72], [67, 71, 74], [60, 64, 67]], pulse: 0, arp: 4 },
+  funny: { chords: [[60, 64, 67], [62, 65, 69], [64, 67, 71], [62, 65, 69]], pulse: 0, arp: 8, pluck: true },
+  epic: { chords: [[45, 52, 57, 64], [41, 48, 53, 60], [43, 50, 55, 62], [45, 52, 57, 64]], pulse: 2, arp: 0 },
+  sad: { chords: [[57, 60, 64], [53, 57, 60], [55, 59, 62], [52, 55, 59]], pulse: 0, arp: 0 },
+  creepy: { chords: [[48, 51, 54], [49, 52, 55]], pulse: 0, arp: 0, detune: true },
+  tense: { chords: [[45, 48, 52], [46, 49, 52]], pulse: 4, arp: 0 },
+  mystic: { chords: [[50, 57, 62, 69], [48, 55, 62, 67]], pulse: 0, arp: 2 },
+  magical: { chords: [[64, 68, 71, 75], [61, 64, 68, 73]], pulse: 0, arp: 6 },
+};
+const MOOD_IDS = Object.keys(MOOD_MUSIC);
+
+function moodMake(m) {
+  return (n, r) => {
+    const out = new Float32Array(n);
+    const seg = n / m.chords.length;
+    for (let i = 0; i < n; i++) {
+      const t = i / RATE;
+      const c = m.chords[Math.min(m.chords.length - 1, Math.floor(i / seg))];
+      const k = (i % seg) / seg;
+      const env = 0.5 - 0.5 * Math.cos(2 * Math.PI * k); // each chord breathes in and out, so the loop never clicks
+      let v = 0;
+      for (const note of c) {
+        const f = NOTE(note);
+        v += Math.sin(2 * Math.PI * f * t) + 0.3 * Math.sin(4 * Math.PI * f * t);
+        if (m.detune) v += 0.7 * Math.sin(2 * Math.PI * f * 1.013 * t);
+      }
+      out[i] = (v / c.length) * env * (m.pluck ? 0.25 : 0.5);
+      if (m.pulse) out[i] += Math.sin(2 * Math.PI * 55 * t) * Math.exp(-((t * m.pulse) % 1) * 9) * 0.5; // drum or heartbeat
+    }
+    if (m.arp) { // arpeggio sparkles over the chords
+      const step = Math.floor(RATE / m.arp);
+      const tau = RATE * (m.pluck ? 0.05 : 0.18);
+      for (let s = 0, j = 0; s < n; s += step, j++) {
+        const c = m.chords[Math.min(m.chords.length - 1, Math.floor(s / seg))];
+        const f = NOTE(c[j % c.length] + 12);
+        for (let q = 0; q < tau * 4 && s + q < n; q++) out[s + q] += 0.25 * Math.exp(-q / tau) * Math.sin((2 * Math.PI * f * q) / RATE);
+      }
+    }
+    if (m.detune) { const b = blips(n, r, 0.0002, 3000, 5000, 0.2, 0.1); for (let i = 0; i < n; i++) out[i] += b[i]; }
+    return out;
+  };
+}
+for (const id of MOOD_IDS) {
+  LOOPS[`mood-${id}`] = { name: `${id[0].toUpperCase()}${id.slice(1)} mood music (PLACEHOLDER)`, secs: MOOD_SECS, make: moodMake(MOOD_MUSIC[id]) };
+}
+// Track entries for state.audio.moods: the music the mood wheel cross-fades to.
+function moodItems() {
+  return MOOD_IDS.map((m) => ({ id: `mood-${m}`, mood: m, name: LOOPS[`mood-${m}`].name, url: `/sounds/mood-${m}.wav`, video: false, audio: true, builtin: true, placeholder: true }));
+}
 
 // Track entries for state.audio.loops. They look like uploaded audio, flagged as built in.
 function loopItems() {
-  return LOOP_IDS.map((id) => ({ id, name: LOOPS[id].name, url: `/sounds/${id}.wav`, video: false, audio: true, builtin: true }));
+  return LOOP_IDS.map((id) => ({ id, name: LOOPS[id].name, url: `/sounds/${id}.wav`, video: false, audio: true, builtin: true, placeholder: true }));
 }
 
 function wav(samples) {
@@ -91,7 +207,7 @@ function wav(samples) {
 
 function render(id) {
   const x = Math.round(FADE * RATE);
-  const n = SECS * RATE;
+  const n = (LOOPS[id].secs || SECS) * RATE;
   const seed = [...id].reduce((s, c) => Math.imul(s, 31) + c.charCodeAt(0), 7) >>> 0;
   const raw = LOOPS[id].make(n + x, rng(seed));
   const out = new Float32Array(n);
@@ -111,4 +227,4 @@ function wavFor(id) {
   return cache.get(id);
 }
 
-module.exports = { LOOP_IDS, loopItems, wavFor, RATE };
+module.exports = { LOOP_IDS, MOOD_IDS, MOOD_SECS, loopItems, moodItems, wavFor, RATE };

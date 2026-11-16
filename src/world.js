@@ -35,9 +35,9 @@ function setMood(mode, trackId) {
 }
 function applyMood(mode) {
   const id = state.moodMap?.[mode];
-  if (!id) return;
-  const t = state.audio.library.find((x) => x.id === id);
+  const t = id && state.audio.library.find((x) => x.id === id);
   if (t) { state.audio.music = t; state.audio.playing = true; }
+  require('./soundscape').onMode(state, mode); // soundscape auto mood (skipped when a track is mapped here)
 }
 
 // 22: lighting preset for the scene; the TV tints the stage.

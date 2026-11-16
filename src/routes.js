@@ -2,7 +2,7 @@
 const express = require('express');
 const path = require('path');
 const QRCode = require('qrcode');
-const { PUBLIC_DIR, UPLOAD_DIR, MODEL_DIR, DM_KEY, CODM_KEY, BATTLE_KEY, SOCIAL_KEY } = require('./config');
+const { PUBLIC_DIR, UPLOAD_DIR, MODEL_DIR, DM_KEY, CODM_KEY, BATTLE_KEY, SOCIAL_KEY, MUSIC_KEY } = require('./config');
 const roles = require('./roles');
 const { joinUrl, codmUrl, isLocalAddr } = require('./net');
 const { state, broadcast } = require('./state');
@@ -36,7 +36,7 @@ module.exports = function routes(app) {
   const isDm = (req) => isLocalAddr(req.socket.remoteAddress) || [DM_KEY, CODM_KEY].includes(req.get('x-dm-key'));
   const isCodm = (req) => req.get('x-dm-key') === CODM_KEY;
   // Battle or Social Master, by the key their page sends (src/roles.js).
-  const masterOf = (req) => ({ [BATTLE_KEY]: 'battle', [SOCIAL_KEY]: 'social' })[req.get('x-dm-key')] || null;
+  const masterOf = (req) => ({ [BATTLE_KEY]: 'battle', [SOCIAL_KEY]: 'social', [MUSIC_KEY]: 'music' })[req.get('x-dm-key')] || null;
   const isBattle = (req) => masterOf(req) === 'battle';
   const fail = (res, e) => res.status(e.status || 500).json({ error: e.status ? e.message : 'Upload failed' });
 
@@ -143,8 +143,8 @@ module.exports = function routes(app) {
   app.get('/api/templates', (_req, res) => res.json(Object.fromEntries(Object.entries(require('./world').TEMPLATES).map(([k, t]) => [k, t.name]))));
   app.get('/api/assets', (_req, res) => res.json(Object.fromEntries(Object.entries(assets.KINDS).map(([k, v]) => [k, { formats: v.ext, maxMB: v.maxBytes / assets.MB }]))));
 
-  // Co-DM invites, DM only: ?role=codm (atmosphere, default), battle or social.
-  const inviteRole = (req) => (['battle', 'social'].includes(req.query.role) ? req.query.role : 'codm');
+  // Co-DM invites, DM only: ?role=codm (atmosphere, default), battle, social or music.
+  const inviteRole = (req) => (['battle', 'social', 'music'].includes(req.query.role) ? req.query.role : 'codm');
   app.get('/codm-qr.svg', async (req, res) => {
     if (!dmOnly(req)) return res.sendStatus(403);
     res.type('image/svg+xml').send(await QRCode.toString(codmUrl(inviteRole(req)), { type: 'svg', margin: 1, color: QR_COLORS }));

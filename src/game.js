@@ -109,6 +109,7 @@ function startCombat() {
   // Bosses get their title card as the fight opens.
   const boss = c.enemies.find((e) => e.boss && e.title);
   if (boss) state.bossCard = { id: boss.id, name: boss.name, title: boss.title, n: (state.bossCard?.n || 0) + 1 };
+  if (state.mode !== 'combat') require('./soundscape').onMode(state, 'combat');
   state.mode = 'combat';
   if (state.worldMap) state.worldMap.onTv = false; // rolling initiative opens the fight: the battle map takes the TV (mode changes alone keep the world map)
   log('combat', `Roll initiative! ${c.order.map((o) => `${combatant(o.id).name} ${o.init}`).join(', ')}`, { tone: 'call' });

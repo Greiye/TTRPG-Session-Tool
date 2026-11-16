@@ -132,7 +132,7 @@
       </div>
     </div>
     <div class="card tab-card">
-      <nav class="tab-list" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Rolls"><i>🎲</i><span>Rolls</span></button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat"><i>⚔️</i><span>Combat</span></button><button role="tab" data-stab="inspiration" title="Inspiration points" aria-label="Inspiration"><i>✨</i><span>Inspiration</span></button><button role="tab" data-stab="items" title="Items: give, count and take back each character's items" aria-label="Items"><i>🎒</i><span>Items</span></button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages"><i>✉</i><span>Messages</span></button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs"><i>📜</i><span>Logs</span></button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene, points of interest, stage and music, clocks, TV moments and puzzles" aria-label="Scene"><i>🎬</i><span>Scene</span></button><button role="tab" data-stab="lore" title="Lore: locations, dungeons, NPCs, items, books and notes" aria-label="Lore"><i>📚</i><span>Lore</span></button><button role="tab" data-stab="misc" title="NPCs, legends, lights, table tools, quiz, relations, journal, camp, road cards, rules system, co-DM and campaign data" aria-label="Miscellaneous"><i>🧰</i><span>Miscellaneous</span></button></div><div class="tab-group" data-group="plan" data-plan aria-label="Planning"><button role="tab" data-stab="shops" data-live title="Shops and party gold: pop a shop up during play or from Planning Mode" aria-label="Shops"><i>🛒</i><span>Shops</span></button><button role="tab" data-stab="designer" title="Creature Designer: peoples, beasts, monsters and named persons, synced with the lore wiki" aria-label="Creatures"><i>🐉</i><span>Creatures</span></button><button role="tab" data-stab="echo" title="Choice echoes: plant a consequence now, it fires after N scenes" aria-label="Choice echo"><i>🔁</i><span>Choice echo</span></button></div></nav>
+      <nav class="tab-list" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Rolls"><i>🎲</i><span>Rolls</span></button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat"><i>⚔️</i><span>Combat</span></button><button role="tab" data-stab="inspiration" title="Inspiration points" aria-label="Inspiration"><i>✨</i><span>Inspiration</span></button><button role="tab" data-stab="items" title="Items: give, count and take back each character's items" aria-label="Items"><i>🎒</i><span>Items</span></button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages"><i>✉</i><span>Messages</span></button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs"><i>📜</i><span>Logs</span></button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene, points of interest, stage and music, soundscape, clocks, TV moments and puzzles" aria-label="Scene"><i>🎬</i><span>Scene</span></button><button role="tab" data-stab="lore" title="Lore: locations, dungeons, NPCs, items, books and notes" aria-label="Lore"><i>📚</i><span>Lore</span></button><button role="tab" data-stab="misc" title="NPCs, legends, lights, table tools, quiz, relations, journal, camp, road cards, rules system, co-DM and campaign data" aria-label="Miscellaneous"><i>🧰</i><span>Miscellaneous</span></button></div><div class="tab-group" data-group="plan" data-plan aria-label="Planning"><button role="tab" data-stab="shops" data-live title="Shops and party gold: pop a shop up during play or from Planning Mode" aria-label="Shops"><i>🛒</i><span>Shops</span></button><button role="tab" data-stab="designer" title="Creature Designer: peoples, beasts, monsters and named persons, synced with the lore wiki" aria-label="Creatures"><i>🐉</i><span>Creatures</span></button><button role="tab" data-stab="echo" title="Choice echoes: plant a consequence now, it fires after N scenes" aria-label="Choice echo"><i>🔁</i><span>Choice echo</span></button></div></nav>
     </div>
 
     <p class="side-title" id="sideTitle"></p>
@@ -162,6 +162,14 @@
         <div id="socialInvite" class="codm-invite" hidden>
           <img id="socialQr" alt="Social Master QR">
           <div><p class="note">Voices NPCs for you: types their lines into the dialogue box, sets emotions, picks who is on the scene and pushes player choices. Nothing else. Don't show it on the TV.</p><code id="socialUrl"></code></div>
+        </div>
+      </div>
+      <div class="invite-role">
+        <h3>🎻 Music Co-DM <span id="musicCount" class="note"></span></h3>
+        <button class="btn" data-invite="music" aria-expanded="false" aria-controls="musicInvite">Invite</button>
+        <div id="musicInvite" class="codm-invite" hidden>
+          <img id="musicQr" alt="Music Co-DM QR">
+          <div><p class="note">Runs the soundscape for you: mood wheel, environment, layers, intensity and favourites. Not the master volume, the output or the weather, and you can lock or undo anything they do. Don't show it on the TV.</p><code id="musicUrl"></code></div>
         </div>
       </div>
     </div>
@@ -498,6 +506,7 @@
 
     <div class="card" data-tab="scene" data-sub="moments" data-panel="exploration social combat" id="momentsCard"></div>
     <div id="atmo" data-tab="scene" data-sub="stage"></div>
+    <div class="card ss" id="soundscape" data-tab="scene" data-sub="sound"></div>
     <div class="card lore-card" data-tab="lore" id="loreCard">
       <h3>📚 Lore <span class="note" id="loreCount"></span></h3>
       <div class="lore-cats" id="loreCats" role="tablist" aria-label="Lore categories"></div>
@@ -633,6 +642,7 @@
   <script src="/audio.js"></script>
   <script src="/soundboard.js"></script>
   <script src="/atmo.js"></script>
+  <script src="/soundscape.js"></script>
   <script src="/weather.js"></script>
   <script type="module" src="/js/dm/main.js"></script>
   <script src="/stt.js"></script>

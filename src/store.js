@@ -79,7 +79,7 @@ function snapshot(state, seq) {
     combat: state.combat,
     social: { ...state.social, caption: '' },
     backdrop: { image: state.backdrop.image?.id || 'none', effects: state.backdrop.effects },
-    audio: { music: state.audio.music?.id || null, playing: state.audio.playing, volume: state.audio.volume, sfxVolume: state.audio.sfxVolume, mix: state.audio.mix.map(({ id, volume }) => ({ id, volume })) },
+    audio: { music: state.audio.music?.id || null, playing: state.audio.playing, volume: state.audio.volume, sfxVolume: state.audio.sfxVolume, mix: state.audio.mix.map(({ id, volume, ss }) => ({ id, volume, ...(ss ? { ss } : {}) })), master: state.audio.master, output: state.audio.output },
     settings: state.settings,
     log: state.log,
     ...Object.fromEntries(EXTRA.map((k) => [k, state[k]])),
@@ -107,14 +107,18 @@ function restore(state, roster, saved) {
   state.backdrop.image = bd.image === 'none' ? null : state.backdrop.library.find((b) => b.id === bd.image) || defaultBackdrop(state.backdrop.library);
   state.backdrop.effects = bd.effects || [];
   const au = saved.audio || {};
-  state.audio.music = state.audio.library.find((t) => t.id === au.music) || null;
+  // Soundscape mood music (state.audio.moods) is built in, so it is found like an uploaded track.
+  state.audio.music = [...state.audio.library, ...(state.audio.moods || [])].find((t) => t.id === au.music) || null;
   Object.assign(state.audio, { playing: !!(state.audio.music && au.playing), volume: au.volume ?? state.audio.volume, sfxVolume: au.sfxVolume ?? state.audio.sfxVolume });
+  Object.assign(state.audio, { master: au.master ?? state.audio.master ?? 1, output: ['auto', 'tv', 'laptop'].includes(au.output) ? au.output : state.audio.output || 'auto' });
   // Saves from before the soundboard have no mix, so it starts empty. Tracks that no longer exist are dropped.
   const tracks = [...state.audio.loops, ...state.audio.library];
   state.audio.mix = (au.mix || []).flatMap((m) => {
     const t = tracks.find((x) => x.id === m.id);
-    return t ? [{ id: t.id, url: t.url, name: t.name, volume: Math.max(0, Math.min(1, Number(m.volume) || 0)) }] : [];
-  }).slice(0, MIX_MAX);
+    return t ? [{ id: t.id, url: t.url, name: t.name, volume: Math.max(0, Math.min(1, Number(m.volume) || 0)), ...(m.ss ? { ss: true } : {}) }] : [];
+  });
+  // The soundboard's own cap; soundscape layers (ss) have their own (src/soundscape.js).
+  state.audio.mix = [...state.audio.mix.filter((m) => !m.ss).slice(0, MIX_MAX), ...state.audio.mix.filter((m) => m.ss)];
   return saved.seq || 0;
 }
 
