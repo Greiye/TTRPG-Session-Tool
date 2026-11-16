@@ -41,7 +41,6 @@ function derived(c) {
     passive: Object.fromEntries(sys.skills.map((k) => [k, sys.passive(c, k)])),
   };
 }
-const passivePerception = (c) => { const sys = rules.get(c.system); return sys.passive(c, sys.skills.includes('Perception') ? 'Perception' : 'Instinct'); };
 
 // Apply a sheet patch. Players may change what they track at the table; the DM may change everything.
 function applySheet(c, f, isDm) {
@@ -91,4 +90,4 @@ function applySheet(c, f, isDm) {
   rules.get(c.system).editSheet(c, f);
 }
 
-module.exports = { PRIVATE, ensureSheet, derived, passivePerception, applySheet };
+module.exports = { PRIVATE, ensureSheet, derived, applySheet };

@@ -51,6 +51,5 @@ function readFor(h, viewer) {
   return { ...rest, seen: viewer.role === 'player' && !!read?.[viewer.charId] };
 }
 // Who has voted (DM only). Phones never see who picked what.
-const voters = (v) => Object.keys(v.votes || {});
 
-module.exports = { VOTE_OPTIONS, handout, spoil, vote, tally, isPop, markRead, readFor, voters };
+module.exports = { VOTE_OPTIONS, handout, spoil, vote, tally, isPop, markRead, readFor };

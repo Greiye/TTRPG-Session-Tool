@@ -77,7 +77,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid #b8862f; outline-
 input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; accent-color: #8a4f12; }
 
 /* ---------- buttons: wooden plates in an iron band ---------- */
-.btn, .bigbtn, .tabs button, .side-tabs button, .settings-btn, .mode-pill, .vn-name {
+.btn, .bigbtn, .tabs button, .settings-btn, .vn-name {
   --ink: #f3e5c4; --muted: #cbb58c; --gold: #f2c96e;
   color: var(--ink);
   background: linear-gradient(180deg, rgb(255 230 190 / .16), transparent 45%, rgb(0 0 0 / .35)), #5e3b20 var(--tx-wood) center / 400px 120px;
@@ -90,7 +90,7 @@ input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; a
 }
 .btn { font-weight: 600; padding: 6px 12px; }
 .btn.small { padding: 2px 9px; }
-.btn:hover, .bigbtn:hover, .tabs button:hover, .side-tabs button:hover { filter: brightness(1.15); border-color: transparent; }
+.btn:hover, .bigbtn:hover, .tabs button:hover { filter: brightness(1.15); border-color: transparent; }
 .btn:active, .bigbtn:active, .tabs button:active { transform: translateY(1px); filter: brightness(.95); }
 .btn:disabled, .bigbtn:disabled { filter: grayscale(.6) brightness(.8); }
 /* slate-iron plate for primary actions, like the grey plates in the menu */
@@ -98,7 +98,7 @@ input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; a
   color: #fff3d6; font-weight: 700;
   background: linear-gradient(180deg, rgb(255 255 255 / .14), transparent 45%, rgb(0 0 0 / .35)), linear-gradient(180deg, #4d5560, #2e333a);
 }
-.btn.on, .side-tabs button.on {
+.btn.on {
   color: #ffe2a0;
   background: linear-gradient(180deg, rgb(255 220 150 / .25), transparent 45%, rgb(0 0 0 / .3)), #6e4622 var(--tx-wood) center / 400px 120px;
   box-shadow: 0 0 0 1px #e6b65a, 0 0 10px rgb(240 190 90 / .55);
@@ -108,7 +108,7 @@ input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; a
 }
 
 /* the round gem socket */
-.bigbtn::before, .modes .btn::before, .btn.primary::before, .tabs button.on::before, .mode-pill::before, .vn-name::before {
+.bigbtn::before, .modes .btn::before, .btn.primary::before, .tabs button.on::before, .vn-name::before {
   content: ''; display: inline-block; vertical-align: -.14em; flex: none;
   width: 1em; height: 1em; margin-right: .5em; border-radius: 50%;
   background:
@@ -133,7 +133,6 @@ input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; a
 .bigbtn::before { width: 1.05em; height: 1.05em; margin-right: .6em; }
 
 /* DM side rail: square iron-banded icon plates */
-.side-tabs button { border-image-width: 5px; }
 .dm-right {
   background: linear-gradient(90deg, rgb(0 0 0 / .45), transparent 18px), #2a1d13 var(--tx-wood) center / 400px 120px;
   border-left: 6px solid #1a1612;
@@ -223,8 +222,6 @@ html:has(> body.codm) { background: radial-gradient(ellipse at 50% -10%, rgb(120
 .vn-box.emo-sad .vn-name { background: linear-gradient(180deg, rgb(255 255 255 / .14), transparent 45%, rgb(0 0 0 / .35)), linear-gradient(180deg, #4d5560, #2e333a); --gem: var(--gem-blue); }
 
 /* mode pill and join card */
-.mode-pill { border-radius: 0; border-image-width: .45cqw; border-width: .2cqw; color: #f8e6bb; padding: .55cqw 1.4cqw; --gem: var(--gem-blue); }
-.mode-combat .mode-pill { --gem: var(--gem-red); }
 .join { background: var(--edge-burn), #e0cb9b var(--tx-parch); border: 4px solid transparent; border-image: var(--frame) 40 / 1.6cqw / 0 stretch; border-radius: 0; padding: 1.1cqw; }
 .join b { color: var(--gold); }
 .join small { color: var(--muted); }
@@ -289,8 +286,8 @@ html:has(> body.codm) { background: radial-gradient(ellipse at 50% -10%, rgb(120
 
 /* ---------- motion ---------- */
 @keyframes gem-glint { 0%, 85%, 100% { filter: none; } 90% { filter: brightness(1.6) saturate(1.3); } }
-.bigbtn::before, .tabs button.on::before, .mode-pill::before { animation: gem-glint 5s ease-in-out infinite; }
-html[data-motion="reduce"] .bigbtn::before, html[data-motion="reduce"] .tabs button.on::before, html[data-motion="reduce"] .mode-pill::before { animation: none; }
+.bigbtn::before, .tabs button.on::before { animation: gem-glint 5s ease-in-out infinite; }
+html[data-motion="reduce"] .bigbtn::before, html[data-motion="reduce"] .tabs button.on::before { animation: none; }
 
 /* ================= Chronicle layout (body.chron) in the game menu look =================
    chronicle.css gives the DM page and phones their three-column / hero layout with a charcoal skin.
@@ -329,11 +326,6 @@ body.chron .dm-bar, body.chron #pills, body.chron .col-head { border-color: #4a3
 body.chron .dm-bar h2 { font-family: var(--orn); font-weight: 900; text-transform: none; letter-spacing: .02em; color: #e8c77e; }
 body.chron .side-title { font-family: var(--display); color: #d8b878; }
 body.chron .tab-group { border-color: #4a3726; }
-body.chron .side-tabs button { border-radius: 0; }
-body.chron .side-tabs button:hover { background: rgb(255 220 160 / .08); }
-body.chron .side-tabs button.on { background: rgb(255 220 160 / .12); border: 1px solid #b8862f; box-shadow: 0 0 8px rgb(240 190 90 / .35); }
-body.chron .side-tabs button::after { font-family: var(--display); color: #cbb68e; }
-body.chron .side-tabs button.on::after { color: #f2c96e; }
 
 /* top pills (day, light, place, quest, coins) as wooden plates */
 body.chron .pill {
@@ -583,8 +575,6 @@ body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / 
 .convo-pop .pop-sheet { animation: sheetup .32s cubic-bezier(.2, .8, .2, 1); }
 .convo-pop.closing { animation: fadeout .2s ease-in forwards; }
 .convo-pop.closing .pop-sheet { animation: sheetdown .2s ease-in forwards; }
-@keyframes fadein { from { opacity: 0; } }
-@keyframes fadeout { to { opacity: 0; } }
 @keyframes sheetup { from { transform: translateY(100%); } }
 @keyframes sheetdown { to { transform: translateY(100%); } }
 .convo-sheet h3 { text-align: center; }
@@ -595,15 +585,6 @@ body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / 
 .convo-sheet textarea { width: 100%; margin: 10px 0 12px; font-size: calc(16px * var(--ts)); resize: none; }
 .convo-sheet textarea.shake { animation: shakex .3s; }
 @keyframes shakex { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
-.convo-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.convo-pad .btn { aspect-ratio: 1.4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px; text-align: center; transition: transform .12s, box-shadow .2s; }
-.convo-pad .pad-emo span { font-size: calc(24px * var(--ts)); line-height: 1; }
-.convo-pad .pad-emo small { font-size: calc(11px * var(--ts)); color: var(--muted); }
-.convo-pad .pad-emo.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset, 0 0 12px rgb(240 190 90 / .4); transform: scale(1.04); }
-.convo-pad .pad-emo.on small { color: var(--gold); }
-.convo-pad .pad-send { font-size: calc(17px * var(--ts)); font-weight: 600; }
-.convo-pad .pad-send.sent { animation: sendpop .35s ease-out; }
-@keyframes sendpop { 40% { transform: scale(.9); } }
 
 /* Phone hero: Inspiration in the 🏅 box, HP as a word, gems for hit dice and spell slots, tools at the bottom. */
 .hbar.hp-word b { font-size: calc(12px * var(--ts)); letter-spacing: .04em; white-space: nowrap; }

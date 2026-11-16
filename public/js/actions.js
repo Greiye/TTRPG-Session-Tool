@@ -1,6 +1,6 @@
 // Creature actions (Mike, Nov 16, PR O): an icon with the name under it; the to-hit and damage maths shows on hover.
 // Shared by the DM combat cards (public/js/dm/combat.js) and the 3D battle map's action bar (public/js/iso3d.js).
-const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
 const ICONS = [[/bow|shoot|arrow|crossbow|sling|dart|javelin/i, '🏹'], [/fire|flame|burn|breath/i, '🔥'], [/frost|ice|cold/i, '❄️'], [/lightning|shock|thunder/i, '⚡'],
   [/bite|fang/i, '🦷'], [/claw|talon|rake/i, '🐾'], [/spit|acid|poison|venom|sting/i, '🧪'], [/heal|cure/i, '✚'], [/spell|bolt|ray|magic|missile|eldritch/i, '✨'],
   [/club|mace|hammer|slam|fist|punch|maul|morningstar/i, '🔨'], [/axe|cleave/i, '🪓'], [/spear|pike|trident|lance|gore|horn/i, '🔱'], [/dagger|knife|shiv/i, '🗡'], [/./, '⚔️']];

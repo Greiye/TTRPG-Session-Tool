@@ -58,7 +58,6 @@ function remember(id, path) {
 // Speed in feet for this turn: the fly speed while flying, else the walk speed.
 const speedOf = (c) => ((c.speed?.fly || 0) > 0 && c.flying !== false ? c.speed.fly : (c.speed?.walk ?? (typeof c.speed === 'number' ? c.speed : 30)));
 // Feet of movement left this turn. Negative when the DM has moved it past its speed.
-const movementLeft = (c) => speedOf(c) - (state.combat.moved?.[c.id] || 0);
 
 // A character moves on its turn. Returns { ok, cost } or { error }.
 function move(c, x, y, { dm = false } = {}) {
@@ -99,4 +98,4 @@ const resetMoves = () => { state.combat.moved = {}; };
 // The DM gives one creature its movement back (right-click menu).
 const resetMove = (id) => { if (state.combat.moved) delete state.combat.moved[id]; };
 
-module.exports = { TILE_FT, WALL, DIFFICULT, setMap, paint, place, cost, move, resetMoves, resetMove, speedOf, movementLeft };
+module.exports = { TILE_FT, WALL, DIFFICULT, setMap, paint, place, cost, move, resetMoves, resetMove, speedOf };

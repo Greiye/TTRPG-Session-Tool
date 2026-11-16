@@ -256,7 +256,7 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
     if (k === trayKey) return;
     trayKey = k;
     tray.hidden = !off.length;
-    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
     tray.innerHTML = `<b>Drag onto the map</b>${off.map(([x, pc], i) => {
       let src = ''; try { src = battle.portraitOf(lookOf(x, pc)); } catch { /* rules not loaded yet */ }
       const locked = pend.length && pend[0] !== x.id && pend.includes(x.id);
