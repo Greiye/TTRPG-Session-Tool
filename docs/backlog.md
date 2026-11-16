@@ -16,9 +16,9 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 
 ### PR A: World map window
 `public/js/dm/worldmap.js`, `public/worldmap.js`, `public/worldmap.css`, `public/js/dm/modes.js`, `src/sockets/worldmap.js`
-- [ ] 2. The World map opens from any mode, not only exploration.
-- [ ] 3. Places are dragged onto the map from a palette. Dragging a place onto a trash-can icon deletes it.
-- [ ] 4. "Map picture" and "Load example world" sit at the bottom of the World map window.
+- [x] 2. The World map opens from any mode, not only exploration.
+- [x] 3. Places are dragged onto the map from a palette. Dragging a place onto a trash-can icon deletes it.
+- [x] 4. "Map picture" and "Load example world" sit at the bottom of the World map window.
 - [x] (Nov 15) Bug: the TV world map was cut off at the bottom. Fixed in PR #73.
 - [x] (Nov 15) The current-location title on the world map was too big. Fixed in PR #73.
 
@@ -30,8 +30,8 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 
 ### PR C: DM Rolls card
 `public/js/dm/rolls.js`, `public/dm.html`, `public/style.css` (reuse the phone dice pool from `public/js/play/`)
-- [ ] 7. The DM Roll dice window has the same die buttons (D4 to D20) as the phones.
-- [ ] 9. Each Roll call drop-down gets its own row, so its text is not cut off in the DM tools column.
+- [x] 7. The DM Roll dice window has the same die buttons (D4 to D20) as the phones.
+- [x] 9. Each Roll call drop-down gets its own row, so its text is not cut off in the DM tools column.
 
 ### PR D: DM tools column layout
 `public/dm.html`, `public/style.css`, `public/chronicle.css`, `public/js/dm/dock.js`, `public/js/dm/modes.js`
@@ -51,3 +51,15 @@ Today: the DM opens a shop pop-up on the TV (`dm:shop:pop`), phones buy and sell
 - [ ] When every seated player has left the shop, the pop-up closes on the TV and on all phones.
 - [ ] The DM's Shops cards start minimized.
 
+
+## Mike's notes, 2026-11-16
+
+### Social: "Join the conversation?" pop-up on phones
+`src/sockets/player.js`, `src/cast.js`, `src/state.js`, `public/js/play/views/social.js`, `public/stage.js`, `public/style.css`
+Today: phones in social mode can pick an expression (`player:expression`, `cast.setExpression`), push a pushed choice (`player:choice`) or type a line, which becomes `state.social.line` with `player: true`.
+- [ ] When the DM loads a social encounter (enters Social mode), every seated phone gets a pop-up that just says "Join the Conversation?", with a green **Yes** button and a **No** button of the same size under it.
+- [ ] **No** closes the pop-up for that phone (the phone keeps its normal Social view).
+- [ ] **Yes** keeps the pop-up open and turns it into a speech box: a text box at the top for what the character says, then a directional pad under it for the character's emotion: the 8 `EMOTIONS` around a 3x3 pad, Send in the centre.
+- [ ] Sending: the character's emotion changes on the TV only when the line is sent, together with the speech.
+- [ ] Speech log line: `[Character name] looks to be [emotion]. [He/She/They] says "[text]"`. Needs a pronoun field on the character (none today): add it to the character profile, default "They".
+- [ ] The pop-up closes for everyone when the DM leaves Social mode.

@@ -225,6 +225,15 @@ body.dm { display: grid; grid-template-columns: minmax(0, 1fr) 420px; height: 10
 .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .row > * { min-width: 0; }
 .grow { flex: 1; }
+/* DM and co-DM sidebars are narrow: a growing field keeps room for its whole value or placeholder and wraps
+   onto its own line instead of being squeezed to a sliver by the buttons beside it. */
+:is(body.dm, body.codm) .row > :is(input, select).grow { flex: 1 1 12em; }
+.wm-table-row { display: grid; grid-template-columns: auto 1fr 56px auto; gap: 6px; align-items: start; margin-bottom: 4px; }
+.wm-table-row textarea { min-height: 0; resize: none; }
+@supports (field-sizing: content) {
+  :is(body.dm, body.codm) .row > :is(input, select).grow { flex-basis: auto; width: auto; field-sizing: content; }
+  :is(body.dm, body.codm) textarea { field-sizing: content; max-height: 60vh; }
+}
 input, select, textarea { background: #140f17; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 100%; }
 textarea { resize: vertical; min-height: 54px; }
 .btn { background: #3a2d40; border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; white-space: nowrap; }
@@ -971,3 +980,9 @@ body.battle-waiting #tablePage, body.battle-waiting #toolsCol .modes-card, body.
 .dice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .die { grid-template-columns: 32px minmax(0, 1fr) 32px; min-width: 0; }
 .die-face { gap: 4px; min-width: 0; }
+
+/* DM Roll call and Roll dice cards (Nov 15): one drop-down per row; the phones' dice buttons, a little tighter. */
+.call-fld { margin: 4px 0; }
+.call-fld select { width: 100%; }
+.dm-dice .dice-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.dm-dice .die-step { min-height: 40px; }

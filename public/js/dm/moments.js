@@ -16,12 +16,12 @@ card.innerHTML = `
     <button class="btn small" data-act="pause">Dim the TV</button>
     <button class="btn small" data-act="unpause" id="moRelease" hidden>Release</button></div>
   <div class="row"><b>Chapter card</b>
-    <input id="moChTitle" placeholder="Title (a new scene title also shows one)">
+    <input id="moChTitle" placeholder="Title (optional)" title="A new scene title also shows one">
     <input id="moChSub" placeholder="Subtitle">
     <button class="btn small" data-act="chapter">Show</button></div>
   <div class="row"><b>Entrance</b>
     <input id="moEnName" placeholder="Name">
-    <input id="moEnImg" placeholder="Portrait path, e.g. /uploads/… (optional)">
+    <input id="moEnImg" placeholder="Portrait path (optional)" title="Portrait path, e.g. /uploads/…">
     <select id="moEnSfx">${SFX.map((s) => `<option value="${s}">${s ? `Sound: ${s}` : 'No sound'}</option>`).join('')}</select>
     <button class="btn small" data-act="enter">Bring in</button></div>
   <div class="row"><b>Quote wall</b>
