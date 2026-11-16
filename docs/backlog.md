@@ -78,9 +78,9 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR F: Combat on phones and the 3D battle map
 `public/js/play/views/combat.js`, `public/js/play/combatmap.js`, `lib/iso-battle/src/client/` (`battle.js`, `scene.js`, `sprites.js`), `public/iso/`, `src/sockets/player.js`, `src/game.js`
-- [ ] Player Phones get a Combat Pop Up. This appears at the top of their windows list. It's the same one as the 'Steel Yourselves" Pop up.
-- [ ] Player Phones don't show the 3D combat window, they have to look at the TV Screen to see it.
-- [ ] 3D Iso window does not display health or health bar. Only DM can see that.
+- [x] Player Phones get a Combat Pop Up. This appears at the top of their windows list. It's the same one as the 'Steel Yourselves" Pop up.
+- [x] Player Phones don't show the 3D combat window, they have to look at the TV Screen to see it.
+- [x] 3D Iso window does not display health or health bar. Only DM can see that.
 - [ ] (Keep) Cool that the TV Screen automatically moves to the recent action.
 
 ### PR G: DM combat controls (movement, selection, tools)
@@ -132,10 +132,10 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR M: Camp, rests and inspiration
 `public/js/dm/camp.js`, `public/js/play/camp.js`, `src/camp.js`, `src/rests.js`, `public/js/dm/hold.js`, `public/dm.html`
-- [ ] On Camp pop up, players must click/hold their short/long rest selection for 1 second to vote. [Phone camp pop-up]
-- [ ] Remove rests tab. This is automated in camp window. [DM Screen, Misc > Camp "Rests" card]
-- [ ] Camp window also has a class section. That section changes depending on their class.
-- [ ] Add an Inspiration Tab. [DM Screen; pairs with the phone hero card Inspiration points above]
+- [x] On Camp pop up, players must click/hold their short/long rest selection for 1 second to vote. [Phone camp pop-up]
+- [x] Remove rests tab. This is automated in camp window. [DM Screen, Misc > Camp "Rests" card]
+- [x] Camp window also has a class section. That section changes depending on their class.
+- [x] Add an Inspiration Tab. [DM Screen; pairs with the phone hero card Inspiration points above]
 
 ### PR N: Shops and items
 `src/shops.js`, `public/js/dm/shops.js`, `public/js/play/shops.js`, `public/js/play/inventory.js`, `public/stage.js`, `src/sockets/dm.js`, `src/sockets/player.js`, `public/dm.html`
@@ -167,11 +167,11 @@ Items are as Mike wrote them. Bracketed notes say which screen a tab or setting 
 
 ### PR R: Dungeon entry, exit and editing
 `src/dungeon.js`, `src/sockets/dungeon.js`, `public/dungeon.js`, `public/dungeon.css`, `public/js/dm/dungeon.js`, `public/js/play/`
-- [ ] When the Party goes to a dungeon location, they get a phone tab. TV screen gets a pop up too, showing the dungeon image and a count of ready party members. The player phones get a window that shows the dungeon name, the description, and a button that says 'Enter Dungeon'. When all players have held-pressed enter dungeon for 1 second (counter on the TV), Then enter the dungeon.
-- [ ] When all players are at the end of the dungeon, they get an 'exit dungeon' pop up. They just have to press the exit dungeon button which sends them back to the TV Screen world map.
-- [ ] When Party is in a dungeon, A dungeon editing tab appears underneath world map. [DM Screen, World map window]
-- [ ] DM can edit the nodes right from the dungeon window. Can click/drag/etc. nodes and right click nodes for menu. [DM Screen, dungeon window]
-- [ ] Party Dungeon Location node is centered on TV Screen. [TV]
+- [x] When the Party goes to a dungeon location, they get a phone tab. TV screen gets a pop up too, showing the dungeon image and a count of ready party members. The player phones get a window that shows the dungeon name, the description, and a button that says 'Enter Dungeon'. When all players have held-pressed enter dungeon for 1 second (counter on the TV), Then enter the dungeon.
+- [x] When all players are at the end of the dungeon, they get an 'exit dungeon' pop up. They just have to press the exit dungeon button which sends them back to the TV Screen world map.
+- [x] When Party is in a dungeon, A dungeon editing tab appears underneath world map. [DM Screen, World map window]
+- [x] DM can edit the nodes right from the dungeon window. Can click/drag/etc. nodes and right click nodes for menu. [DM Screen, dungeon window]
+- [x] Party Dungeon Location node is centered on TV Screen. [TV]
 
 ### PR S: DM Screen mode buttons and sidebar
 `public/dm.html`, `public/style.css`, `public/js/dm/modes.js`, `public/js/dm/dock.js`

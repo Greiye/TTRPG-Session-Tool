@@ -99,4 +99,35 @@ function useFeature(p, name) {
   return { left: max - spent - 1, pool: !!f.pool };
 }
 
-module.exports = { FEATURES, unlocked, spendable, restCharacter, featureList, useFeature };
+// Camp class section: what this character's class gets back on each rest, and camp ideas for the class.
+const CAMP_IDEAS = {
+  Barbarian: ['Hunt for fresh meat', 'Sleep like a rock by the fire', 'Wrestle a party member for fun'],
+  Bard: ['Play a song by the fire', 'Turn today into a tale', 'Practise a new verse'],
+  Cleric: ['Lead an evening prayer', 'Tend the party\'s wounds', 'Bless the camp'],
+  Druid: ['Gather herbs and berries', 'Listen to the forest', 'Talk with a local animal'],
+  Fighter: ['Sharpen and oil your weapons', 'Drill your stances', 'Take first watch'],
+  Monk: ['Meditate at dawn', 'Run through your forms', 'Fast and focus'],
+  Paladin: ['Keep a vigil and pray', 'Polish your armour', 'Recite your oath'],
+  Ranger: ['Forage and set snares', 'Scout the perimeter', 'Read the tracks around camp'],
+  Rogue: ['Scout the perimeter quietly', 'Practise on a lock', 'Count the party\'s coin twice'],
+  Sorcerer: ['Let the magic settle', 'Test the edges of your power', 'Stare into the fire'],
+  Warlock: ['Commune with your patron', 'Study a forbidden tome', 'Whisper to the dark'],
+  Wizard: ['Study your spellbook', 'Copy a spell scroll', 'Take notes on today\'s magic'],
+};
+function campInfo(c) {
+  if (!c) return null;
+  const left = spendable(c);
+  const die = c.hitDice?.die || 8;
+  const feats = featureList(c).map((f) => ({ name: f.name, reset: f.reset, max: f.max, left: Math.max(0, f.max - ((c.uses || {})[f.name] || 0)) }));
+  const short = [`Spend hit dice: d${die} + CON each (${left} left)`];
+  if (c.cls === 'Warlock') short.push('Pact Magic slots refill');
+  if (c.cls === 'Wizard') short.push(`Arcane Recovery: up to ${Math.ceil((c.level || 1) / 2)} slot levels back`);
+  for (const f of feats) if (f.reset === 'short') short.push(`${f.name} refills`);
+  const back = Math.max(1, Math.floor((c.level || 1) / 2));
+  const long = ['HP back to full', `Regain ${back} hit di${back > 1 ? 'ce' : 'e'}`];
+  if (Object.keys(c.slots || {}).length) long.push('All spell slots refill');
+  if (feats.length) long.push(`${feats.map((f) => f.name).join(', ')} refill`);
+  return { cls: c.cls || '', level: c.level || 1, short, long, features: feats, ideas: CAMP_IDEAS[c.cls] || ['Keep watch', 'Mend your gear', 'Share a story by the fire'] };
+}
+
+module.exports = { FEATURES, unlocked, spendable, restCharacter, featureList, useFeature, campInfo, CAMP_IDEAS };

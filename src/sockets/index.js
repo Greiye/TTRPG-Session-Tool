@@ -58,6 +58,7 @@ module.exports = function sockets(io) {
     require('./puzzle')(socket);
     require('./web')(socket);
     require('./dungeon')(socket);
+    require('./lore')(socket); // Lore tab (Mike, Nov 16)
   });
 };
 module.exports.guard = guard;

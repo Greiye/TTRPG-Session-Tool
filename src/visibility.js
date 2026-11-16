@@ -100,6 +100,11 @@ function viewState(base, viewer) {
   out.downtime = require('./downtime').viewFor(base.downtime, viewer); // phones see their own pick and result
   out.absent = require('./absent').view(base, viewer); // missed lines are the DM's, and the owner's card
   out.camp = require('./camp').viewFor(base.camp, viewer); // camp votes: DM sees all, phones their own
+  if (out.camp?.mine && out.camp.open) { // the phone's class section: what its class gets back on each rest
+    const ch = base.players.find((p) => p.id === viewer.charId);
+    out.camp.mine.info = require('./rests').campInfo(ch);
+    out.camp.mine.missing = ch ? require('./camp').restBlockers(ch) : [];
+  }
   // Phase I table tools (src/table.js). The DM sees the controls and the numbers behind them; phones see
   // their own nudge and token; the TV sees the shared pieces (tension, canon, layout, montage once revealed).
   const T = require('./table');
@@ -116,6 +121,7 @@ function viewState(base, viewer) {
   if (base.worldMap) out.worldMap = require('./worldmap').viewFor(base.worldMap, viewer, base.players.length); // Phase G: see src/worldmap.js
   // Party journal: phones and the DM only (src/journal.js).
   out.journal = ['dm', 'player'].includes(viewer.role) ? base.journal || [] : null;
+  out.lore = require('./lore').viewFor(base.lore, viewer); // Lore tab: DM sees all, phones shared entries without DM notes
   // Phase D: a line in a tongue reads as glyphs unless the viewer knows it or the DM glossed it (src/speech.js).
   if (base.social) out.social = { ...base.social, line: require('./speech').lineFor(base.social.line, viewer, base) };
   out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own
@@ -126,6 +132,7 @@ function viewState(base, viewer) {
   out.story = base.story ? require('./moments').storyView(base.story) : null; // the in-world clock is shared with everyone
   out.puzzle = require('./puzzle').viewFor(base.puzzle, viewer); // teamwork puzzle: clues per phone, answer once solved (src/puzzle.js)
   out.dungeon = require('./dungeon').viewFor(base.dungeon, viewer); // dungeon nodes: unrevealed rooms show as fog (src/dungeon.js)
+  if (out.dungeon) out.dungeon.gate = require('./dungeon').gate(base.dungeon, base.worldMap, base.players); // the Enter Dungeon window (PR R)
   out.web = require('./web').viewFor(base.web, viewer, base.factions || []); // relations web: TV sees revealed parts only (src/web.js)
   if (base.scene) out.scene = { ...sceneFor(base.scene, viewer), secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
   // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.
