@@ -13,6 +13,7 @@ const h = harness('ctxmenu');
   await h.until(() => dm.last?.players?.length && dm.last.combat.enemies.length);
   const b = await chromium.launch();
   const d = await (await b.newContext({ viewport: { width: 1500, height: 950 } })).newPage();
+  await d.addInitScript(() => { try { localStorage.setItem('dmFoldOpen', '1'); } catch { /* ignore */ } }); // DM cards start open in tests
   const errors = [];
   d.on('pageerror', (e) => errors.push(e.message));
   await d.goto(h.URL + '/dm?key=dmkey'); await d.waitForTimeout(1500);

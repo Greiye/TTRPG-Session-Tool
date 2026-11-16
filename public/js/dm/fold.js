@@ -8,6 +8,9 @@ try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch { sav
 const head = (card) => card.querySelector(':scope > h3:first-of-type');
 // The title's own words, without the notes and buttons inside it (those change while the card is open).
 const ownText = (h) => [...(h?.childNodes || [])].filter((n) => n.nodeType === 3).map((n) => n.textContent).join(' ').trim().slice(0, 40);
+// localStorage dmFoldOpen = '1' starts every card open (the browser tests use it).
+let OPEN_ALL = false;
+try { OPEN_ALL = localStorage.getItem('dmFoldOpen') === '1'; } catch { /* private mode */ }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch { /* private mode */ } };
 
 function setUp(card) {
@@ -16,7 +19,7 @@ function setUp(card) {
   const h = head(card);
   if (!card.dataset.foldKey) card.dataset.foldKey = ownText(h) || card.id || '';
   const k = card.dataset.foldKey;
-  const folded = k in saved ? saved[k] : card.dataset.fold === 'closed';
+  const folded = k in saved ? saved[k] : card.dataset.fold === 'closed' && !OPEN_ALL;
   card.classList.toggle('folded', folded);
   if (h) { h.setAttribute('role', 'button'); h.tabIndex = 0; h.setAttribute('aria-expanded', String(!folded)); }
 }
