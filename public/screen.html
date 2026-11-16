@@ -23,6 +23,7 @@
 <body class="tv">
   <div class="stage-wrap"><div id="stage" class="stage"></div></div>
   <div id="moments" aria-hidden="true"></div>
+  <div id="endCard" class="end-card tv" hidden role="status"><div class="end-inner"><i aria-hidden="true">🌙</i><h1>End of Session</h1><p class="end-sub"></p></div></div>
   <button class="tv-ver" id="tvVer" title="Project stats">v…</button>
   <div class="tv-stats" id="tvStats" hidden><div class="box" id="tvStatsBox"></div></div>
   <script src="/socket.io/socket.io.js"></script>
@@ -56,6 +57,10 @@
       window.tvLast = s;
       window.IsoTv?.update(s); // 3D battle map in combat (public/js/iso3d.js)
       Moments.render(s);
+      // End of session (Mike, Nov 16): a big card over everything until the DM resumes.
+      const end = document.getElementById('endCard');
+      end.hidden = !s.ended;
+      if (s.ended) end.querySelector('.end-sub').textContent = [s.intro?.campaign, s.ended.session ? `Session ${s.ended.session}` : ''].filter(Boolean).join(' · ');
     });
     AudioOut.init(socket); // the TV is the speaker
     // Roll results: the 3D dice tray when it is on (Phase B), otherwise the roll popup (item 5).

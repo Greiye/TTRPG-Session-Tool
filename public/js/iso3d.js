@@ -3,6 +3,7 @@
 // and turns clicks in the view into the socket events the tool already has (player:move, dm:token:move, ...).
 // The view itself is lib/iso-battle, built to /iso/iso-battle.js (npm run build:iso).
 import { mountBattle, diffView } from '/iso/iso-battle.js';
+import { actionIcon, actionDetail } from './actions.js';
 
 const STEP_FT = 5;
 const COVER = { rock: 2, crate: 2, tree: 5, wall: 5 }; // same as src/iso.js
@@ -58,8 +59,9 @@ function tilesOf(m) {
 
 // Rules the iso view needs: tile costs and heights (as in src/iso.js), sprite looks, and one ability per attack.
 function rulesOf(s) {
-  const abilities = { attack: { name: 'Attack', ap: 0, range: 99, accuracy: 0, damage: '', needsLOS: true } };
-  for (const e of s.combat.enemies) (e.attacks || []).forEach((a, i) => { abilities[`${e.id}:${i}`] = { name: a.name || `Attack ${i + 1}`, ap: 0, range: 99, accuracy: 0, damage: '', needsLOS: true }; });
+  const abilities = { attack: { name: 'Attack', ap: 0, range: 99, accuracy: 0, damage: '', needsLOS: true, icon: '⚔️', detail: '<b>Attack</b><br>Pick a target, then roll.' } };
+  const def = s.rules?.defenseLabel || 'AC ';
+  for (const e of s.combat.enemies) (e.attacks || []).forEach((a, i) => { abilities[`${e.id}:${i}`] = { name: a.name || `Attack ${i + 1}`, ap: 0, range: 99, accuracy: 0, damage: '', needsLOS: true, icon: actionIcon(a), detail: actionDetail(a, def) }; });
   return {
     heightStep: 0.5, visionHeight: 1.2, abilities,
     grid: { maxClimb: 2, maxDrop: 3, climbCostPerStep: 1 },
@@ -113,7 +115,7 @@ class TableTransport {
     if (!this.onMsg) { this.pending = s; return; }
     const next = viewOf(s, this.you);
     const rules = rulesOf(s);
-    const rkey = Object.keys(rules.abilities).join();
+    const rkey = JSON.stringify(rules.abilities);
     const events = [];
     const lm = s.combat.lastMove;
     if (this.view && lm && lm.n !== this.moveN && next.units[lm.id]) events.push({ type: 'move', unitId: lm.id, path: lm.path });

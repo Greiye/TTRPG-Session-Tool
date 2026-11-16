@@ -1006,6 +1006,37 @@ body.battle-waiting #tablePage, body.battle-waiting #toolsCol .modes-card, body.
 .combat-pop > .card:first-child { border: 1px solid var(--gold); box-shadow: 0 0 0 1px #0006, 0 8px 24px #0008, 0 0 18px color-mix(in srgb, var(--gold) 30%, transparent); }
 .combat-pop.pop-in > .card:first-child { animation: combatpop .45s cubic-bezier(.2, 1.4, .4, 1); }
 @keyframes combatpop { 0% { opacity: 0; transform: translateY(-14px) scale(.92); } 100% { opacity: 1; transform: none; } }
+/* End of session (Mike, Nov 16): red hold button at the bottom of the DM tools sidebar, TV and phone end cards, DM dialog. */
+.end-session-bar { position: sticky; bottom: 0; margin: auto -14px -14px; padding: 12px 14px 14px; background: linear-gradient(transparent, var(--panel) 30%); z-index: 3; }
+.end-session-bar[hidden] { display: none; }
+body .dm-right .btn.end-session { width: 100%; padding: 10px 12px; color: #fff; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  background: linear-gradient(180deg, rgb(255 210 200 / .22), transparent 45%, rgb(0 0 0 / .35)), linear-gradient(180deg, #d1352b, #8e1b14); box-shadow: 0 2px 6px rgb(0 0 0 / .5), 0 0 12px rgb(210 50 40 / .35); }
+body .dm-right .btn.end-session.holding { animation: end-shake .1s linear infinite; }
+body .dm-right .btn.end-session .hold-fill { background: rgb(255 255 255 / .4); }
+body .dm-right .btn.end-session.ended { background: linear-gradient(180deg, rgb(255 210 200 / .1), transparent 45%, rgb(0 0 0 / .35)), #5a1a16; box-shadow: none; }
+@keyframes end-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1px); } 75% { transform: translateX(1px); } }
+.end-card { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; text-align: center; color: #f4ead5;
+  background: radial-gradient(ellipse at center, rgb(40 22 48 / .97), rgb(6 4 10)); animation: end-fade 1.2s ease both; }
+.end-card[hidden] { display: none; }
+.end-card .end-inner { animation: end-rise 1.6s .3s cubic-bezier(.2,.8,.2,1) both; }
+.end-card i { display: block; font-style: normal; font-size: 3rem; animation: end-glow 3s 1.5s ease-in-out infinite alternate; }
+.end-card h1 { font-family: var(--display, Georgia, serif); font-size: clamp(3rem, 9vw, 8rem); margin: .1em 0; letter-spacing: .04em; text-shadow: 0 0 24px rgb(240 190 90 / .45); }
+.end-card h2 { font-family: var(--display, Georgia, serif); font-size: 2rem; margin: .3em 0; }
+.end-card .end-sub { opacity: .75; font-size: 1.1rem; margin: 0; }
+.end-card.tv .end-sub { font-size: 1.8rem; }
+.end-card.tv i { font-size: 5rem; }
+@keyframes end-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes end-rise { from { opacity: 0; transform: translateY(24px) scale(.94); letter-spacing: .3em; } to { opacity: 1; transform: none; } }
+@keyframes end-glow { from { filter: drop-shadow(0 0 0 #f2c96e); } to { filter: drop-shadow(0 0 18px #f2c96e); } }
+.end-dlg { width: min(720px, 94vw); max-height: 90vh; background: var(--panel); color: inherit; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+.end-dlg[open] { display: flex; flex-direction: column; gap: 8px; animation: end-rise .4s ease both; }
+.end-dlg::backdrop { background: rgb(0 0 0 / .6); }
+.end-dlg h4 { margin: 8px 0 0; }
+.end-log { overflow: auto; min-height: 120px; max-height: 42vh; border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
+.end-log-row { display: grid; grid-template-columns: 52px 92px 1fr; gap: 8px; padding: 3px 4px; border-bottom: 1px solid rgb(255 255 255 / .05); font-size: .9rem; animation: end-fade .3s calc(var(--i) * 15ms) both; }
+.end-log-row small { opacity: .6; }
+.end-log-row b { opacity: .8; font-weight: 600; }
+.end-foot { justify-content: flex-end; }
 /* Phone pop-ups from the DM: roll call, party vote, message (Mike, Nov 16). Centred sheet, Continue at the bottom. */
 .phone-pop { align-items: center; padding: 16px; animation: ppFade .2s ease both; }
 .phone-pop.leaving { animation: ppFade .2s ease reverse both; }

@@ -571,4 +571,16 @@ module.exports = function dmSockets(socket) {
     for (const p of Object.values(state.players)) p.hp = p.maxHp;
     log('system', 'Session reset.');
   });
+  // End of session (Mike, Nov 16): a 1 s hold on the DM page. The TV shows "End of Session", phones
+  // show "Thanks for playing.", and the DM gets a save and log dialog. Resume clears it.
+  dm('dm:session:end', () => {
+    if (state.ended) return;
+    state.ended = { n: nextId(), at: Date.now(), session: state.intro?.session || null };
+    log('system', '— END OF SESSION —');
+  });
+  dm('dm:session:resume', () => {
+    if (!state.ended) return;
+    state.ended = null;
+    log('system', 'Session resumed.');
+  });
 };
