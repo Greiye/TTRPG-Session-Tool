@@ -7,7 +7,7 @@ const path = require('path');
 const { io } = require('socket.io-client');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 3200 + Math.floor(Math.random() * 500);
+let PORT; do PORT = 3200 + Math.floor(Math.random() * 500); while (PORT === 3659); // 3659 is on fetch's blocked-port list
 const URL = `http://127.0.0.1:${PORT}`;
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'tavern-'));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
