@@ -23,7 +23,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
   - A **natural 20** shows a gold "Natural 20!" banner, sparks and turning light rays, and the TV brightens while it shows. A **natural 1** shows a red "Natural 1" banner, the total shakes and sags, and the TV darkens with a pulsing red edge. The dice tray starts the mood as the dice settle. TV only; phones and the DM page keep normal light.
   - Covered exploration points of interest are hidden from the TV (no more "??? " chips). A point pops in when the DM uncovers it. A new place starts with every point covered, and points removed from the list leave the uncovered set.
   - Switching modes quickly replaces the previous mode title instead of stacking on it.
-  - Chapter cards, entrances, choice echoes and the day/time card fade out at the end. Every chapter card is saved to the log as `Chapter: <title> (<subtitle>)`.
+  - Chapter cards, entrances, choice echoes and the day/time card fade out at the end. Every chapter card is saved to the log as `Chapter: <title> (<subtitle>)`. The first chapter card, entrance, echo or relic of a session now plays on the TV (it was skipped).
   - Segment clocks are round, cut into wedges from the centre, on the TV and in the DM's Clocks and Living world lists. Newly filled wedges sweep out from the middle.
 - Co-DM and combat tools, from Mike's Nov 16 notes:
   - The **co-DM** now has every DM permission: the invite opens the DM page with the co-DM key (`/codm` stays as a phone soundboard).

@@ -4,6 +4,7 @@
 (function () {
   const esc = (s) => Stage.esc(s);
   const seen = {};
+  let rendered = false;
   const timers = {};
   let L = null;
   let epi = { n: null, i: 0, timer: null };
@@ -141,6 +142,12 @@
   function render(s) {
     if (!L) init();
     const tv = s.tv || {};
+    // The first state only records what is already there. A kind with nothing yet counts as 0, so the
+    // first chapter, entrance, echo or relic of a session still plays (it used to be skipped).
+    if (!rendered) {
+      rendered = true;
+      for (const [k, v] of [['trans', tv.trans], ['chapter', tv.chapter], ['entrance', tv.entrance], ['echo', tv.echo], ['relic', tv.relic]]) seen[k] = v?.n ?? 0;
+    }
     light(s.story);
     clock(s.story);
 

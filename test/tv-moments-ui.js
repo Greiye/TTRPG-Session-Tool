@@ -93,7 +93,8 @@ const SHOTS = process.env.SHOTS;
   if (!(await logged).log.some((l) => l.text === 'Chapter: The long night (Act two)')) fail('chapter card should be in the log');
   await tv.waitForSelector('.mo-chapter:not([hidden])');
   await shot(tv, 'tv-chapter');
-  await tv.waitForFunction(() => { const c = document.querySelector('.mo-chapter .mo-card'); return c && !c.parentElement.hidden && Number(getComputedStyle(c).opacity) < 0.9; }, null, { timeout: 7000, polling: 50 }).catch(() => fail('chapter card should fade out'));
+  await tv.waitForTimeout(4500); // past the entrance, which also starts from opacity 0
+  await tv.waitForFunction(() => { const c = document.querySelector('.mo-chapter .mo-card'); return c && !c.parentElement.hidden && Number(getComputedStyle(c).opacity) < 0.9; }, null, { timeout: 3000, polling: 50 }).catch(() => fail('chapter card should fade out'));
   await tv.waitForSelector('.mo-chapter', { state: 'hidden', timeout: 2000 }).catch(() => fail('chapter card hides after fading'));
 
   // Clocks: wedges from the centre on the TV and in the DM's clock list.
