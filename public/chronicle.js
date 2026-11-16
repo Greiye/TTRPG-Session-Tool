@@ -81,11 +81,38 @@
     return null;
   }
 
+  // HP as a word (phone setting "Description", Mike Nov 16): share of HP left.
+  function hpWord(hp, max) {
+    if (hp <= 0) return 'Down';
+    const k = max > 0 ? hp / max : 1;
+    return k > 0.75 ? 'Fine' : k > 0.5 ? 'Injured' : k > 0.25 ? 'Badly hurt' : 'Near death';
+  }
+  // Hit dice and spell slots as gems, one per die or slot: lit while available, black once used.
+  function gems(c) {
+    const rows = [];
+    const gem = (on, kind) => `<i class="gem ${kind} ${on ? 'on' : 'used'}"></i>`;
+    const slots = Object.entries(c.slots || {}).filter(([, s]) => s?.max > 0).sort((a, b) => a[0] - b[0]);
+    for (const [lv, s] of slots) {
+      const left = s.max - (s.used || 0);
+      rows.push(`<div class="gem-row" title="Level ${esc(lv)} spell slots: ${left} of ${s.max} left"><small>✨ ${esc(lv)}</small><span>${Array.from({ length: s.max }, (_, i) => gem(i < left, 'slot')).join('')}</span></div>`);
+    }
+    if (c.hitDice) {
+      const max = c.level || 1;
+      const left = Math.max(0, max - (c.hitDice.used || 0));
+      rows.push(`<div class="gem-row" title="Hit dice: ${left} of ${max} left"><small>🎲 HD</small><span>${Array.from({ length: max }, (_, i) => gem(i < left, 'hd')).join('')}</span></div>`);
+    }
+    return rows.length ? `<div class="gems">${rows.join('')}</div>` : '';
+  }
+
   // Hero panel: portrait, name with edit, level, HP and resource bars, then Stats or Bio.
-  function hero(c, S, { view = 'stats', editAttr = 'data-hero-edit', compact = false, seg = true } = {}) {
+  // Phone options (Nov 16): insp shows Inspiration points in the 🏅 box, hp: 'desc' shows HP as a word,
+  // gems draws hit dice and spell slots as gems instead of a bar.
+  function hero(c, S, { view = 'stats', editAttr = 'data-hero-edit', compact = false, seg = true, insp = false, hp = 'num', gems: useGems = false } = {}) {
     if (!c) return '<p class="note">No one at the table yet.</p>';
     const pct = c.maxHp ? c.hp / c.maxHp : 1;
     const res = resource(c);
+    const pools = useGems && res && res[1] !== 'Slots' && res[1] !== 'Hit dice' ? res : null; // mana or stamina keep their bar
+    const lifeTone = pct > 0.5 ? 'life' : pct > 0.2 ? 'life warn' : 'life crit';
     const abil = S.rules?.abilities || [];
     const mods = c.derived?.mods || {};
     const stats = c.abilities
@@ -98,14 +125,17 @@
       <div class="hero-head"><h2>${esc(c.name)}</h2><button class="icon-btn" ${editAttr}="${esc(c.id)}" title="Edit ${esc(c.name)}" aria-label="Edit ${esc(c.name)}">✎</button></div>
       <small class="hero-sub">${esc([c.race, c.cls].filter(Boolean).join(' '))}${c.player ? ` · ${esc(c.player)}` : ''}</small>
       <div class="hero-bars">
-        <div class="hbar lv"><i>🏅</i><small>Lv</small><b class="lvnum">${c.level || 1}</b></div>
-        ${bar('❤', 'HP', c.hp, c.maxHp, pct > 0.5 ? 'life' : pct > 0.2 ? 'life warn' : 'life crit')}
-        ${res ? bar(res[0], res[1], res[2], res[3], 'res') : ''}
+        ${insp
+          ? `<div class="hbar lv insp" title="Inspiration points"><i>🏅</i><small>Insp</small><b class="lvnum">${c.inspiration || 0}</b></div>`
+          : `<div class="hbar lv"><i>🏅</i><small>Lv</small><b class="lvnum">${c.level || 1}</b></div>`}
+        ${hp === 'desc' ? bar('❤', 'HP', c.hp, c.maxHp, `${lifeTone} hp-word`).replace(/<b>[^<]*<\/b><\/div>$/, `<b>${hpWord(c.hp, c.maxHp)}</b></div>`) : bar('❤', 'HP', c.hp, c.maxHp, lifeTone)}
+        ${useGems ? (pools ? bar(pools[0], pools[1], pools[2], pools[3], 'res') : '') : res ? bar(res[0], res[1], res[2], res[3], 'res') : ''}
       </div>
+      ${useGems ? gems(c) : ''}
       ${seg ? `<div class="seg" role="tablist"><button role="tab" data-hero-view="stats" class="${view === 'stats' ? 'on' : ''}" aria-selected="${view === 'stats'}">Stats</button><button role="tab" data-hero-view="bio" class="${view === 'bio' ? 'on' : ''}" aria-selected="${view === 'bio'}">Bio</button></div>` : ''}
       ${view === 'none' ? '' : `<div class="hero-body">${view === 'bio' ? `<div class="hero-bio">${bio}</div>` : `<ul class="stat-list">${stats}${extra}</ul>`}</div>`}
     </div>`;
   }
 
-  window.Chronicle = { pills, feed, hero };
+  window.Chronicle = { pills, feed, hero, hpWord };
 })();

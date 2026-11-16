@@ -57,20 +57,20 @@ Today: the DM opens a shop pop-up on the TV (`dm:shop:pop`), phones buy and sell
 ### Social: "Join the conversation?" pop-up on phones
 `src/sockets/player.js`, `src/cast.js`, `src/state.js`, `public/js/play/views/social.js`, `public/stage.js`, `public/style.css`
 Today: phones in social mode can pick an expression (`player:expression`, `cast.setExpression`), push a pushed choice (`player:choice`) or type a line, which becomes `state.social.line` with `player: true`.
-- [ ] When the DM loads a social encounter (enters Social mode), every seated phone gets a pop-up that just says "Join the Conversation?", with a green **Yes** button and a **No** button of the same size under it.
-- [ ] **No** closes the pop-up for that phone (the phone keeps its normal Social view).
-- [ ] **Yes** keeps the pop-up open and turns it into a speech box: a text box at the top for what the character says, then a directional pad under it for the character's emotion: the 8 `EMOTIONS` around a 3x3 pad, Send in the centre.
-- [ ] Sending: the character's emotion changes on the TV only when the line is sent, together with the speech.
-- [ ] Speech log line: `[Character name] looks to be [emotion]. He says / She says / They say "[text]"`. Needs a pronoun field on the character (none today): add it to the character profile, default "They".
-- [ ] The pop-up closes for everyone when the DM leaves Social mode.
+- [x] When the DM loads a social encounter (enters Social mode), every seated phone gets a pop-up that just says "Join the Conversation?", with a green **Yes** button and a **No** button of the same size under it.
+- [x] **No** closes the pop-up for that phone (the phone keeps its normal Social view).
+- [x] **Yes** keeps the pop-up open and turns it into a speech box: a text box at the top for what the character says, then a directional pad under it for the character's emotion: the 8 `EMOTIONS` around a 3x3 pad, Send in the centre.
+- [x] Sending: the character's emotion changes on the TV only when the line is sent, together with the speech.
+- [x] Speech log line: `[Character name] looks to be [emotion]. He says / She says / They say "[text]"`. Needs a pronoun field on the character (none today): add it to the character profile, default "They".
+- [x] The pop-up closes for everyone when the DM leaves Social mode.
 
 ### Phone hero card (character header)
 `public/chronicle.js` (`Chronicle.hero`), `public/js/play/game.js`, `public/settings.js`, `public/style.css`, `public/theme.css`
 Today: the header shows 🏅 + the character's level, an HP bar with numbers, one resource bar (spell slots, else a pool, else hit dice), then ✎ Profile, ⛶ (full screen) and ☀ (keep the screen on) under it.
-- [ ] The 🏅 box shows **Inspiration points**, not the level.
-- [ ] HP display is a phone setting: **Number** (28/28, today) or **Description** from the share of HP left, e.g. Fine, Injured, Badly hurt, Near death, Down. Thresholds to set when built.
-- [ ] Hit dice and spell slots show as gems, one per die or slot: coloured when available, black when used. No bars.
-- [ ] The ✎ Profile, ⛶ Full screen and ☀ Keep screen on buttons move to the bottom of the phone page.
+- [x] The 🏅 box shows **Inspiration points**, not the level.
+- [x] HP display is a phone setting: **Number** (28/28, today) or **Description** from the share of HP left, e.g. Fine, Injured, Badly hurt, Near death, Down. Thresholds to set when built.
+- [x] Hit dice and spell slots show as gems, one per die or slot: coloured when available, black when used. No bars.
+- [x] The ✎ Profile, ⛶ Full screen and ☀ Keep screen on buttons move to the bottom of the phone page.
 
 ## Mike's backlog, 2026-11-16 (second list, grouped into PRs by the code they touch)
 
@@ -113,11 +113,11 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR J: Social mode flow
 `public/js/dm/social.js`, `public/js/dm/hold.js`, `public/js/play/views/social.js`, `public/js/play/socialpop.js`, `src/cast.js`, `src/state.js`, `src/sockets/dm.js`, `public/stage.js`, `public/dm.html`
-- [ ] When DM enters social mode, it presents the DM with an NPC List. For now, use placeholders NPC Albert, Brent, and Christina. DM must select the NPC's to add to the social conversation, then Click/Hold the 'start conversation' button for 1 second to start the conversation.
-- [ ] DM gets a button option underneath the window to end the conversation. TV Screen gets a 'conversation has concluded message at the center. It holds for 1 second before moving everyone and the DM back to Exploration Mode.
-- [ ] When in Social Mode, the DM gets all of the social interaction options in a window above the narration window.
-- [ ] In Social Mode, the DM can still narrate. There is a narration window at the top left of the social window. This during-social narration window is only 3 event lines long.
-- [ ] Social Window does not show up on Player Screen during social event. They have to look at the TV Screen. [Check against the "Join the conversation?" phone pop-up in the section above]
+- [x] When DM enters social mode, it presents the DM with an NPC List. For now, use placeholders NPC Albert, Brent, and Christina. DM must select the NPC's to add to the social conversation, then Click/Hold the 'start conversation' button for 1 second to start the conversation.
+- [x] DM gets a button option underneath the window to end the conversation. TV Screen gets a 'conversation has concluded message at the center. It holds for 1 second before moving everyone and the DM back to Exploration Mode.
+- [x] When in Social Mode, the DM gets all of the social interaction options in a window above the narration window.
+- [x] In Social Mode, the DM can still narrate. There is a narration window at the top left of the social window. This during-social narration window is only 3 event lines long.
+- [x] Social Window does not show up on Player Screen during social event. They have to look at the TV Screen. [Check against the "Join the conversation?" phone pop-up in the section above]
 
 ### PR K: DM Messages, votes and Roll call pop-ups on phones
 `public/js/dm/rolls.js`, `public/js/play/messages.js`, `public/js/play/rolls.js`, `src/messages.js`, `src/popups.js`, `src/rolls.js`, `src/sockets/player.js`, `public/dm.html`

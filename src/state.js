@@ -126,6 +126,7 @@ state.web ??= web.fresh();
 state.dungeon ??= dungeon.fresh();
 state.puzzle ??= null;
 cast.ensure(state.social);
+state.social.convo.ending = false; // the end timer does not survive a restart
 state.camp ??= camp.fresh();
 state.houseRules ??= {};
 state.absent ??= {};

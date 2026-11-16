@@ -80,12 +80,29 @@ const SHOTS = process.env.SHOTS;
   await ph.click('#invForm button');
   await ph.waitForSelector('#tabInventory [data-item]', { timeout: 3000 }).catch(() => errors.push('inventory item was not added'));
   await ph.click('#tabs [data-tab="play"]');
-  await dm.evaluate(() => socket.emit('dm:mode', { mode: 'social' }));
+  // Social flow (Nov 16): Social mode shows the DM's NPC list; holding Start for 1 s begins the talk.
+  await dm.click('[data-mode="social"]');
+  await tv.waitForSelector('.convo-wait', { timeout: 5000 });
+  await dm.waitForSelector('#socialWin:not([hidden]) #convoPool [data-pool]', { timeout: 5000 });
+  await dm.click('#convoPool [data-pool="pool-albert"]');
+  const sb = await dm.locator('#convoStart').boundingBox();
+  await dm.mouse.move(sb.x + sb.width / 2, sb.y + sb.height / 2);
+  await dm.mouse.down(); await dm.waitForTimeout(1200); await dm.mouse.up();
   await tv.waitForSelector('.vn', { timeout: 5000 });
-  await dm.waitForTimeout(800);
-  // Entering social mode pops up on the phone; Leave closes it.
-  await ph.waitForSelector('.pop-scrim', { timeout: 5000 });
-  await ph.click('[data-sp="leave"]');
+  await dm.waitForSelector('#convoLive:not([hidden]) #convoEnd', { timeout: 3000 }).catch(() => errors.push('live social window did not open'));
+  if (await ph.$('.vn')) errors.push('the visual novel should be on the TV only, not the phone');
+  // Phones: "Join the Conversation?" Yes opens the speech box; the emotion goes to the TV with the line.
+  await ph.waitForSelector('.convo-pop [data-cv="yes"]', { timeout: 5000 });
+  await ph.click('.convo-pop [data-cv="yes"]');
+  await ph.fill('#convoText', 'Hello there.');
+  await ph.click('.convo-pad [data-emo="happy"]');
+  await ph.click('.convo-pad [data-cv="send"]');
+  await tv.waitForFunction(() => document.querySelector('.vn-box.emo-happy') && /Hello there/.test(document.querySelector('.vn-box').textContent), null, { timeout: 5000 }).catch(() => errors.push('phone line and emotion did not reach the TV'));
+  await ph.click('.convo-pop [data-cv="no"]');
+  // End conversation: concluded card on the TV, then back to exploration.
+  await dm.click('#convoEnd');
+  await tv.waitForSelector('.convo-end', { timeout: 3000 }).catch(() => errors.push('no concluded card on the TV'));
+  await dm.waitForFunction(() => document.querySelector('[data-mode="exploration"].on'), null, { timeout: 4000 }).catch(() => errors.push('ending the conversation did not return to exploration'));
   // Settings: phone picks large text + color-blind palette; DM sets TV to high contrast.
   await ph.click('.settings-btn');
   await ph.click('label:has(input[name="me-text"][value="xl"])');

@@ -21,13 +21,12 @@ function render() {
   if (lastMode && lastMode !== S.mode) navigator.vibrate?.(80);
   lastMode = S.mode;
   // Hero card (public/chronicle.js): portrait and bars only. Stats live on the Sheet tab, the bio in the profile.
-  $('#me').innerHTML = `${Chronicle.hero(c, S, { view: 'none', editAttr: 'data-prof', compact: true, seg: false })}<div class="me-tools"><button class="btn small" id="profBtn">✎ Profile</button><button class="btn small" id="fsBtn" title="Full screen" aria-label="Full screen">⛶</button><button class="btn small" id="awakeBtn" title="Keep the screen on" aria-pressed="${Fx.awake()}">☀</button></div>`;
+  // Phone hero (Nov 16): 🏅 is Inspiration, HP reads as a number or a word (⚙ setting), dice and slots are gems.
+  $('#me').innerHTML = Chronicle.hero(c, S, { view: 'none', editAttr: 'data-prof', compact: true, seg: false, insp: true, hp: Settings.get().hp, gems: true });
   Anim.hydrate($('#me'));
   // The day / time / place / quest / coins bar is gone from every screen (Mike, Nov 15).
-  $('#profBtn').onclick = openProfile;
   $('#me [data-prof]').onclick = openProfile;
-  $('#fsBtn').onclick = () => Fx.fullscreen();
-  $('#awakeBtn').onclick = () => Fx.toggleAwake();
+  $('#awakeBtn').setAttribute('aria-pressed', String(Fx.awake()));
   Fx.watchHp(c.hp, c.maxHp);
   $('#say').placeholder = S.mode === 'social' ? 'Say something in character…' : 'What do you do?';
   $('#sayForm').hidden = S.mode === 'combat' || tab() !== 'play';
@@ -40,6 +39,10 @@ function render() {
 onState(render);
 onShow((v) => { if (v === 'game') render(); });
 onTab(render);
+window.addEventListener('settings:change', render);
+$('#profBtn').onclick = openProfile;
+$('#fsBtn').onclick = () => Fx.fullscreen();
+$('#awakeBtn').onclick = () => Fx.toggleAwake();
 
 $('#gameView').addEventListener('click', (e) => {
   const b = e.target.closest('button');

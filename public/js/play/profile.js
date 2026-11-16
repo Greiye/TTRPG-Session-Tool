@@ -11,6 +11,7 @@ export function openProfile() {
   $('#pPlayer').value = c.player || '';
   $('#pRace').value = c.race || '';
   $('#pCatch').value = c.catchphrase || '';
+  $('#pPronoun').value = c.pronoun || 'they';
   $('#pBack').value = c.backstory || '';
   $('#pHue').value = c.hue ?? 40;
   $('#photoStatus').textContent = '';
@@ -18,7 +19,7 @@ export function openProfile() {
 }
 $('#profClose').onclick = () => show('game');
 $('#profSave').onclick = () => {
-  emit('player:profile', { player: $('#pPlayer').value, race: $('#pRace').value, catchphrase: $('#pCatch').value, backstory: $('#pBack').value, hue: Number($('#pHue').value) });
+  emit('player:profile', { player: $('#pPlayer').value, race: $('#pRace').value, pronoun: $('#pPronoun').value, catchphrase: $('#pCatch').value, backstory: $('#pBack').value, hue: Number($('#pHue').value) });
   show('game');
 };
 $('#pHue').oninput = () => { $('#profAv').firstElementChild?.style.setProperty('--hue', $('#pHue').value); };

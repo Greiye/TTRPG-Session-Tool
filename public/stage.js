@@ -173,10 +173,23 @@
       : `<span class="av ${cls}" style="--hue:${p.hue ?? 40}">${portrait('neutral', p.hue ?? 40)}</span>`;
   }
   const accent = (p) => `--hue:${p.hue ?? 40}`;
+  // A character's emotion badge in the social scene: set when their line is sent from the phone.
+  const pcEmo = (s, p) => { const e = s.social.expr?.[p.id]; return e && EMO[e] ? `<i class="vn-pc-emo" data-emo="${e}" title="${esc(EMO[e].label)}">${EMO[e].icon}</i>` : ''; };
 
   // Phase 3 scene: party portraits on the left (up to 3), the cast on the right (up to 5, focus enlarged), dialogue below.
   const MAX_PARTY = 3;
+  // Social narration (Nov 16): the DM can still narrate during a conversation. The newest 3 lines posted
+  // since the conversation started sit in a small box at the top left of the social window.
+  function vnNarration(s) {
+    const from = s.social.convo?.from || 0;
+    const list = (s.narration || []).filter((n) => Number(n.id) > from).slice(-3);
+    return list.length ? `<ol class="vn-narr narration">${list.map((n) => `<li data-nid="${esc(n.id)}">${esc(n.text)}</li>`).join('')}</ol>` : '';
+  }
+  // Social mode before the DM starts the conversation (the DM is picking who takes part).
+  const convoWait = () => '<div class="convo-wait"><span aria-hidden="true">💬</span><b>A conversation is about to begin…</b></div>';
   function vn(s, { compact = false } = {}) {
+    const convo = s.social.convo;
+    if (convo && !convo.live && !compact) return convoWait();
     const { npc, line, caption } = s.social;
     const cast = s.social.cast || [];
     const emo = line.emotion || 'neutral';
@@ -189,7 +202,7 @@
     const rank = (p) => { const i = vnRecent.indexOf(p.id); return i < 0 ? 99 : i; };
     const front = party.length ? party.reduce((a, b) => (rank(b) < rank(a) ? b : a)) : null;
     const left = party.map((p) => `
-      <div class="vn-pc-l hold-zoom ${line.pid === p.id ? 'speaking' : ''} ${front && rank(front) < 99 && p.id === front.id ? 'front' : ''}" style="${accent(p)};z-index:${100 - rank(p)}">${avatar(p, 'av-vn')}<small>${esc(p.name)}</small></div>`).join('');
+      <div class="vn-pc-l hold-zoom ${line.pid === p.id ? 'speaking' : ''} ${front && rank(front) < 99 && p.id === front.id ? 'front' : ''}" style="${accent(p)};z-index:${100 - rank(p)}">${avatar(p, 'av-vn')}${pcEmo(s, p)}<small>${esc(p.name)}</small></div>`).join('');
     // Without a cast the single speaker stands on the right, as before.
     // A speaker who is not on the cast (or no cast yet) stands at the far right, enlarged.
     const inCast = cast.some((m) => m.id === npc.id);
@@ -201,6 +214,7 @@
       return `<div class="vn-cast-m"><div class="vn-portrait-s hold-zoom">${portrait(m.emotion || 'neutral', m.hue)}</div><small>${esc(m.name)}</small></div>`;
     }).join('');
     return `<div class="vn ${compact ? 'compact' : ''} ${pc ? 'pc-speaking' : ''}">
+      ${compact ? '' : vnNarration(s)}
       <div class="vn-left">${left}</div>
       <div class="vn-right">${right}</div>
       <div class="vn-box emo-${emo} ${line.player ? 'player-line' : ''}" style="${pc ? accent(pc) : ''}">
@@ -446,7 +460,13 @@
         ${(s.settings?.display?.showLog || []).length ? `<aside class="stage-log">${logFeed(s, 9, new Set(s.settings.display.showLog))}</aside>` : ''}
       </main>
       <footer>${party(s, hpc.showing)}</footer>
-      ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}${legendsCard(s)}${trophyCard(s)}${shopTv(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}${legendsCard(s)}${trophyCard(s)}${shopTv(s)}${convoEnd(s)}`;
+    // "The conversation has concluded" fades in once; re-renders keep its place in the animation.
+    const ce = ui.querySelector('.convo-end');
+    if (ce) {
+      if (root.dataset.convoEnd !== String(s.social.convo.n)) { root.dataset.convoEnd = s.social.convo.n; root.dataset.convoEndAt = Date.now(); }
+      ce.style.animationDelay = `${-(Date.now() - Number(root.dataset.convoEndAt || 0))}ms`;
+    }
     if (hpc.fresh.length) requestAnimationFrame(() => requestAnimationFrame(() => hpc.fresh.forEach((id) => root.querySelector(`.pc[data-pid="${CSS.escape(id)}"]`)?.classList.add('hp-show'))));
     // Puzzle solve: the card pops once, then the solution words land one by one.
     const pz = ui.querySelector('.pz-card.solved');
@@ -485,6 +505,9 @@
       Anim.once(ui.querySelector('.sp-card'), `${s.spotlight.id}:${s.spotlight.kind}`, s.spotlight.kind === 'nat20' ? 'bounce' : 'pop', who);
     }
   }
+
+  // End of a conversation (Nov 16): a centred card, then the server returns everyone to exploration.
+  const convoEnd = (s) => (s.mode === 'social' && s.social.convo?.ending ? '<div class="convo-end" role="status"><b>The conversation has concluded</b></div>' : '');
 
   // Segment clocks (17): a pie of segments on the TV, filled as the DM advances them.
   function clocks(s) {

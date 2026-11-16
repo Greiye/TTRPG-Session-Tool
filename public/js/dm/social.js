@@ -1,5 +1,7 @@
 // Social / visual novel: NPC name and color, emotion buttons (keys 1-8), dialogue, choices.
 import { $, $$, emit, call, onState, onClick, state } from '../client.js';
+import { holdButton } from './hold.js';
+import { masterRole } from './auth.js';
 
 const { EMO, esc } = Stage;
 let filled = false;
@@ -15,8 +17,53 @@ function drawCast(s) {
   $('#castList').innerHTML = cast.length
     ? cast.map((c) => `<span class="cast-chip"><button class="btn ${c.id === s.social.npc.id ? 'on' : ''}" data-cast-pick="${esc(c.id)}">${icon(c)} ${esc(c.name)}</button><button class="btn small x" data-cast-del="${esc(c.id)}" title="Remove from scene" aria-label="Remove ${esc(c.name)}">×</button></span>`).join('')
     : '<span class="note">Nobody on the scene yet. Add an NPC or item below.</span>';
-  $('#castPickList').innerHTML = cast.map((c) => `<button class="btn" data-enter="${esc(c.id)}">${icon(c)} ${esc(c.name)}</button>`).join('');
 }
+
+// Social window (Nov 16): shown in Social mode (always for a Social Master, so they can prep). Before the
+// conversation: the NPC list, pick one or more, hold Start for 1 s. Live: End conversation and the controls.
+const picked = new Set();
+let poolKey = null;
+let wasLive = null;
+function drawWindow(s) {
+  const convo = s.social.convo || {};
+  const show = s.mode === 'social' || masterRole() === 'social';
+  const win = $('#socialWin');
+  if (win.hidden === show) { win.hidden = !show; if (show) Anim.play(win, 'reveal', null); }
+  const live = s.mode === 'social' && !!convo.live;
+  $('#convoPick').hidden = live;
+  $('#convoLive').hidden = !live;
+  if (live !== wasLive && wasLive !== null && live) Anim.play($('#convoLive'), 'unfold', null);
+  if (!live && wasLive) picked.clear();
+  wasLive = live;
+  const pool = s.social.pool || [];
+  for (const id of [...picked]) if (!pool.some((p) => p.id === id)) picked.delete(id);
+  const key = JSON.stringify([pool, [...picked]]);
+  if (key !== poolKey) {
+    poolKey = key;
+    $('#convoPool').innerHTML = pool.map((p) => `<button class="btn convo-npc ${picked.has(p.id) ? 'on' : ''}" data-pool="${esc(p.id)}" aria-pressed="${picked.has(p.id)}" style="--hue:${p.hue}"><span class="convo-face">${Stage.portrait('neutral', p.hue)}</span>${esc(p.name)}</button>`).join('');
+  }
+  $('#convoStart').disabled = !picked.size || s.mode !== 'social';
+  $('#convoWho').textContent = convo.ending ? 'Wrapping up…' : (s.social.cast || []).map((c) => c.name).join(' · ');
+  $('#convoEnd').disabled = !!convo.ending;
+}
+$('#convoPool').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-pool]');
+  if (!b) return;
+  const id = b.dataset.pool;
+  if (picked.has(id)) picked.delete(id); else picked.add(id);
+  $('#convoErr').textContent = '';
+  if (state()) drawWindow(state());
+});
+holdButton($('#convoStart'), {
+  ms: 1000,
+  idle: '💬 Hold to start conversation',
+  holding: 'Keep holding…',
+  onFire: async () => {
+    const r = await call('dm:convo:start', { ids: [...picked] });
+    $('#convoErr').textContent = r?.error || '';
+  },
+});
+$('#convoEnd').addEventListener('click', () => emit('dm:convo:end'));
 
 $('#emotions').innerHTML = Object.entries(EMO).map(([k, e], i) => `<button class="btn" data-emo="${k}" title="${i + 1}"><span>${e.icon}</span>${e.label}</button>`).join('');
 
@@ -32,7 +79,9 @@ onState((s) => {
   $$('[data-emo]').forEach((b) => b.classList.toggle('on', b.dataset.emo === s.social.npc.emotion));
   drawCast(s);
   sprites(s);
+  drawWindow(s);
 });
+window.addEventListener('dm:role', () => { if (state()) drawWindow(state()); });
 
 $('#castList').addEventListener('click', (e) => {
   const pick = e.target.closest('[data-cast-pick]');

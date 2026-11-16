@@ -5,12 +5,22 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Social mode flow** (Mike, Nov 16, backlog PR J):
+  - Entering Social mode opens a **Social window** on the DM page, under the TV preview and above the narration bar. It lists the NPCs (placeholders Albert, Brent and Christina): pick one or more, then press and hold **Start conversation** for 1 second. The TV shows "A conversation is about to begin…" until then.
+  - Once the conversation is live, the Social window holds every social control (NPC, cast, emotions, dialogue, live voice, player choices); they left Miscellaneous > NPCs. **End conversation** sits right under the TV preview: the TV shows "The conversation has concluded" in the centre, holds it for about a second, then everyone and the DM go back to Exploration (`dm:convo:start`, `dm:convo:end`, `state.social.pool`, `state.social.convo`). The Social Master can run both.
+  - The DM can still narrate during a conversation: the newest 3 narration lines since it started show in a small box at the top left of the social scene on the TV.
+  - Phones no longer show the visual novel during a conversation; they point players to the TV and keep roll prompts and pushed choices.
+- **"Join the Conversation?" pop-up** on phones when the DM starts a conversation, with a green **Yes** and a same-size **No**. No closes it (the phone's Social view can reopen it). Yes turns it into a speech box: text on top, then a 3x3 pad of the 8 emotions with **Send** in the centre. The character's emotion changes on the TV only when the line is sent (`player:social:say`), shown as a badge on their portrait. The log reads `[Name] looks to be [emotion]. He says / She says / They say "[text]"`. The pop-up closes for everyone when the conversation ends.
+- **Pronoun** field (They, He, She; default They) on the phone profile and the DM's character editor.
+- Phone hero card (Mike, Nov 16): the 🏅 box shows **Inspiration points** instead of the level. A new phone setting, ⚙ > **HP display**, shows HP as a **Number** (28/28) or a **Description** (Fine above 75%, Injured above 50%, Badly hurt above 25%, Near death, Down). Spell slots and hit dice show as gems, one per slot or die, lit when available and black once used, with no bar.
 - **Battle Master** and **Social Master** co-DM roles (Mike, Nov 16), each with its own private QR on the DM page's Co-DM card (`BATTLE_KEY`, `SOCIAL_KEY`). The Battle Master runs combat, the battle map and the DM's creatures; the Social Master runs NPC dialogue. Both open the DM page showing only their cards, and the server allows only the events listed per role in `src/roles.js`. A helper key now wins over localhost, so a helper link opened on the laptop gets the helper view.
 
 ### Fixed
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- Phone: ✎ Profile, ⛶ Full screen and ☀ Keep screen on moved from the hero card to the bottom of the page.
+- Entering Social mode no longer asks the DM who speaks first, and no longer pops up on phones; both now happen when the DM starts the conversation.
 - Co-DM and combat tools, from Mike's Nov 16 notes:
   - The **co-DM** now has every DM permission: the invite opens the DM page with the co-DM key (`/codm` stays as a phone soundboard).
   - Co-DM card: each role (Co-DM, Battle Master, Social Master) is a title with one centred **Invite** button under it.
