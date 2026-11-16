@@ -167,11 +167,11 @@ Items are as Mike wrote them. Bracketed notes say which screen a tab or setting 
 
 ### PR R: Dungeon entry, exit and editing
 `src/dungeon.js`, `src/sockets/dungeon.js`, `public/dungeon.js`, `public/dungeon.css`, `public/js/dm/dungeon.js`, `public/js/play/`
-- [ ] When the Party goes to a dungeon location, they get a phone tab. TV screen gets a pop up too, showing the dungeon image and a count of ready party members. The player phones get a window that shows the dungeon name, the description, and a button that says 'Enter Dungeon'. When all players have held-pressed enter dungeon for 1 second (counter on the TV), Then enter the dungeon.
-- [ ] When all players are at the end of the dungeon, they get an 'exit dungeon' pop up. They just have to press the exit dungeon button which sends them back to the TV Screen world map.
-- [ ] When Party is in a dungeon, A dungeon editing tab appears underneath world map. [DM Screen, World map window]
-- [ ] DM can edit the nodes right from the dungeon window. Can click/drag/etc. nodes and right click nodes for menu. [DM Screen, dungeon window]
-- [ ] Party Dungeon Location node is centered on TV Screen. [TV]
+- [x] When the Party goes to a dungeon location, they get a phone tab. TV screen gets a pop up too, showing the dungeon image and a count of ready party members. The player phones get a window that shows the dungeon name, the description, and a button that says 'Enter Dungeon'. When all players have held-pressed enter dungeon for 1 second (counter on the TV), Then enter the dungeon.
+- [x] When all players are at the end of the dungeon, they get an 'exit dungeon' pop up. They just have to press the exit dungeon button which sends them back to the TV Screen world map.
+- [x] When Party is in a dungeon, A dungeon editing tab appears underneath world map. [DM Screen, World map window]
+- [x] DM can edit the nodes right from the dungeon window. Can click/drag/etc. nodes and right click nodes for menu. [DM Screen, dungeon window]
+- [x] Party Dungeon Location node is centered on TV Screen. [TV]
 
 ### PR S: DM Screen mode buttons and sidebar
 `public/dm.html`, `public/style.css`, `public/js/dm/modes.js`, `public/js/dm/dock.js`
