@@ -202,6 +202,7 @@ Items are as Mike wrote them. Bracketed notes say which screen it is on and what
 `src/worldmap.js`, `src/sockets/worldmap.js`, `src/tracker.js`, `src/dungeon.js`, `src/visibility.js`, `public/worldmap.js`, `public/js/dm/worldmap.js`, `public/js/play/`, `public/stage.js`
 - [ ] Segmented time clock: make going to places take up time segments. [World map, town map; the DM's segment clocks in `src/tracker.js` are a separate countdown]
 - [ ] Traveling roads takes up 1 clock segment per leg. [World map; roads already have a length in legs]
+- [ ] Time of day clock animation slides from the upper left side of TV screen. then advances forward when triggered, plays sound, lingers for 3 seconds, then animation slides back to upper left side of TV screen. [TV; triggered when the clock advances, e.g. a road leg or a confirmed town action]
 - [ ] Mousing over world map town nodes will generate a list of what the town has. [DM Screen and TV world map]
 - [ ] Visiting Towns: I want a similar dungeon entrance system to happen with the players visiting towns. It also has world map elements. [Reuse the PR R dungeon gate and the world map nodes, fog and drag]
   - [ ] Like in the world map, players start at the settlement entrance node. They have to discover nodes that are hidden. Nodes will give player phone screen a window to interact with whatever is on the node. [Phones, TV]
