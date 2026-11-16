@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **End Session** (Mike, Nov 16): a red button at the bottom of the DM tools sidebar. Hold it for 1 second to end the session: the TV fades to a big “End of Session” card, phones show “Thanks for playing.”, and the DM gets a window to make a save point (named after the session and date) and explore the logs (story and dice log together, searchable and filterable by type, plus the Markdown transcript). **Resume session** takes everyone back to the game; once ended, a click on the button reopens the window.
 - Phone pop-ups from the DM (Mike, Nov 16), one at a time and each staying up until answered:
   - **Messages**: a handout or a phrase from the Messages tab pops up on the phone with a **Continue** button at the bottom instead of landing in the Inbox. The DM's list shows "read 1/4" until everyone has pressed Continue (`player:handout:read`). Revealing a phrase pops it up again, now readable.
   - **Party vote** has its own card in the Messages tab with a bar per option (bars slide as votes come in) and who has not voted yet. Starting a vote pops it up on every phone; after voting the phone shows the pick (tap another to change) and Continue.
@@ -17,6 +18,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- **Creature actions** on the DM combat cards and the 3D battle map's action bar are icon buttons with the name underneath (Mike, Nov 16, PR O). Hovering shows the details and the maths: to-hit as 1d20 + bonus vs AC, the damage dice with their average and type, and the key to press on the map. Move and End turn use the same style.
 - **Dramatic pause** on the TV drops the "Hold" label. The screen fades to partial black first and the text fades in half a second later (Mike, Nov 16, PR P).
 - TV moments and rolls, from Mike's Nov 16 notes:
   - Roll results (popup and 3D dice tray) sit in the centre of the TV and fade out instead of vanishing.

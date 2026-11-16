@@ -22,6 +22,7 @@ import './socialpop.js';
 import './popups.js';
 import './table.js';
 import './spotlight.js';
+import './ended.js';
 
 
 Settings.mount();

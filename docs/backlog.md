@@ -152,7 +152,7 @@ Items are as Mike wrote them. Bracketed notes say which screen a tab or setting 
 
 ### PR O: Creature actions on the combat map
 `lib/iso-battle/src/client/battle.js`, `lib/iso-battle/src/client/styles.js`, `public/js/dm/combat.js`, `public/theme.css`
-- [ ] Creature Actions are usually just an icon button with text underneath it. The action, math equations, details appear when I have mouse over it. [DM Screen, Combat]
+- [x] Creature Actions are usually just an icon button with text underneath it. The action, math equations, details appear when I have mouse over it. [DM Screen, Combat]
 
 ### PR P: Dramatic pause and mode switching
 `public/moments.js`, `public/moments.css`, `public/stage.js`, `public/js/dm/modes.js`, `src/moments.js`
