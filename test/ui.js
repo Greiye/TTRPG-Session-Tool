@@ -86,6 +86,17 @@ const SHOTS = process.env.SHOTS;
   // Entering social mode pops up on the phone; Leave closes it.
   await ph.waitForSelector('.pop-scrim', { timeout: 5000 });
   await ph.click('[data-sp="leave"]');
+  // Combat (Mike, Nov 16): no 3D map on phones; a combat pop-up sits at the top of the Play tab.
+  await dm.evaluate(() => socket.emit('dm:mode', { mode: 'combat' }));
+  await ph.waitForSelector('#combatPop:not([hidden])', { timeout: 5000 }).catch(() => errors.push('phone combat pop-up did not show'));
+  if (!/Steel yourselves/.test(await ph.textContent('#combatPop'))) errors.push('combat pop-up should start with "Steel yourselves"');
+  if (await ph.evaluate(() => document.querySelector('#tabPlay').firstElementChild.id) !== 'combatPop') errors.push('combat pop-up should be first in the Play tab');
+  await dm.evaluate(() => socket.emit('dm:combat:start', {}));
+  await ph.waitForFunction(() => /YOUR TURN|'s turn/.test(document.querySelector('#combatPop').textContent), null, { timeout: 5000 }).catch(() => errors.push('combat pop-up did not follow the turn'));
+  if (await ph.$('#gameView .iso-layer, #isoPhone')) errors.push('phones should not show the 3D battle map');
+  await dm.evaluate(() => socket.emit('dm:combat:end'));
+  await dm.evaluate(() => socket.emit('dm:mode', { mode: 'exploration' }));
+  await ph.waitForSelector('#combatPop[hidden]', { state: 'attached', timeout: 5000 }).catch(() => errors.push('combat pop-up did not close after combat'));
   // Settings: phone picks large text + color-blind palette; DM sets TV to high contrast.
   await ph.click('.settings-btn');
   await ph.click('label:has(input[name="me-text"][value="xl"])');
