@@ -127,8 +127,8 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR L: World map
 `public/js/dm/worldmap.js`, `public/worldmap.js`, `public/worldmap.css`, `src/worldmap.js`
-- [ ] In World Map, when Road creation is selected, click/hold on location 1, and drag/release to location 2 to create the road. [DM Screen, World map window]
-- [ ] World Map window looks more like a paper map with light watercolor art. There is a compass rose at the bottom right of the map.
+- [x] In World Map, when Road creation is selected, click/hold on location 1, and drag/release to location 2 to create the road. [DM Screen, World map window]
+- [x] World Map window looks more like a paper map with light watercolor art. There is a compass rose at the bottom right of the map.
 
 ### PR M: Camp, rests and inspiration
 `public/js/dm/camp.js`, `public/js/play/camp.js`, `src/camp.js`, `src/rests.js`, `public/js/dm/hold.js`, `public/dm.html`
@@ -161,9 +161,9 @@ Items are as Mike wrote them. Bracketed notes say which screen a tab or setting 
 
 ### PR Q: Exploration points of interest and world map travel
 `src/worldmap.js`, `src/sockets/worldmap.js`, `src/visibility.js`, `public/js/dm/worldmap.js`, `public/js/dm/exploration.js`, `public/worldmap.js`
-- [ ] Blank Points of interest still appear in exploration. Have no points of interest initially by default. DM will add them in when they can. [DM Screen, Exploration; TV]
-- [ ] Default map travel leg duration is 5 seconds. [DM Screen, World map]
-- [ ] Show world map to TV Screen no matter the current mode. [TV; overlaps the 15 Nov PR A and 16 Nov PR L world map items]
+- [x] Blank Points of interest still appear in exploration. Have no points of interest initially by default. DM will add them in when they can. [DM Screen, Exploration; TV]
+- [x] Default map travel leg duration is 5 seconds. [DM Screen, World map]
+- [x] Show world map to TV Screen no matter the current mode. [TV; overlaps the 15 Nov PR A and 16 Nov PR L world map items]
 
 ### PR R: Dungeon entry, exit and editing
 `src/dungeon.js`, `src/sockets/dungeon.js`, `public/dungeon.js`, `public/dungeon.css`, `public/js/dm/dungeon.js`, `public/js/play/`

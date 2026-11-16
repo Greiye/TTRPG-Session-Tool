@@ -33,7 +33,7 @@ function fresh() {
     image: null, // map picture URL (uploaded by the DM)
     onTv: false, // the TV shows the world map instead of the stage
     openOnSession: true, // each session opens in exploration with the world map on the TV (src/sockets/worldmap.js)
-    legSeconds: 60, // real seconds for one leg of travel
+    legSeconds: 5, // real seconds for one leg of travel (Mike, Nov 16: 5 s by default)
     timeOnTravel: true, // each road leg moves the story clock on one segment (PR V, src/clock.js)
     cardSeconds: 20, // a flavour card comes up this often while travelling
     nodes: [], // { id, name, x, y, info, revealed, town, seen } with x and y as fractions of the picture
@@ -45,6 +45,7 @@ function fresh() {
     deck: [], // DM-written cards, drawn in order before the table: { id, text, lore }
     table: DEFAULT_TABLE.map((text, i) => ({ id: 'wd' + (i + 1), text, weight: 1, on: true })), // auto cards
     cards: [], // cards that came up, newest first: { id, text, lore, loreRevealed, source, vetoed, comments, at }
+    v: 2, // 2: the 5 s leg default is in (see migrate)
   };
 }
 
@@ -66,6 +67,15 @@ function example() {
   wm.fog = true;
   wm.here = 'w1';
   uncover(wm, 'w1');
+  return wm;
+}
+
+// Older saves: the leg default went from 60 s to 5 s (Mike, Nov 16). A map still on the old default moves to
+// the new one once; a leg the DM sets later, 60 included, is kept.
+function migrate(wm) {
+  if (!wm || wm.v >= 2) return wm;
+  if (wm.legSeconds === 60) wm.legSeconds = 5;
+  wm.v = 2;
   return wm;
 }
 
@@ -444,7 +454,7 @@ function viewFor(wm, viewer, seated = 0) {
 }
 
 module.exports = {
-  fresh, example, dungeonHere, posAt, saveNode, removeNode, reveal: (wm, id, on) => { const n = find(wm, id); if (n) n.revealed = !!on; return !!n; },
+  fresh, example, migrate, dungeonHere, posAt, saveNode, removeNode, reveal: (wm, id, on) => { const n = find(wm, id); if (n) n.revealed = !!on; return !!n; },
   startVote, castVote, closeVote, cancelVote, go, tick, drawNow, addDeck, removeDeck, saveTable, removeTable,
   vetoCard, revealLore, comment, setImage, setTiming, viewFor, counts, DEFAULT_TABLE,
   saveRoad, removeRoad, route, uncover, setFog, roadBetween,

@@ -39,7 +39,7 @@ function addCue(f = {}) {
 // Fire a cue: each part applies the same way the single-control version does. Returns what changed.
 function fireCue(cue) {
   const did = [];
-  if (cue.mode) { state.mode = cue.mode; world.applyMood(cue.mode); state.check = null; if (cue.mode !== 'exploration' && state.worldMap) state.worldMap.onTv = false; did.push('mode'); }
+  if (cue.mode) { state.mode = cue.mode; world.applyMood(cue.mode); state.check = null; did.push('mode'); }
   if (cue.light) { world.setLight(cue.light); did.push('light'); }
   if (cue.backdrop) { state.backdrop.image = state.backdrop.library.find((b) => b.id === cue.backdrop) || null; did.push('backdrop'); }
   if (cue.layers) {

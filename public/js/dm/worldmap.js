@@ -12,7 +12,7 @@ const WM = () => window.WorldMap;
 mount(`<div class="card wm-page-card">
   <h3>World map <span class="note">places, votes, travel and road cards</span></h3>
   <div class="row wrap">
-    <label class="chk" title="Shows on the TV in any mode. Changing mode gives the TV back to the scene."><input type="checkbox" id="wmTv"> Show on TV</label>
+    <label class="chk" title="Stays on the TV in exploration and social until you untick it. Entering combat gives the TV to the combat prep filter; tick again to show the map mid-fight."><input type="checkbox" id="wmTv"> Show on TV</label>
     <label class="chk" title="When the server starts and on Next session: exploration mode with the world map on the TV"><input type="checkbox" id="wmOpen"> Open each session here</label>
     <label class="note tight">Leg (s) <input id="wmLeg" type="number" min="5" max="1800" style="width:72px"></label>
     <label class="chk" title="Each road leg moves the day clock on one segment; a two-leg road takes two (PR V)"><input type="checkbox" id="wmTime"> Travel uses time</label>
@@ -118,7 +118,7 @@ function editorHtml(S, sel) {
     </div>
     <p class="note">${path ? `By road: ${path.legs} leg${path.legs === 1 ? '' : 's'}${path.path.length > 1 ? `, via ${path.path.slice(0, -1).map((id) => esc(WM().byId(wm, id)?.name)).join(', ')}` : ''}.` : wm.here && wm.here !== sel.id ? 'No road from the party: they would go straight there (one leg).' : ''}</p>
     <h4>Roads</h4>
-    <div class="wm-roadlist">${roadRows || '<p class="note">No roads. Use + Road, then tap two places.</p>'}</div>
+    <div class="wm-roadlist">${roadRows || '<p class="note">No roads. Use + Road, then drag from one place to another.</p>'}</div>
   </div>`;
 }
 
@@ -185,7 +185,7 @@ function draw(S) {
 function hint() {
   $('#wmRoad').classList.toggle('on', roading);
   $('#wmHint').textContent = placing ? 'Tap the picture to place it there.'
-    : roading ? (roadFrom ? 'Now tap the place the road leads to.' : 'Tap the place the road starts from.')
+    : roading ? (roadFrom ? 'Now tap the place the road leads to.' : 'Press on a place and drag to another to lay a road (or tap one, then the other).')
     : 'Tap a place to edit it, drag it to move it or into the bin, or tap a road to pick it.';
 }
 
@@ -194,6 +194,56 @@ let drag = null;
 let dragged = false;
 $('#wmBoard').addEventListener('pointerdown', () => { pressing = true; }, true);
 document.addEventListener('pointerup', () => { if (pressing) setTimeout(() => { pressing = false; if (last) draw(last); }, 0); }, true);
+// Road mode (Mike, Nov 16): press on one place, drag to another and let go to lay a road between them. An ink
+// line follows the pointer and the place under it lights up. A press that does not move falls through to the
+// tap-tap way in the click handler below.
+let roadDrag = null;
+$('#wmBoard').addEventListener('pointerdown', (e) => {
+  const n = e.target.closest('[data-node]');
+  if (!n || e.button !== 0 || !roading) return;
+  const pic = n.closest('.wm-pic');
+  const svg = pic.querySelector('.wm-roads');
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  const r = pic.getBoundingClientRect();
+  const fx = parseFloat(n.style.left); const fy = parseFloat(n.style.top);
+  line.setAttribute('class', 'wm-road draft');
+  for (const [k, v] of [['x1', fx], ['y1', fy], ['x2', fx], ['y2', fy]]) line.setAttribute(k, v);
+  roadDrag = { from: n.dataset.node, el: n, pic: r, svg, line, x0: e.clientX, y0: e.clientY, moved: false, over: null };
+  n.setPointerCapture(e.pointerId);
+});
+const nodeAt = (x, y) => document.elementsFromPoint(x, y).map((el) => el.closest?.('#wmBoard [data-node]')).find(Boolean) || null;
+$('#wmBoard').addEventListener('pointermove', (e) => {
+  const d = roadDrag;
+  if (!d) return;
+  if (!d.moved && Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 5) return;
+  if (!d.moved) { d.moved = true; d.svg.append(d.line); d.el.classList.add('from'); }
+  d.line.setAttribute('x2', ((e.clientX - d.pic.left) / d.pic.width) * 100);
+  d.line.setAttribute('y2', ((e.clientY - d.pic.top) / d.pic.height) * 100);
+  const over = nodeAt(e.clientX, e.clientY);
+  const to = over && over.dataset.node !== d.from ? over : null;
+  if (d.over !== to) { d.over?.classList.remove('road-to'); to?.classList.add('road-to'); d.over = to; }
+  d.line.classList.toggle('hit', !!to);
+});
+async function roadEnd(e) {
+  const d = roadDrag;
+  if (!d) return;
+  roadDrag = null;
+  d.line.remove();
+  d.over?.classList.remove('road-to');
+  if (!d.moved) return; // a tap: the click handler runs the tap-tap way
+  dragged = true; // swallow the click that follows the drag
+  setTimeout(() => { dragged = false; }, 0);
+  const to = e.type === 'pointercancel' ? null : nodeAt(e.clientX, e.clientY);
+  keys['#wmBoard'] = null;
+  if (!to || to.dataset.node === d.from) { if (last) draw(last); return; }
+  const res = await call('dm:worldmap:road', { a: d.from, b: to.dataset.node, known: false });
+  if (res?.error) alert(res.error);
+  selId = d.from; selRoad = res?.id || null; roadFrom = null;
+  if (last) draw(last);
+}
+$('#wmBoard').addEventListener('pointerup', roadEnd);
+$('#wmBoard').addEventListener('pointercancel', roadEnd);
+
 $('#wmBoard').addEventListener('pointerdown', (e) => {
   const n = e.target.closest('[data-node]');
   if (!n || e.button !== 0 || placing || roading) return;

@@ -409,8 +409,8 @@ body.planning .side-title::after { content: ' · planning'; color: #f2c96e; }
 .wm-page[hidden] { display: none; }
 .wm-page .wm-page-card { max-width: 1100px; width: 100%; margin: 0 auto; }
 .wm-page #wmBoard { width: 100%; max-width: min(100%, calc(62vh * 16 / 10)); margin: 0 auto; }
-.wm-page #wmBoard .wm-node span { font-size: 13px; color: #f4ead5; }
-.wm-page #wmBoard .wm-node small { color: #cbb68e; }
+.wm-page #wmBoard .wm-node span { font-size: 13px; color: #3b2a18; }
+.wm-page #wmBoard .wm-node small { color: #7a5a3a; }
 
 /* Combat screen feedback (Nov 16) ---------------------------------------------------------------- */
 /* 7. Modes, tabs and section parts are one column. */

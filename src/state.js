@@ -36,7 +36,7 @@ const state = {
     title: 'The Sunken Crossroads',
     text: 'Rain hammers a mossy crossroads. A toppled shrine leans against an oak, and fresh cart tracks vanish into the fog toward the old mill.',
     theme: 'forest',
-    poi: ['Toppled shrine', 'Cart tracks', 'Old mill in the fog'],
+    poi: [], // points of interest: none until the DM adds them (Mike, Nov 16)
     secrets: [], // perception-gated items (src/perception.js)
     revealed: [], // fog of war: POI names the party has uncovered (item 7c)
   },

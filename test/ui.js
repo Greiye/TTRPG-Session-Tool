@@ -87,6 +87,7 @@ const SHOTS = process.env.SHOTS;
   await dm.waitForSelector('#itList .it-row', { timeout: 3000 }).catch(() => errors.push('the DM Items tab does not list the given item'));
   await ph.click('#tabs [data-tab="play"]');
   // Social flow (Nov 16): Social mode shows the DM's NPC list; holding Start for 1 s begins the talk.
+  await dm.evaluate(() => socket.emit('dm:worldmap:show', { on: false })); // the world map stays on the TV in social until the DM takes it off
   await dm.click('[data-mode="social"]');
   await tv.waitForSelector('.convo-wait', { timeout: 5000 });
   await dm.waitForSelector('#socialWin:not([hidden]) #convoPool [data-pool]', { timeout: 5000 });
