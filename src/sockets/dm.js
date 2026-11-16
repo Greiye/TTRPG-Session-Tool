@@ -319,6 +319,7 @@ module.exports = function dmSockets(socket) {
     const block = creatures.normalize({ name: name || 'Goblin', hp: Number(hp) || 10, ac: Number(ac) || 12, side,
       attacks: [{ name: 'Attack', atk: Number(atk) || 4, dmg: /d/i.test(String(dmg)) ? dmg : `1d6+${Number(dmg) || 2}` }] });
     const enemy = creatures.spawn(block, { id: 'e' + nextId(), name: String(name || 'Goblin').slice(0, 24) });
+    enemy.accent = randomizer.accent();
     state.combat.enemies.push(enemy);
     queueForMap([enemy.id]);
   });
@@ -335,6 +336,7 @@ module.exports = function dmSockets(socket) {
     if (!block) return;
     for (let i = 0; i < Math.max(1, Math.min(12, Number(count) || 1)); i++) {
       const c = creatures.spawn(creatures.SIDES.includes(side) ? { ...block, side } : block, { id: 'e' + nextId(), name: uniqueName(block.name) });
+      c.accent = randomizer.accent();
       state.combat.enemies.push(c);
       queueForMap([c.id]);
       // Joining a fight in progress: roll initiative and slot in.
@@ -353,9 +355,15 @@ module.exports = function dmSockets(socket) {
     state.pendingPlace = (state.pendingPlace || []).filter((x) => x !== id);
     state.combat.order = state.combat.order.filter((o) => o.id !== id);
   });
+  // Creature randomizer: a new accessory colour for one creature's 2D token, or for every creature (id 'all').
+  dm('dm:creature:accent', ({ id, seed } = {}) => {
+    const list = id === 'all' ? state.combat.enemies : state.combat.enemies.filter((e) => e.id === id);
+    const s0 = seed === undefined || seed === '' ? undefined : Number(seed) >>> 0;
+    list.forEach((e, i) => { e.accent = randomizer.accent(s0 === undefined ? undefined : (s0 + i) >>> 0); });
+  });
   dm('dm:combat:start', () => game.startCombat());
   dm('dm:combat:end', () => {
-    Object.assign(state.combat, { active: false, order: [], turn: 0, round: 0 });
+    Object.assign(state.combat, { active: false, order: [], turn: 0, round: 0, acted: {} });
     log('combat', 'Combat ends.');
   });
   dm('dm:combat:next', () => { if (!mustPlaceFirst()) game.advanceTurn(); });
@@ -366,6 +374,7 @@ module.exports = function dmSockets(socket) {
     if (e && !state.players[e.id] && t && t !== e && e.hp > 0) {
       const r = game.attack(creatures.withAttack(e, Number(attack) || 0), t, { mode });
       if (r.blocked) { log('combat', r.blocked, { tone: 'bad', vis: 'dm' }); return; } // no roll, the creature's turn goes on
+      (state.combat.acted ||= {})[e.id] = state.combat.round; // the DM page greys out its actions until its next round
       game.advanceTurn();
     }
   });

@@ -44,4 +44,8 @@ const TABLES = {
   },
 };
 
-module.exports = { TABLES, roll, reroll, pickWeighted, rng };
+// Accessory colours for a creature's 2D token (belt, trim, hood). One draw per creature; a seed repeats it.
+const ACCENTS = ['#c0392b', '#e67e22', '#f1c40f', '#27ae60', '#16a085', '#2980b9', '#8e44ad', '#d35400', '#7f8c8d', '#ecf0f1', '#2c3e50', '#e84393', '#6c5ce7', '#00b894', '#a0522d', '#b8860b'];
+function accent(seed) { return ACCENTS[Math.floor(rng((seed ?? crypto.randomInt(2 ** 32)) >>> 0)() * ACCENTS.length)]; }
+
+module.exports = { TABLES, ACCENTS, roll, reroll, accent, pickWeighted, rng };

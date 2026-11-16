@@ -32,6 +32,14 @@ function hueHex(h, s = 0.45, l = 0.42) {
   return `#${f(0)}${f(8)}${f(4)}`;
 }
 
+// A character's colour tints the clothes; a creature's accessory colour (set by the creature randomizer) tints its trim.
+const ACCENTS = ['#c0392b', '#e67e22', '#f1c40f', '#27ae60', '#16a085', '#2980b9', '#8e44ad', '#d35400'];
+function paletteOf(x, pc) {
+  if (pc) return x.hue != null ? { cloth: hueHex(x.hue) } : undefined;
+  return { trim: /^#[0-9a-f]{6}$/i.test(x.accent || '') ? x.accent : ACCENTS[[...String(x.id)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % ACCENTS.length] };
+}
+export const lookOf = (x, pc) => ({ kind: kindOf(x), palette: paletteOf(x, pc) });
+
 const key = (x, y) => `${x},${y}`;
 const speedOf = (c) => {
   const fly = c.speed?.fly || 0;
@@ -83,7 +91,7 @@ function viewOf(s, you) {
       owner: pc ? id : null, hp: x.hp ?? 0, maxHp: x.maxHp || x.hp || 1, dead: (x.hp ?? 1) <= 0,
       ap: id === turnId ? left : speedTiles, maxAp: speedTiles, defense: x.ac,
       abilities: pc ? ['attack'] : (x.attacks?.length ? x.attacks.map((_, i) => `${id}:${i}`) : ['attack']),
-      palette: pc && x.hue != null ? { cloth: hueHex(x.hue) } : undefined,
+      palette: paletteOf(x, pc),
     };
   }
   const order = c.order.map((o) => o.id);
@@ -209,8 +217,66 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       describeAttack: (u, ab, tgt) => { const cv = coverOf(battle.getView(), u, tgt); return `Attack ${tgt.name} · AC ${tgt.defense ?? '?'}${cv ? ` +${cv} ${cv === 5 ? 'three-quarters' : 'half'} cover` : ''}`; },
     });
     ro = new ResizeObserver(place); ro.observe(root);
+    if (dm) { dmChrome(); requestAnimationFrame(() => requestAnimationFrame(() => battle?.camera.fit())); }
   }
-  function unmount() { ro?.disconnect(); battle?.destroy(); layer?.remove(); layer = battle = transport = ro = null; }
+  function unmount() { tray = cov = null; ro?.disconnect(); battle?.destroy(); layer?.remove(); layer = battle = transport = ro = null; }
+
+  // DM only: a coverage slider (how much of the field the view shows) and a tray of tokens not yet on the map.
+  let tray = null; let cov = null; let trayKey = '';
+  function dmChrome() {
+    cov = document.createElement('div');
+    cov.className = 'iso-cov';
+    cov.innerHTML = '<button type="button" class="iso-fit" title="Show the whole battle map">⛶ Fit</button><label>Coverage <input type="range" min="3" max="60" step="0.5" aria-label="Map coverage"></label>';
+    const range = cov.querySelector('input');
+    range.oninput = () => battle?.camera.zoom(Number(range.value));
+    cov.querySelector('.iso-fit').onclick = () => battle?.camera.fit();
+    battle.on('zoom', (z) => { range.value = z; });
+    tray = document.createElement('div');
+    tray.className = 'iso-tray';
+    tray.hidden = true;
+    tray.addEventListener('pointerdown', dragFromTray);
+    layer.append(cov, tray);
+  }
+  function renderTray(s) {
+    if (!tray) return;
+    const all = [...s.players.map((p) => [p, true]), ...s.combat.enemies.map((e) => [e, false])];
+    const pend = s.pendingPlace || [];
+    const off = all.filter(([x]) => !s.tokens?.[x.id] || s.tokens[x.id].x >= s.map.cols || s.tokens[x.id].y >= s.map.rows)
+      .sort(([a], [b]) => (pend.indexOf(a.id) + 1 || 999) - (pend.indexOf(b.id) + 1 || 999));
+    const k = off.map(([x]) => x.id + x.name + (x.accent || '') + (x.hue ?? '') + pend.indexOf(x.id)).join('|');
+    if (k === trayKey) return;
+    trayKey = k;
+    tray.hidden = !off.length;
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    tray.innerHTML = `<b>Drag onto the map</b>${off.map(([x, pc], i) => {
+      let src = ''; try { src = battle.portraitOf(lookOf(x, pc)); } catch { /* rules not loaded yet */ }
+      const locked = pend.length && pend[0] !== x.id && pend.includes(x.id);
+      return `<button type="button" class="iso-chip ${pc ? 'chip-pc' : 'chip-foe'} ${i === 0 && pend[0] === x.id ? 'next' : ''}" data-tok="${esc(x.id)}" ${locked ? 'disabled title="Place the first creature first"' : ''}><img src="${src}" alt="" draggable="false"><span>${esc(x.name)}</span></button>`;
+    }).join('')}`;
+  }
+  function dragFromTray(e) {
+    const chip = e.target.closest('.iso-chip');
+    if (!chip || chip.disabled || e.button !== 0) return;
+    e.preventDefault();
+    const id = chip.dataset.tok;
+    const ghost = chip.querySelector('img').cloneNode();
+    ghost.className = 'iso-ghost';
+    document.body.append(ghost);
+    const at = (ev) => { ghost.style.left = `${ev.clientX}px`; ghost.style.top = `${ev.clientY}px`; };
+    at(e);
+    chip.classList.add('lifted');
+    const move = (ev) => at(ev);
+    const up = (ev) => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+      ghost.remove(); chip.classList.remove('lifted');
+      if (ev.type !== 'pointerup' || !battle) return;
+      const canvas = layer?.querySelector('canvas');
+      if (!canvas || document.elementFromPoint(ev.clientX, ev.clientY) !== canvas) return;
+      const p = battle.pick(ev.clientX, ev.clientY);
+      if (p.tile != null && !p.unitId) emit('dm:token', { id, x: p.x, y: p.y });
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+  }
 
   return {
     update(s) {
@@ -224,7 +290,9 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       transport.charId = charId();
       transport.push(s);
       battle.setGroundImage(s.map.image || null);
+      renderTray(s);
     },
     get battle() { return battle; },
+    fit: () => battle?.camera.fit(),
   };
 }
