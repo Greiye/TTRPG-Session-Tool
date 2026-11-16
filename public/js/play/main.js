@@ -20,8 +20,10 @@ import './camp.js';
 import './inspiration.js';
 import './control.js';
 import './socialpop.js';
+import './popups.js';
 import './table.js';
 import './spotlight.js';
+import './ended.js';
 
 
 Settings.mount();
