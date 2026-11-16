@@ -2,7 +2,7 @@
 // DM-only note. Phones see an entry (without the note) once the DM shares it; the TV and spectators see none.
 const { str } = require('./util');
 
-const CATS = { location: 'Locations', dungeon: 'Dungeons', npc: 'NPCs', item: 'Items', book: 'Books', note: 'Notes' };
+const CATS = { location: 'Locations', dungeon: 'Dungeons', npc: 'NPCs', creature: 'Creatures', item: 'Items', book: 'Books', note: 'Notes' };
 const MAX = 500;
 const fresh = () => [];
 const ensure = (lore) => (Array.isArray(lore) ? lore.filter((e) => e && CATS[e.cat]) : fresh());

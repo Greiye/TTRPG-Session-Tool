@@ -117,6 +117,7 @@ module.exports = function routes(app) {
   const spells = require('./spells');
   const srd = require('./srd');
   app.get('/api/creatures', (req, res) => (isDm(req) || dmOnly(req) || isBattle(req) ? res.json(creatures.lib.list()) : res.sendStatus(403)));
+  app.get('/api/designs', (req, res) => (isDm(req) || dmOnly(req) ? res.json(require('./designer').lib.list()) : res.sendStatus(403)));
   app.get('/api/spells', (_req, res) => res.json(spells.lib.list()));
   app.post('/api/srd/import', express.json({ limit: '60mb' }), (req, res) => {
     if (!isDm(req) && !isBattle(req)) return res.sendStatus(403);

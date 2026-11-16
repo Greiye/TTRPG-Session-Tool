@@ -1,0 +1,83 @@
+// Creature Designer and lore wiki events (PR W). DM only: Battle and Social Masters never get these.
+const { state, broadcast } = require('../state');
+const designer = require('../designer');
+const wiki = require('../wiki');
+const lore = require('../lore');
+const creatures = require('../creatures');
+
+module.exports = function designerSockets(socket) {
+  const dm = (event, fn) => socket.on(event, async (f = {}, ack) => {
+    if (socket.data.role !== 'dm') return ack?.({ error: 'DM only.' });
+    let r;
+    try { r = await fn(f || {}); } catch (e) { r = { error: e.name === 'TimeoutError' ? 'GitHub did not answer in time. Is the laptop online?' : e.message }; }
+    ack?.(r);
+    if (!r?.error) broadcast();
+  });
+  const get = (id) => designer.lib.get(id);
+
+  dm('dm:design:save', (f) => {
+    if (!String(f.name || '').trim()) return { error: 'Give it a name.' };
+    return { ok: true, design: designer.save(f) };
+  });
+  dm('dm:design:delete', ({ id }) => (designer.lib.remove(id) ? { ok: true } : { error: 'No such design.' }));
+  dm('dm:design:markdown', ({ id, dm: withDm }) => {
+    const d = get(id);
+    if (!d) return { error: 'No such design.' };
+    const c = wiki.cfg();
+    return { ok: true, name: designer.fileSlug(d), text: designer.toMarkdown(d, { dm: !!withDm, author: c.author, credit: c.credit }) };
+  });
+  // Into the combat creature library: a new stat block, or the one made from this design before.
+  dm('dm:design:combat', ({ id }) => {
+    const d = get(id);
+    if (!d) return { error: 'No such design.' };
+    const prev = creatures.lib.list().find((c) => c.source === 'designer' && (c.designId === d.id || c.name === d.name));
+    const block = creatures.upsert({ ...designer.toStatBlock(d), id: prev?.id });
+    block.designId = d.id;
+    creatures.lib.touch();
+    return { ok: true, id: block.id, updated: !!prev };
+  });
+  // Into the Lore tab: a new entry, or an update of the one with the same name.
+  dm('dm:design:lore', ({ id }) => {
+    const d = get(id);
+    if (!d) return { error: 'No such design.' };
+    const e = designer.toLore(d);
+    const prev = state.lore.find((x) => x.cat === e.cat && x.name.toLowerCase() === e.name.toLowerCase());
+    if (prev) return { ...lore.edit(state.lore, { id: prev.id, text: e.text, dm: e.dm }), updated: true };
+    return lore.add(state.lore, e);
+  });
+
+  // ----- wiki -----
+  dm('dm:wiki:get', () => ({ ok: true, wiki: wiki.view() }));
+  dm('dm:wiki:config', (f) => ({ ok: true, wiki: wiki.configure(f) }));
+  // Pages in the wiki folder, each marked with the design it belongs to (if any).
+  dm('dm:wiki:list', async () => {
+    const pages = await wiki.list();
+    const mine = designer.lib.list();
+    return { ok: true, pages: pages.map((p) => {
+      const d = mine.find((x) => x.wiki?.path === p.path) || mine.find((x) => designer.fileSlug(x) === p.name);
+      return { ...p, design: d?.id || null, behind: !!(d?.wiki?.sha && p.sha && d.wiki.sha !== p.sha) };
+    }) };
+  });
+  // Pull one page into a design: updates the design linked to it, or makes a new one.
+  dm('dm:wiki:pull', async ({ name }) => {
+    const page = await wiki.read(name);
+    const mine = designer.lib.list();
+    const prev = mine.find((x) => x.wiki?.path === page.path) || mine.find((x) => designer.fileSlug(x) === name);
+    const d = designer.fromMarkdown(page.text, prev || {});
+    d.wiki = { path: page.path, sha: page.sha, at: Date.now() };
+    designer.lib.set(d);
+    return { ok: true, design: d, updated: !!prev };
+  });
+  // Push a design to its page. A page changed on GitHub since the last pull comes back as { conflict }.
+  dm('dm:wiki:push', async ({ id, dm: withDm, force }) => {
+    const d = get(id);
+    if (!d) return { error: 'No such design.' };
+    const c = wiki.cfg();
+    const name = d.wiki?.path ? d.wiki.path.split('/').pop().replace(/\.md$/i, '') : designer.fileSlug(d);
+    const r = await wiki.write(name, designer.toMarkdown(d, { dm: !!withDm, author: c.author, credit: c.credit }), { sha: d.wiki?.sha, force: !!force });
+    if (r.conflict) return { conflict: true, error: 'This page changed in the wiki since you last pulled it. Pull it first, or overwrite it.' };
+    d.wiki = { path: r.path, sha: r.sha, at: Date.now() };
+    designer.lib.touch();
+    return { ok: true, ...r };
+  });
+};
