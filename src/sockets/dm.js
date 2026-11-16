@@ -53,11 +53,16 @@ module.exports = function dmSockets(socket) {
 
   dm('dm:mode', ({ mode, npcId }) => {
     if (!['exploration', 'combat', 'social'].includes(mode)) return;
+    // Pressing the mode you are already in does nothing (no log line, no re-entry), except picking who speaks.
+    if (mode === state.mode) { if (mode === 'social' && npcId) cast.pick(state.social, npcId); return; }
     state.mode = mode;
     world.applyMood(mode);
     if (mode !== 'exploration') state.worldMap.onTv = false; // the world map belongs to exploration: combat and social take the TV
     state.check = null;
-    log('system', `— ${mode.toUpperCase()} —`);
+    // Quick switching keeps one mode line: a mode line still at the end of the log is replaced, not stacked.
+    const last = state.log[state.log.length - 1];
+    if (last?.modeLine) state.log.pop();
+    log('system', `— ${mode.toUpperCase()} —`, { modeLine: true });
     void bulbs.sync(state);
     if (mode === 'social') {
       // Entering social mode: the DM may pick who speaks; phones pop up once per entry (social.entered).
