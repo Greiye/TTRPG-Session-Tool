@@ -20,10 +20,16 @@ const { ok, call, until } = h;
   ok(mine(b).derived.passive.Perception === 15, 'passive perception is 10 + Perception');
   ok(mine(a).slots[1].max === 2 && mine(a).languages.includes('Elvish'), 'caster starts with slots and languages');
   a.emit('player:sheet', { slot: { level: 1, used: 1 } });
-  a.emit('player:sheet', { inv: { op: 'add', name: 'Rope', qty: 2 } });
+  a.emit('player:sheet', { inv: { op: 'add', name: 'Stolen gem', qty: 1 } }); // players can't add items (Mike, Nov 16)
+  dm.emit('dm:sheet', { id: a.me.id, inv: { op: 'add', name: 'Rope', qty: 2 } });
   a.emit('player:sheet', { hp: 9, tempHp: 4, notes: 'PRIVATE-NOTE' });
   await until(() => mine(a).inventory.length === 1 && mine(a).hp === hpAtSave);
   ok(mine(a).slots[1].used === 1 && mine(a).inventory[0].qty === 2 && mine(a).tempHp === 4, 'player updates slots, inventory, HP, temp HP');
+  ok(!mine(a).inventory.some((i) => i.name === 'Stolen gem'), 'a player cannot add an item; the DM does');
+  a.emit('player:sheet', { inv: { op: 'set', id: mine(a).inventory[0].id, qty: 50 } });
+  a.emit('player:sheet', { inv: { op: 'set', id: mine(a).inventory[0].id, qty: 1 } });
+  await until(() => mine(a).inventory[0].qty === 1);
+  ok(mine(a).inventory[0].qty === 1, 'a player can use an item up but not raise the count');
   const seenByDm = dm.last.players.find((p) => p.id === a.me.id);
   ok(seenByDm.inventory[0].name === 'Rope' && seenByDm.slots[1].used === 1, 'DM sees the sheet live');
   const seenByB = b.last.players.find((p) => p.id === a.me.id);

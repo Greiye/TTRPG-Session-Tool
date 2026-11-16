@@ -1012,6 +1012,9 @@ html[data-motion="reduce"] .shop-tv { animation-duration: .001ms; }
 
 .inv-new { animation: slidein .3s ease-out; }
 .inv-gone { opacity: 0; transform: translateX(-1em); transition: opacity .18s, transform .18s; }
+.list .item.it-row { grid-template-columns: 1fr auto; }
+.it-new { animation: slidein .3s ease-out; }
+.it-gone { opacity: 0; transform: translateX(-1em); transition: opacity .18s, transform .18s; }
 html[data-motion="reduce"] .tab-body, html[data-motion="reduce"] .tab-sec, html[data-motion="reduce"] .die-face, html[data-motion="reduce"] .die-n, html[data-motion="reduce"] .poi-in, html[data-motion="reduce"] .feat-desc, html[data-motion="reduce"] .inv-new { animation: none; }
 
 /* 3D battle map (public/js/iso3d.js): a layer over the stage in combat; the flat grid underneath is hidden. */
@@ -1051,7 +1054,15 @@ body.battle-waiting #tablePage, body.battle-waiting #toolsCol .modes-card, body.
 .dm-dice .dice-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .dm-dice .die-step { min-height: 40px; }
 /* Phone shop pop-up (Nov 15): banner, wares as buttons in 3 columns, pick then buy; a waiting screen after leaving. */
-.shop-sheet .shop-banner { display: block; width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+/* Phone shop (Nov 16): no banner, wares show name and price; hold one for its description card. */
+.shop-sheet .shop-title { margin: 0; }
+.shop-sheet .shop-ware .ware-txt { display: flex; flex-direction: column; gap: .15em; position: relative; color: inherit; font-size: 1em; white-space: normal; }
+.shop-sheet .shop-ware .ware-txt b { white-space: normal; }
+.shop-detail .shop-desc { font-size: calc(15px * var(--ts)); line-height: 1.45; margin: 0; }
+.gold-coin { display: inline-flex; align-items: center; gap: .3em; font-size: calc(28px * var(--ts)); font-weight: 700; }
+.gold-coin.small { font-size: calc(18px * var(--ts)); }
+.gold-coin.bump b { display: inline-block; animation: coin-bump .5s ease-out; }
+@keyframes coin-bump { 40% { transform: scale(1.35); color: #f2c94c; } }
 .shop-pgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .shop-sheet .shop-ware { font-size: calc(12px * var(--ts)); min-height: 64px; color: inherit; cursor: pointer; }
 .shop-sheet .shop-ware.on { outline: 3px solid var(--gold); outline-offset: 1px; }

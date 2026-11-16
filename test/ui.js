@@ -75,10 +75,15 @@ const SHOTS = process.env.SHOTS;
     await ph.mouse.down(); await ph.waitForTimeout(3300); await ph.mouse.up();
     await ph.waitForFunction(() => /activated/.test(document.querySelector('#tabSheet').textContent), null, { timeout: 3000 }).catch(() => errors.push('holding Activate for 3 s did not activate the feature'));
   }
+  // Items (Mike, Nov 16): players can't add items; the DM gives them from the Items tab.
   await ph.click('#tabs [data-tab="inventory"]');
-  await ph.fill('#invName', 'Rope');
-  await ph.click('#invForm button');
-  await ph.waitForSelector('#tabInventory [data-item]', { timeout: 3000 }).catch(() => errors.push('inventory item was not added'));
+  if (await ph.$('#invForm')) errors.push('the phone should not have an add-item form');
+  await dm.click('[data-stab="items"]');
+  await dm.waitForSelector('#itWho option', { state: 'attached', timeout: 3000 });
+  await dm.fill('#itName', 'Rope');
+  await dm.click('#itGive');
+  await ph.waitForSelector('#tabInventory [data-item]', { timeout: 3000 }).catch(() => errors.push('the DM could not give an item from the Items tab'));
+  await dm.waitForSelector('#itList .it-row', { timeout: 3000 }).catch(() => errors.push('the DM Items tab does not list the given item'));
   await ph.click('#tabs [data-tab="play"]');
   await dm.evaluate(() => socket.emit('dm:mode', { mode: 'social' }));
   await tv.waitForSelector('.vn', { timeout: 5000 });
