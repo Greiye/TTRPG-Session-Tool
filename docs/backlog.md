@@ -132,10 +132,10 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR M: Camp, rests and inspiration
 `public/js/dm/camp.js`, `public/js/play/camp.js`, `src/camp.js`, `src/rests.js`, `public/js/dm/hold.js`, `public/dm.html`
-- [ ] On Camp pop up, players must click/hold their short/long rest selection for 1 second to vote. [Phone camp pop-up]
-- [ ] Remove rests tab. This is automated in camp window. [DM Screen, Misc > Camp "Rests" card]
-- [ ] Camp window also has a class section. That section changes depending on their class.
-- [ ] Add an Inspiration Tab. [DM Screen; pairs with the phone hero card Inspiration points above]
+- [x] On Camp pop up, players must click/hold their short/long rest selection for 1 second to vote. [Phone camp pop-up]
+- [x] Remove rests tab. This is automated in camp window. [DM Screen, Misc > Camp "Rests" card]
+- [x] Camp window also has a class section. That section changes depending on their class.
+- [x] Add an Inspiration Tab. [DM Screen; pairs with the phone hero card Inspiration points above]
 
 ### PR N: Shops and items
 `src/shops.js`, `public/js/dm/shops.js`, `public/js/play/shops.js`, `public/js/play/inventory.js`, `public/stage.js`, `src/sockets/dm.js`, `src/sockets/player.js`, `public/dm.html`

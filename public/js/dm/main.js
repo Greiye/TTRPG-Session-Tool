@@ -30,6 +30,7 @@ import './gamepad.js';
 import './suggestions.js';
 import './journal.js';
 import './camp.js';
+import './inspiration.js';
 import './legends.js';
 import './moments.js';
 import './table.js';

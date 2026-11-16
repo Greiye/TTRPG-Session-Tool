@@ -100,6 +100,11 @@ function viewState(base, viewer) {
   out.downtime = require('./downtime').viewFor(base.downtime, viewer); // phones see their own pick and result
   out.absent = require('./absent').view(base, viewer); // missed lines are the DM's, and the owner's card
   out.camp = require('./camp').viewFor(base.camp, viewer); // camp votes: DM sees all, phones their own
+  if (out.camp?.mine && out.camp.open) { // the phone's class section: what its class gets back on each rest
+    const ch = base.players.find((p) => p.id === viewer.charId);
+    out.camp.mine.info = require('./rests').campInfo(ch);
+    out.camp.mine.missing = ch ? require('./camp').restBlockers(ch) : [];
+  }
   // Phase I table tools (src/table.js). The DM sees the controls and the numbers behind them; phones see
   // their own nudge and token; the TV sees the shared pieces (tension, canon, layout, montage once revealed).
   const T = require('./table');

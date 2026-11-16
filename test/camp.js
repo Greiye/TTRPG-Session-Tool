@@ -45,3 +45,31 @@ console.log('camp: all passed');
   camp.vote(d, 'a', 'short', '', 99);
   assert.strictEqual(d.dice.a, 20);
 }
+// Rest applied when camp ends: majority, ties go short, no votes none, DM override wins.
+{
+  const e = camp.fresh();
+  camp.setOpen(e, true);
+  assert.strictEqual(camp.restKind(e), null);
+  camp.vote(e, 'a', 'long', ''); camp.vote(e, 'b', 'short', '');
+  assert.strictEqual(camp.restKind(e), 'short', 'a tie gives a short rest');
+  camp.vote(e, 'c', 'long', '');
+  assert.strictEqual(camp.restKind(e), 'long');
+  camp.setApply(e, 'none');
+  assert.strictEqual(camp.restKind(e), null);
+  camp.setApply(e, 'bogus');
+  assert.strictEqual(e.apply, 'auto');
+  camp.setApply(e, 'short');
+  camp.setOpen(e, false); camp.setOpen(e, true);
+  assert.strictEqual(e.apply, 'auto', 'a new camp resets the override');
+}
+// Class section
+{
+  const { campInfo } = require('../src/rests');
+  const f = campInfo({ cls: 'Fighter', level: 2, hitDice: { die: 10, used: 0 }, uses: { 'Second Wind': 1 } });
+  assert(f.short.includes('Second Wind refills') && f.short.includes('Action Surge refills'));
+  assert.strictEqual(f.features.find((x) => x.name === 'Second Wind').left, 0);
+  assert(f.ideas.length >= 3);
+  assert(campInfo({ cls: 'Warlock', level: 1, slots: { 1: { max: 1, used: 1 } } }).short.includes('Pact Magic slots refill'));
+  assert.strictEqual(campInfo(null), null);
+}
+console.log('camp: rest and class section passed');

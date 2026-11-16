@@ -5,6 +5,8 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Inspiration tab** on the DM screen (✨, Play group): each seated character's inspiration points as gold gems, with − and + to take or give one, and **Everyone +1**. Points cap at 5, as with the recap quiz. A new gem pops in, and the player's phone shows a short "✨ Inspiration!" toast.
+- **Class section in the phone camp pop-up**: the character's class and level, its limited-use features with uses left, what a short and a long rest give back for that class (hit dice, Pact Magic, Arcane Recovery, Second Wind and so on), and camp ideas for the class that fill the downtime box when tapped.
 - **Lore tab** on the DM screen (Mike, Nov 16): tracks Locations, Dungeons, NPCs, Items, Books and Notes. Filter by category chip or search; each entry folds open to edit its name, category, what the party can learn, and a DM-only note. **From the table** adds the world map's places and dungeon entrances and the NPCs on the social scene that the lore does not have yet. **Share with phones** puts an entry (never the DM note) in a new Journal › Lore section on the phones; the TV shows no lore. Saved with the campaign.
 - **End Session** (Mike, Nov 16): a red button at the bottom of the DM tools sidebar. Hold it for 1 second to end the session: the TV fades to a big “End of Session” card, phones show “Thanks for playing.”, and the DM gets a window to make a save point (named after the session and date) and explore the logs (story and dice log together, searchable and filterable by type, plus the Markdown transcript). **Resume session** takes everyone back to the game; once ended, a click on the button reopens the window.
 - Phone pop-ups from the DM (Mike, Nov 16), one at a time and each staying up until answered:
@@ -19,6 +21,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- Camp and rests (Mike's Nov 16 list, PR M):
+  - Phones vote short or long rest by **holding the button for 1 second** (it fills as you hold); a tap no longer votes. The pop-up rises in and no longer redraws while you type or hold.
+  - The **Rests** card is gone. **End camp** applies the rest: by vote (more long votes than short gives a long rest, otherwise short; no votes, no rest), or the DM's choice in **Rest when camp ends** (short, long or no rest). The button reads e.g. "End camp · long rest", and short-rest votes show the hit dice each player spends.
 - Combat on phones and the 3D battle map (Mike, Nov 16, backlog PR F):
   - Phones no longer show the 3D battle map; players watch the TV. The TV still follows the latest action.
   - Phones get a **combat pop-up** at the top of the Play tab, in the "Steel yourselves" card style: waiting for initiative, your turn (attack and actions), someone else's turn, or down. It pops in again each time it changes.
