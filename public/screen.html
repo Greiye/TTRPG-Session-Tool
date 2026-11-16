@@ -61,6 +61,7 @@
       const end = document.getElementById('endCard');
       end.hidden = !s.ended;
       if (s.ended) end.querySelector('.end-sub').textContent = [s.intro?.campaign, s.ended.session ? `Session ${s.ended.session}` : ''].filter(Boolean).join(' · ');
+      Dungeon.tvGate(s); // the Enter Dungeon count over the TV (PR R)
     });
     AudioOut.init(socket); // the TV is the speaker
     // Roll results: the 3D dice tray when it is on (Phase B), otherwise the roll popup (item 5).

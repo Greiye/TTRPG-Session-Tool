@@ -33,7 +33,8 @@ const inMode = (c) => !c.dataset.panel || c.dataset.panel.split(' ').includes(mo
 const MASTER_CARDS = { battle: (c) => c.dataset.tab === 'combat' && mode === 'combat', social: (c) => c.dataset.tab === 'misc' && c.dataset.sub === 'npc' };
 // data-dm-only keeps a card from helpers even when it sits in their tab.
 const fits = (c) => { const m = MASTER_CARDS[masterRole()]; return m ? m(c) && !c.hasAttribute('data-dm-only') : inMode(c); };
-const planTab = (id) => !!$(`[data-group][data-plan] [data-stab="${id}"]`);
+// A planning tab marked data-live (Shops) also shows during play.
+const planTab = (id) => !!$(`[data-group][data-plan] [data-stab="${id}"]:not([data-live])`);
 
 // A tab shows when a card under it fits this mode; planning tabs only in Planning Mode.
 function visibleTabs() {
