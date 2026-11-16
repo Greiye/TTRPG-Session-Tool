@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **End Session** (Mike, Nov 16): a red button at the bottom of the DM tools sidebar. Hold it for 1 second to end the session: the TV fades to a big “End of Session” card, phones show “Thanks for playing.”, and the DM gets a window to make a save point (named after the session and date) and explore the logs (story and dice log together, searchable and filterable by type, plus the Markdown transcript). **Resume session** takes everyone back to the game; once ended, a click on the button reopens the window.
 - Phone pop-ups from the DM (Mike, Nov 16), one at a time and each staying up until answered:
   - **Messages**: a handout or a phrase from the Messages tab pops up on the phone with a **Continue** button at the bottom instead of landing in the Inbox. The DM's list shows "read 1/4" until everyone has pressed Continue (`player:handout:read`). Revealing a phrase pops it up again, now readable.
   - **Party vote** has its own card in the Messages tab with a bar per option (bars slide as votes come in) and who has not voted yet. Starting a vote pops it up on every phone; after voting the phone shows the pick (tap another to change) and Continue.
