@@ -24,6 +24,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Camp and rests (Mike's Nov 16 list, PR M):
   - Phones vote short or long rest by **holding the button for 1 second** (it fills as you hold); a tap no longer votes. The pop-up rises in and no longer redraws while you type or hold.
   - The **Rests** card is gone. **End camp** applies the rest: by vote (more long votes than short gives a long rest, otherwise short; no votes, no rest), or the DM's choice in **Rest when camp ends** (short, long or no rest). The button reads e.g. "End camp · long rest", and short-rest votes show the hit dice each player spends.
+- Combat on phones and the 3D battle map (Mike, Nov 16, backlog PR F):
+  - Phones no longer show the 3D battle map; players watch the TV. The TV still follows the latest action.
+  - Phones get a **combat pop-up** at the top of the Play tab, in the "Steel yourselves" card style: waiting for initiative, your turn (attack and actions), someone else's turn, or down. It pops in again each time it changes.
+  - The 3D map shows health bars only to the DM. The TV map shows names only (new `showHp` option in `lib/iso-battle`). Phones no longer show creature HP in the initiative strip or on attack buttons.
 - **Creature actions** on the DM combat cards and the 3D battle map's action bar are icon buttons with the name underneath (Mike, Nov 16, PR O). Hovering shows the details and the maths: to-hit as 1d20 + bonus vs AC, the damage dice with their average and type, and the key to press on the map. Move and End turn use the same style.
 - **Dramatic pause** on the TV drops the "Hold" label. The screen fades to partial black first and the text fades in half a second later (Mike, Nov 16, PR P).
 - Co-DM and combat tools, from Mike's Nov 16 notes:

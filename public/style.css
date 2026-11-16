@@ -976,7 +976,6 @@ html[data-motion="reduce"] .tab-body, html[data-motion="reduce"] .tab-sec, html[
 .iso-layer .isob { min-height: 0; }
 .iso-layer.tv { pointer-events: none; }
 .stage.iso-on .bmap { visibility: hidden; }
-.iso-phone { position: relative; height: 58vh; min-height: 300px; border-radius: 8px; overflow: hidden; }
 /* Logs are off by default on every screen (Mike, Nov 15): ⚙ Display settings > Show logs turns them on. */
 html[data-log="hide"] body.dm #feed, html[data-log="hide"] body.dm #tablePage > .col-sub { display: none; }
 html[data-log="hide"] #tabLogs .chips, html[data-log="hide"] #tabLogs .log-full, html[data-log="hide"] #tabLogs .card { display: none; }
@@ -1024,6 +1023,11 @@ body.battle-waiting #tablePage, body.battle-waiting #toolsCol .modes-card, body.
 .card[data-fold].folded > :not(:first-child) { display: none !important; }
 .card[data-fold].folded > h3 { margin-bottom: 0; }
 
+/* Phone combat pop-up (Mike, Nov 16): the combat card sits at the top of the Play tab and pops in on each change. */
+.combat-pop { margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
+.combat-pop > .card:first-child { border: 1px solid var(--gold); box-shadow: 0 0 0 1px #0006, 0 8px 24px #0008, 0 0 18px color-mix(in srgb, var(--gold) 30%, transparent); }
+.combat-pop.pop-in > .card:first-child { animation: combatpop .45s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes combatpop { 0% { opacity: 0; transform: translateY(-14px) scale(.92); } 100% { opacity: 1; transform: none; } }
 /* End of session (Mike, Nov 16): red hold button at the bottom of the DM tools sidebar, TV and phone end cards, DM dialog. */
 .end-session-bar { position: sticky; bottom: 0; margin: auto -14px -14px; padding: 12px 14px 14px; background: linear-gradient(transparent, var(--panel) 30%); z-index: 3; }
 .end-session-bar[hidden] { display: none; }
