@@ -19,6 +19,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- Combat on phones and the 3D battle map (Mike, Nov 16, backlog PR F):
+  - Phones no longer show the 3D battle map; players watch the TV. The TV still follows the latest action.
+  - Phones get a **combat pop-up** at the top of the Play tab, in the "Steel yourselves" card style: waiting for initiative, your turn (attack and actions), someone else's turn, or down. It pops in again each time it changes.
+  - The 3D map shows health bars only to the DM. The TV map shows names only (new `showHp` option in `lib/iso-battle`). Phones no longer show creature HP in the initiative strip or on attack buttons.
 - **Creature actions** on the DM combat cards and the 3D battle map's action bar are icon buttons with the name underneath (Mike, Nov 16, PR O). Hovering shows the details and the maths: to-hit as 1d20 + bonus vs AC, the damage dice with their average and type, and the key to press on the map. Move and End turn use the same style.
 - **Dramatic pause** on the TV drops the "Hold" label. The screen fades to partial black first and the text fades in half a second later (Mike, Nov 16, PR P).
 - Co-DM and combat tools, from Mike's Nov 16 notes:
