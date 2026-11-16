@@ -148,7 +148,7 @@ $('#subTabs')?.addEventListener('click', (e) => {
 $('#planToggle')?.addEventListener('click', () => {
   planning = !planning;
   save('dmPlanning', planning ? '1' : '');
-  if (planning) tab = 'shops'; // open on the first planning tab
+  if (planning) tab = 'shops'; // open on the first planning tab (Road cards moved to Miscellaneous, Nov 15)
   apply();
 });
 $('#mapToggle')?.addEventListener('click', () => {

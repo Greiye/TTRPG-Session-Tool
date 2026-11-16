@@ -1,8 +1,8 @@
 // DM: the world map. It is a page, not a sidebar card (Mike, Nov 14): the Modes card's World map button swaps
 // the DM's main column for it. Place towns and sites on the picture (tap to edit, drag to move), run votes
 // and travel (with an override), and veto or reveal road cards as they come up. Road cards draw on their own
-// while the party travels; the deck, the auto table and how often a card shows are edited in Planning Mode
-// (the Road cards tab).
+// while the party travels; the deck, the auto table and how often a card shows are edited under
+// Miscellaneous, in the Road cards part (Mike, Nov 15; it was a Planning Mode tab).
 import { $, emit, call, onState, onClick, mount, state } from '../client.js';
 import { dmKey } from './auth.js';
 
@@ -36,7 +36,7 @@ mount(`<div class="card wm-page-card">
   <div id="wmEdit"></div>
   <h4>Vote</h4>
   <div id="wmVote"></div>
-  <h4>Road cards <span class="note">drawn on their own while the party travels · edit them in Planning Mode</span></h4>
+  <h4>Road cards <span class="note">drawn on their own while the party travels · edit them in Miscellaneous · Road cards</span></h4>
   <div id="wmCards"></div>
   <div class="row wrap wm-foot">
     <label class="btn small">⬆ Map picture<input type="file" accept="image/*" id="wmFile" hidden></label>

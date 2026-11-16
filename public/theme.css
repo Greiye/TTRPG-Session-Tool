@@ -529,10 +529,6 @@ body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / 
 .dm-hero .party-side select { width: 100%; }
 .dm-hero .party-side h3 .btn { margin-left: 6px; }
 
-/* Buttons sit in the middle of their card where a row holds only buttons (Mike, Nov 15 item 8). */
-.dm-right .card > .row:not(:has(input, select, textarea, label, .grow, .note, span)),
-.dm-hero .card > .row:not(:has(input, select, textarea, label, .grow, .note, span)) { justify-content: center; }
-
 /* Logs tab: show or hide the logs on this screen (the same switch as Display settings). */
 .log-toggle { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; font-weight: 600; }
 #tabLogs .log-toggle { padding: 4px 2px; }

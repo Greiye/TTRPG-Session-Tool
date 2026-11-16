@@ -554,11 +554,12 @@
   <aside class="dm-hero" id="heroCol" aria-label="Party">
     <div class="col-head"><span>👥 Party</span><button class="tools-min" id="heroMin" title="Minimize the party sidebar (drag the edge tab to bring it back)" aria-label="Minimize party sidebar" aria-controls="heroCol">»</button></div>
     <div id="heroPick" class="hero-pick" role="tablist" aria-label="Party member"></div>
-    <div class="card party-side" data-fold="closed" data-fold-key="party-list">
+    <!-- Party, Conditions and Characters live in the right sidebar (Mike, Nov 15 and 16), folded by default. -->
+    <div class="card party-side hero-card" data-fold="closed" data-fold-key="party-list">
       <h3>Party <button class="btn small danger" data-act="reset" title="Clears log, enemies, heals party">Reset session</button></h3>
       <div id="party" class="list"></div>
     </div>
-    <div class="card party-side" data-fold="closed" data-fold-key="party-conds">
+    <div class="card party-side hero-card" data-fold="closed" data-fold-key="party-conds">
       <h3>Conditions <span class="note">on players and creatures in the encounter</span></h3>
       <select id="condWho"></select>
       <div id="condBtns" class="dm-conds"></div>
@@ -567,7 +568,7 @@
       <div class="row"><input id="concSpell" class="grow" maxlength="60" placeholder="Spell, e.g. Hold Person" aria-label="Spell"><button class="btn small" data-conc="start">Concentrate</button><button class="btn small" data-conc="drop">Drop</button></div>
       <div id="timerList" class="list"></div>
     </div>
-    <div class="card party-side" data-fold="closed" data-fold-key="party-chars">
+    <div class="card party-side hero-card" data-fold="closed" data-fold-key="party-chars">
       <h3>Characters <button class="btn small" id="charNew">+ New</button></h3>
       <div id="chars" class="chars"></div>
     </div>
