@@ -35,10 +35,10 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 
 ### PR D: DM tools column layout
 `public/dm.html`, `public/style.css`, `public/chronicle.css`, `public/js/dm/dock.js`, `public/js/dm/modes.js`
-- [ ] 6. Battle map, Creature randomizer and Creatures cards start minimized.
-- [ ] 8. Buttons are centred in their card where it fits.
-- [ ] (Nov 15, second list) The Road cards tab moves into Miscellaneous (as a Misc part). Planning keeps Shops.
-- [ ] (Nov 15, second list) The DM's Party tab moves to a right-hand sidebar.
+- [x] 6. Battle map, Creature randomizer and Creatures cards start minimized.
+- [x] 8. Buttons are centred in their card where it fits.
+- [x] (Nov 15, second list) The Road cards tab moves into Miscellaneous (as a Misc part). Planning keeps Shops.
+- [x] (Nov 15, second list) The DM's Party tab moves to a right-hand sidebar.
 - Pairs with the combat screen thread's item 7 (all modes and tabs in one column). Build after that lands so the two layout passes do not conflict. The one-column rules are at the end of `public/theme.css`, under "Combat screen feedback (Nov 16)" (PR #72).
 
 ### PR E: Shop pop-up, "Greer's Trinkets"

@@ -985,7 +985,7 @@ body[data-role] #wmPage { display: none !important; }
 .card[data-fold] > h3 { cursor: pointer; user-select: none; }
 .card[data-fold] > h3::after { content: '▾'; float: right; opacity: .6; transition: transform .2s; }
 .card[data-fold].folded > h3::after { transform: rotate(-90deg); }
-.card[data-fold].folded > :not(h3) { display: none !important; }
+.card[data-fold].folded > :not(:first-child) { display: none !important; }
 .card[data-fold].folded > h3 { margin-bottom: 0; }
 /* Effects and weather draw over the 3D combat map (Mike, Nov 15). The backdrop shows behind the map. */
 .stage > .fx, .stage > .wx { z-index: 3; }
@@ -1015,3 +1015,12 @@ body:not(.tv) .prep-tv { inset: auto auto 1cqw 50%; transform: translateX(-50%);
 body:not(.tv) .prep-tv .prep-box h1 { font-size: 14px; display: inline; text-shadow: none; }
 body:not(.tv) .prep-tv .prep-box p { display: inline; font-size: 12px; margin-left: .6em; letter-spacing: .2em; }
 body:not(.tv) .prep-tv.lift { display: none; }
+
+/* DM column layout (Nov 15): a row of buttons alone in a card is centred, and so is a lone button. */
+body.dm .card > .row:not(:has(input, select, textarea, .grow, .note, label, .chip)) { justify-content: center; }
+body.dm .card > .btn, body.dm .card > button { display: block; margin-inline: auto; }
+/* Party, Conditions and Characters in the right sidebar. */
+.dm-hero .hero-card { margin: 0; }
+.dm-hero .hero-card #party .item { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.dm-hero .hero-card #party .item > .row { flex-wrap: nowrap; justify-content: space-between; gap: 4px; }
+.dm-hero .hero-card #party .item > .row .btn { flex: 1; padding-inline: 0; min-width: 0; }
