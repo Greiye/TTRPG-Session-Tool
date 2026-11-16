@@ -1,6 +1,6 @@
 // DM controls for TV moments (src/moments.js): transitions, dramatic pause, chapter and entrance cards,
 // quote wall, choice echoes (a Planning Mode tab), relics and the journal book. The TV shows them. The story clock has its own card
-// under Scene > Clocks. The epilogue controls moved to archive/ (Mike, Nov 14: too close to other features).
+// under Scene > Clocks. The epilogue controls were taken off the DM page (Mike, Nov 14) and their archived copy removed (Nov 16).
 import { $, emit, onState, mount } from '../client.js';
 
 const { esc } = Stage;

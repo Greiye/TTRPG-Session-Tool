@@ -112,7 +112,7 @@ Uploads (max 60 MB each) live in `uploads/` and persist across restarts.
 DM page → Social → **Live voice**:
 - **Record** captures the mic with `MediaRecorder`; each clip is listed with playback plus audio/transcript download.
 - Live transcription uses the browser Web Speech API (Chrome/Edge). Interim text streams to the TV as a caption; "Auto-speak" turns each finished sentence into an NPC line.
-- Swap `startRecognition()` in `public/voice.js` for a real STT service (Whisper, Deepgram, etc.) later.
+- Swap `startRecognition()` in `public/stt.js` (DM live voice panel) for a real STT service (Whisper, Deepgram, etc.) later.
 - Mic access requires a secure context, so open the DM page as `http://localhost`, not the LAN IP.
 
 ## Rules systems
@@ -160,7 +160,7 @@ npm run test:ui   # browser tests (Playwright): DM, TV and phone pages, settings
 Layout:
 
 - `server.js`: wiring only. `src/`: `config`, `net` (LAN IPs), `tls` (HTTPS cert), `state` (live state + broadcast), `store` (saving), `visibility` (who sees what), `session` (room code, seats), `roster` (characters), `game` (combat flow), `dice`, `rules/` (5e, Daggerheart), `assets` + `media` (uploads), `entities` + `bundle` (Arthuria), `routes`, `sockets/` (player, dm, atmo), `iso` + `grid` + `vision` (battle map geometry).
-- `public/`: `stage.js` (TV renderer, shared), `anim.js`, `settings.js`, `atmo.js`, `audio.js`, `voice.js`; `js/client.js` (the one socket); `js/iso3d.js` (3D battle map adapter); `iso/iso-battle.js` (built view bundle); `js/dm/*` and `js/play/*` feature modules.
+- `public/`: `stage.js` (TV renderer, shared), `anim.js`, `settings.js`, `atmo.js`, `audio.js`, `stt.js` (speech engines and the DM live voice panel); `js/client.js` (the one socket); `js/iso3d.js` (3D battle map adapter); `iso/iso-battle.js` (built view bundle); `js/dm/*` and `js/play/*` feature modules.
 - `schema/`: JSON Schemas for the Arthuria bundle. `docs/decisions.md`: Phase 0 choices.
 
 

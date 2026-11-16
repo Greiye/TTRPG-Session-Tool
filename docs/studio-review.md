@@ -16,8 +16,8 @@ quick changes merged. The game log is capped at 80 lines in the live state, so u
 | --- | --- | --- | --- |
 | High | Can stop or spoil a game night, or blocks Mike's own rules | 6 | 4 |
 | Medium | Friction the table will notice, or a risk worth closing soon | 18 | 4 |
-| Low | Polish or nice to have | 16 | 1 |
-| **Total** | | **40** | **9** |
+| Low | Polish or nice to have | 16 | 2 |
+| **Total** | | **40** | **10** |
 
 What is already strong, and should be kept as it is: one shared state with per-viewer filtering
 (`src/visibility.js`), guarded socket handlers, debounced atomic saves that retry, startup backups, save
@@ -135,16 +135,16 @@ Legend: ✅ fixed in this review · 📋 already in `docs/backlog.md` · 🆕 ne
 | R1 | Medium | 🆕 `package.json` is still 1.1.0 while the Changelog's Unreleased section holds weeks of features. A zip made for game night has no version to talk about. | Cut **1.2.0** in the Changelog before the next game night and rebuild the zip from that tag. |
 | R2 | Medium | ✅ The README covers running and features, but not the game-night routine. | Added a **Game night routine** section: `npm run doctor`, `npm start`, TV on `/screen`, sound, QR, save point at the end. |
 | R3 | Low | 🆕 The package is named `tavern-screen` and the repo `TTRPG-Session-Tool`. | Rename in `package.json` when convenient. |
-| R4 | Low | `docs/termux.md` stays although Termux is off the table for now (Mike, Nov 13). | Leave it; see "Removals to ask about". |
+| R4 | Low | ✅ `docs/termux.md` stayed although Termux is off the table (Mike, Nov 13). | Removed on Mike's decision, Nov 16. |
 
-## Removals to ask about (nothing removed)
+## Removals (decided by Mike, Nov 16)
 
-Nothing was removed or replaced in this review. These are candidates only, for Mike to decide:
+Nothing was removed in the review itself. Mike then decided:
 
-1. **`archive/public/js/dm/` modules** (session plans, intro card): kept on purpose so they can come back. Keep unless Mike wants a leaner repo.
-2. **`docs/termux.md`**: Termux is off for now. Keep or delete.
-3. **Old copies in the project files** (`dnd-party/`, `dnd-party-history.bundle`, `Mikey-DM-tool-655476b.zip`): the pre-GitHub source from Nov 12. GitHub has the full history now, so they can go; keep `Mikey-DM-tool.zip` (the current build).
-4. **`public/voice.js` and `public/stt.js`**: both load on the DM page. `voice.js` was the original speech placeholder and `stt.js` the real speech engine. If `voice.js` only wraps `stt.js` now, it could merge into it. Needs a closer look before any change.
+1. **`archive/` DM modules** (session plans, intro card, epilogue): removed. Their server side (`src/plan.js` and the rest) is untouched.
+2. **`docs/termux.md`**: removed.
+3. **Old pre-GitHub copies in the project files** (`dnd-party/` source, `dnd-party-history.bundle`, `Mikey-DM-tool-655476b.zip`): removed, keeping every screenshot (`dnd-party/screenshots/` and all `screenshots-*` folders) for Mike's art portfolio.
+4. **`public/voice.js`**: merged into `public/stt.js` (the speech engines and the DM live voice panel now live in one file).
 
 ## What was built in this review
 
