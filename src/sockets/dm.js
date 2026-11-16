@@ -53,6 +53,8 @@ module.exports = function dmSockets(socket) {
 
   dm('dm:mode', ({ mode, npcId }) => {
     if (!['exploration', 'combat', 'social'].includes(mode)) return;
+    // Pressing the mode you are already in does nothing (no log line, no re-entry), except picking who speaks.
+    if (mode === state.mode) { if (mode === 'social' && npcId) cast.pick(state.social, npcId); return; }
     state.mode = mode;
     world.applyMood(mode);
     if (mode !== 'exploration') state.worldMap.onTv = false; // the world map belongs to exploration: combat and social take the TV
@@ -60,7 +62,10 @@ module.exports = function dmSockets(socket) {
     // the field. It lifts when the DM's 3-second initiative hold rolls initiative (dm:combat:start).
     state.combatPrep = mode === 'combat' && !state.combat.active ? { holding: false } : null;
     state.check = null;
-    log('system', `— ${mode.toUpperCase()} —`);
+    // Quick switching keeps one mode line: a mode line still at the end of the log is replaced, not stacked.
+    const last = state.log[state.log.length - 1];
+    if (last?.modeLine) state.log.pop();
+    log('system', `— ${mode.toUpperCase()} —`, { modeLine: true });
     void bulbs.sync(state);
     if (mode === 'social') {
       // Entering social mode: the DM may pick who speaks; phones pop up once per entry (social.entered).
@@ -155,7 +160,7 @@ module.exports = function dmSockets(socket) {
   // ----- Phase 7: world and content -----
   dm('dm:relation', ({ npc, charId, stance }) => world.relate(npc, charId, stance));
   dm('dm:phrase', (f) => { const p = world.phrase(f); if (p) state.handouts.push(p); });
-  dm('dm:phrase:reveal', ({ id, on }) => { const p = state.handouts.find((h) => h.id === id && h.kind === 'phrase'); if (p) p.revealed = !!on; });
+  dm('dm:phrase:reveal', ({ id, on }) => { const p = state.handouts.find((h) => h.id === id && h.kind === 'phrase'); if (p) { p.revealed = !!on; if (on) p.read = {}; } }); // a reveal pops the phrase up again, now readable
   dm('dm:mood', ({ mode, track }) => { if (['exploration', 'combat', 'social'].includes(mode)) world.setMood(mode, track); });
   dm('dm:light', ({ light }) => { world.setLight(light); void bulbs.sync(state); });
   dm('dm:template', ({ key }) => { world.applyTemplate(key); void bulbs.sync(state); });
