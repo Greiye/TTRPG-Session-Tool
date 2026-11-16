@@ -11,9 +11,45 @@ const VERSION = 1;
 // Later features register their own durable state keys here (clocks, map, handouts...).
 const EXTRA = [];
 
+// On Windows a sync tool, antivirus or an open editor can hold the file for a moment, so the rename
+// fails with EPERM/EBUSY. Retry a few times before giving up.
+const BUSY = ['EPERM', 'EBUSY', 'EACCES'];
+const pause = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 function writeJson(file, data) {
   fs.writeFileSync(file + '.tmp', JSON.stringify(data, null, 2));
-  fs.renameSync(file + '.tmp', file);
+  for (let i = 0; ; i++) {
+    try { return fs.renameSync(file + '.tmp', file); } catch (e) {
+      if (i >= 4 || !BUSY.includes(e.code)) throw e;
+      pause(25 * (i + 1));
+    }
+  }
+}
+
+// A debounced save that never takes the server down: a failed write is logged and tried again
+// shortly, so a locked or full disk loses nothing once it clears. flush() writes now (shutdown).
+function saver(file, getData, ms = 300) {
+  let timer = null;
+  let warned = false;
+  const write = (retry) => {
+    clearTimeout(timer);
+    timer = null;
+    try {
+      writeJson(file, getData());
+      if (warned) console.warn(`  Saved ${path.basename(file)} again.`);
+      warned = false;
+      return true;
+    } catch (e) {
+      if (!warned) console.warn(`  Could not save ${path.basename(file)} (${e.code || e.message}); trying again.`);
+      warned = true;
+      if (retry) timer = setTimeout(() => write(true), 2000);
+      return false;
+    }
+  };
+  return {
+    schedule() { clearTimeout(timer); timer = setTimeout(() => write(true), ms); },
+    flush: () => write(false),
+    pending: () => !!timer,
+  };
 }
 function readJson(file) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) {
@@ -93,14 +129,9 @@ function load() {
   return saved;
 }
 
-let timer = null;
-function scheduleSave(getSnapshot) {
-  clearTimeout(timer);
-  timer = setTimeout(() => writeJson(FILE, getSnapshot()), 300);
-}
-function flush(getSnapshot) {
-  clearTimeout(timer);
-  writeJson(FILE, getSnapshot());
-}
+let latest = null;
+const campaign = saver(FILE, () => latest());
+function scheduleSave(getSnapshot) { latest = getSnapshot; campaign.schedule(); }
+function flush(getSnapshot) { latest = getSnapshot; return campaign.flush(); }
 
-module.exports = { EXTRA, FILE, VERSION, snapshot, restore, load, scheduleSave, flush, writeJson, readJson };
+module.exports = { EXTRA, FILE, VERSION, snapshot, restore, load, scheduleSave, flush, writeJson, readJson, saver };

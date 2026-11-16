@@ -210,7 +210,14 @@ function broadcast() {
   });
 }
 // Save immediately on shutdown so the last change is never lost.
-for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => { store.flush(snap); saveRoster.flush?.(); legends.flush(); require('./entities').flush(); library.flushAll(); process.exit(0); });
+// Each file is saved on its own, so one failed write never skips the rest. SIGHUP is what Windows sends
+// when the console window is closed with the X button.
+function flushAll() {
+  for (const f of [() => store.flush(snap), () => saveRoster.flush?.(), () => legends.flush(), () => require('./entities').flush(), () => library.flushAll()]) {
+    try { f(); } catch (e) { console.warn(`  Save on exit failed: ${e.message}`); }
+  }
+}
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK']) process.once(sig, () => { flushAll(); process.exit(0); });
 
 module.exports = { state, log, nextId, fullState, stateFor, broadcast, EMOTIONS, EFFECTS };
 
