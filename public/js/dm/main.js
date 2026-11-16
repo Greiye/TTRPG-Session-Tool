@@ -25,6 +25,7 @@ import './factions.js';
 import './living.js';
 import './map.js';
 import './worldmap.js';
+import './dgwindow.js'; // the dungeon editing tab under the world map (PR R)
 import './weather.js';
 import './gamepad.js';
 import './suggestions.js';

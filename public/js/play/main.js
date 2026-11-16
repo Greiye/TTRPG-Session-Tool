@@ -20,6 +20,7 @@ import './camp.js';
 import './inspiration.js';
 import './control.js';
 import './socialpop.js';
+import './dungeon.js';
 import './popups.js';
 import './table.js';
 import './spotlight.js';
