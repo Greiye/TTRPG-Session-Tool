@@ -61,5 +61,5 @@ Today: phones in social mode can pick an expression (`player:expression`, `cast.
 - [ ] **No** closes the pop-up for that phone (the phone keeps its normal Social view).
 - [ ] **Yes** keeps the pop-up open and turns it into a speech box: a text box at the top for what the character says, then a directional pad under it for the character's emotion: the 8 `EMOTIONS` around a 3x3 pad, Send in the centre.
 - [ ] Sending: the character's emotion changes on the TV only when the line is sent, together with the speech.
-- [ ] Speech log line: `[Character name] looks to be [emotion]. [He/She/They] says "[text]"`. Needs a pronoun field on the character (none today): add it to the character profile, default "They".
+- [ ] Speech log line: `[Character name] looks to be [emotion]. He says / She says / They say "[text]"`. Needs a pronoun field on the character (none today): add it to the character profile, default "They".
 - [ ] The pop-up closes for everyone when the DM leaves Social mode.
