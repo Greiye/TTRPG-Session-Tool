@@ -13,6 +13,7 @@ import './inventory.js';
 import './shops.js';
 import './downtime.js';
 import './journal.js';
+import './lore.js';
 import './logs.js';
 import './world.js';
 import './legends.js';

@@ -121,6 +121,7 @@ function viewState(base, viewer) {
   if (base.worldMap) out.worldMap = require('./worldmap').viewFor(base.worldMap, viewer, base.players.length); // Phase G: see src/worldmap.js
   // Party journal: phones and the DM only (src/journal.js).
   out.journal = ['dm', 'player'].includes(viewer.role) ? base.journal || [] : null;
+  out.lore = require('./lore').viewFor(base.lore, viewer); // Lore tab: DM sees all, phones shared entries without DM notes
   // Phase D: a line in a tongue reads as glyphs unless the viewer knows it or the DM glossed it (src/speech.js).
   if (base.social) out.social = { ...base.social, line: require('./speech').lineFor(base.social.line, viewer, base) };
   out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own
