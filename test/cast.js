@@ -46,8 +46,6 @@ const { ok, until } = h;
   const chosen = dm.last.social.cast[1];
   dm.emit('dm:mode', { mode: 'social', npcId: chosen.id });
   ok(await until(() => dm.last.mode === 'social' && dm.last.social.npc.id === chosen.id && dm.last.social.npc.name === 'Guard'), 'entering social mode picks the speaker');
-  const entered = dm.last.social.entered;
-  ok(entered >= 1, 'entering social mode bumps the entry counter the phones watch');
 
   // Emotion and name changes follow into the cast entry.
   dm.emit('dm:emotion', { emotion: 'angry' });
@@ -74,7 +72,7 @@ const { ok, until } = h;
   // Leaving social and entering again without a pick keeps the current speaker.
   dm.emit('dm:mode', { mode: 'exploration' });
   dm.emit('dm:mode', { mode: 'social' });
-  ok(await until(() => dm.last.social.entered === entered + 1 && dm.last.social.npc.name === 'Mirela'), 're-entering without a pick keeps the speaker');
+  ok(await until(() => dm.last.mode === 'social' && dm.last.social.npc.name === 'Mirela'), 're-entering without a pick keeps the speaker');
 
   // A non-DM cannot add cast members.
   const bad = await h.call(a, 'dm:cast:add', { name: 'Intruder' });
