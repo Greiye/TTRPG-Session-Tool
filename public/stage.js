@@ -300,7 +300,7 @@
 
   // Shop pop-up on the TV: the shop, its wares, and how many are still shopping.
   const gp = (n) => Number(n || 0).toFixed(2).replace(/\.?0+$/, '');
-  // Greer's-style pop-up (Mike, Nov 15): the shop's banner centred on top, then up to 60 wares as buttons in
+  // Greer's-style pop-up (Mike, Nov 15): the shop's title, the merchant banner under it (TV only, Nov 16), then up to 60 wares as buttons in
   // 3 columns (rows grow as needed and shrink to fit the TV): name, description, price.
   function shopTv(s) {
     const pop = s.shopPop;
@@ -310,7 +310,7 @@
     const items = shown.map((i) => `<li class="shop-ware ${i.stock === 0 ? 'out' : ''}"><b>${esc(i.name)}</b>${i.note ? `<span>${esc(i.note)}</span>` : ''}<em>${gp(i.price)} gp${i.stock === null ? '' : i.stock ? ` · ${i.stock} left` : ' · sold out'}</em></li>`).join('');
     const left = pop.shopping;
     return `<div class="shop-tv" data-n="${pop.n}"><div class="shop-box" style="--rows:${Math.max(1, Math.ceil(shown.length / 3))}">
-      ${shop.banner ? `<img class="shop-banner" src="${esc(shop.banner)}" alt="">` : `<h2>🛒 ${esc(shop.name)}</h2>`}
+      <h2>🛒 ${esc(shop.name)}</h2>${shop.banner ? `<img class="shop-banner" src="${esc(shop.banner)}" alt="${esc(shop.npc || '')}">` : ''}
       <ul class="shop-grid">${items || '<li class="shop-ware"><b>Nothing for sale.</b></li>'}</ul>
       <p class="shop-left">${left ? `<b>${left}</b> still shopping` : 'Open for business'}</p>
     </div></div>`;

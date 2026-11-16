@@ -139,12 +139,12 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR N: Shops and items
 `src/shops.js`, `public/js/dm/shops.js`, `public/js/play/shops.js`, `public/js/play/inventory.js`, `public/stage.js`, `src/sockets/dm.js`, `src/sockets/player.js`, `public/dm.html`
-- [ ] In NPC's Tab, shop pop up shouldn't be there. Have a separate tab for shops. [DM Screen, Misc > NPCs]
-- [ ] On player phone, remove item description from item button. Players must press/hold the item button to get another pop up. This pop up will show the item description. Player can buy the item from the description window.
-- [ ] Merchant Image only shows underneath the shop title on the TV Screen. It does not show on the player phone screen.
-- [ ] On player phone screen, Gold is just a symbol and number. Players can't add items, the DM does that.
-- [ ] Add an Items Tab for the DM. [DM Screen]
-- [ ] DM can pop up shops right from planning mode. [DM Screen, Planning mode]
+- [x] In NPC's Tab, shop pop up shouldn't be there. Have a separate tab for shops. [DM Screen, Misc > NPCs]
+- [x] On player phone, remove item description from item button. Players must press/hold the item button to get another pop up. This pop up will show the item description. Player can buy the item from the description window.
+- [x] Merchant Image only shows underneath the shop title on the TV Screen. It does not show on the player phone screen.
+- [x] On player phone screen, Gold is just a symbol and number. Players can't add items, the DM does that.
+- [x] Add an Items Tab for the DM. [DM Screen]
+- [x] DM can pop up shops right from planning mode. [DM Screen, Planning mode]
 
 ## Mike's notes, 2026-11-16 (third list, grouped into PRs by the code they touch)
 

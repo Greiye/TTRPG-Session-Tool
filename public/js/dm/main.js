@@ -20,6 +20,7 @@ import './web.js';
 import './tracker.js';
 import './world.js';
 import './shops.js';
+import './items.js';
 import './downtime.js';
 import './factions.js';
 import './living.js';
