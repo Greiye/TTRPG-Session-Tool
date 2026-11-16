@@ -2,12 +2,13 @@
 // (the sidebar tab list has its own labels, see modes.js). Pieces are drawn by public/chronicle.js.
 import { $, onState, state } from '../client.js';
 import { lookOf } from '../iso3d.js';
+import { badges } from './conds.js';
 
 let pick = null; // character id shown in the hero column
 let sel = null; // unit the DM clicked on the 3D battle map: the hero column shows its stats (Mike, Nov 16)
 let selShown = null; // last unit drawn, so a new selection animates in
-let view = 'stats';
-try { view = localStorage.getItem('dmHeroView') || 'stats'; } catch { /* private mode */ }
+// The hero opens on Bio (Mike, Nov 16). Stats is one tap away and stays picked until the page reloads.
+let view = 'bio';
 
 
 const esc = (t) => Stage.esc(String(t ?? ''));
@@ -70,11 +71,14 @@ function renderHero(S) {
   if (foe) {
     $('#heroPick').innerHTML = '';
     $('#hero').innerHTML = selHead() + creaturePanel(foe, S);
+    $('#hero .hero-art')?.insertAdjacentHTML('beforeend', badges(foe, S));
   } else {
     if (!party.some((p) => p.id === pick)) pick = party[0]?.id || null;
     const pc = sel ? party.find((p) => p.id === sel) : null;
-    $('#heroPick').innerHTML = party.length > 1 ? party.map((p) => `<button role="tab" class="${p.id === pick ? 'on' : ''}" aria-selected="${p.id === pick}" data-hero-pick="${p.id}" title="${Stage.esc(p.name)}" style="--hue:${p.hue ?? 40}">${Stage.avatar(p, 'av-pick')}</button>`).join('') : '';
-    $('#hero').innerHTML = (pc ? selHead(pc.name) + combatFacts(pc, S) : '') + Chronicle.hero(party.find((p) => p.id === pick), S, { view });
+    $('#heroPick').innerHTML = party.length > 1 ? party.map((p) => `<button role="tab" class="${p.id === pick ? 'on' : ''}" aria-selected="${p.id === pick}" data-hero-pick="${p.id}" title="${Stage.esc(p.name)}" style="--hue:${p.hue ?? 40}">${Stage.avatar(p, 'av-pick')}${p.conditions?.length ? `<i class="pick-cond" title="${Stage.esc(p.conditions.join(', '))}">${p.conditions.length}</i>` : ''}</button>`).join('') : '';
+    const shown = party.find((p) => p.id === pick);
+    $('#hero').innerHTML = (pc ? selHead(pc.name) + combatFacts(pc, S) : '') + Chronicle.hero(shown, S, { view });
+    $('#hero .hero-art')?.insertAdjacentHTML('beforeend', badges(shown, S));
   }
   // A new selection slides in.
   const now = sel || null;
@@ -94,7 +98,7 @@ document.querySelector('.dm-hero').addEventListener('click', (e) => {
   if (!b) return;
   if (b.hasAttribute('data-sel-clear')) { sel = null; window.IsoDm?.battle?.select(null); }
   else if (b.dataset.heroPick) { pick = b.dataset.heroPick; sel = null; }
-  else if (b.dataset.heroView) { view = b.dataset.heroView; try { localStorage.setItem('dmHeroView', view); } catch { /* private mode */ } }
+  else if (b.dataset.heroView) view = b.dataset.heroView;
   else if (b.dataset.heroEdit) { document.querySelector(`[data-edit="${CSS.escape(b.dataset.heroEdit)}"]`)?.click(); return; }
   else return;
   renderHero(state());

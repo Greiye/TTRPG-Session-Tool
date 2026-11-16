@@ -243,3 +243,14 @@ System-agnostic like the eighth list: Mike's own system fuses Daggerheart, 5e an
 - [ ] Loot generator with DM approval: roll loot from a table, and the DM approves or edits it before players see it. [DM Screen, then phones and TV; the weighted oracle tables in `src/living.js` (roll, then accept or override) and the item library and shops in `public/js/dm/items.js` and `public/js/dm/shops.js` already exist. Dungeon treasure nodes in `src/dungeon.js` are the first place to hook it. Loot tables are plain lists, so any system's items fit]
 - [ ] Random encounter table per scene: roll an encounter when the party travels or rests, and the DM accepts or rerolls it. [DM Screen; travel legs in `src/worldmap.js`, camp in `src/camp.js`, the creature library and seeded randomizer (`src/creatures.js`, `src/randomizer.js`) and `encounterFactor` in `src/living.js` (more often at dusk and night, less in storms) already exist. This adds a table per scene or map node and a pending roll the DM accepts, rerolls or dismisses before anyone sees it]
 - [ ] Character creator: a very basic one with heavy DM override. Players pick a name, portrait, ancestry, class or role and a few stats on the phone, and the DM can edit, approve or replace any field before the character joins the table. [Phones at join, DM Screen; the phone join flow already has a new character form (`public/js/play/join.js`, `src/session.js`), and the DM edit dialog in `public/js/dm/characters.js` already edits every field. This adds a short guided creator with system-agnostic fields (stats, ancestries and classes come from the active rules or a homebrew list), a pending state the DM approves, and DM lock on any field so players cannot change it later]
+
+## Mike's notes, 2026-11-16 (Party sidebar follow-up)
+
+Built in the DM tabs thread right after PR H and S.
+
+### PR S2: Party sidebar conditions and hero
+`public/dm.html`, `public/js/dm/conds.js`, `public/js/dm/chronicle.js`, `public/js/dm/menus.js`, `public/js/dm/tracker.js`, `public/theme.css`
+- [x] Remove reset session button. [DM Screen, Party card in the right sidebar]
+- [x] Conditions appear as a clickable small button on the bottom right of an NPC's portrait. I can edit this with a right click menu. [DM Screen, hero portrait in the right sidebar, for party members and creatures picked on the 3D map]
+- [x] No need to have a conditions window. [DM Screen, right sidebar]
+- [x] Character sidebar shows bio first by default, not stats. [DM Screen, hero in the right sidebar]

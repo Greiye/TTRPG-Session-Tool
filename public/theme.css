@@ -668,3 +668,18 @@ body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / 
 .convo-wheel .wheel-send.drop { transform: translate(-50%, -50%) scale(1.12); }
 body.chron .convo-wheel .wheel-send, .convo-wheel .wheel-send { border: 0; border-image: none; box-shadow: 0 0 0 2px #1a1612, 0 0 0 4px #9b9183, 0 0 0 9px var(--panel, #e8d6ae), 0 4px 12px rgb(0 0 0 / .45); display: flex; align-items: center; justify-content: center; gap: 6px; }
 .convo-wheel .wheel-send.drop { box-shadow: 0 0 0 2px #1a1612, 0 0 0 4px #f2c96e, 0 0 24px 8px rgb(240 190 90 / .85); }
+
+/* Conditions on the hero portrait (Mike, Nov 16): small round buttons on the bottom right. Click or right-click
+   one to edit. A new badge pops in. The party picker shows how many conditions each member has. */
+.dm-hero .hero-art { position: relative; }
+.cond-badges { position: absolute; right: 6px; bottom: 6px; display: flex; flex-wrap: wrap-reverse; justify-content: flex-end; gap: 4px; max-width: 70%; z-index: 2; }
+.cond-badge { width: 28px; height: 28px; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid #e6b65a; background: radial-gradient(circle at 35% 30%, #4a3420, #1a120b); color: #ffe2a0; font: 600 14px/1 var(--sans, system-ui); box-shadow: 0 2px 6px rgb(0 0 0 / .6); cursor: pointer; transition: transform .12s, box-shadow .15s; }
+.cond-badge:hover, .cond-badge:focus-visible { transform: scale(1.15); box-shadow: 0 0 0 2px #f2c96e, 0 0 10px rgb(240 190 90 / .6); outline: none; }
+.cond-badge.more { font-size: 11px; }
+.cond-badge.add { opacity: .35; border-style: dashed; font-size: 16px; }
+.dm-hero .hero-art:hover .cond-badge.add, .cond-badge.add:focus-visible { opacity: .9; }
+.cond-badge.new { animation: cond-pop .45s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes cond-pop { from { transform: scale(0); opacity: 0; } }
+.hero-pick button { position: relative; }
+.pick-cond { position: absolute; right: -2px; bottom: -2px; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 8px; background: #b3241b; color: #fff; font: 700 10px/15px var(--sans, system-ui); font-style: normal; text-align: center; box-shadow: 0 1px 3px rgb(0 0 0 / .6); }
+@media (prefers-reduced-motion: reduce) { .cond-badge.new { animation: none; } }

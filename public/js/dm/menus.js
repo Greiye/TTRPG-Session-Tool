@@ -4,6 +4,7 @@
 // public/js/ctxmenu.js. Shift + right-click still opens the browser's menu.
 import { $, emit, call, onState, state } from '../client.js';
 import { contextMenus, refreshMenu } from '../ctxmenu.js';
+import { condMenu } from './conds.js';
 
 const CONDS = ['Prone', 'Poisoned', 'Frightened', 'Restrained', 'Grappled', 'Invisible', 'Stunned', 'Unconscious'];
 const q = (sel) => document.querySelector(sel);
@@ -256,6 +257,9 @@ function genericMenu(target) {
 }
 
 contextMenus(document, [
+  // Conditions on a portrait: the badge row and the hero portrait open the conditions menu (Mike, Nov 16).
+  { sel: '.cond-badges', build: (el) => condMenu(el.dataset.condUnit) },
+  { sel: '.dm-hero .hero-art', build: (el) => { const id = el.querySelector('.cond-badges')?.dataset.condUnit; return id ? condMenu(id) : null; } },
   { sel: '#wmBoard [data-node]', build: (el) => nodeMenu(el.dataset.node) },
   { sel: '#wmBoard [data-road]', build: (el) => roadMenu(el.dataset.road) },
   { sel: '[data-fog]', build: (el) => poiMenu(el.dataset.fog) },
