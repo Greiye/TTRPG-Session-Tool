@@ -183,8 +183,13 @@
     const key = `${line.speaker}|${line.text}`;
     const text = typewrite('vn', key, line.text);
     const pc = line.player && s.players.find((p) => p.id === line.pid);
-    const left = s.players.slice(0, MAX_PARTY).map((p) => `
-      <div class="vn-pc-l hold-zoom ${line.pid === p.id ? 'speaking' : ''}" style="${accent(p)}">${avatar(p, 'av-vn')}<small>${esc(p.name)}</small></div>`).join('');
+    // Party in a row, overlapping. The player who spoke last stands in front and is not greyed out.
+    if (line.player && line.pid) vnRecent = [line.pid, ...vnRecent.filter((id) => id !== line.pid)];
+    const party = s.players.slice(0, MAX_PARTY);
+    const rank = (p) => { const i = vnRecent.indexOf(p.id); return i < 0 ? 99 : i; };
+    const front = party.length ? party.reduce((a, b) => (rank(b) < rank(a) ? b : a)) : null;
+    const left = party.map((p) => `
+      <div class="vn-pc-l hold-zoom ${line.pid === p.id ? 'speaking' : ''} ${front && rank(front) < 99 && p.id === front.id ? 'front' : ''}" style="${accent(p)};z-index:${100 - rank(p)}">${avatar(p, 'av-vn')}<small>${esc(p.name)}</small></div>`).join('');
     // Without a cast the single speaker stands on the right, as before.
     // A speaker who is not on the cast (or no cast yet) stands at the far right, enlarged.
     const inCast = cast.some((m) => m.id === npc.id);
@@ -391,6 +396,26 @@
     return root.querySelector(':scope > .stage-ui');
   }
 
+  // Social scene: the cast stands on the top edge of the dialogue box (its height changes with choices and
+  // captions), and a new speaker rises out from behind the box. The rise survives re-renders through a
+  // negative animation delay, like the world map reveal.
+  const VN_RISE_MS = 650;
+  let vnRecent = []; // player ids, most recent speaker first (this screen only)
+  function vnAttach(root, s) {
+    const vn = root.querySelector('.vn');
+    const box = vn?.querySelector('.vn-box');
+    if (!box) { delete root.dataset.vnNpc; return; }
+    const fit = () => vn.style.setProperty('--vn-box-h', box.offsetHeight + 'px');
+    fit();
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(box);
+    const on = vn.querySelector('.vn-right .vn-cast-m.on');
+    const who = on ? (s.social.npc.id || s.social.npc.name || 'npc') : '';
+    if (who && root.dataset.vnNpc !== who) { root.dataset.vnNpc = who; root.dataset.vnRiseAt = Date.now(); }
+    if (!who) delete root.dataset.vnNpc;
+    const since = Date.now() - Number(root.dataset.vnRiseAt || 0);
+    if (on && since < VN_RISE_MS) { on.classList.add('rise'); on.style.animationDelay = `${-since}ms`; }
+  }
+
   function stage(root, s) {
     const prevEmo = root.querySelector('.vn-portrait')?.dataset.emo;
     root.className = `stage theme-${s.scene.theme} mode-${s.mode} layout-${s.stageLayout || 'auto'} ${s.backdrop?.image ? 'has-bd' : ''}`;
@@ -436,6 +461,7 @@
     root.dataset.webSeen = [...ui.querySelectorAll('.wb-node')].map((el) => el.dataset.id).join(',');
     const p = ui.querySelector('.vn-portrait');
     if (p && prevEmo && prevEmo !== s.social.npc.emotion) p.classList.add('changed');
+    vnAttach(root, s);
     Anim.hydrate(ui);
     if (s.mode === 'exploration' && s.dungeon?.on) window.Dungeon?.hydrate(ui, s.dungeon);
     // A handout the group shares to the TV unfolds once, when it first appears.
