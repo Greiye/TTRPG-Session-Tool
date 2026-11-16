@@ -213,6 +213,22 @@ module.exports = function playerSockets(socket) {
     if (p && cast.setExpression(state.social, p.id, emotion)) broadcast();
   });
 
+  // "Join the conversation?" pop-up (Nov 16): a line and the emotion it is said with. The character's
+  // emotion changes on the TV only now, together with the line.
+  socket.on('player:social:say', ({ text, emotion } = {}) => {
+    const p = me();
+    text = String(text || '').trim().slice(0, 200);
+    if (!p || !text || state.mode !== 'social' || !state.social.convo?.live || state.social.convo.ending) return;
+    if (!cast.EMOTIONS.includes(emotion)) emotion = 'neutral';
+    T.bump(p.id, 'talk');
+    cast.setExpression(state.social, p.id, emotion);
+    const c = roster[p.id];
+    if (c?.sprite) { c.sprite = { ...c.sprite, state: emotion }; p.sprite = c.sprite; }
+    state.social.line = { speaker: p.name, text, emotion, player: true, pid: p.id };
+    log('say', cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, text), { pid: p.id, emotion });
+    broadcast();
+  });
+
   socket.on('player:choice', ({ index } = {}) => {
     const p = me();
     const choice = state.social.choices[index];

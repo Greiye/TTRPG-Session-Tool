@@ -129,6 +129,7 @@ state.web ??= web.fresh();
 state.dungeon ??= dungeon.fresh();
 state.puzzle ??= null;
 cast.ensure(state.social);
+state.social.convo.ending = false; // the end timer does not survive a restart
 state.camp ??= camp.fresh();
 // The House rules section left the DM screen and phones (Mike, Nov 16), so no rule is enforced unseen: a save that
 // had one on loads with them all off. dm:houserule still works for a later UI.

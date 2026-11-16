@@ -5,6 +5,14 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Social mode flow** (Mike, Nov 16, backlog PR J):
+  - Entering Social mode opens a **Social window** on the DM page, under the TV preview and above the narration bar. It lists the NPCs (placeholders Albert, Brent and Christina): pick one or more, then press and hold **Start conversation** for 1 second. The TV shows "A conversation is about to begin…" until then.
+  - Once the conversation is live, the Social window holds every social control (NPC, cast, emotions, dialogue, live voice, player choices); they left Miscellaneous > NPCs. **End conversation** sits right under the TV preview: the TV shows "The conversation has concluded" in the centre, holds it for about a second, then everyone and the DM go back to Exploration (`dm:convo:start`, `dm:convo:end`, `state.social.pool`, `state.social.convo`). The Social Master can run both.
+  - The DM can still narrate during a conversation: the newest 3 narration lines since it started show in a small box at the top left of the social scene on the TV.
+  - Phones no longer show the visual novel during a conversation; they point players to the TV and keep roll prompts and pushed choices.
+- **"Join the Conversation?" pop-up** on phones when the DM starts a conversation, with a green **Yes** and a same-size **No**. No closes it (the phone's Social view can reopen it). Yes turns it into a speech box: text on top, then an **emotion wheel**: the 8 emotions are ring segments around a round **Send** button. Tap one to pick it, or hold it and drag it onto Send to say the line with that emotion. Two faint tips sit under the text box (use the phone's speech to text) and under the wheel (drag onto Send). The character's emotion changes on the TV only when the line is sent (`player:social:say`), shown as a badge on their portrait. The log reads `[Name] looks to be [emotion]. He says / She says / They say "[text]"`. The pop-up closes for everyone when the conversation ends.
+- **Pronoun** field (They, He, She; default They) on the phone profile and the DM's character editor.
+- Phone hero card (Mike, Nov 16): the 🏅 box shows **Inspiration points** instead of the level. A new phone setting, ⚙ > **HP display**, shows HP as a **Number** (28/28) or a **Description** (Fine above 75%, Injured above 50%, Badly hurt above 25%, Near death, Down). Spell slots and hit dice show as gems, one per slot or die, lit when available and black once used, with no bar.
 - **Right-click menus across the DM screen** (Mike, Nov 16), styled like the 3D battle map's unit menu and built from one shared component (`public/js/ctxmenu.js`, menus in `public/js/dm/menus.js`). The menu scales in from the pointer, the clicked thing glows briefly, numbers update live while it is open, and anything destructive needs a second click.
   - **Party members** (hero portraits, party list, TV preview party bar and tokens, combat cards, saved characters): HP −10 to +10, conditions, inspiration, show in the hero column, spotlight on the TV, drop concentration, edit, play or give back, remove from the table.
   - **Creatures**: attack it with the creature whose turn it is, HP, conditions, boss card, centre the 3D map on it, remove.
@@ -48,6 +56,8 @@ All notable changes to this project are recorded here. The format follows [Keep 
   - The **rules system** picker moved from the top bar to Miscellaneous > Rules system.
   - The **House rules** section is gone from the DM's Legends card and the phone's Legends. A save that had a rule on loads with them all off, so nothing is enforced unseen.
   - The DM's **Logs** tab and the phone's Misc > Logs have a **Show logs on this screen/phone** switch (the same setting as ⚙ Display settings > Show logs).
+- Phone: ✎ Profile, ⛶ Full screen and ☀ Keep screen on moved from the hero card to the bottom of the page.
+- Entering Social mode no longer asks the DM who speaks first, and no longer pops up on phones; both now happen when the DM starts the conversation.
 - **DM tools** on the 3D battle map are in two sections, **Unit actions** (select, teleport) and **Landscaping** (raise, lower, paint, obstacle); the section of the active tool is highlighted.
 - **End combat** clears the combat window for the next fight: creatures, tokens, the battle map, initiative and movement go (the party and the creature library stay), and the Battle map card unfolds. Because it clears so much, End is now a red hold-for-2-seconds button.
 - Camp and rests (Mike's Nov 16 list, PR M):

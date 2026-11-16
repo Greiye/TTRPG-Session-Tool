@@ -6,6 +6,13 @@ const MAX_CAST = 5;
 const MAX_PARTY = 3;
 const KINDS = ['npc', 'item'];
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
+// NPCs the DM can pull into a conversation (placeholders for now, Mike Nov 16).
+const POOL = [['albert', 'Albert', 28], ['brent', 'Brent', 205], ['christina', 'Christina', 320]];
+const freshPool = () => POOL.map(([id, name, hue]) => ({ id: `pool-${id}`, name, kind: 'npc', hue, icon: '', emotion: 'neutral', faction: null }));
+// How a phone line reads in the log: "Vex looks to be angry. She says "...""
+const SAYS = { he: 'He says', she: 'She says', they: 'They say' };
+const MOOD = { neutral: 'calm' };
+const PRONOUNS = Object.keys(SAYS);
 
 // Ensure older saves have the new fields.
 function ensure(social) {
@@ -13,6 +20,8 @@ function ensure(social) {
   social.expr ??= {};
   social.entered ??= 0;
   social.npc.id ??= null;
+  social.pool ??= freshPool();
+  social.convo ??= { live: false, ending: false, n: 0, from: 0 };
   return social;
 }
 
@@ -69,4 +78,35 @@ function setExpression(social, pid, emotion) {
   return true;
 }
 
-module.exports = { MAX_CAST, MAX_PARTY, ensure, add, remove, pick, mirror, setExpression };
+// Conversation flow (Mike, Nov 16): entering Social mode shows the DM the NPC list; holding Start
+// puts the chosen NPCs on the scene, and phones get "Join the conversation?" (social.entered).
+// `from` is the id counter at the start, so the TV's social narration box shows only this talk's lines.
+function start(social, ids, from) {
+  ensure(social);
+  const picked = [...new Set(Array.isArray(ids) ? ids : [])].map((id) => social.pool.find((p) => p.id === id)).filter(Boolean).slice(0, MAX_CAST);
+  if (!picked.length) return { error: 'Pick at least one NPC for the conversation.' };
+  social.cast = picked.map((p) => ({ ...p, emotion: 'neutral' }));
+  pick(social, picked[0].id);
+  social.expr = {};
+  social.choices = [];
+  social.line = { speaker: picked[0].name, text: '…', emotion: 'neutral' };
+  social.convo = { live: true, ending: false, n: (social.convo.n || 0) + 1, from };
+  social.entered += 1;
+  return { ok: true, names: picked.map((p) => p.name) };
+}
+// End: the TV holds "The conversation has concluded" before the table returns to exploration.
+function end(social) {
+  ensure(social);
+  if (!social.convo.live || social.convo.ending) return false;
+  social.convo.ending = true;
+  return true;
+}
+// Leaving social mode by any route closes the conversation; the next entry starts at the NPC list.
+function close(social) {
+  ensure(social);
+  social.convo = { ...social.convo, live: false, ending: false };
+}
+
+const sentence = (name, pronoun, emotion, text) => `${name} looks to be ${MOOD[emotion] || emotion}. ${SAYS[pronoun] || SAYS.they} "${text}"`;
+
+module.exports = { MAX_CAST, MAX_PARTY, EMOTIONS, PRONOUNS, ensure, add, remove, pick, mirror, setExpression, start, end, close, sentence };

@@ -30,7 +30,8 @@ let kindsKey = null;
 const inMode = (c) => !c.dataset.panel || c.dataset.panel.split(' ').includes(mode);
 // Battle and Social Masters (src/roles.js) see only their cards, in every mode, so they can prep ahead.
 // The Battle Master sees only the combat window, and only once the DM switches to combat (Mike, Nov 16).
-const MASTER_CARDS = { battle: (c) => c.dataset.tab === 'combat' && mode === 'combat', social: (c) => c.dataset.tab === 'misc' && c.dataset.sub === 'npc' };
+// The Social Master's controls live in the Social window on the main page (public/js/dm/social.js), not the tools column.
+const MASTER_CARDS = { battle: (c) => c.dataset.tab === 'combat' && mode === 'combat', social: () => false };
 // data-dm-only keeps a card from helpers even when it sits in their tab.
 const fits = (c) => { const m = MASTER_CARDS[masterRole()]; return m ? m(c) && !c.hasAttribute('data-dm-only') : inMode(c); };
 // A planning tab marked data-live (Shops) also shows during play.
@@ -159,17 +160,8 @@ $('#mapToggle')?.addEventListener('click', () => {
   document.dispatchEvent(new CustomEvent('dm:page', { detail: { map: mapPage } }));
 });
 
-// Entering social mode with a cast on the scene asks who speaks first (the DM picks an NPC or item).
-onClick('mode', (m) => {
-  const s = state();
-  $('#castPick').hidden = true;
-  if (m === 'social' && s?.mode !== 'social' && s?.social?.cast?.length) { $('#castPick').hidden = false; return; }
-  emit('dm:mode', { mode: m });
-});
-onClick('enter', (id) => {
-  $('#castPick').hidden = true;
-  emit('dm:mode', id === 'none' ? { mode: 'social' } : { mode: 'social', npcId: id });
-});
+// Entering social mode opens the Social window's NPC list (public/js/dm/social.js).
+onClick('mode', (m) => emit('dm:mode', { mode: m }));
 onClick('act', (act) => {
   if (act === 'reset' && confirm('Reset log, remove enemies and heal the party?')) emit('dm:reset');
   if (act === 'testparty') emit('dm:testparty');

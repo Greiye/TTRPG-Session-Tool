@@ -543,6 +543,82 @@ body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / 
 .log-toggle { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; font-weight: 600; }
 #tabLogs .log-toggle { padding: 4px 2px; }
 .dm-hero .party-side h3 .note { display: none; } /* the sidebar is narrow: titles only */
+/* ================= Social flow and phone hero (Mike, Nov 16) ================= */
+/* DM: the Social window sits under the TV preview, above the narration bar, in Social mode only. */
+.social-win { flex: 1 1 0; min-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 12px; }
+.social-win[hidden], .convo-live[hidden], .convo-pick[hidden] { display: none; }
+.convo-pick h3 { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.convo-pool { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin: 8px 0 10px; }
+.convo-npc { display: flex; align-items: center; gap: 8px; padding: 8px 10px; text-align: left; transition: transform .15s, box-shadow .2s, border-color .2s; }
+.convo-npc .convo-face { width: 36px; height: 36px; flex: none; border-radius: 50%; overflow: hidden; background: hsl(var(--hue) 30% 20%); filter: grayscale(.7); transition: filter .2s; }
+.convo-npc .convo-face svg { width: 100%; height: 100%; display: block; }
+.convo-npc.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset, 0 0 10px rgb(240 190 90 / .35); transform: translateY(-1px); }
+.convo-npc.on .convo-face { filter: none; }
+#convoStart { width: 100%; padding: 12px; font-size: calc(15px * var(--ts)); }
+#convoStart:disabled { opacity: .5; }
+.convo-live { display: flex; flex-direction: column; gap: 10px; }
+.convo-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.convo-bar #convoEnd { padding: 9px 16px; }
+.social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; align-items: start; }
+.social-grid > .card { margin: 0; }
+
+/* TV: waiting for the DM to start, the social narration box, emotion badges and the end card. */
+.convo-wait { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1cqw; text-align: center; }
+.convo-wait span { font-size: calc(5cqw * var(--ts)); animation: pulse 2.4s ease-in-out infinite; }
+.convo-wait b { font-family: var(--display); font-size: calc(2.4cqw * var(--ts)); letter-spacing: .12em; color: var(--gold); text-shadow: 0 .2cqw 1cqw #000; }
+.vn .vn-narr { position: absolute; left: 2cqw; top: 1.6cqw; z-index: 3; max-width: 40cqw; margin: 0; padding: .8cqw 1.2cqw; background: rgb(10 8 12 / .62); border: 1px solid rgb(255 214 120 / .25); border-radius: .4cqw; backdrop-filter: blur(3px); }
+.vn .vn-narr li { font-size: calc(1.15cqw * var(--ts)); }
+.vn-pc-emo { position: absolute; top: -.6cqw; right: -.4cqw; z-index: 2; font-style: normal; font-size: calc(1.8cqw * var(--ts)); line-height: 1; filter: drop-shadow(0 .2cqw .4cqw #000); animation: emobadge .45s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes emobadge { from { transform: scale(0) rotate(-30deg); } }
+.convo-end { position: absolute; inset: 0; z-index: 40; display: grid; place-items: center; background: rgb(0 0 0 / .55); pointer-events: none; animation: convoend 1.3s ease-out both; }
+.convo-end b { font-family: var(--display); font-size: calc(3.6cqw * var(--ts)); letter-spacing: .14em; color: var(--gold); text-align: center; text-shadow: 0 .3cqw 1.5cqw #000; padding: 0 4cqw; animation: convoendtxt 1.3s ease-out both; animation-delay: inherit; }
+@keyframes convoend { from { opacity: 0; } 20% { opacity: 1; } }
+@keyframes convoendtxt { from { opacity: 0; transform: scale(.94); letter-spacing: .3em; } 25% { opacity: 1; transform: scale(1); letter-spacing: .14em; } }
+
+/* Phone: social view points at the TV; "Join the Conversation?" pop-up with the emotion pad. */
+.social-watch { text-align: center; display: grid; gap: 10px; justify-items: center; }
+.social-watch p { margin: 0; }
+.social-watch-eye { font-size: calc(34px * var(--ts)); animation: pulse 2.4s ease-in-out infinite; }
+.convo-pop { animation: fadein .2s ease-out; }
+.convo-pop .pop-sheet { animation: sheetup .32s cubic-bezier(.2, .8, .2, 1); }
+.convo-pop.closing { animation: fadeout .2s ease-in forwards; }
+.convo-pop.closing .pop-sheet { animation: sheetdown .2s ease-in forwards; }
+@keyframes fadein { from { opacity: 0; } }
+@keyframes fadeout { to { opacity: 0; } }
+@keyframes sheetup { from { transform: translateY(100%); } }
+@keyframes sheetdown { to { transform: translateY(100%); } }
+.convo-sheet h3 { text-align: center; }
+.convo-yn { display: grid; grid-template-rows: 1fr 1fr; gap: 10px; }
+.convo-yn .btn { text-align: center; padding: 16px; font-size: calc(18px * var(--ts)); }
+.convo-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.convo-head h3 { margin: 0; text-align: left; }
+.convo-sheet textarea { width: 100%; margin: 10px 0 12px; font-size: calc(16px * var(--ts)); resize: none; }
+.convo-sheet textarea.shake { animation: shakex .3s; }
+@keyframes shakex { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.convo-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.convo-pad .btn { aspect-ratio: 1.4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px; text-align: center; transition: transform .12s, box-shadow .2s; }
+.convo-pad .pad-emo span { font-size: calc(24px * var(--ts)); line-height: 1; }
+.convo-pad .pad-emo small { font-size: calc(11px * var(--ts)); color: var(--muted); }
+.convo-pad .pad-emo.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset, 0 0 12px rgb(240 190 90 / .4); transform: scale(1.04); }
+.convo-pad .pad-emo.on small { color: var(--gold); }
+.convo-pad .pad-send { font-size: calc(17px * var(--ts)); font-weight: 600; }
+.convo-pad .pad-send.sent { animation: sendpop .35s ease-out; }
+@keyframes sendpop { 40% { transform: scale(.9); } }
+
+/* Phone hero: Inspiration in the 🏅 box, HP as a word, gems for hit dice and spell slots, tools at the bottom. */
+.hbar.hp-word b { font-size: calc(12px * var(--ts)); letter-spacing: .04em; white-space: nowrap; }
+.gems { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 4px; }
+.gem-row { display: flex; align-items: center; gap: 6px; }
+.gem-row small { color: var(--muted); font-size: calc(10px * var(--ts)); letter-spacing: .08em; white-space: nowrap; }
+.gem-row span { display: flex; flex-wrap: wrap; gap: 3px; }
+.gem { width: 11px; height: 11px; transform: rotate(45deg); border: 1px solid rgb(255 255 255 / .35); transition: background .35s, box-shadow .35s, transform .35s; }
+.gem.slot.on { background: linear-gradient(135deg, #b8e1ff, #3d7fd1); box-shadow: 0 0 6px rgb(90 160 255 / .7); }
+.gem.hd.on { background: linear-gradient(135deg, #ffe7a8, #c7891f); box-shadow: 0 0 6px rgb(255 190 80 / .6); }
+.gem.used { background: #0b0b0b; border-color: #333; box-shadow: none; transform: rotate(45deg) scale(.85); }
+.me-foot { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 24px 0 calc(76px + env(safe-area-inset-bottom)); padding-top: 14px; border-top: 1px solid var(--line); }
+.me-foot .btn { flex: 1 1 0; min-width: 0; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .convo-pop, .convo-pop .pop-sheet, .vn-pc-emo, .convo-end b { animation: none; } }
+
 /* PR G (Nov 16): DM combat controls. */
 /* Movement past a creature's speed shows red, on the creature card, in the hero column and in the right-click menu. */
 .mv-left.over, .sel-facts b.over { color: #ff6a5a; font-weight: 700; animation: mv-over .5s ease-out; }
@@ -564,3 +640,31 @@ body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / 
 .sel-h { margin: 10px 0 2px; font-size: calc(11px * var(--ts, 1)); letter-spacing: .12em; text-transform: uppercase; color: var(--muted, #8f7e62); }
 .sel-traits p { margin: 4px 0; font-size: calc(13px * var(--ts, 1)); color: #c9c3b4; }
 @media (prefers-reduced-motion: reduce) { #hero.sel-in > *, .mv-left.over, .sel-facts b.over { animation: none; } }
+
+/* Phone emotion wheel (Mike, Nov 16): 8 ring segments around a round Send button; drag one onto Send. */
+.convo-textwrap { margin: 10px 0 12px; }
+.convo-textwrap textarea { margin: 0; }
+.convo-tip { margin: 4px 2px 0; font-size: calc(11px * var(--ts)); line-height: 1.35; color: var(--ink, #2b2118); opacity: .45; text-align: center; font-style: italic; }
+.convo-wheel { position: relative; width: min(300px, 80vw); aspect-ratio: 1; margin: 6px auto 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.wheel-emo { position: absolute; inset: 0; padding: 0; border: 0; cursor: pointer; color: #f3e6c8;
+  background: radial-gradient(circle at 50% 50%, transparent 30%, #6b4426 31%, #4a2d18 70%, #2e1c0f 100%);
+  transform: translate(calc(var(--dx) * 3px), calc(var(--dy) * 3px)); transition: transform .18s cubic-bezier(.2, .8, .2, 1), filter .2s, background .2s;
+  -webkit-tap-highlight-color: transparent; }
+.wheel-emo:active { transform: translate(calc(var(--dx) * 6px), calc(var(--dy) * 6px)); }
+.wheel-emo.on { background: radial-gradient(circle at 50% 50%, transparent 30%, #e9cf8f 31%, #c99a45 70%, #8a6224 100%); color: #2b1a0c; transform: translate(calc(var(--dx) * 8px), calc(var(--dy) * 8px)); filter: drop-shadow(0 0 6px rgb(240 190 90 / .8)); }
+.wheel-lbl { position: absolute; left: calc(50% + var(--dx) * 34%); top: calc(50% + var(--dy) * 34%); transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: none; }
+.wheel-lbl > span { font-size: calc(24px * var(--ts)); line-height: 1; }
+.wheel-lbl small { font-size: calc(10px * var(--ts)); letter-spacing: .03em; white-space: nowrap; }
+.wheel-send { position: absolute; left: 50%; top: 50%; z-index: 2; width: 38%; aspect-ratio: 1; padding: 0; transform: translate(-50%, -50%); border-radius: 50% !important; font-size: calc(17px * var(--ts)); font-weight: 600; box-shadow: 0 0 0 6px var(--panel, #e8d6ae), 0 3px 10px rgb(0 0 0 / .4); transition: transform .15s, box-shadow .2s; }
+.wheel-send.drop { transform: translate(-50%, -50%) scale(1.12); box-shadow: 0 0 0 6px var(--panel, #e8d6ae), 0 0 22px 6px rgb(240 190 90 / .85); }
+.wheel-send.sent { animation: wheelsend .35s ease-out; }
+@keyframes wheelsend { 40% { transform: translate(-50%, -50%) scale(.88); } }
+.convo-wheel.dragging .wheel-emo:not(.on) { filter: brightness(.7); }
+.wheel-ghost { position: fixed; left: 0; top: 0; z-index: 2000; margin: -28px 0 0 -20px; font-size: 40px; line-height: 1; pointer-events: none; filter: drop-shadow(0 4px 8px rgb(0 0 0 / .5)); animation: ghostin .15s ease-out; }
+@keyframes ghostin { from { opacity: 0; scale: .6; } }
+@media (prefers-reduced-motion: reduce) { .wheel-emo, .wheel-send { transition: none; } .wheel-send.sent, .wheel-ghost { animation: none; } }
+/* .btn:active nudges buttons with a transform; keep Send centred while pressed. */
+.convo-wheel .wheel-send:active { transform: translate(-50%, -50%) scale(.95); }
+.convo-wheel .wheel-send.drop { transform: translate(-50%, -50%) scale(1.12); }
+body.chron .convo-wheel .wheel-send, .convo-wheel .wheel-send { border: 0; border-image: none; box-shadow: 0 0 0 2px #1a1612, 0 0 0 4px #9b9183, 0 0 0 9px var(--panel, #e8d6ae), 0 4px 12px rgb(0 0 0 / .45); display: flex; align-items: center; justify-content: center; gap: 6px; }
+.convo-wheel .wheel-send.drop { box-shadow: 0 0 0 2px #1a1612, 0 0 0 4px #f2c96e, 0 0 24px 8px rgb(240 190 90 / .85); }

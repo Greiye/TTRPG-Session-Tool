@@ -51,7 +51,7 @@ module.exports = function dmSockets(socket) {
     broadcast();
   });
 
-  dm('dm:mode', ({ mode, npcId }) => {
+  function setMode(mode, npcId) {
     if (!['exploration', 'combat', 'social'].includes(mode)) return;
     // Pressing the mode you are already in does nothing (no log line, no re-entry), except picking who speaks.
     if (mode === state.mode) { if (mode === 'social' && npcId) cast.pick(state.social, npcId); return; }
@@ -67,11 +67,32 @@ module.exports = function dmSockets(socket) {
     if (last?.modeLine) state.log.pop();
     log('system', `— ${mode.toUpperCase()} —`, { modeLine: true });
     void bulbs.sync(state);
-    if (mode === 'social') {
-      // Entering social mode: the DM may pick who speaks; phones pop up once per entry (social.entered).
-      if (npcId) cast.pick(state.social, npcId);
-      state.social.entered += 1;
-    }
+    // Entering social mode opens the DM's NPC list; the conversation (and the phones' pop-up) starts
+    // when the DM holds Start conversation (dm:convo:start). Leaving social closes it.
+    cast.close(state.social); // a real switch (same-mode presses return above)
+    if (mode === 'social' && npcId) cast.pick(state.social, npcId);
+  }
+  dm('dm:mode', ({ mode, npcId }) => setMode(mode, npcId));
+  socket.on('dm:convo:start', ({ ids } = {}, ack) => {
+    if (!roles.can(socket.data.role, 'dm:convo:start')) return ack?.({ error: 'DM only.' });
+    if (state.mode !== 'social') return ack?.({ error: 'Switch to Social mode first.' });
+    const r = cast.start(state.social, ids, nextId());
+    if (r.ok) log('system', `A conversation begins with ${r.names.join(', ').replace(/, ([^,]*)$/, ' and $1')}.`);
+    broadcast();
+    ack?.(r);
+  });
+  // End conversation: the TV holds "The conversation has concluded" for about a second, then everyone
+  // (and the DM) goes back to exploration.
+  const CONVO_END_MS = 1300;
+  dm('dm:convo:end', () => {
+    if (state.mode !== 'social' || !cast.end(state.social)) return;
+    log('system', 'The conversation has concluded.');
+    const n = state.social.convo.n;
+    setTimeout(() => {
+      if (state.mode !== 'social' || !state.social.convo.ending || state.social.convo.n !== n) return;
+      setMode('exploration');
+      broadcast();
+    }, CONVO_END_MS);
   });
   dm('dm:scene', ({ title, text, theme, poi }) => {
     const before = state.scene.title;

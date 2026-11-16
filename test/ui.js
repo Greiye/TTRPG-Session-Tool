@@ -86,12 +86,42 @@ const SHOTS = process.env.SHOTS;
   await ph.waitForSelector('#tabInventory [data-item]', { timeout: 3000 }).catch(() => errors.push('the DM could not give an item from the Items tab'));
   await dm.waitForSelector('#itList .it-row', { timeout: 3000 }).catch(() => errors.push('the DM Items tab does not list the given item'));
   await ph.click('#tabs [data-tab="play"]');
-  await dm.evaluate(() => socket.emit('dm:mode', { mode: 'social' }));
+  // Social flow (Nov 16): Social mode shows the DM's NPC list; holding Start for 1 s begins the talk.
+  await dm.click('[data-mode="social"]');
+  await tv.waitForSelector('.convo-wait', { timeout: 5000 });
+  await dm.waitForSelector('#socialWin:not([hidden]) #convoPool [data-pool]', { timeout: 5000 });
+  await dm.click('#convoPool [data-pool="pool-albert"]');
+  const sb = await dm.locator('#convoStart').boundingBox();
+  await dm.mouse.move(sb.x + sb.width / 2, sb.y + sb.height / 2);
+  await dm.mouse.down(); await dm.waitForTimeout(1200); await dm.mouse.up();
   await tv.waitForSelector('.vn', { timeout: 5000 });
-  await dm.waitForTimeout(800);
-  // Entering social mode pops up on the phone; Leave closes it.
-  await ph.waitForSelector('.pop-scrim', { timeout: 5000 });
-  await ph.click('[data-sp="leave"]');
+  await dm.waitForSelector('#convoLive:not([hidden]) #convoEnd', { timeout: 3000 }).catch(() => errors.push('live social window did not open'));
+  if (await ph.$('.vn')) errors.push('the visual novel should be on the TV only, not the phone');
+  // Phones: "Join the Conversation?" Yes opens the speech box; the emotion goes to the TV with the line.
+  await ph.waitForSelector('.convo-pop [data-cv="yes"]', { timeout: 5000 });
+  await ph.click('.convo-pop [data-cv="yes"]');
+  await ph.fill('#convoText', 'Hello there.');
+  // Emotion wheel: segments are clipped, so tap where the label sits.
+  const tapAt = async (sel) => { const r = await ph.locator(sel).boundingBox(); await ph.mouse.click(r.x + r.width / 2, r.y + r.height / 2); };
+  await tapAt('.convo-wheel [data-emo="happy"] .wheel-lbl');
+  if (await ph.getAttribute('.convo-wheel [data-emo="happy"]', 'aria-pressed') !== 'true') errors.push('tapping an emotion segment did not pick it');
+  if ((await ph.$$('.convo-tip')).length !== 2) errors.push('the speech-to-text and drag tips should show');
+  await ph.click('.convo-wheel [data-cv="send"]');
+  await tv.waitForFunction(() => document.querySelector('.vn-box.emo-happy') && /Hello there/.test(document.querySelector('.vn-box').textContent), null, { timeout: 5000 }).catch(() => errors.push('phone line and emotion did not reach the TV'));
+  // Drag an emotion onto Send: the line goes out with that emotion.
+  await ph.fill('#convoText', 'Back off.');
+  const from = await ph.locator('.convo-wheel [data-emo="angry"] .wheel-lbl').boundingBox();
+  const to = await ph.locator('.convo-wheel .wheel-send').boundingBox();
+  await ph.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await ph.mouse.down();
+  await ph.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
+  await ph.mouse.up();
+  await tv.waitForFunction(() => document.querySelector('.vn-box.emo-angry') && /Back off/.test(document.querySelector('.vn-box').textContent), null, { timeout: 5000 }).catch(() => errors.push('dragging an emotion onto Send did not send the line'));
+  await ph.click('.convo-pop [data-cv="no"]');
+  // End conversation: concluded card on the TV, then back to exploration.
+  await dm.click('#convoEnd');
+  await tv.waitForSelector('.convo-end', { timeout: 3000 }).catch(() => errors.push('no concluded card on the TV'));
+  await dm.waitForFunction(() => document.querySelector('[data-mode="exploration"].on'), null, { timeout: 4000 }).catch(() => errors.push('ending the conversation did not return to exploration'));
   // Combat (Mike, Nov 16): no 3D map on phones; a combat pop-up sits at the top of the Play tab.
   await dm.evaluate(() => socket.emit('dm:mode', { mode: 'combat' }));
   await ph.waitForSelector('#combatPop:not([hidden])', { timeout: 5000 }).catch(() => errors.push('phone combat pop-up did not show'));
