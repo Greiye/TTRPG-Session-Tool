@@ -59,6 +59,7 @@ module.exports = function sockets(io) {
     require('./web')(socket);
     require('./dungeon')(socket);
     require('./lore')(socket); // Lore tab (Mike, Nov 16)
+    require('./designer')(socket); // Creature Designer and lore wiki (PR W)
   });
 };
 module.exports.guard = guard;

@@ -3,7 +3,7 @@ import { $, onState, state } from '../client.js';
 import { addSection, onTab } from './tabs.js';
 
 const { esc } = Stage;
-const CATS = { location: ['🏰', 'Locations'], dungeon: ['🕳', 'Dungeons'], npc: ['🧑', 'NPCs'], item: ['🗡', 'Items'], book: ['📖', 'Books'], note: ['📝', 'Notes'] };
+const CATS = { location: ['🏰', 'Locations'], dungeon: ['🕳', 'Dungeons'], npc: ['🧑', 'NPCs'], creature: ['🐾', 'Creatures'], item: ['🗡', 'Items'], book: ['📖', 'Books'], note: ['📝', 'Notes'] };
 addSection('journal', 'lore', '📚 Lore');
 const root = () => $('#tabLore');
 let key = null;
