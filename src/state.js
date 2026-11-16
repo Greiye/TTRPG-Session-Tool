@@ -88,6 +88,7 @@ const state = {
   weather: { kind: 'none', intensity: 2 }, // shared weather: the TV (phase B) and the living world both read it (src/living.js)
   living: living.fresh(), // living world: clocks, town standing, rumours, weather, tension, canon, oracles (src/living.js)
   puzzle: null, // teamwork puzzle: clues split over phones, guesses, DM-confirmed solve (src/puzzle.js)
+  town: require('./town').withStarter(), // town maps and the town visit in progress (PR V, src/town.js)
   dungeon: dungeon.fresh(), // exploration dungeon nodes: rooms on levels joined by ropes (src/dungeon.js)
   trail: [], // where the party has been: world places, dungeons and rooms (src/trail.js)
   web: web.fresh(), // NPC and faction relationship web, TV sees revealed parts (src/web.js)
@@ -116,6 +117,7 @@ store.EXTRA.push('dungeon', 'trail'); // exploration dungeon nodes and the party
 store.EXTRA.push('puzzle', 'web'); // Phase F teamwork puzzle and relations web
 store.EXTRA.push('lore'); // Lore tab (Mike, Nov 16)
 store.EXTRA.push('shopSeed'); // Greer's Trinkets seeded once
+store.EXTRA.push('town', 'townSeed'); // town maps and visits (PR V)
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -140,6 +142,13 @@ state.worldMap.roads ??= []; // roads and fog came after Phase G: older saves ha
 state.worldMap.fog ??= false;
 state.worldMap.openOnSession ??= true;
 state.trail ??= [];
+state.town = require('./town').ensure(state.town);
+// Town visits (PR V) came after the example world: an older save's Millbrook gets the starter town once.
+if (!state.townSeed) {
+  const mb = state.worldMap.nodes.find((n) => n.id === 'w1' && n.name === 'Millbrook');
+  if (mb && !Object.keys(state.town.maps).length) { mb.settlement = true; state.town.maps.w1 = require('./town').starter(); state.town.skipAt = 'w1'; }
+  state.townSeed = 1;
+}
 state.lore = require('./lore').ensure(state.lore);
 // Every table starts with Greer's Trinkets (Mike, Nov 15). Seeded once: removing it keeps it gone.
 if (!state.shopSeed) { state.shops ??= []; if (!state.shops.some((x) => x.name === "Greer's Trinkets")) state.shops.unshift(require('./shops').greer('greer')); state.shopSeed = 1; }
@@ -156,6 +165,7 @@ if (!state.trail.length && state.worldMap.here) require('./trail').add(state, 'w
 // The dungeon is a pop-up over a dungeon entrance on the world map (Mike, Nov 15). Older saves kept it shown
 // anywhere: close it unless the party stands on an entrance.
 if (state.dungeon.on && !worldmap.dungeonHere(state.worldMap)) state.dungeon.on = false;
+if (state.town.on && require('./town').settlementHere(state.worldMap)?.id !== state.town.at) state.town.on = false; // the same for a town
 net.setHost(state.settings.host);
 const snap = () => store.snapshot(state, seq);
 

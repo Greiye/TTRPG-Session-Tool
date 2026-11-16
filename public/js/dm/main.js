@@ -27,6 +27,7 @@ import './living.js';
 import './map.js';
 import './worldmap.js';
 import './dgwindow.js'; // the dungeon editing tab under the world map (PR R)
+import './town.js'; // town maps and visits under the world map (PR V)
 import './weather.js';
 import './gamepad.js';
 import './suggestions.js';

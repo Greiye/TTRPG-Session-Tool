@@ -5,7 +5,8 @@ const { str } = require('./util');
 
 const MAX = 100;
 
-// kind: 'world' (a place on the world map), 'enter' / 'leave' (a dungeon), 'room' (a dungeon room).
+// kind: 'world' (a place on the world map), 'enter' / 'leave' (a dungeon or town), 'room' (a dungeon room),
+// 'town' (a place inside a town, PR V).
 // A repeat of the newest entry is skipped. Returns the new entry, or null.
 function add(state, kind, where, extra = {}) {
   const place = str(where, 60);
@@ -19,10 +20,10 @@ function add(state, kind, where, extra = {}) {
   return entry;
 }
 
-const ICON = { world: '🧭', enter: '⬇', leave: '⬆', room: '⚑' };
+const ICON = { world: '🧭', enter: '⬇', leave: '⬆', room: '⚑', town: '🏘' };
 // "Day 2 · ⬇ Entered The Sunken Crossroads" style text, shared by the tests and the pages.
 function line(e) {
-  const verb = { world: 'At', enter: 'Entered', leave: 'Left', room: 'In' }[e.kind] || 'At';
+  const verb = { world: 'At', enter: 'Entered', leave: 'Left', room: 'In', town: 'Visited' }[e.kind] || 'At';
   return `${e.day ? `Day ${e.day} · ` : ''}${ICON[e.kind] || '•'} ${verb} ${e.where}`;
 }
 

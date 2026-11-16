@@ -1,0 +1,81 @@
+/* Town maps and visits (PR V): public/town.js. Shared by the TV, the DM page and the phones. */
+.tn-board { position: relative; width: 100%; }
+.tn-pic { position: relative; width: 100%; border-radius: 10px; overflow: hidden; background: #2a2016; }
+.tn-pic > img { display: block; width: 100%; height: auto; }
+/* No picture yet: a parchment ground with a few drawn lanes. */
+.tn-blank { aspect-ratio: 16 / 10; background:
+  radial-gradient(ellipse 40% 30% at 50% 55%, rgb(120 150 80 / .35), transparent 70%),
+  repeating-linear-gradient(115deg, transparent 0 46px, rgb(90 70 40 / .12) 46px 49px),
+  radial-gradient(circle at 30% 30%, #d9c49a, #b89a68 70%, #8c6f45); }
+.tn-layer { position: absolute; inset: 0; }
+.tn-node { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; color: #fff6e0; transition: left .5s, top .5s; }
+.tn-node i { font-style: normal; font-size: 22px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #2b1f14e6; border: 2px solid #c9a86a; box-shadow: 0 3px 8px #000a; transition: transform .25s, box-shadow .25s; }
+.tn-node span { margin-top: 4px; font-size: 12px; white-space: nowrap; text-shadow: 0 1px 2px #000, 0 0 6px #000; font-weight: 600; }
+.tn-node:hover i { transform: scale(1.12); }
+.tn-node.here i { border-color: #7fd48a; box-shadow: 0 0 0 4px #7fd48a55, 0 3px 8px #000a; }
+.tn-node.sel i { outline: 2px solid #f4ead5; outline-offset: 3px; }
+.tn-node.pick i { border-color: #ffd36b; box-shadow: 0 0 0 5px #ffd36b55; animation: tn-pulse 1.4s ease-in-out infinite; }
+.tn-node.unseen { opacity: .5; }
+.tn-node.unseen i { border-style: dashed; }
+.tn-node.visited:not(.here) i { border-color: #a89070; }
+.tn-node.tn-new { animation: tn-pop .7s cubic-bezier(.2, 1.4, .4, 1) both; }
+.tn-count { position: absolute; top: -6px; right: -10px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: #ffd36b; color: #2a1d12; font: 700 12px/20px system-ui, sans-serif; text-align: center; animation: tn-pop .4s both; }
+.tn-token { position: absolute; transform: translate(-50%, -50%); margin-top: -30px; font-size: 22px; pointer-events: none; filter: drop-shadow(0 2px 3px #000); }
+.tn-token span { display: inline-block; animation: wm-bob 1.6s ease-in-out infinite; }
+.tn-board.dm .tn-node { touch-action: none; }
+.tn-node.dragging { opacity: .8; transition: none; z-index: 5; }
+.tn-node.binning i { border-color: #e06060; }
+@keyframes tn-pulse { 50% { box-shadow: 0 0 0 9px #ffd36b11; } }
+@keyframes tn-pop { from { transform: translate(-50%, -50%) scale(.2); opacity: 0; } }
+
+/* Town pop-up over the world map on the TV and the DM preview. */
+.tn-box .tn-board { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; container-type: size; }
+.tn-box .tn-pic { width: fit-content; }
+.tn-box .tn-pic > img { width: auto; max-width: 100cqw; max-height: 100cqh; }
+.tn-box .tn-blank { width: min(100cqw, 160cqh); }
+.tn-here { font: 14px system-ui, sans-serif; color: #9fe0a8; letter-spacing: 0; }
+.tn-line { font: 13px system-ui, sans-serif; color: #c9a86a; letter-spacing: 0; }
+.wm-tv .tn-node i { width: 56px; height: 56px; font-size: 32px; }
+.wm-tv .tn-node span { font-size: 1.4em; }
+.wm-tv .tn-token { font-size: 2.4em; margin-top: -44px; }
+.wm-tv .tn-here, .wm-tv .tn-line { font-size: 18px; }
+.wm-tv .tn-count { min-width: 28px; height: 28px; font-size: 16px; line-height: 28px; border-radius: 14px; }
+.tn-gate-art { background: radial-gradient(circle at 50% 70%, #f6d58e 0%, #b0793e 45%, #3a2a1a 100%); }
+
+/* World map hover list (PR V): what a town has. Shows under the town while the pointer is on it. */
+.wm-node .wm-has { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin: 6px 0 0; padding: 6px 10px; list-style: none; min-width: 150px; background: #1b1420f2; border: 1px solid #6b5a3a; border-radius: 8px; box-shadow: 0 6px 18px #000b; z-index: 30; text-align: left; pointer-events: none; }
+.wm-node .wm-has li { font-size: 13px; white-space: nowrap; padding: 2px 0; color: #f4ead5; }
+.wm-node .wm-has li.hid { opacity: .55; }
+.wm-node .wm-has li.more { color: #b8a888; font-style: italic; }
+.wm-node.settlement:hover .wm-has, .wm-node.settlement:focus-within .wm-has { display: block; animation: wm-in .25s both; }
+.wm-node.low .wm-has { top: auto; bottom: 100%; margin: 0 0 6px; }
+.wm-tv .wm-node .wm-has li { font-size: 1.3em; }
+.wm-node.settlement i { border-radius: 3px; }
+
+/* Phones: the town tab and windows. */
+.tnp { display: flex; flex-direction: column; gap: 10px; }
+.tnp h3 { margin: 0; font-family: var(--display); color: var(--gold, #e3b45a); text-align: center; }
+.tnp-here { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border: 1px solid #8a6a3a; border-radius: 10px; background: rgb(255 248 230 / .55); color: inherit; animation: dgp-up .35s both; }
+.tnp-here > i { font-style: normal; font-size: 40px; line-height: 1; }
+.tnp-here p { margin: 4px 0 0; line-height: 1.4; }
+.tnp-list { display: grid; gap: 8px; }
+.tnp-opt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; text-align: left; border-radius: 10px; border: 1px solid #8a6a3a; background: rgb(255 248 230 / .45); color: inherit; font: inherit; transition: background .2s, border-color .2s, transform .15s; }
+.tnp-opt > i { font-style: normal; font-size: 26px; }
+.tnp-opt b { display: block; }
+.tnp-opt small { opacity: .75; }
+.tnp-opt.on { border-color: #b8860b; background: rgb(255 214 120 / .55); box-shadow: 0 0 0 2px rgb(184 134 11 / .35); transform: scale(1.01); }
+.tnp-opt .tnp-n { margin-left: auto; font-size: 12px; font-weight: 700; color: #8a5a00; }
+.tnp-go { width: 100%; min-height: 52px; font-size: 1.05em; }
+.tnp-wait { margin: 0; color: #2f7a3a; font-weight: 600; text-align: center; }
+.tnp-count { margin: 0; text-align: center; }
+.tnp .tn-board { margin-top: 4px; }
+.tnp .tn-node i { width: 30px; height: 30px; font-size: 17px; }
+.tnp .tn-node span { font-size: 10px; }
+
+/* DM town editor. */
+.tn-ed .tn-tools { align-items: center; }
+.tn-ed .tn-chip { cursor: grab; touch-action: none; user-select: none; }
+.tn-ed .tn-reveals { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+
+@media (prefers-reduced-motion: reduce) { .tn-node, .tn-node.tn-new, .tn-count, .tn-token span, .tn-node.pick i, .tnp-here { animation: none; transition: none; } }
+[data-motion="reduce"] .tn-node, [data-motion="reduce"] .tn-node.tn-new, [data-motion="reduce"] .tn-token span, [data-motion="reduce"] .tnp-here { animation: none; transition: none; }

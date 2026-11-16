@@ -6,6 +6,7 @@
   <title>TV — TTRPG Session Tool</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/dungeon.css">
+  <link rel="stylesheet" href="/town.css">
   <link rel="stylesheet" href="/worldmap.css">
   <link rel="stylesheet" href="/moments.css">
   <script src="/settings.js"></script>
@@ -31,6 +32,7 @@
   <script src="/awake.js"></script>
   <script src="/anim.js"></script>
   <script src="/dungeon.js"></script>
+  <script src="/town.js"></script>
   <script src="/stage.js"></script>
   <script src="/worldmap.js"></script>
   <script src="/moments.js"></script>
@@ -65,6 +67,7 @@
       end.hidden = !s.ended;
       if (s.ended) end.querySelector('.end-sub').textContent = [s.intro?.campaign, s.ended.session ? `Session ${s.ended.session}` : ''].filter(Boolean).join(' · ');
       Dungeon.tvGate(s); // the Enter Dungeon count over the TV (PR R)
+      Town.tvGate(s); // the Enter Town count (PR V)
     });
     AudioOut.init(socket); // the TV is the speaker
     // Roll results: the 3D dice tray when it is on (Phase B), otherwise the roll popup (item 5).

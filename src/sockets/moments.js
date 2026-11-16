@@ -36,7 +36,8 @@ module.exports = function momentSockets(socket) {
   dm('dm:tv:epilogue:close', () => moments.epilogueEnd(tv()));
   // Story clock: five segments (Dawn, Day, Noon, Dusk, Night). Each change plays that segment's sound on
   // the TV (public/audio.js tod_* synths) and the TV shows the day and segment for a few seconds.
-  const moved = (ok) => { if (ok) hub.io?.emit('sfx', { builtin: `tod_${moments.SEGMENTS[moments.segOf(state.story)]}` }); };
+  // The sound waits for the TV dial to slide in (src/clock.js).
+  const moved = (ok) => { if (ok) require('../clock').sound(state); };
   dm('dm:story:set', ({ day, seg }) => moved(moments.setTime(state.story, day ?? state.story.day, seg)));
   dm('dm:story:advance', ({ segs }) => moved(moments.advance(state.story, segs ?? 1)));
 };
