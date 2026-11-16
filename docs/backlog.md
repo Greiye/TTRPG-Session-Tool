@@ -185,3 +185,11 @@ Item is as Mike wrote it. Bracketed notes say which screen it is on.
 ### PR T: End session
 `public/dm.html`, `public/style.css`, `public/stage.js`, `public/js/play/`, `src/sockets/dm.js`, `src/sockets/player.js`
 - [ ] Red End Session button at the bottom of the left sidebar. I click-hold this for 1 second to end the session. It displays on the TV Screen a big message: End of Session. On the player phones it shows "Thanks for playing." For DM, it asks to save and explore the logs. [DM Screen, left sidebar]
+
+## Mike's notes, 2026-11-16 (fifth list)
+
+Item is as Mike wrote it. Bracketed notes say which screen it is on.
+
+### PR U: Lore tab
+`public/dm.html`, `public/style.css`, `public/js/dm/`, `public/js/play/`, `src/state.js`, `src/sockets/dm.js`
+- [ ] Add a Lore Tab. Lore Tab tracks: Locations, Dungeons, NPCs. [DM Screen; phone tab placement not stated]
