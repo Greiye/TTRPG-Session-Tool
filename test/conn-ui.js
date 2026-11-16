@@ -37,6 +37,8 @@ const { ok } = h;
     await h.wait(8000); // Socket.IO's reconnect backoff, then the 1.2 s "Back" message
     for (const [n, p] of Object.entries(pages)) ok(!(await shown(p)), `${n}: pill slides away once reconnected`);
     ok(!errors.length, `no page errors${errors.length ? `: ${errors.join(' | ')}` : ''}`);
+  } catch (e) {
+    ok(false, `test crashed: ${e.message}`);
   } finally {
     await br.close();
     await h.done(srv);
