@@ -537,6 +537,23 @@
     const seenN = new Set((root.dataset.narr || '').split(','));
     if (root.dataset.narr !== undefined) nl.filter((li) => !seenN.has(li.dataset.nid)).forEach((li) => Anim.play(li, 'slideIn', null));
     root.dataset.narr = nl.map((li) => li.dataset.nid).join(',');
+    // A new roll call slides up once; each result pops in as its phone rolls (not on every re-render).
+    const cb = ui.querySelector('.check-banner');
+    if (cb) Anim.once(cb, `check:${cb.dataset.cid}`, 'slideUp');
+    const rs = [...ui.querySelectorAll('.check-res [data-rid]')].map((el) => [el, `${cb?.dataset.cid}:${el.dataset.rid}`]);
+    const seenR = new Set((root.dataset.chkRes || '').split(','));
+    if (root.dataset.chkRes !== undefined) rs.filter(([, k]) => !seenR.has(k)).forEach(([el]) => Anim.play(el, 'pop'));
+    root.dataset.chkRes = rs.map(([, k]) => k).join(',');
+    // The DM's dialogue choices deal in one by one when a new set appears.
+    const vc = ui.querySelector('.vn-choices');
+    const vcKey = vc ? [...vc.children].map((li) => li.textContent).join('|') : '';
+    if (vc && vcKey !== root.dataset.vnChoices) Anim.stagger(vc.children, 'reveal', null, 90);
+    root.dataset.vnChoices = vcKey;
+    // A condition that lands on someone in the initiative strip pops once.
+    const cs = [...ui.querySelectorAll('.conds[data-k]')];
+    const seenC = new Set((root.dataset.conds || '').split('|'));
+    if (root.dataset.conds !== undefined) cs.filter((el) => !seenC.has(el.dataset.k)).forEach((el) => Anim.play(el, 'pop'));
+    root.dataset.conds = cs.map((el) => el.dataset.k).join('|');
     const mc = ui.querySelector('.memorial');
     if (mc && mc.dataset.n !== root.dataset.memN) { root.dataset.memN = mc.dataset.n; Anim.once(mc, `mem:${mc.dataset.n}`, 'pop'); }
     const bc = ui.querySelector('.boss-card');
@@ -570,7 +587,7 @@
     return `<div class="clocks">${s.clocks.map((k) => `<div class="clock"><small>${esc(k.name)}</small>${pie(k.segments, k.filled, 'tv:' + k.id)}</div>`).join('')}</div>`;
   }
   // Conditions (16): small chips under a combatant's name.
-  const conds = (x) => (x?.conditions?.length ? `<em class="conds">${x.conditions.map((c) => esc(c)).join(', ')}</em>` : '');
+  const conds = (x) => (x?.conditions?.length ? `<em class="conds" data-k="${esc(`${x.id}:${x.conditions.join(',')}`)}">${x.conditions.map((c) => esc(c)).join(', ')}</em>` : '');
 
   // Shared handouts (Phase 4) and the open vote on the TV. Only items the group shared reach here.
   function shared(s) {
