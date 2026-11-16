@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 const assert = require('assert');
 const { io } = require('socket.io-client');
-const PORT = 3600 + Math.floor(Math.random() * 90);
+let PORT; do PORT = 3600 + Math.floor(Math.random() * 90); while (PORT === 3659); // 3659 is on fetch's blocked-port list
 const B = `http://127.0.0.1:${PORT}`;
 const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082', 'hex');
 const boot = (dir) => new Promise((r) => {
