@@ -19,6 +19,7 @@ import './legends.js';
 import './camp.js';
 import './control.js';
 import './socialpop.js';
+import './popups.js';
 import './table.js';
 import './spotlight.js';
 

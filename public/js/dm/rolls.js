@@ -16,6 +16,7 @@ onState((s) => {
     skillsKey = sk;
     $('#checkSkill').innerHTML = kindKeys(s, kind()).map((x) => `<option value="${esc(x)}">${esc(kindLabel(s, kind(), x))}</option>`).join('');
     $('#secSkill').innerHTML = s.rules.skills.map((x) => `<option>${esc(x)}</option>`).join('');
+    queueMicrotask(outcomeText);
     $('#dcLadder').innerHTML = (s.checks?.dcLadder || s.rules.dcLadder || []).map(([l, dc]) => `<button class="btn small dc-chip" data-dc="${dc}" title="${esc(l)}">${dc}</button>`).join('');
   }
   const pk = JSON.stringify((s.checks?.presets || []).map((p) => p.id + p.name));
@@ -36,7 +37,43 @@ onState((s) => {
 });
 
 function kind() { return $('#callKind').value || 'skill'; }
-$('#callKind').onchange = () => { skillsKey = null; };
+
+// Roll type drives the outcome text boxes at the bottom of the card (Mike, Nov 16): a save reads as
+// resisting something, an ability check as raw effort, a skill check as using the skill. A preset for the
+// chosen skill or ability lends its own pass and fail lines as the examples.
+const OUTCOME = {
+  skill: { lbl: 'Skill', note: 'Skill check outcome (posted to the log as each roll lands):', pass: (k) => `On success, e.g. You use your ${k} and it pays off.`, fail: (k) => `On failure, e.g. Your ${k} turns up nothing.` },
+  save: { lbl: 'Saving throw', note: 'Saving throw outcome (posted as each save lands):', pass: (k) => `If they save, e.g. You resist with ${k}; the effect slides off.`, fail: (k) => `If they fail, e.g. Your ${k} gives way; the effect takes hold.` },
+  ability: { lbl: 'Ability', note: 'Ability check outcome (posted as each roll lands):', pass: (k) => `On success, e.g. Pure ${k} gets it done.`, fail: (k) => `On failure, e.g. Not enough ${k} this time.` },
+};
+function outcomeText() {
+  const s = state();
+  if (!s) return;
+  const k = kind();
+  const o = OUTCOME[k] || OUTCOME.skill;
+  const key = $('#checkSkill').value;
+  const name = k === 'skill' ? key : (s.rules.abilities.find(([a]) => a === key) || [key, key])[1];
+  const ex = (s.checks?.presets || []).find((p) => p.kind === k && p.key === key);
+  $('#checkSkillLbl').textContent = o.lbl;
+  $('#callOutcomeNote').textContent = o.note;
+  $('#callPass').placeholder = ex?.pass ? `On success, e.g. ${ex.pass}` : o.pass(name || 'skill');
+  $('#callFail').placeholder = ex?.fail ? `On failure, e.g. ${ex.fail}` : o.fail(name || 'skill');
+  const card = $('#callOutcomeNote').closest('.card');
+  if (card && card.dataset.kind !== k) {
+    card.dataset.kind = k;
+    for (const f of [$('#callPass'), $('#callFail')]) window.Anim?.play(f, 'pop', null);
+  }
+}
+$('#checkSkill').addEventListener('change', outcomeText);
+// Switching the roll type rebuilds the list now, not on the next state update, so the text boxes follow at once.
+$('#callKind').onchange = () => {
+  const s = state();
+  skillsKey = null;
+  if (!s) return;
+  $('#checkSkill').innerHTML = kindKeys(s, kind()).map((x) => `<option value="${esc(x)}">${esc(kindLabel(s, kind(), x))}</option>`).join('');
+  skillsKey = s.rules.id + kind() + s.rules.skills.join();
+  outcomeText();
+};
 $('#callPreset').onchange = (e) => {
   const p = (state()?.checks?.presets || []).find((x) => x.id === e.target.value);
   if (!p) return;
@@ -44,6 +81,7 @@ $('#callPreset').onchange = (e) => {
   const s = state();
   $('#checkSkill').innerHTML = kindKeys(s, p.kind).map((x) => `<option value="${esc(x)}">${esc(kindLabel(s, p.kind, x))}</option>`).join('');
   $('#checkSkill').value = p.key; $('#checkDc').value = p.dc; $('#callPass').value = p.pass || ''; $('#callFail').value = p.fail || '';
+  outcomeText();
 };
 $('#presetSave').onclick = () => {
   const name = prompt('Name this preset:');
@@ -70,7 +108,6 @@ const actions = {
 };
 onClick('act', (a) => actions[a]?.());
 $('#rollExpr').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); actions.roll(); } });
-$('#callKind').addEventListener('change', () => { skillsKey = null; });
 
 // The DM's own screen shows secret rolls and roll calls it made.
 socket.on('rollpop', (p) => window.RollPop?.show(p));
