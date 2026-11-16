@@ -19,6 +19,8 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 - [ ] 2. The World map opens from any mode, not only exploration.
 - [ ] 3. Places are dragged onto the map from a palette. Dragging a place onto a trash-can icon deletes it.
 - [ ] 4. "Map picture" and "Load example world" sit at the bottom of the World map window.
+- [ ] (Nov 15) Bug: the TV world map is cut off at the bottom. Fit the whole map in the TV viewport (`.wm-tv` in `public/worldmap.css`).
+- [ ] (Nov 15) The current-location title on the world map is too big. Shrink `.wm-title` (now 2.2em).
 
 ### PR B: TV combat entrance and join QR animation
 `public/stage.js`, `public/screen.html`, `public/anim.js`, `public/moments.css`, `public/js/dm/combat.js`, `src/sockets/dm.js`
