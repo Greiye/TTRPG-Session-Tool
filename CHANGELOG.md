@@ -11,6 +11,13 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- TV moments and rolls, from Mike's Nov 16 notes:
+  - Roll results (popup and 3D dice tray) sit in the centre of the TV and fade out instead of vanishing.
+  - A **natural 20** shows a gold "Natural 20!" banner, sparks and turning light rays, and the TV brightens while it shows. A **natural 1** shows a red "Natural 1" banner, the total shakes and sags, and the TV darkens with a pulsing red edge. The dice tray starts the mood as the dice settle. TV only; phones and the DM page keep normal light.
+  - Covered exploration points of interest are hidden from the TV (no more "??? " chips). A point pops in when the DM uncovers it. A new place starts with every point covered, and points removed from the list leave the uncovered set.
+  - Switching modes quickly replaces the previous mode title instead of stacking on it.
+  - Chapter cards, entrances, choice echoes and the day/time card fade out at the end. Every chapter card is saved to the log as `Chapter: <title> (<subtitle>)`.
+  - Segment clocks are round, cut into wedges from the centre, on the TV and in the DM's Clocks and Living world lists. Newly filled wedges sweep out from the middle.
 - Co-DM and combat tools, from Mike's Nov 16 notes:
   - The **co-DM** now has every DM permission: the invite opens the DM page with the co-DM key (`/codm` stays as a phone soundboard).
   - Co-DM card: each role (Co-DM, Battle Master, Social Master) is a title with one centred **Invite** button under it.

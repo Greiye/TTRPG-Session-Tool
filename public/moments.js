@@ -17,14 +17,26 @@
   const slot = (cls) => L.querySelector(`.${cls}`);
 
   // A card: built inside a full-screen slot, so the animation moves the card and not the centring.
+  // Timed cards fade out at the end rather than vanish (Mike, Nov 16).
+  const FADE_MS = 600;
+  function fadeOut(el, key) {
+    const card = el.firstElementChild;
+    const box = card?.classList.contains('mo-card') ? card : el;
+    timers[key] = 'fading';
+    if (!box.animate) { el.hidden = true; delete timers[key]; return; }
+    const a = box.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-1.5vh) scale(.97)' }], { duration: Anim.reduced() ? 200 : FADE_MS, easing: 'ease-in', fill: 'forwards' });
+    const done = () => { if (timers[key] === 'fading') { el.hidden = true; delete timers[key]; } a.cancel(); };
+    a.finished.then(done, done);
+  }
   function card(el, html, anim, ms = 0, key = el.className) {
+    clearTimeout(timers[key]);
     el.innerHTML = `<div class="mo-card">${html}</div>`;
     el.hidden = false;
     Anim.play(el.firstElementChild, anim);
-    clearTimeout(timers[key]);
-    if (ms) timers[key] = setTimeout(() => { el.hidden = true; }, ms);
+    if (ms) timers[key] = setTimeout(() => fadeOut(el, key), ms);
+    else delete timers[key];
   }
-  const hide = (el, key = el.className) => { clearTimeout(timers[key]); el.hidden = true; };
+  const hide = (el, key = el.className) => { clearTimeout(timers[key]); delete timers[key]; el.hidden = true; };
 
   function init() {
     L = document.getElementById('moments');
@@ -114,7 +126,7 @@
     el.hidden = false;
     Anim.play(el, 'slideIn', null);
     clearTimeout(timers.clock);
-    timers.clock = setTimeout(() => { el.hidden = true; }, CLOCK_MS);
+    timers.clock = setTimeout(() => fadeOut(el, 'clock'), CLOCK_MS);
   }
 
   // Story clock lights the TV: the time of day replaces the scene's light setting.

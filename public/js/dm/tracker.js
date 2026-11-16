@@ -18,7 +18,7 @@ onState((s) => {
   $('#condBtns').innerHTML = who ? CONDS.map((c) => `<button class="btn small ${(who.conditions || []).includes(c) ? 'on' : ''}" data-cond="${c}">${c}</button>`).join('') : '';
   const names = Object.fromEntries(everyone.map((x) => [x.id, x.name]));
   $('#timerList').innerHTML = (s.timers || []).map((t) => `<div class="item"><span><b>${esc(names[t.charId] || 'Someone')}</b> ${esc(t.name)} <small class="muted">${t.kind === 'concentration' ? 'concentrating' : `${t.rounds} round${t.rounds === 1 ? '' : 's'} left`}</small></span></div>`).join('') || '<p class="note">No timers.</p>';
-  $('#clockList').innerHTML = (s.clocks || []).map((c) => `<div class="item"><span><b>${esc(c.name)}</b> <small class="muted">${c.filled}/${c.segments}</small></span><span class="clock-row"><button class="btn small" data-clock="${c.id}" data-d="-1">−</button><button class="btn small" data-clock="${c.id}" data-d="1">+</button><button class="btn small danger" data-clock-del="${c.id}">✕</button></span></div>`).join('') || '<p class="note">No clocks yet.</p>';
+  $('#clockList').innerHTML = (s.clocks || []).map((c) => `<div class="item"><span class="clock-row">${Stage.pie(c.segments, c.filled, 'dm:' + c.id, 'mini')}<b>${esc(c.name)}</b> <small class="muted">${c.filled}/${c.segments}</small></span><span class="clock-row"><button class="btn small" data-clock="${c.id}" data-d="-1">−</button><button class="btn small" data-clock="${c.id}" data-d="1">+</button><button class="btn small danger" data-clock-del="${c.id}">✕</button></span></div>`).join('') || '<p class="note">No clocks yet.</p>';
 });
 
 $('#condWho').onchange = () => {};

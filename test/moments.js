@@ -37,6 +37,20 @@ const { ok, until } = h;
   dm.emit('dm:scene', { title: 'Old mill', text: 'more words', theme: 'default', poi: [] });
   await h.wait(120);
   ok(tv.last.tv.chapter.n === ch, 'saving the same place again shows no new chapter card');
+  ok(dm.last.log.some((l) => l.tone === 'chapter' && l.text === 'Chapter: Old mill (Day 2 · Night)'), 'a chapter card is saved in the log');
+  ok(dm.last.log.filter((l) => l.tone === 'chapter' && l.text.startsWith('Chapter: Old mill')).length === 1, 'saving the same place again logs no second chapter');
+  dm.emit('dm:tv:chapter', { title: 'Interlude', sub: 'Meanwhile' });
+  ok(await until(() => dm.last.log.some((l) => l.text === 'Chapter: Interlude (Meanwhile)')), 'a chapter card from the Moments tab is logged too');
+  // Points of interest: a new place starts with every point covered (hidden from the TV).
+  dm.emit('dm:scene', { title: 'Old mill', text: '', theme: 'default', poi: ['Wheel', 'Loft'] });
+  dm.emit('dm:reveal', { poi: 'Wheel' });
+  ok(await until(() => dm.last.scene.revealed.includes('Wheel')), 'the DM uncovers a point');
+  dm.emit('dm:scene', { title: 'Old mill', text: '', theme: 'default', poi: ['Loft'] });
+  ok(await until(() => dm.last.scene.revealed.length === 0), 'a point dropped from the list leaves the uncovered set');
+  dm.emit('dm:reveal', { poi: 'Loft' });
+  await until(() => dm.last.scene.revealed.includes('Loft'));
+  dm.emit('dm:scene', { title: 'Mill cellar', text: '', theme: 'default', poi: ['Loft'] });
+  ok(await until(() => dm.last.scene.title === 'Mill cellar' && dm.last.scene.revealed.length === 0), 'a new place covers every point again');
 
   // Choice echoes: planned for the DM only, counted down by scenes, then fired.
   dm.emit('dm:tv:echo:plant', { decision: 'Spared the goblin', consequence: 'Its kin arrive at the gate', after: 2 });
