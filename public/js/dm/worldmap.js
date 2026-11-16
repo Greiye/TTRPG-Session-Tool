@@ -172,7 +172,7 @@ function draw(S) {
   once('#wmCards', JSON.stringify(wm.cards), wm.cards.length ? wm.cards.map(cardHtml).join('') : '<p class="note">No road cards yet.</p>');
   once('#wmTable', JSON.stringify(wm.table), wm.table.map((e) => `<div class="item wm-table-row">
       <input type="checkbox" data-wm-on="${esc(e.id)}" ${e.on ? 'checked' : ''} title="On">
-      <input class="grow" maxlength="200" value="${esc(e.text)}" data-wm-text="${esc(e.id)}">
+      <textarea class="grow" rows="1" maxlength="200" data-wm-text="${esc(e.id)}" aria-label="Table entry">${esc(e.text)}</textarea>
       <input type="number" min="1" max="10" value="${e.weight}" data-wm-weight="${esc(e.id)}" style="width:56px" title="Weight">
       <button class="btn small" data-wm-trm="${esc(e.id)}">✕</button>
     </div>`).join(''));
@@ -368,6 +368,8 @@ onClick('wm-veto', (id, b) => emit('dm:worldmap:card:veto', { id, on: b.dataset.
 onClick('wm-lore', (id, b) => emit('dm:worldmap:lore', { id, on: b.dataset.on === 'true' }));
 onClick('wm-trm', (id) => emit('dm:worldmap:table:remove', { id }));
 
+// Entries wrap in a one-line textarea; Enter still commits like a text box.
+$('#wmTable').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.dataset.wmText) { e.preventDefault(); e.target.blur(); } });
 $('#wmTable').addEventListener('change', (e) => {
   const t = e.target;
   if (t.dataset.wmOn) emit('dm:worldmap:table:set', { id: t.dataset.wmOn, on: t.checked });

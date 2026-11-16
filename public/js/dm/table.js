@@ -31,7 +31,7 @@ mount(`
 
   <h4>Secret nudge <span class="note">one phone, silent</span></h4>
   <div class="row"><select id="nudgeTo" class="grow" aria-label="Character"></select></div>
-  <div class="row"><input id="nudgeText" placeholder="A line only they see, e.g. The locket is warm." class="grow" maxlength="160"><button class="btn" id="nudgeSend">Send</button></div>
+  <div class="row"><input id="nudgeText" placeholder="Private line, e.g. Your locket is warm." class="grow" maxlength="160"><button class="btn" id="nudgeSend">Send</button></div>
   <div class="list" id="tblNudges"></div>
 
   <h4>Spotlight balance <span class="note">DM only</span></h4>
@@ -51,7 +51,7 @@ mount(`
   </div>
 
   <h4>Foreshadowing</h4>
-  <div class="row"><input id="fsText" placeholder="Plant a hint, e.g. The stranger knows your name." class="grow" maxlength="200"><button class="btn" id="fsAdd">Plant</button></div>
+  <div class="row"><input id="fsText" placeholder="Hint, e.g. The stranger knows you." class="grow" maxlength="200"><button class="btn" id="fsAdd">Plant</button></div>
   <div id="tblHints" class="list"></div>
 
   <h4>Scene framing <span class="note">tokens go to phones; spent details become canon</span></h4>

@@ -162,12 +162,12 @@
       <h3>Messages <span class="note">phones, the TV, and the vote</span></h3>
       <input id="hoTitle" placeholder="Title"><textarea id="hoText" rows="2" placeholder="Handout text"></textarea>
       <div class="row"><select id="hoTo" class="grow"><option value="all">All phones</option></select><button class="btn" data-act="handout">Send handout</button></div>
-      <div class="row"><select id="objWho" style="width:140px"></select><input id="objTitle" class="grow" maxlength="80" placeholder="Secret objective"></div>
+      <div class="row"><select id="objWho" style="width:170px"></select><input id="objTitle" class="grow" maxlength="80" placeholder="Secret objective"></div>
       <textarea id="objText" rows="2" maxlength="600" placeholder="Details only their phone sees (optional)"></textarea>
       <div class="row"><button class="btn" data-act="objective">Give secret objective</button></div>
       <div id="objList" class="list"></div>
-      <div class="row"><input id="phLang" placeholder="Language (Elvish)" style="width:130px"><input id="phText" class="grow" placeholder="Phrase in that tongue"><button class="btn" data-act="phrase">Send phrase</button></div>
-      <div class="row"><input id="voteOpts" class="grow" placeholder="Options, comma separated (blank = Yes, No, Unsure)"><button class="btn primary" data-act="voteStart">Start vote</button><button class="btn" data-act="voteClose">Close</button><button class="btn" data-act="voteClear">Clear</button></div>
+      <div class="row"><input id="phLang" placeholder="Language (Elvish)" style="width:150px"><input id="phText" class="grow" placeholder="Phrase in that tongue"><button class="btn" data-act="phrase">Send phrase</button></div>
+      <div class="row"><input id="voteOpts" class="grow" placeholder="Options, comma separated" title="Options, comma separated (blank = Yes, No, Unsure)"><button class="btn primary" data-act="voteStart">Start vote</button><button class="btn" data-act="voteClose">Close</button><button class="btn" data-act="voteClear">Clear</button></div>
       <div id="voteTally" class="note"></div>
       <div class="row"><input id="spTitle" placeholder="Spoils title" style="width:140px"><input id="spItems" class="grow" placeholder="Gold 40, Dagger 1"><button class="btn" data-act="spoil">Drop spoils</button></div>
       <div id="msgList" class="list"></div>
@@ -355,7 +355,7 @@
         <button class="btn small" id="mapSet">Set grid</button>
       </div>
       <div class="row">
-        <input id="mapSeed" placeholder="seed (optional)" style="width:110px" title="Same seed, same terrain">
+        <input id="mapSeed" placeholder="seed (optional)" style="width:130px" title="Same seed, same terrain">
         <button class="btn small" id="mapGen" title="Fill the map with hills, water, ruined walls, trees and rocks. Replaces the terrain.">⛰ Generate terrain</button>
         <span class="note tight" id="mapSeedNow"></span>
       </div>
@@ -375,7 +375,7 @@
       <h3>Creature randomizer <span class="note">seed locks a result</span></h3>
       <div class="row">
         <select id="rndTable" class="grow"></select>
-        <input id="rndSeed" placeholder="seed (optional)" style="width:110px">
+        <input id="rndSeed" placeholder="seed (optional)" style="width:130px">
         <button class="btn primary" id="rndRoll">Roll</button>
       </div>
       <div id="rndOut" class="list"></div>
@@ -435,7 +435,7 @@
     </div>
     <div class="card" data-tab="misc" data-sub="npc" data-panel="social">
       <h3>Dialogue</h3>
-      <div class="row"><input id="lineLang" maxlength="30" style="width:170px" placeholder="Tongue (blank = Common)" aria-label="Language of this line"></div>
+      <div class="row"><input id="lineLang" maxlength="30" style="width:200px" placeholder="Tongue (blank = Common)" aria-label="Language of this line"></div>
       <textarea id="line" rows="2" placeholder="Type the NPC's line. Enter to speak, Shift+Enter for newline."></textarea>
       <button class="btn primary" data-act="say">Speak as NPC</button>
       <div id="glossBtns" class="row dm-conds"></div>

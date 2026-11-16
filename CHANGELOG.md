@@ -7,6 +7,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ### Added
 - **Battle Master** and **Social Master** co-DM roles (Mike, Nov 16), each with its own private QR on the DM page's Co-DM card (`BATTLE_KEY`, `SOCIAL_KEY`). The Battle Master runs combat, the battle map and the DM's creatures; the Social Master runs NPC dialogue. Both open the DM page showing only their cards, and the server allows only the events listed per role in `src/roles.js`. A helper key now wins over localhost, so a helper link opened on the laptop gets the helper view.
 
+### Fixed
+- DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
+
 ### Changed
 - 3D battle map look: terrain, walls and crates use 8-step cel shading, so lit faces step between eight flat tones. Rocks and trees are flat 2D cards that turn to face the camera, drawn with the same 8 banded tones and a dark outline (four variants each, shared textures).
 - Combat screen, from Mike's Nov 16 feedback:
