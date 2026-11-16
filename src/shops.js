@@ -143,6 +143,5 @@ function greer(id) {
     items: GREER_PRICES.map((price, i) => ({ id: `${id}-${i + 1}`, name: 'Item Name', price, stock: null, note: 'Item description', category: GREER_CATS[i % GREER_CATS.length] })),
   };
 }
-const MAX_SHOWN = 60; // items on the shop pop-up (3 columns, rows as needed)
 
-module.exports = { greer, MAX_SHOWN, money, clampGold, parseList, create, buy, sell, offers, unitCp, MAX_SHOPS, SELL_SHARE };
+module.exports = { greer, money, clampGold, parseList, create, buy, sell, offers, unitCp, MAX_SHOPS, SELL_SHARE };

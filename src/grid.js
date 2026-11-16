@@ -4,7 +4,8 @@
 //   tokens:   every combatant and party member can have a tile { x, y } and a height { z } in tiles
 //             (fliers rise above the table; the TV shows the height).
 //   movement: a character moves up to its speed in one turn, costed over the grid. Fliers use their
-//             fly speed and ignore difficult terrain. The DM can move anything (no cost check).
+//             fly speed and ignore difficult terrain. The DM can move anything, even past its speed: the move
+//             still counts, so the movement left can go negative (shown red).
 //   3D:       heights, ground and props (src/iso.js). Climbing a step costs 5 ft more; walkers go up at most
 //             2 steps and down 3 in one stride; rocks, trees and crates block walkers (fliers pass rocks and crates).
 const { state, log } = require('./state');
@@ -54,21 +55,35 @@ function remember(id, path) {
   if (path.length > 1) state.tokens[id].facing = iso.facing(path[path.length - 2], path[path.length - 1]);
 }
 
+// Speed in feet for this turn: the fly speed while flying, else the walk speed.
+const speedOf = (c) => ((c.speed?.fly || 0) > 0 && c.flying !== false ? c.speed.fly : (c.speed?.walk ?? (typeof c.speed === 'number' ? c.speed : 30)));
+// Feet of movement left this turn. Negative when the DM has moved it past its speed.
+
 // A character moves on its turn. Returns { ok, cost } or { error }.
 function move(c, x, y, { dm = false } = {}) {
   const tk = state.tokens[c.id];
   if (!state.map || !tk) return { error: 'No position on the map.' };
   if (!inside(x, y) || state.map.terrain?.[`${x},${y}`] === WALL) return { error: 'That tile is blocked.' };
   const flying = (c.speed?.fly || 0) > 0 && (c.flying !== false);
+  // The DM can move anything anywhere, but the move still uses the creature's movement (Mike, Nov 16).
+  // It may go past the creature's speed; the movement left then goes negative and shows red.
   if (dm) {
-    const r = iso.route(state.map, tk, { x, y }, { flying: true });
     const from = [tk.x, tk.y];
+    const own = state.combat.active ? iso.route(state.map, tk, { x, y }, { flying }) : null;
+    const anim = own || iso.route(state.map, tk, { x, y }, { flying: true });
+    const ft = !state.combat.active ? 0 : own ? own.ft : Math.max(Math.abs(x - tk.x), Math.abs(y - tk.y)) * TILE_FT;
     place(c.id, x, y);
-    remember(c.id, r ? r.path : [from, [x, y]]);
-    return { ok: true, cost: 0 };
+    remember(c.id, anim ? anim.path : [from, [x, y]]);
+    if (ft) {
+      const used = (state.combat.moved?.[c.id] || 0) + ft;
+      state.combat.moved = { ...(state.combat.moved || {}), [c.id]: used };
+      const over = used - speedOf(c);
+      if (over > 0) log('combat', `${c.name} moves ${ft} ft, ${over} ft past its speed.`, { vis: 'dm', tone: 'bad' });
+    }
+    return { ok: true, cost: ft };
   }
   if (state.map.props?.[`${x},${y}`] && !flying) return { error: 'That tile is blocked.' };
-  const budget = flying ? c.speed.fly : (c.speed?.walk ?? c.speed ?? 30);
+  const budget = speedOf(c);
   const used = state.combat.moved?.[c.id] || 0;
   const r = iso.route(state.map, tk, { x, y }, { flying });
   if (!r) return { error: 'No route there.' };
@@ -80,5 +95,7 @@ function move(c, x, y, { dm = false } = {}) {
   return { ok: true, cost: r.ft };
 }
 const resetMoves = () => { state.combat.moved = {}; };
+// The DM gives one creature its movement back (right-click menu).
+const resetMove = (id) => { if (state.combat.moved) delete state.combat.moved[id]; };
 
-module.exports = { TILE_FT, WALL, DIFFICULT, setMap, paint, place, cost, move, resetMoves };
+module.exports = { TILE_FT, WALL, DIFFICULT, setMap, paint, place, cost, move, resetMoves, resetMove, speedOf };

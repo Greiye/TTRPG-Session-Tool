@@ -8,11 +8,10 @@
 // Online search (optional, needs internet on the laptop) asks Open5e for SRD-licensed entries only.
 const creatures = require('./creatures');
 const spells = require('./spells');
-const { str } = require('./util');
+const { str, slug } = require('./util');
 
 const num = (v, d = 0) => { const n = parseInt(v, 10); return Number.isFinite(n) ? n : d; };
 const first = (...vals) => vals.find((v) => v !== undefined && v !== null && v !== '');
-const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
 
 function speedOf(s) {
   if (typeof s === 'number') return { walk: s };

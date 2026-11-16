@@ -173,10 +173,23 @@
       : `<span class="av ${cls}" style="--hue:${p.hue ?? 40}">${portrait('neutral', p.hue ?? 40)}</span>`;
   }
   const accent = (p) => `--hue:${p.hue ?? 40}`;
+  // A character's emotion badge in the social scene: set when their line is sent from the phone.
+  const pcEmo = (s, p) => { const e = s.social.expr?.[p.id]; return e && EMO[e] ? `<i class="vn-pc-emo" data-emo="${e}" title="${esc(EMO[e].label)}">${EMO[e].icon}</i>` : ''; };
 
   // Phase 3 scene: party portraits on the left (up to 3), the cast on the right (up to 5, focus enlarged), dialogue below.
   const MAX_PARTY = 3;
+  // Social narration (Nov 16): the DM can still narrate during a conversation. The newest 3 lines posted
+  // since the conversation started sit in a small box at the top left of the social window.
+  function vnNarration(s) {
+    const from = s.social.convo?.from || 0;
+    const list = (s.narration || []).filter((n) => Number(n.id) > from).slice(-3);
+    return list.length ? `<ol class="vn-narr narration">${list.map((n) => `<li data-nid="${esc(n.id)}">${esc(n.text)}</li>`).join('')}</ol>` : '';
+  }
+  // Social mode before the DM starts the conversation (the DM is picking who takes part).
+  const convoWait = () => '<div class="convo-wait"><span aria-hidden="true">💬</span><b>A conversation is about to begin…</b></div>';
   function vn(s, { compact = false } = {}) {
+    const convo = s.social.convo;
+    if (convo && !convo.live && !compact) return convoWait();
     const { npc, line, caption } = s.social;
     const cast = s.social.cast || [];
     const emo = line.emotion || 'neutral';
@@ -189,7 +202,7 @@
     const rank = (p) => { const i = vnRecent.indexOf(p.id); return i < 0 ? 99 : i; };
     const front = party.length ? party.reduce((a, b) => (rank(b) < rank(a) ? b : a)) : null;
     const left = party.map((p) => `
-      <div class="vn-pc-l hold-zoom ${line.pid === p.id ? 'speaking' : ''} ${front && rank(front) < 99 && p.id === front.id ? 'front' : ''}" style="${accent(p)};z-index:${100 - rank(p)}">${avatar(p, 'av-vn')}<small>${esc(p.name)}</small></div>`).join('');
+      <div class="vn-pc-l hold-zoom ${line.pid === p.id ? 'speaking' : ''} ${front && rank(front) < 99 && p.id === front.id ? 'front' : ''}" style="${accent(p)};z-index:${100 - rank(p)}">${avatar(p, 'av-vn')}${pcEmo(s, p)}<small>${esc(p.name)}</small></div>`).join('');
     // Without a cast the single speaker stands on the right, as before.
     // A speaker who is not on the cast (or no cast yet) stands at the far right, enlarged.
     const inCast = cast.some((m) => m.id === npc.id);
@@ -201,6 +214,7 @@
       return `<div class="vn-cast-m"><div class="vn-portrait-s hold-zoom">${portrait(m.emotion || 'neutral', m.hue)}</div><small>${esc(m.name)}</small></div>`;
     }).join('');
     return `<div class="vn ${compact ? 'compact' : ''} ${pc ? 'pc-speaking' : ''}">
+      ${compact ? '' : vnNarration(s)}
       <div class="vn-left">${left}</div>
       <div class="vn-right">${right}</div>
       <div class="vn-box emo-${emo} ${line.player ? 'player-line' : ''}" style="${pc ? accent(pc) : ''}">
@@ -267,7 +281,8 @@
       <div class="check-res">${res.map((r) => `<span class="${r.pass ? 'pass' : 'fail'}">${esc(r.name)} ${r.total}</span>`).join('') || '<span class="wait">Roll on your phone!</span>'}</div></div>`;
   }
 
-  // Fog of war (item 7c): POIs the party has not uncovered show as fog.
+  // Fog of war (item 7c): POIs the party has not uncovered stay hidden.
+  let poiSeen = null;
   function exploration(s) {
     const sc = s.scene;
     // Dungeon nodes take over the exploration stage while the DM shows them (public/dungeon.js).
@@ -275,8 +290,12 @@
       return `<div class="dg-wrap">${Dungeon.board(s.dungeon, { title: sc.title, dm: document.body.classList.contains('dm'), selected: window.DungeonSel })}${checkBanner(s)}</div>`;
     }
     // The server sends null for a covered point unless the viewer is the DM.
+    // Covered points stay off the TV entirely (Mike, Nov 16): no "???" chips hinting at what is there.
+    // A point the DM uncovers pops in once.
     const open = new Set(sc.revealed || []);
-    const poi = sc.poi.map((p) => (p !== null && open.has(p) ? `<span>🔍 ${esc(p)}</span>` : '<span class="fog">☁ ???</span>')).join('');
+    const shown = sc.poi.filter((p) => p !== null && open.has(p));
+    const poi = shown.map((p) => `<span class="${poiSeen && !poiSeen.has(p) ? 'poi-in' : ''}">🔍 ${esc(p)}</span>`).join('');
+    poiSeen = new Set(shown);
     return `<div class="explore">
       <h1>${esc(sc.title)}</h1>
       <p class="scene-text">${esc(sc.text)}</p>
@@ -295,7 +314,7 @@
 
   // Shop pop-up on the TV: the shop, its wares, and how many are still shopping.
   const gp = (n) => Number(n || 0).toFixed(2).replace(/\.?0+$/, '');
-  // Greer's-style pop-up (Mike, Nov 15): the shop's banner centred on top, then up to 60 wares as buttons in
+  // Greer's-style pop-up (Mike, Nov 15): the shop's title, the merchant banner under it (TV only, Nov 16), then up to 60 wares as buttons in
   // 3 columns (rows grow as needed and shrink to fit the TV): name, description, price.
   function shopTv(s) {
     const pop = s.shopPop;
@@ -305,7 +324,7 @@
     const items = shown.map((i) => `<li class="shop-ware ${i.stock === 0 ? 'out' : ''}"><b>${esc(i.name)}</b>${i.note ? `<span>${esc(i.note)}</span>` : ''}<em>${gp(i.price)} gp${i.stock === null ? '' : i.stock ? ` · ${i.stock} left` : ' · sold out'}</em></li>`).join('');
     const left = pop.shopping;
     return `<div class="shop-tv" data-n="${pop.n}"><div class="shop-box" style="--rows:${Math.max(1, Math.ceil(shown.length / 3))}">
-      ${shop.banner ? `<img class="shop-banner" src="${esc(shop.banner)}" alt="">` : `<h2>🛒 ${esc(shop.name)}</h2>`}
+      <h2>🛒 ${esc(shop.name)}</h2>${shop.banner ? `<img class="shop-banner" src="${esc(shop.banner)}" alt="${esc(shop.npc || '')}">` : ''}
       <ul class="shop-grid">${items || '<li class="shop-ware"><b>Nothing for sale.</b></li>'}</ul>
       <p class="shop-left">${left ? `<b>${left}</b> still shopping` : 'Open for business'}</p>
     </div></div>`;
@@ -417,6 +436,9 @@
         ? `<video src="${esc(img.url)}" autoplay muted loop playsinline></video>`
         : `<img src="${esc(img.url)}" alt="">`;
     }
+    // Per-backdrop opacity (the bundled sample shows at 50%); the fade-in animates up to it.
+    const op = Number(img?.opacity);
+    bd.style.setProperty('--bd-op', op > 0 && op < 1 ? String(op) : '1');
     const fx = root.querySelector(':scope > .fx');
     const fxKey = (s.backdrop?.effects || []).join(',');
     if (fx.dataset.key !== fxKey) {
@@ -458,6 +480,8 @@
     // Mode title: a short card fades in and out when the table changes mode (not on the first draw).
     const prevMode = root.dataset.mode;
     if (prevMode && prevMode !== s.mode) {
+      // A new mode skips the previous card, so two titles never overlap (Mike, Nov 16).
+      root.querySelectorAll(':scope > .mode-title').forEach((x) => x.remove());
       const t = document.createElement('div');
       t.className = 'mode-title';
       t.textContent = `— ${s.mode.toUpperCase()} —`;
@@ -474,9 +498,15 @@
         ${(s.settings?.display?.showLog || []).length ? `<aside class="stage-log">${logFeed(s, 9, new Set(s.settings.display.showLog))}</aside>` : ''}
       </main>
       <footer>${party(s, hpc.showing)}</footer>
-      ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}${legendsCard(s)}${trophyCard(s)}${shopTv(s)}`;
+      ${spotlightCard(s)}${bossCard(s)}${introCard(s)}${memorialCard(s)}${clocks(s)}${shared(s)}${campCard(s)}${tension(s)}${canon(s)}${montage(s)}${payoffs(s)}${puzzleTv(s)}${webTv(s)}${legendsCard(s)}${trophyCard(s)}${shopTv(s)}${convoEnd(s)}`;
     prepTv(root, s);
     joinDock(root, s);
+    // "The conversation has concluded" fades in once; re-renders keep its place in the animation.
+    const ce = ui.querySelector('.convo-end');
+    if (ce) {
+      if (root.dataset.convoEnd !== String(s.social.convo.n)) { root.dataset.convoEnd = s.social.convo.n; root.dataset.convoEndAt = Date.now(); }
+      ce.style.animationDelay = `${-(Date.now() - Number(root.dataset.convoEndAt || 0))}ms`;
+    }
     if (hpc.fresh.length) requestAnimationFrame(() => requestAnimationFrame(() => hpc.fresh.forEach((id) => root.querySelector(`.pc[data-pid="${CSS.escape(id)}"]`)?.classList.add('hp-show'))));
     // Puzzle solve: the card pops once, then the solution words land one by one.
     const pz = ui.querySelector('.pz-card.solved');
@@ -516,10 +546,27 @@
     }
   }
 
-  // Segment clocks (17): a pie of segments on the TV, filled as the DM advances them.
+  // Segment clocks (17): a round clock cut into wedges from the centre (Mike, Nov 16: not vertical bars).
+  // Shared by the TV, the DM preview and the DM clock lists. Wedges filled since the last draw of the same
+  // clock (key) sweep in, so re-renders never replay old fills.
+  const pieSeen = new Map();
+  function pie(segments, filled, key = null, cls = '') {
+    const n = Math.max(1, Math.min(24, Number(segments) || 1));
+    const f = Math.max(0, Math.min(n, Number(filled) || 0));
+    const prev = key == null || !pieSeen.has(key) ? f : pieSeen.get(key);
+    if (key != null) pieSeen.set(key, f);
+    const pt = (i) => { const a = (i / n) * 2 * Math.PI - Math.PI / 2; return `${(50 + 46 * Math.cos(a)).toFixed(2)} ${(50 + 46 * Math.sin(a)).toFixed(2)}`; };
+    const wedge = (i) => (n === 1 ? '<circle cx="50" cy="50" r="46"/>' : `<path d="M50 50 L${pt(i)} A46 46 0 0 1 ${pt(i + 1)} Z"/>`);
+    const parts = Array.from({ length: n }, (_, i) => wedge(i).replace(/^<(\w+)/, `<$1 class="${i < f ? 'on' : ''}${i < f && i >= prev ? ' fill-in' : ''}" style="--i:${i - prev}"`));
+    const spokes = n > 1 ? Array.from({ length: n }, (_, i) => `<line x1="50" y1="50" x2="${pt(i).replace(' ', '" y2="')}"/>`).join('') : '';
+    return `<svg class="pie ${esc(cls)}" viewBox="0 0 100 100" role="img" aria-label="${f} of ${n}"><g class="wedges">${parts.join('')}</g><g class="spokes">${spokes}</g><circle class="rim" cx="50" cy="50" r="46"/></svg>`;
+  }
+
+  // End of a conversation (Nov 16): a centred card, then the server returns everyone to exploration.
+  const convoEnd = (s) => (s.mode === 'social' && s.social.convo?.ending ? '<div class="convo-end" role="status"><b>The conversation has concluded</b></div>' : '');
   function clocks(s) {
     if (!s.clocks?.length) return '';
-    return `<div class="clocks">${s.clocks.map((k) => `<div class="clock"><small>${esc(k.name)}</small><div class="pie" style="--n:${k.segments}">${Array.from({ length: k.segments }, (_, i) => `<i class="${i < k.filled ? 'on' : ''}"></i>`).join('')}</div></div>`).join('')}</div>`;
+    return `<div class="clocks">${s.clocks.map((k) => `<div class="clock"><small>${esc(k.name)}</small>${pie(k.segments, k.filled, 'tv:' + k.id)}</div>`).join('')}</div>`;
   }
   // Conditions (16): small chips under a combatant's name.
   const conds = (x) => (x?.conditions?.length ? `<em class="conds">${x.conditions.map((c) => esc(c)).join(', ')}</em>` : '');
@@ -683,7 +730,7 @@
       <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Relations web">${lines}${dots}</svg></div>`;
   }
 
-  window.Stage = { stage, vn, portrait, avatar, layeredSprite, refillLayered, hpBar, logFeed, checkBanner, hallHtml, shelfHtml, esc, EMO };
+  window.Stage = { stage, vn, pie, portrait, avatar, layeredSprite, refillLayered, hpBar, logFeed, checkBanner, hallHtml, shelfHtml, esc, EMO };
 })();
 
 // Press and hold a portrait for a moment to see it full screen; Back returns. Works on the TV and the phone.

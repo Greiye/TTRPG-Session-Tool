@@ -5,8 +5,8 @@ import { dmKey } from './auth.js';
 
 const { esc } = Stage;
 const BUILTIN_THEMES = { thunder: 'Thunder', hit: 'Sword hit', magic: 'Spell', roar: 'Roar', bell: 'Bell' };
-const FIELDS = ['name', 'player', 'race', 'cls', 'level', 'hp', 'maxHp', 'ac', 'atk', 'dmg', 'init', 'hue', 'catchphrase', 'theme', 'backstory', 'hooks', 'secret'];
-const TEXT_FIELDS = ['player', 'race', 'catchphrase', 'theme', 'backstory', 'hooks', 'secret'];
+const FIELDS = ['name', 'player', 'race', 'cls', 'level', 'hp', 'maxHp', 'ac', 'atk', 'dmg', 'init', 'hue', 'catchphrase', 'pronoun', 'theme', 'backstory', 'hooks', 'secret'];
+const TEXT_FIELDS = ['player', 'race', 'catchphrase', 'pronoun', 'theme', 'backstory', 'hooks', 'secret'];
 let ROSTER = [];
 let editing = null;
 let skillsKey = null;
@@ -66,8 +66,8 @@ function open(c) {
   f.cls.innerHTML = S.classes.map((k) => `<option>${esc(k)}</option>`).join('');
   f.theme.innerHTML = '<option value="">None</option>' + Object.entries(BUILTIN_THEMES).map(([k, v]) => `<option value="${k}">🔊 ${v}</option>`).join('')
     + S.audio.library.map((t) => `<option value="${esc(t.id)}">🎵 ${esc(t.name)}</option>`).join('');
-  const v = c || { name: '', player: '', race: '', cls: S.classes[0], level: 1, hp: '', maxHp: '', ac: '', atk: '', dmg: [1, 8, 0], init: '', skills: {}, hue: 40, catchphrase: '', theme: '', backstory: '', hooks: '', secret: '' };
-  for (const k of FIELDS) if (k !== 'dmg' && k !== 'theme') f[k].value = v[k] ?? '';
+  const v = c || { name: '', player: '', race: '', cls: S.classes[0], level: 1, hp: '', maxHp: '', ac: '', atk: '', dmg: [1, 8, 0], init: '', skills: {}, hue: 40, catchphrase: '', pronoun: 'they', theme: '', backstory: '', hooks: '', secret: '' };
+  for (const k of FIELDS) if (k !== 'dmg' && k !== 'theme') f[k].value = v[k] ?? (k === 'pronoun' ? 'they' : '');
   f.theme.value = v.theme || '';
   f.dmg.value = c ? `${v.dmg[0]}d${v.dmg[1]}${v.dmg[2] ? (v.dmg[2] > 0 ? '+' : '') + v.dmg[2] : ''}` : '';
   skillInputs().forEach((i) => { i.value = v.skills[i.dataset.skill] ?? ''; });

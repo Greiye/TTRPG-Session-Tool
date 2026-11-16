@@ -100,6 +100,11 @@ function viewState(base, viewer) {
   out.downtime = require('./downtime').viewFor(base.downtime, viewer); // phones see their own pick and result
   out.absent = require('./absent').view(base, viewer); // missed lines are the DM's, and the owner's card
   out.camp = require('./camp').viewFor(base.camp, viewer); // camp votes: DM sees all, phones their own
+  if (out.camp?.mine && out.camp.open) { // the phone's class section: what its class gets back on each rest
+    const ch = base.players.find((p) => p.id === viewer.charId);
+    out.camp.mine.info = require('./rests').campInfo(ch);
+    out.camp.mine.missing = ch ? require('./camp').restBlockers(ch) : [];
+  }
   // Phase I table tools (src/table.js). The DM sees the controls and the numbers behind them; phones see
   // their own nudge and token; the TV sees the shared pieces (tension, canon, layout, montage once revealed).
   const T = require('./table');
@@ -127,6 +132,7 @@ function viewState(base, viewer) {
   out.story = base.story ? require('./moments').storyView(base.story) : null; // the in-world clock is shared with everyone
   out.puzzle = require('./puzzle').viewFor(base.puzzle, viewer); // teamwork puzzle: clues per phone, answer once solved (src/puzzle.js)
   out.dungeon = require('./dungeon').viewFor(base.dungeon, viewer); // dungeon nodes: unrevealed rooms show as fog (src/dungeon.js)
+  if (out.dungeon) out.dungeon.gate = require('./dungeon').gate(base.dungeon, base.worldMap, base.players); // the Enter Dungeon window (PR R)
   out.web = require('./web').viewFor(base.web, viewer, base.factions || []); // relations web: TV sees revealed parts only (src/web.js)
   if (base.scene) out.scene = { ...sceneFor(base.scene, viewer), secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
   // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.
@@ -162,10 +168,11 @@ function viewState(base, viewer) {
     out.lan = require('./net').lanAddresses();
     out.entities = Object.values(require('./entities').entities); // world library (Arthuria), DM only for now
     out.saves = require('./saves').list();
+    out.undo = require('./undo').view(); // what Undo and Redo would change (src/undo.js)
   }
   // Battle and Social Masters run the table live, so they get the DM view without the DM's prep and admin:
   // session plans (DM notes), save slots, the world library and the laptop's network addresses.
-  if (viewer.master) for (const k of ['plans', 'saves', 'entities', 'lan']) delete out[k];
+  if (viewer.master) for (const k of ['plans', 'saves', 'entities', 'lan', 'undo']) delete out[k];
   return out;
 }
 

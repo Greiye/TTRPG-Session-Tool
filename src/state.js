@@ -23,6 +23,7 @@ const worldmap = require('./worldmap');
 const living = require('./living');
 const web = require('./web');
 const dungeon = require('./dungeon');
+const undo = require('./undo');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -106,9 +107,8 @@ const state = {
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),
 };
 
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story', 'narration');
-store.EXTRA.push('cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace');
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'worldMap', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story');
+// Durable campaign keys saved with the table (src/store.js); one list, each key once.
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story', 'narration', 'cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'worldMap');
 store.EXTRA.push('living', 'weather'); // phase K living world and the shared weather
 store.EXTRA.push('houseRules', 'absent'); // phase J house rules and empty chairs
 store.EXTRA.push('intro', 'timers'); // phase D intro card text and timers
@@ -129,8 +129,11 @@ state.web ??= web.fresh();
 state.dungeon ??= dungeon.fresh();
 state.puzzle ??= null;
 cast.ensure(state.social);
+state.social.convo.ending = false; // the end timer does not survive a restart
 state.camp ??= camp.fresh();
-state.houseRules ??= {};
+// The House rules section left the DM screen and phones (Mike, Nov 16), so no rule is enforced unseen: a save that
+// had one on loads with them all off. dm:houserule still works for a later UI.
+state.houseRules = {};
 state.absent ??= {};
 state.worldMap ??= worldmap.fresh();
 state.worldMap.roads ??= []; // roads and fog came after Phase G: older saves have neither
@@ -203,6 +206,7 @@ function broadcast() {
     hub.io.to('dms').emit('dm:roster', Object.values(roster).map(({ socketId, ...c }) => ({ ...c, online: !!socketId })));
     saveRoster();
     store.scheduleSave(snap);
+    undo.touch();
   });
 }
 // Save immediately on shutdown so the last change is never lost.
@@ -221,3 +225,24 @@ module.exports.loadSnapshot = (saved) => {
   cast.ensure(state.social);
 };
 module.exports.snapshot = snap;
+
+// DM undo (src/undo.js): the history holds the campaign and each character sheet. Going back restores both;
+// phones stay connected (socket ids are kept) and characters made since then are left alone.
+const sheets = () => Object.fromEntries(Object.values(roster).map(({ socketId, ...c }) => [c.id, c]));
+undo.init({
+  snapshot: snap,
+  characters: sheets,
+  changed: () => broadcast(),
+  lastLine: () => { const e = state.log[state.log.length - 1]; return e ? { id: e.id, text: e.text } : null; },
+  apply(step) {
+    const campaign = Object.fromEntries(Object.entries(step.parts).map(([k, v]) => [k, JSON.parse(v)]));
+    module.exports.loadSnapshot({ ...campaign, version: store.VERSION, seq: 0 });
+    for (const [id, json] of Object.entries(step.chars)) {
+      const saved = JSON.parse(json);
+      const c = roster[id];
+      if (!c) continue;
+      for (const k of Object.keys(c)) if (k !== 'socketId' && !(k in saved)) delete c[k];
+      Object.assign(c, saved);
+    }
+  },
+});

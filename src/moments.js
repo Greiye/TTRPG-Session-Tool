@@ -50,7 +50,6 @@ function readSeg(v) {
   const n = Number(v);
   return Number.isInteger(n) && n >= 0 && n < 5 ? n : -1;
 }
-const storyLight = (story) => SEG_LIGHT[segOf(story)];
 const clockLabel = (story) => `Day ${story.day} · ${SEG_NAMES[segOf(story)]}`;
 // What the TV and phones get: the label and light are derived here, so every screen agrees.
 // moved counts clock changes, so the TV shows its time card and plays the segment sound once per change.
@@ -92,8 +91,12 @@ function pause(tv, on, text) {
 }
 function chapter(tv, title, sub) {
   const t = str(title, 80).trim();
-  if (t) tv.chapter = { n: next(tv), title: t, sub: str(sub, 80).trim() };
+  if (!t) return null;
+  tv.chapter = { n: next(tv), title: t, sub: str(sub, 80).trim() };
+  return tv.chapter;
 }
+// The log line a chapter card leaves behind (Mike, Nov 16), so the session logs and chronicle keep it.
+const chapterLine = (c) => (c ? `Chapter: ${c.title}${c.sub ? ` (${c.sub})` : ''}` : null);
 // The sound is optional and must be one of the built-in one-shots; the caller plays it.
 function entrance(tv, { name, image, sfx } = {}, sfxList = []) {
   const n = str(name, 60).trim();
@@ -177,14 +180,15 @@ function epilogueStart(tv, s) {
 const epilogueEnd = (tv) => { tv.epilogue = null; };
 
 // Called when the DM changes the scene title: a fade, a chapter card for the new place, and echo countdown.
+// Returns { echoes, chapter } so the caller can log the chapter card.
 function onNewScene(s) {
   transition(s.tv, 'fade');
-  chapter(s.tv, s.scene.title, s.story ? clockLabel(s.story) : '');
-  return echoTick(s.tv);
+  const c = chapter(s.tv, s.scene.title, s.story ? clockLabel(s.story) : '');
+  return { echoes: echoTick(s.tv), chapter: c };
 }
 
 module.exports = {
-  TRANSITIONS, SEGMENTS, SEG_NAMES, defaults, storyDefault, storyLight, storyView, clockLabel, setTime, advance, segOf,
-  transition, pause, chapter, entrance, quoteAdd, quoteRemove, echoPlant, echoFire, echoCancel, echoTick,
+  TRANSITIONS, SEGMENTS, SEG_NAMES, defaults, storyDefault, storyView, clockLabel, setTime, advance, segOf,
+  transition, pause, chapter, chapterLine, entrance, quoteAdd, quoteRemove, echoPlant, echoFire, echoCancel, echoTick,
   relicAdd, relicReveal, relicRemove, relicClose, bookSet, epilogueStart, epilogueEnd, onNewScene,
 };

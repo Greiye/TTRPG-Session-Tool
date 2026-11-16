@@ -21,17 +21,22 @@ function render() {
   const S = state();
   if (!S || tab() !== 'logs') return;
   const kinds = GROUPS[filter];
-  const off = '<p class="note logs-off">Logs are off on this phone. Turn them on in ⚙ Display settings › Show logs.</p>';
-  const chips = `${off}<div class="chips" role="group" aria-label="Filter the log">${Object.keys(GROUPS).map((g) => `<button class="chip ${g === filter ? 'on' : ''}" data-log-filter="${g}" aria-pressed="${g === filter}">${NAMES[g]}</button>`).join('')}</div>`;
+  // The show/hide switch is here as well as in ⚙ Display settings › Show logs (Mike, Nov 16).
+  const on = window.Settings?.local().log === 'show';
+  const toggle = `<label class="chk log-toggle"><input type="checkbox" data-log-here ${on ? 'checked' : ''}> Show logs on this phone</label>
+    <p class="note logs-off">Logs are off on this phone.</p>`;
+  const chips = `${toggle}<div class="chips" role="group" aria-label="Filter the log">${Object.keys(GROUPS).map((g) => `<button class="chip ${g === filter ? 'on' : ''}" data-log-filter="${g}" aria-pressed="${g === filter}">${NAMES[g]}</button>`).join('')}</div>`;
   if (kinds === 'trail') { root().innerHTML = `${chips}<div class="card">${WorldMap.trail(S.trail, { max: 40 })}</div>`; return; }
-  root().innerHTML = `
-    <div class="chips" role="group" aria-label="Filter the log">${Object.keys(GROUPS).map((g) => `<button class="chip ${g === filter ? 'on' : ''}" data-log-filter="${g}" aria-pressed="${g === filter}">${NAMES[g]}</button>`).join('')}</div>
-    <section class="feed log-full" aria-label="Table log"></section>`;
+  root().innerHTML = `${chips}<section class="feed log-full" aria-label="Table log"></section>`;
   // Story-style feed (public/chronicle.js): speech in portrait boxes, newest at the bottom.
   Chronicle.feed(root().querySelector('.feed'), S, { n: 40, kinds: kinds || Object.values(GROUPS).filter(Array.isArray).flat() });
 }
 onState(render);
 onTab((id) => { if (id === 'logs') render(); });
+window.addEventListener('settings:local', (e) => { if (e.detail?.name === 'log') render(); });
+root().addEventListener('change', (e) => {
+  if (e.target.matches('[data-log-here]')) window.Settings?.setLocal('log', e.target.checked ? 'show' : 'hide');
+});
 root().addEventListener('click', (e) => {
   const b = e.target.closest('[data-log-filter]');
   if (!b) return;

@@ -4,7 +4,7 @@
 // narrow trail of icons, so the rooms ahead get the room, and every card glides to its new place. The server
 // filters what each viewer sees (src/dungeon.js viewFor). Classic script: exposes the global Dungeon.
 (function () {
-  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
   const ICON = { entrance: '🚪', passage: '👣', room: '🏛', crypt: '⚰', trap: '🗡', treasure: '💰', monster: '💀', scroll: '📜', puzzle: '🧩', secret: '🗝', boss: '👑', exit: '🌅' };
 
   function levels(nodes) {
@@ -70,7 +70,8 @@
         <div class="dg-level"><b>${trail(i) ? `L${i + 1}` : `LEVEL ${i + 1}`}</b>${trail(i) ? '' : i === 0 ? '<small>(Entrance)</small>' : i + 1 === hereLevel ? '<small>(Party here)</small>' : ''}</div>
         <div class="dg-cards">${col.map((n) => card(n, d, opts, kids.has(n.id))).join('')}</div>
       </div>`).join('');
-    return `<div class="dg ${opts.phone ? 'phone' : ''} ${opts.dm ? 'dm' : ''}" style="--cols:${R.length - nTrail};--trail:${nTrail};--rows:${maxRows}">
+    // The TV keeps the party's room in the middle of the screen (Mike, Nov 16, PR R): see centre() below.
+    return `<div class="dg ${opts.phone ? 'phone' : ''} ${opts.dm ? 'dm' : ''} ${!opts.dm && !opts.phone && d.here ? 'center' : ''}" style="--cols:${R.length - nTrail};--trail:${nTrail};--rows:${maxRows}">
       <div class="dg-wall" aria-hidden="true"><div class="dg-arch"></div></div>
       ${opts.title ? `<div class="dg-title">${esc(opts.title)}</div>` : ''}
       <div class="dg-body">${body}</div>
@@ -136,11 +137,12 @@
       });
       if (moved) { const end = performance.now() + 700; const tick = () => { draw(el, d); if (performance.now() < end && el.isConnected) requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
     }
+    centre(el, d, root);
     draw(el, d);
     requestAnimationFrame(() => draw(el, d));
     if (window.ResizeObserver) {
       obs.get(root)?.disconnect();
-      const ro = new ResizeObserver(() => draw(el, d));
+      const ro = new ResizeObserver(() => { centre(el, d, root); draw(el, d); });
       ro.observe(el);
       obs.set(root, ro);
     }
@@ -162,5 +164,69 @@
     if (sc && h) { const a = sc.getBoundingClientRect(); const b = h.getBoundingClientRect(); sc.scrollLeft += b.left + b.width / 2 - (a.left + a.width / 2); }
   }
 
-  window.Dungeon = { ICON, levels, rows, board, draw, hydrate };
+  // TV: slide the board so the party's room sits in the middle of the screen. The shift is kept per root, so a
+  // re-render starts from where the last one ended and the board glides to the new room; the ropes follow.
+  const shifts = new WeakMap();
+  function centre(el, d, root) {
+    if (!el.classList.contains('center')) return;
+    const body = el.querySelector('.dg-body');
+    const h = el.querySelector('.dg-card.here');
+    if (!body || !h) return;
+    const was = shifts.get(root) || { x: 0, y: 0 };
+    body.style.transition = 'none';
+    body.style.transform = `translate(${was.x}px, ${was.y}px)`;
+    const a = el.getBoundingClientRect();
+    const b = h.getBoundingClientRect();
+    if (!a.width) return;
+    const x = Math.round(was.x + a.left + a.width / 2 - (b.left + b.width / 2));
+    const y = Math.round(was.y + a.top + a.height / 2 - (b.top + b.height / 2));
+    shifts.set(root, { x, y });
+    if (x === was.x && y === was.y) return;
+    void body.offsetWidth;
+    body.style.transition = reduce() ? 'none' : 'transform .7s cubic-bezier(.2, .8, .2, 1)';
+    body.style.transform = `translate(${x}px, ${y}px)`;
+    const end = performance.now() + 760;
+    const tick = () => { draw(el, d); if (performance.now() < end && el.isConnected) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }
+
+  // The dungeon gate on the TV (Mike, Nov 16, PR R): the dungeon's picture, its name, and how many players are
+  // holding Enter Dungeon on their phones. Shown over whatever the TV shows while the server reports a gate.
+  let gateEl = null;
+  let gateKey = '';
+  function tvGate(s) {
+    const g = s?.dungeon?.gate;
+    if (!g) {
+      if (gateEl && !gateEl.classList.contains('out')) { gateEl.classList.add('out'); const el = gateEl; setTimeout(() => { el.remove(); if (gateEl === el) gateEl = null; }, 450); }
+      gateKey = '';
+      return;
+    }
+    if (!gateEl || gateEl.classList.contains('out')) {
+      gateEl?.remove();
+      gateEl = document.createElement('div');
+      gateEl.className = 'dg-gate';
+      document.body.appendChild(gateEl);
+      gateKey = '';
+    }
+    const key = JSON.stringify(g);
+    if (key === gateKey) return;
+    const before = gateKey ? JSON.parse(gateKey).ready.length : null;
+    gateKey = key;
+    const art = g.image ? `<img src="${esc(g.image)}" alt="">` : '<div class="dg-gate-arch" aria-hidden="true"><div class="dg-wall"><div class="dg-arch"></div></div><span>🏰</span></div>';
+    const pips = Array.from({ length: g.total }, (_, i) => `<i class="${i < g.ready.length ? 'on' : ''}"></i>`).join('');
+    gateEl.innerHTML = `<div class="dg-gate-card">
+      <div class="dg-gate-art">${art}</div>
+      <div class="dg-gate-text">
+        <small>A dungeon entrance</small>
+        <h2>${esc(g.name)}</h2>
+        ${g.info ? `<p>${esc(g.info)}</p>` : ''}
+        <div class="dg-gate-count"><b>${g.ready.length}</b> / ${g.total} ready</div>
+        <div class="dg-gate-pips">${pips}</div>
+        <p class="dg-gate-hint">Hold <b>Enter Dungeon</b> on your phone</p>
+      </div>
+    </div>`;
+    if (before !== null && before !== g.ready.length) gateEl.querySelector('.dg-gate-count b')?.classList.add('bump');
+  }
+
+  window.Dungeon = { ICON, levels, rows, board, draw, hydrate, tvGate };
 })();

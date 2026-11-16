@@ -5,7 +5,7 @@ import { dmKey, masterRole } from './auth.js';
 import { holdButton } from './hold.js';
 
 const KIND_NAMES = { action: 'Actions', check: 'Checks', combat: 'Combat', downtime: 'Downtime', narrate: 'Narration', npc: 'NPC speech', say: 'Player speech', shop: 'Shops', system: 'System', notice: 'Notices', roll: 'Dice' };
-const esc = (t) => Stage.esc(t ?? '');
+const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
 const dlg = $('#endDlg');
 const qs = dmKey() ? `?key=${encodeURIComponent(dmKey())}` : '';
 $('#endTranscript').href = `/api/transcript.md${qs}`;

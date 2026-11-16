@@ -57,7 +57,11 @@ ok(dg.viewFor(D, { role: 'screen' }).nodes.length === 0, 'nothing reaches the TV
   ok(a.last.trail?.[0]?.where === 'Millbrook', 'the trail starts where the party stands');
   await h.call(dm, 'dm:worldmap:timing', { legSeconds: 5 });
   await h.call(dm, 'dm:worldmap:go', { node: 'w4' });
-  ok(await h.until(() => a.last.dungeon.on && a.last.worldMap.here === 'w4', 25000), 'arriving on the dungeon entrance pops the dungeon up for everyone');
+  // The gate (PR R): arriving shows the Enter Dungeon window; the party enters once every player has held Enter.
+  ok(await h.until(() => a.last.worldMap.here === 'w4' && a.last.dungeon.gate?.name === 'The Sunken Crossroads', 25000), 'arriving on the dungeon entrance shows the Enter Dungeon window');
+  ok(!a.last.dungeon.on && a.last.dungeon.gate.total === 1 && a.last.dungeon.gate.ready.length === 0, 'nobody is ready yet and the dungeon stays closed');
+  ok((await h.call(a, 'player:dungeon:ready', { on: true })).ok, 'the player holds Enter Dungeon');
+  ok(await h.until(() => a.last.dungeon.on && a.last.worldMap.onTv && !a.last.dungeon.gate), 'with everyone ready the party enters, over the world map on the TV');
   ok(a.last.dungeon.nodes.length === 1 && a.last.dungeon.here === 'd1', 'the phone sees only the entrance room');
   ok(a.last.trail.some((e) => e.kind === 'enter' && e.where === 'The Sunken Crossroads') && a.last.trail.some((e) => e.kind === 'world' && e.where === 'Old Stone Bridge'), 'the trail logs the road and the dungeon');
   ok((await h.call(dm, 'dm:worldmap:go', { node: 'w1' })).error, 'no travel while the party is in the dungeon');
@@ -72,6 +76,13 @@ ok(dg.viewFor(D, { role: 'screen' }).nodes.length === 0, 'nothing reaches the TV
   await h.call(dm, 'dm:dungeon:here', { id: 'd1' });
   ok((await h.call(dm, 'dm:dungeon:show', { on: false })).ok && (await h.until(() => !a.last.dungeon.on)), 'the party leaves from the entrance');
   ok(a.last.trail.at(-1).kind === 'leave', 'the trail logs leaving');
+  ok(!a.last.dungeon.gate, 'after leaving, the gate does not pop straight back up');
+  // Exit Dungeon from an end room.
+  await h.call(dm, 'dm:dungeon:show', { on: true });
+  await h.call(dm, 'dm:dungeon:here', { id: 'd16' });
+  ok(await h.until(() => a.last.dungeon.on && a.last.dungeon.atEnd), 'in the end room phones get the Exit Dungeon button');
+  ok((await h.call(a, 'player:dungeon:exit')).ok && (await h.until(() => !a.last.dungeon.on && a.last.worldMap.onTv)), 'Exit Dungeon sends the party back to the world map on the TV');
+  ok((await h.call(a, 'player:dungeon:exit')).error, 'Exit Dungeon does nothing outside the dungeon');
   await h.call(dm, 'dm:dungeon:clear');
   ok(await h.until(() => dm.last.dungeon.nodes.length === 0), 'clear empties the dungeon');
   await h.call(dm, 'dm:dungeon:example');

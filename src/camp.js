@@ -1,8 +1,8 @@
 // Camp: the DM opens camp. The TV shows a camp image, phones get a pop-up to describe downtime
-// and vote short or long rest. The DM applies the rest with the Rests buttons.
+// and vote short or long rest. Ending camp applies the rest the party voted for, unless the DM overrides it.
 const { str } = require('./util');
 
-const fresh = () => ({ open: false, n: 0, image: null, votes: {}, notes: {}, dice: {} }); // dice: hit dice each character spends on a short rest
+const fresh = () => ({ open: false, n: 0, image: null, votes: {}, notes: {}, dice: {}, apply: 'auto' }); // dice: hit dice each character spends on a short rest
 
 // Phase 5: before a rest, some classes must be set up. Casters need a spell on the sheet, martial
 // classes need a weapon in the inventory. Returns the list of what is still missing (empty when ready).
@@ -23,6 +23,7 @@ function setOpen(camp, open) {
     camp.votes = {};
     camp.notes = {};
     camp.dice = {};
+    camp.apply = 'auto';
   }
   camp.open = !!open;
 }
@@ -50,13 +51,26 @@ function tally(camp) {
   return counts;
 }
 
+// The rest ending camp applies. apply: 'auto' follows the vote (more long votes than short gives a long
+// rest; otherwise a short rest; no votes gives none), 'short' / 'long' is the DM's override, 'none' skips it.
+const APPLY = ['auto', 'short', 'long', 'none'];
+function setApply(camp, apply) { camp.apply = APPLY.includes(apply) ? apply : 'auto'; }
+function restKind(camp) {
+  const a = camp.apply || 'auto';
+  if (a === 'none') return null;
+  if (a !== 'auto') return a;
+  const t = tally(camp);
+  if (!t.short && !t.long) return null;
+  return t.long > t.short ? 'long' : 'short';
+}
+
 // What a viewer may see: the DM sees every vote and note; a phone sees its own; the TV sees counts only.
 function viewFor(camp, viewer) {
   if (!camp) return null;
   const base = { open: camp.open, n: camp.n, image: camp.image, counts: tally(camp) };
-  if (viewer.role === 'dm') return { ...base, votes: camp.votes, notes: camp.notes, dice: camp.dice || {} };
+  if (viewer.role === 'dm') return { ...base, votes: camp.votes, notes: camp.notes, dice: camp.dice || {}, apply: camp.apply || 'auto', rest: restKind(camp) };
   if (viewer.role === 'player') return { ...base, mine: { vote: camp.votes[viewer.charId] || null, text: camp.notes[viewer.charId] || '', dice: (camp.dice || {})[viewer.charId] || 0 } };
   return base;
 }
 
-module.exports = { fresh, setOpen, setImage, vote, tally, viewFor, restBlockers };
+module.exports = { fresh, setOpen, setImage, vote, tally, viewFor, restBlockers, setApply, restKind, APPLY };

@@ -1,7 +1,7 @@
 // World map (Phase G): one drawing for the TV, the phones and the DM page. State comes from the server
 // (src/worldmap.js viewFor). Classic script: exposes the global WorldMap. Plain HTML, no build step.
 (function () {
-  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
   const pct = (v) => `${(v * 100).toFixed(2)}%`;
   const clamp = (v) => Math.min(1, Math.max(0, v));
   const byId = (wm, id) => wm.nodes.find((n) => n.id === id);

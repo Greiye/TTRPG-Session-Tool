@@ -4,6 +4,7 @@
 // The view itself is lib/iso-battle, built to /iso/iso-battle.js (npm run build:iso).
 import { mountBattle, diffView } from '/iso/iso-battle.js';
 import { actionIcon, actionDetail } from './actions.js';
+import * as Ctx from './ctxmenu.js';
 
 const STEP_FT = 5;
 const COVER = { rock: 2, crate: 2, tree: 5, wall: 5 }; // same as src/iso.js
@@ -85,13 +86,14 @@ function viewOf(s, you) {
     if (!x || t.x >= m.cols || t.y >= m.rows) continue;
     const pc = !!s.players.find((p) => p.id === id);
     const speedTiles = Math.floor(speedOf(x) / STEP_FT);
-    const left = Math.max(0, Math.floor((speedOf(x) - (c.moved?.[id] || 0)) / STEP_FT));
+    // Movement left in tiles. Negative when the DM moved it past its speed (the Move button turns red).
+    const left = Math.floor((speedOf(x) - (c.moved?.[id] || 0)) / STEP_FT);
     const kind = kindOf(x);
     units[id] = {
       id, kind, name: x.name, x: t.x, y: t.y, z: t.z || 0, facing: t.facing ?? (pc ? 0 : 4),
       team: pc || x.side === 'ally' ? 'players' : x.side === 'neutral' ? 'neutral' : 'monsters',
       owner: pc ? id : null, hp: x.hp ?? 0, maxHp: x.maxHp || x.hp || 1, dead: (x.hp ?? 1) <= 0,
-      ap: id === turnId ? left : speedTiles, maxAp: speedTiles, defense: x.ac,
+      ap: c.active ? left : speedTiles, maxAp: speedTiles, defense: x.ac,
       abilities: pc ? ['attack'] : (x.attacks?.length ? x.attacks.map((_, i) => `${id}:${i}`) : ['attack']),
       palette: paletteOf(x, pc),
     };
@@ -99,7 +101,7 @@ function viewOf(s, you) {
   const order = c.order.map((o) => o.id);
   const visible = s.mapVision ? s.mapVision.map((k) => { const [x, y] = k.split(',').map(Number); return y * m.cols + x; }) : null;
   return {
-    meta: { w: m.cols, h: m.rows, round: c.round || 1, turn: Math.max(0, order.indexOf(turnId)), initiative: order, fog: !!m.fog, seed: m.seed || 0, active: turnId && units[turnId] ? turnId : null, players: [] },
+    meta: { w: m.cols, h: m.rows, round: c.round || 1, turn: Math.max(0, order.indexOf(turnId)), initiative: order, fog: !!m.fog, seed: m.seed || 0, active: turnId && units[turnId] ? turnId : null, players: [], freeMove: !c.active },
     tiles: tilesOf(m), units, visible, revealed: [],
     log: (s.log || []).filter((l) => l.kind === 'combat').slice(-30).map((l) => ({ seq: l.id, msg: l.text })),
     you,
@@ -183,7 +185,7 @@ function coverOf(v, a, b) {
  * role: 'dm' | 'player' | 'screen'. emit: DM socket emit (dm events). socket: the page socket.
  * when(state): extra condition for showing it. Returns { update(state) }: call it after each state render.
  */
-export function isoStage(root, { role, socket, emit = () => {}, charId = () => null, slotSel = '.stage-center', layerClass = '', when = null } = {}) {
+export function isoStage(root, { role, socket, emit = () => {}, charId = () => null, slotSel = '.stage-center', layerClass = '', when = null, onSelect = null } = {}) {
   let layer = null; let battle = null; let transport = null; let last = null; let ro = null;
 
   function place() {
@@ -211,7 +213,10 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       obstacleChoices: ['none', 'wall', 'rock', 'tree', 'crate'],
       // A creature the DM just added must be placed first: the next tile clicked puts it there.
       onTileClick: dm ? ({ x, y }) => { const pend = (last?.pendingPlace || [])[0]; if (!pend) return false; emit('dm:token', { id: pend, x, y }); return true; } : undefined,
-      moveLabel: (u) => `Move · ${u.ap * STEP_FT} ft left [M]`,
+      moveLabel: (u) => (u.ap < 0 ? `Move · ${-u.ap * STEP_FT} ft over [M]` : `Move · ${u.ap * STEP_FT} ft left [M]`),
+      // DM drags a token: a move that uses its movement (it may go past its speed). The Teleport tool stays free.
+      onUnitDrop: dm ? ({ unitId, x, y }) => { emit('dm:token:move', { id: unitId, x, y }); return true; } : undefined,
+      onUnitMenu: dm ? ({ unit, clientX, clientY }) => openMenu(unit.id, clientX, clientY) : undefined,
       formatCost: (tiles) => `${tiles * STEP_FT} ft`,
       showPips: false,
       showHp: dm, // health bars are for the DM only; the TV shows names (Mike, Nov 16)
@@ -220,9 +225,10 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       describeAttack: (u, ab, tgt) => { const cv = coverOf(battle.getView(), u, tgt); return `Attack ${tgt.name} · AC ${tgt.defense ?? '?'}${cv ? ` +${cv} ${cv === 5 ? 'three-quarters' : 'half'} cover` : ''}`; },
     });
     ro = new ResizeObserver(place); ro.observe(root);
+    if (onSelect) battle.on('select', (u) => onSelect(u?.id || null));
     if (dm) { dmChrome(); requestAnimationFrame(() => requestAnimationFrame(() => battle?.camera.fit())); }
   }
-  function unmount() { tray = cov = null; ro?.disconnect(); battle?.destroy(); layer?.remove(); layer = battle = transport = ro = null; }
+  function unmount() { closeMenu(); onSelect?.(null); tray = cov = null; ro?.disconnect(); battle?.destroy(); layer?.remove(); layer = battle = transport = ro = null; }
 
   // DM only: a coverage slider (how much of the field the view shows) and a tray of tokens not yet on the map.
   let tray = null; let cov = null; let trayKey = '';
@@ -250,7 +256,7 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
     if (k === trayKey) return;
     trayKey = k;
     tray.hidden = !off.length;
-    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
     tray.innerHTML = `<b>Drag onto the map</b>${off.map(([x, pc], i) => {
       let src = ''; try { src = battle.portraitOf(lookOf(x, pc)); } catch { /* rules not loaded yet */ }
       const locked = pend.length && pend[0] !== x.id && pend.includes(x.id);
@@ -281,6 +287,54 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
   }
 
+  // DM right-click menu on a unit. Picked for what a DM reaches for mid-fight: attack it with the creature whose turn
+  // it is, damage or heal, conditions, movement back, light, boss card, take it off the map, remove it.
+  // The menu itself is the shared DM right-click menu (public/js/ctxmenu.js), so it matches the rest of the screen.
+  let menuFor = null;
+  const MENU_CONDITIONS = ['Prone', 'Restrained', 'Grappled', 'Frightened', 'Poisoned', 'Invisible'];
+  const LIGHT_CHOICES = [['none', 'No light'], ['torch', 'Torch'], ['lantern', 'Lantern'], ['darkvision', 'Darkvision']];
+  function closeMenu() { if (menuFor) { menuFor = null; Ctx.closeMenu(); } }
+  function menuSpec(id) {
+    const s = last;
+    if (!s || !s.tokens?.[id] || menuFor !== id) return null;
+    const c = s.combat;
+    const pc = s.players.find((p) => p.id === id);
+    const x = pc || c.enemies.find((e) => e.id === id);
+    if (!x) return null;
+    const moved = c.moved?.[id] || 0;
+    const left = speedOf(x) - moved;
+    const turnId = c.active ? c.order[c.turn]?.id : null;
+    const foe = c.enemies.find((e) => e.id === turnId);
+    const canHit = foe && foe.id !== id && foe.hp > 0 && x.hp > 0 && c.acted?.[foe.id] !== c.round;
+    const conds = x.conditions || [];
+    const light = s.tokens?.[id]?.light || 'none';
+    return {
+      title: x.name,
+      sub: `HP ${x.hp ?? 0}/${x.maxHp || x.hp || 0} · AC ${x.ac ?? '?'} · ${left < 0 ? `${-left} ft over` : `${left} ft left`}`,
+      sections: [
+        canHit && { h: `Attack with ${foe.name}`, items: (foe.attacks?.length ? foe.attacks : [{ name: 'Attack', atk: null }]).map((a, i) => ({ label: `⚔ ${a.name}${a.atk != null ? ` ${a.atk >= 0 ? '+' : ''}${a.atk}` : ''}`, run: () => emit('dm:enemy:attack', { target: id, attack: i }) })) },
+        { h: 'Hit points', row: true, wrap: false, items: [-5, -1, 1, 5].map((d) => ({ label: `${d > 0 ? '+' : ''}${d}`, tone: d < 0 ? 'neg' : 'pos', keep: true, run: () => emit('dm:hp', { id, delta: d }) })) },
+        { h: 'Conditions', row: true, items: MENU_CONDITIONS.map((n) => ({ label: n, on: conds.includes(n), keep: true, run: () => emit('dm:condition', { id, name: n, on: !conds.includes(n) }) })) },
+        { h: 'Light', row: true, items: LIGHT_CHOICES.map(([v, n]) => ({ label: n, on: light === v, keep: true, run: () => emit('dm:token:light', { id, light: v }) })) },
+        { items: [
+          { label: '🎯 Centre camera', run: () => { const t = last?.tokens?.[id]; if (t) battle?.camera.focus(t.x, t.y); } },
+          moved && { label: `↺ Give back movement (${moved} ft used)`, run: () => emit('dm:move:reset', { id }) },
+          x.boss && { label: '👑 Show boss card', run: () => emit('dm:boss:card', { id }) },
+          { label: '⇩ Take off the map', run: () => emit('dm:token:remove', { id }) },
+          !pc && { label: '✕ Remove creature', danger: true, arm: '✕ Click again to remove', run: () => emit('dm:enemy:remove', { id }) },
+        ] },
+      ],
+      rebuild: () => menuSpec(id),
+    };
+  }
+  function openMenu(id, cx, cy) {
+    menuFor = id;
+    const spec = menuSpec(id);
+    if (spec) Ctx.openMenu({ ...spec, x: cx, y: cy });
+  }
+  // Keep an open menu's numbers live (HP, conditions, light) as the state changes.
+  function refreshMenu() { if (menuFor && Ctx.isOpen()) Ctx.refreshMenu(); else menuFor = null; }
+
   return {
     update(s) {
       last = s;
@@ -294,8 +348,10 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       transport.push(s);
       battle.setGroundImage(s.map.image || null);
       renderTray(s);
+      refreshMenu();
     },
     get battle() { return battle; },
     fit: () => battle?.camera.fit(),
+    menu: (id, x = 200, y = 200) => openMenu(id, x, y), // for tests and debugging
   };
 }

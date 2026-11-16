@@ -8,50 +8,42 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - World map, from Mike's Nov 16 notes:
   - **Roads by drag:** with **+ Road** on, press on a place, drag to another and let go to lay a road. A blue ink line follows the pointer and turns green over the place it will join. Road mode stays on, so several roads can be drawn in a row; tapping one place and then another still works.
   - **Paper map look:** the map is a parchment sheet with light watercolour washes (land, lakes and a river) when no picture is uploaded, and a paper grain with darkened edges over an uploaded picture. Roads, places and labels are sepia ink, fog is unpainted parchment, and a **compass rose** sits at the bottom right (it spins in as the map unrolls on the TV, then sways gently). All SVG, no images, so it works offline.
+- **Undo and Redo for the DM** (Nov 16), the one-tap override for anything the tool or anyone at the table did. **↶ Undo** sits in the DM's top bar (it stays when the bar is minimized) and names what it would take back: the log line the change added ("Goblin hits Thorn for 7") or what changed ("Change to Thorn", "Change to world map"). **↷ Redo** appears after an undo until something new happens. **Ctrl+Z** undoes and **Ctrl+Shift+Z** or **Ctrl+Y** redoes, except while typing in a field. A burst of quick changes (a drag, a run of clicks) settles into one step after 0.7 s; the last 15 steps are kept. Each step holds the whole campaign and every character sheet, so it covers HP, conditions, rolls, rests, travel, clocks, shops and anything added later, for any rules system. Phones stay seated; characters made since are left alone. DM and co-DM only (`dm:undo`, `dm:redo`, `src/undo.js`); Battle and Social Masters do not get it. The DM stage fades back as a step is undone.
+- **Social mode flow** (Mike, Nov 16, backlog PR J):
+  - Entering Social mode opens a **Social window** on the DM page, under the TV preview and above the narration bar. It lists the NPCs (placeholders Albert, Brent and Christina): pick one or more, then press and hold **Start conversation** for 1 second. The TV shows "A conversation is about to begin…" until then.
+  - Once the conversation is live, the Social window holds every social control (NPC, cast, emotions, dialogue, live voice, player choices); they left Miscellaneous > NPCs. **End conversation** sits right under the TV preview: the TV shows "The conversation has concluded" in the centre, holds it for about a second, then everyone and the DM go back to Exploration (`dm:convo:start`, `dm:convo:end`, `state.social.pool`, `state.social.convo`). The Social Master can run both.
+  - The DM can still narrate during a conversation: the newest 3 narration lines since it started show in a small box at the top left of the social scene on the TV.
+  - Phones no longer show the visual novel during a conversation; they point players to the TV and keep roll prompts and pushed choices.
+- **"Join the Conversation?" pop-up** on phones when the DM starts a conversation, with a green **Yes** and a same-size **No**. No closes it (the phone's Social view can reopen it). Yes turns it into a speech box: text on top, then an **emotion wheel**: the 8 emotions are ring segments around a round **Send** button. Tap one to pick it, or hold it and drag it onto Send to say the line with that emotion. Two faint tips sit under the text box (use the phone's speech to text) and under the wheel (drag onto Send). The character's emotion changes on the TV only when the line is sent (`player:social:say`), shown as a badge on their portrait. The log reads `[Name] looks to be [emotion]. He says / She says / They say "[text]"`. The pop-up closes for everyone when the conversation ends.
+- **Pronoun** field (They, He, She; default They) on the phone profile and the DM's character editor.
+- Phone hero card (Mike, Nov 16): the 🏅 box shows **Inspiration points** instead of the level. A new phone setting, ⚙ > **HP display**, shows HP as a **Number** (28/28) or a **Description** (Fine above 75%, Injured above 50%, Badly hurt above 25%, Near death, Down). Spell slots and hit dice show as gems, one per slot or die, lit when available and black once used, with no bar.
+- **Right-click menus across the DM screen** (Mike, Nov 16), styled like the 3D battle map's unit menu and built from one shared component (`public/js/ctxmenu.js`, menus in `public/js/dm/menus.js`). The menu scales in from the pointer, the clicked thing glows briefly, numbers update live while it is open, and anything destructive needs a second click.
+  - **Party members** (hero portraits, party list, TV preview party bar and tokens, combat cards, saved characters): HP −10 to +10, conditions, inspiration, show in the hero column, spotlight on the TV, drop concentration, edit, play or give back, remove from the table.
+  - **Creatures**: attack it with the creature whose turn it is, HP, conditions, boss card, centre the 3D map on it, remove.
+  - **World map places**: edit, send the party, start a "here or stay" vote, draw a road from here, info revealed, out of the fog, dungeon entrance, add to lore, remove. **Roads**: legs ±1, known, send the party to either end, remove.
+  - **Points of interest**: reveal or hide on the TV, call an Investigation check, add to lore, remove from the scene.
+  - **NPCs on the scene**: talk as them, set their emotion while they talk, add to lore, remove.
+  - **Lore entries**: open to edit, share with phones, read it out on the TV, copy, delete. **Story log lines**: copy, narrate again, save as a lore note.
+  - **Everything else with buttons** (clocks, shops, items, towns, rumours, road cards, timers and so on) gets a menu of that row's own buttons and checkboxes.
+  - The 3D battle map's unit menu now uses the same shared component.
+  - Text fields keep the browser's menu, and **Shift + right-click** always does. Arrow keys move through the menu, Escape closes it.
+- DM combat controls, from Mike's Nov 16 backlog (PR G):
+  - **Right-click a unit** on the 3D battle map for a menu: attack it with the creature whose turn it is (one entry per attack), HP −5/−1/+1/+5, toggle Prone, Restrained, Grappled, Frightened, Poisoned or Invisible, set its light, centre the camera, give its movement back, show the boss card, take it off the map (back to the tray) or remove the creature (click twice). The menu animates in and its numbers stay live; Esc or a click outside closes it.
+  - **Arrow keys** move the selected unit one tile in the direction the arrow points on screen, whatever the camera angle.
+  - **Selection stats**: clicking a unit on the map shows it in the right-hand hero column. A creature gets its portrait, HP, AC, movement left, initiative, tile, light, conditions, attacks and traits; a party member gets the same combat facts above the hero card. ✕ goes back to the party. The panel slides in on each new selection.
+- **Inspiration tab** on the DM screen (✨, Play group): each seated character's inspiration points as gold gems, with − and + to take or give one, and **Everyone +1**. Points cap at 5, as with the recap quiz. A new gem pops in, and the player's phone shows a short "✨ Inspiration!" toast.
+- **Class section in the phone camp pop-up**: the character's class and level, its limited-use features with uses left, what a short and a long rest give back for that class (hit dice, Pact Magic, Arcane Recovery, Second Wind and so on), and camp ideas for the class that fill the downtime box when tapped.
 - **Lore tab** on the DM screen (Mike, Nov 16): tracks Locations, Dungeons, NPCs, Items, Books and Notes. Filter by category chip or search; each entry folds open to edit its name, category, what the party can learn, and a DM-only note. **From the table** adds the world map's places and dungeon entrances and the NPCs on the social scene that the lore does not have yet. **Share with phones** puts an entry (never the DM note) in a new Journal › Lore section on the phones; the TV shows no lore. Saved with the campaign.
+- **Items tab** on the DM screen (🎒, Play group): pick a character (or Everyone), type an item (names and descriptions from the shops and packs are suggested), a count and a description, and **Give**. The list shows that character's pack with − / + and ✕; new items slide in. Giving an item a character already has adds to the count.
 - **End Session** (Mike, Nov 16): a red button at the bottom of the DM tools sidebar. Hold it for 1 second to end the session: the TV fades to a big “End of Session” card, phones show “Thanks for playing.”, and the DM gets a window to make a save point (named after the session and date) and explore the logs (story and dice log together, searchable and filterable by type, plus the Markdown transcript). **Resume session** takes everyone back to the game; once ended, a click on the button reopens the window.
+- **Dungeon gate, entry and exit** (Mike, Nov 16, PR R). When the party arrives on a dungeon entrance, phones get a 🏰 Dungeon tab and a window with the dungeon's name, what the party knows and an **Enter Dungeon** button held for one second. The TV shows the dungeon's picture with a live "2 / 4 ready" count. Once every online player is ready the party goes in. In an end room phones get an **Exit Dungeon** window; one press sends the party back to the world map on the TV. After leaving, the gate does not pop back up until the party moves on. The DM's Enter and Leave buttons still work.
+- **Dungeon tab under the DM world map** while the party is at or in a dungeon: the whole dungeon, editable in place. Click a room to edit it, double-click to move the party, drag a room onto another to join a rope, right-click for a menu (move party, reveal or hide, add a room after, rope to, cut ropes, kind, remove). **Picture** sets the dungeon image shown at the gate.
 - Phone pop-ups from the DM (Mike, Nov 16), one at a time and each staying up until answered:
   - **Messages**: a handout or a phrase from the Messages tab pops up on the phone with a **Continue** button at the bottom instead of landing in the Inbox. The DM's list shows "read 1/4" until everyone has pressed Continue (`player:handout:read`). Revealing a phrase pops it up again, now readable.
   - **Party vote** has its own card in the Messages tab with a bar per option (bars slide as votes come in) and who has not voted yet. Starting a vote pops it up on every phone; after voting the phone shows the pick (tap another to change) and Continue.
   - **Roll call** is a phone pop-up: roll (or roll with inspiration), then the total, pass or fail and Continue.
 - Roll call: the **Roll type** drop-down renames the second drop-down (Skill, Saving throw, Ability) and changes the outcome text boxes at the bottom of the card to fit the type and the chosen skill or ability.
 - **Battle Master** and **Social Master** co-DM roles (Mike, Nov 16), each with its own private QR on the DM page's Co-DM card (`BATTLE_KEY`, `SOCIAL_KEY`). The Battle Master runs combat, the battle map and the DM's creatures; the Social Master runs NPC dialogue. Both open the DM page showing only their cards, and the server allows only the events listed per role in `src/roles.js`. A helper key now wins over localhost, so a helper link opened on the laptop gets the helper view.
-
-### Fixed
-- Switching modes no longer spams the log (Mike, Nov 16, PR P). Pressing the mode you are already in does nothing, and quick switches replace the last mode line instead of stacking one per press, on the DM log, the TV and phones.
-- DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
-
-### Changed
-- The world map stays on the TV in exploration and social (Mike, Nov 16): switching between them no longer takes it off; untick **Show on TV** to give the TV back. Entering combat hands the TV to the combat prep filter, and **Show on TV** can put the map back up mid-fight.
-- A world map travel leg takes **5 seconds** by default (was 60). Saves still on the old 60 s default move to 5 s once; a leg the DM sets is kept.
-- Scenes start with **no points of interest**; the DM adds them. Blank entries are dropped, the TV no longer shows an empty points row, and saves holding the old three placeholder points (Toppled shrine, Cart tracks, Old mill in the fog) are cleared on load.
-- Combat on phones and the 3D battle map (Mike, Nov 16, backlog PR F):
-  - Phones no longer show the 3D battle map; players watch the TV. The TV still follows the latest action.
-  - Phones get a **combat pop-up** at the top of the Play tab, in the "Steel yourselves" card style: waiting for initiative, your turn (attack and actions), someone else's turn, or down. It pops in again each time it changes.
-  - The 3D map shows health bars only to the DM. The TV map shows names only (new `showHp` option in `lib/iso-battle`). Phones no longer show creature HP in the initiative strip or on attack buttons.
-- **Creature actions** on the DM combat cards and the 3D battle map's action bar are icon buttons with the name underneath (Mike, Nov 16, PR O). Hovering shows the details and the maths: to-hit as 1d20 + bonus vs AC, the damage dice with their average and type, and the key to press on the map. Move and End turn use the same style.
-- **Dramatic pause** on the TV drops the "Hold" label. The screen fades to partial black first and the text fades in half a second later (Mike, Nov 16, PR P).
-- Co-DM and combat tools, from Mike's Nov 16 notes:
-  - The **co-DM** now has every DM permission: the invite opens the DM page with the co-DM key (`/codm` stays as a phone soundboard).
-  - Co-DM card: each role (Co-DM, Battle Master, Social Master) is a title with one centred **Invite** button under it.
-  - The **Battle Master** sees only the combat window, and "Waiting for the DM to activate combat." until the DM switches to combat.
-  - **Battle map** is the first card in the Combat tab. Buttons are centred with their fields under them; **Generate terrain** is a green hold-for-2-seconds button at the bottom (no confirm box, sets the grid first if there is none), and the card folds up once terrain is generated. Click the card title to fold or unfold it.
-  - **Next turn** is hold for 2 seconds. A creature's attack still moves the turn on by itself.
-- Phone tabs show symbols only, share the width and never scroll sideways; the word is the button's label for screen readers. Journal and Misc section chips wrap, and the dice pool fits a 320 px phone.
-- 3D battle map look: terrain, walls and crates use 8-step cel shading, so lit faces step between eight flat tones. Rocks and trees are flat 2D cards that turn to face the camera, drawn with the same 8 banded tones and a dark outline (four variants each, shared textures).
-- Combat screen, from Mike's Nov 16 feedback:
-  - In combat the DM's 3D battle map fills the main column. **⛶ Fit** shows the whole field and a **Coverage** slider sets how much of it the view shows (mouse wheel zooms out further too).
-  - **Roll initiative** is press and hold: the button fills over 3 seconds and rolls on release (an early release cancels). It fires an `inithold` DOM event (start, cancel, complete) for later TV hooks. The Encounter card then lists everyone, players and creatures, in initiative order, and the cards slide into their new places.
-  - The **End** button is red and centred under the encounter buttons.
-  - Each creature has one card with initiative, AC, feet of movement left, HP buttons, its attacks and, on its turn, its targets. Once it has attacked, its actions grey out with an **Acted** tag until its next round (`state.combat.acted`).
-  - Tokens not yet on the map wait in a tray on the 3D map, shown as their 2D sprite. Drag one onto a tile to place it; drag a token on the map to move it. The old Place token picker is hidden.
-  - The creature randomizer rolls a token accessory colour for one creature or all of them (`dm:creature:accent`, seed optional). New creatures get a random one.
-  - Modes, tabs and section parts in the tools column are one column.
-
-### Fixed
-- World map page: places were hard to select. The board was redrawn on every state update, which dropped clicks; it now redraws only when it changes and never under a press, and each place has a larger hit area.
-
-### Added
 - World map and dungeon flow (Nov 15):
   - Exploration starts on the world map. A fresh table gets an example world: the party in Millbrook (marked "You are here"), fog on, roads out, and **The Sunken Crossroads** as a 🏰 dungeon entrance. The DM world map page has **Load example world**; any place can be ticked as a dungeon entrance.
   - The dungeon is a pop-up over the world map, for everyone, while the party stands on a dungeon entrance. Arriving there opens it; the DM can also Enter / Leave from the Scene tab or the world map page. The DM preview now mirrors the TV world map.
@@ -66,54 +58,6 @@ All notable changes to this project are recorded here. The format follows [Keep 
   - Phones: tap a tile to preview the path and cost, tap again to move. The arrow movepad is gone.
   - `npm run build:iso` rebuilds the module bundles. Tests in `test/iso.js`.
 - Sample backdrop "Tales of Artheria" (`public/samples/artheria-village.jpg`), bundled with the app and listed first in the backdrop library. A fresh table, or a save from before this change, starts on it. Choosing "Scene theme" is now saved as `'none'`, so it survives a restart. The sample has no ✕ and is never deleted from disk.
-
-### Changed
-- Quieter defaults and DM tabs (Nov 15, later):
-  - No logs on any screen by default. The TV log is an opt-in list of "Show ___ log" types (`display.showLog`, was `hideLog`); with none ticked the TV log column is gone. ⚙ Display settings › Show logs is Off by default on the DM laptop and phones (DM story feed, phone Logs). Older saves and screens switch over once.
-  - The "Join the party" QR on the TV is hidden by default; tick "Show “Join the party” QR on TV".
-  - Legends and NPCs are parts of the Miscellaneous tab, not tabs of their own.
-  - The dungeon board has no torches.
-- Phone and DM cleanup (Nov 15, later):
-  - The dungeon board is gone from the phone: players follow the dungeon on the TV.
-  - Phone dice pool is 2 across, 3 down, with wider buttons (icon beside the label).
-  - The party trail lives with the other logs: the DM Logs tab and the phone's Misc › Logs (**Places** filter). It is off the world map pages.
-  - The day / time / place / quest / coins bar is hidden on every screen.
-- The app no longer calls itself "Tavern Screen": the DM page is titled **DM Screen**, and the pages, server banner and certificate say **TTRPG Session Tool**.
-- DM screen notes (Nov 14):
-  - The top bar folds to its title line with ▴ (▾ brings it back); remembered on that laptop.
-  - The sidebar's first card is now **Modes**: Explore, Combat and Social, then **Planning** and **World map** toggles, then every tab as a labelled list. Tabs are Rolls, Combat, Party, Messages, Logs, Legends, Scene, NPCs and a new **Miscellaneous**. Scene and Miscellaneous have small part chips at the top.
-  - Scene holds the scene, hidden points of interest and dungeon, stage and music (backdrop and music fused), clocks (with the story clock), TV moments and puzzles. Miscellaneous holds smart lights, table tools (with bonds), recap quiz, relations web, notes and journal, camp and downtime, co-DM and campaign data.
-  - Fog of war on the scene is now **Hidden points of interest**.
-  - **Planning Mode** (DM only, nothing changes on the TV): shows the **Shops** tab and a **Road cards** tab (deck, auto table, and how often a card comes up while travelling, 20 s by default). Road cards draw on their own during travel; only their editing moved.
-  - The world map is no longer a sidebar card. The **World map** toggle swaps the DM's main column (stage and story) for the map. Places can be dragged to move them.
-  - Campaign data buttons are gem tiles with a line on what each one does.
-  - The Narrate bar posts under the scene description on the TV as well as to the log. The newest 10 stay; older ones drop off the top, and a new place starts a clean list.
-  - The constant Exploration/Combat/Social label is gone from the TV stage, the DM tools header and the phone header. The short mode card on a mode change stays.
-- Story clock has five segments, Dawn, Day, Noon, Dusk and Night, and no clock hours. The DM taps a segment or Next (Night rolls to Dawn of the next day). Saves with an hour map to a segment.
-- TV: the day and time show on the left only for a few seconds after the story clock moves, with a sound for the segment (birdsong at dawn, a chime by day, a bell at noon, a rooster at dusk, crickets at night; built-in synths).
-- TV: the world map unrolls when the DM puts it on the TV, then roads and places drop in one by one.
-- Only one TV pop-up at a time (`src/popups.js`): opening camp, the relations web, a shop, the hall of fame or trophy shelf, a trophy story, a montage, a relic card or the journal book closes whichever other one is up.
-- Shops no longer have a phone tab. The DM pops a shop up (NPCs tab during play, or Pop up in the Shops list): it opens for trade, the TV shows the shop, its wares and how many players are still shopping, and each phone gets a pop-up with Buy and Sell lists and a Done shopping button. Merchants buy what they sell, at half price.
-
-- Player screen tabs are now Play, Sheet, Inventory, Journal and Misc. Tabs and their sections fade in.
-  - Play: a dice pool sits at the top. D4, D6, D8, D10, D12 and D20 each have an icon and ◀ ▶ arrows to remove or add a die, and Roll is at the bottom. Adv and Dis work when the pool is a single D20. The scene description is on the TV only. A point of interest appears on the phone only once the DM reveals it, so there are no ??? placeholders. Skill buttons and the hero Stats and Bio toggle are gone from the phone (stats are on the Sheet, the bio is in the profile).
-  - Sheet: tap a skill to roll it. Class features are buttons. Tap one to read its description, then press and hold Activate for 3 seconds to spend a use (the bar fills while you hold, and letting go early cancels). The table log records the use. This adds the `player:feature` socket and `useFeature` in `src/rests.js`.
-  - Inventory: a new tab with gold and items, moved from the Sheet.
-  - Journal: the Inbox, Map and Notes sections in one tab. Players no longer see road cards, and the server stops sending them to phones.
-  - Misc: a new tab with the Logs, World, Legends and Bond sections. Your bond moved here from the Play tab.
-  - The phone Shops tab is removed. Shopping only happens when the DM opens a shop, and that pop-up is being built separately. Browsing shops between sessions is set aside for later.
-- DM tools column can be minimized: « in its header slides it away (animated), and a grip on the left screen edge brings it back with a click, a drag to the right (the column follows the pointer; a short drag snaps shut), or the right arrow key. The choice is remembered on that laptop (`public/js/dm/dock.js`).
-- Chronicle look for the DM page and phones (`public/chronicle.css`, `public/chronicle.js`): charcoal panels, muted gold accents, small-caps labels. The TV is unchanged, and the TV preview on the DM page keeps the TV's look.
-  - DM page in three columns: tools on the left (sidebar tabs now show a short label under each icon), the story in the middle, the hero on the right. Every existing card, tab and control is where it was inside its tab.
-  - Pill bar over the stage: day, time of day, location (scene title), quest (open objectives) and coins. Phones show their own quest and coins; the DM sees party coins. A pill flashes when its value changes.
-  - Story feed under the TV preview: narration as prose, NPC and player lines in bordered dialogue boxes with a round portrait and the speaker in small caps. New lines slide in. The phone's Logs tab uses the same feed with its filters.
-  - Hero column on the DM page: pick a party member, see a large portrait, name with an edit button (opens the character editor), level, HP and a resource bar (spell slots, mana or stamina, else hit dice), then Stats or Bio.
-  - Phone header is a hero card with the same bars; tap Stats or Bio to open the ability list or backstory, tap again to close. The pencil opens the profile editor.
-
-### Removed
-- Moved to the code module archive (`archive/`, not loaded; see `archive/README.md`): the Session plans card, the Intro card and the Epilogue controls. Their server side still works and is still tested, so each comes back with one import line.
-
-### Added
 - Each session opens on the world map: when the server starts, and on Next session, the table switches to exploration with the world map on the TV. The DM turns this off with "Open each session here" in the World map tab, and the map must have a picture or places. Combat and social now take the TV back from the world map. Untick "Show on TV" to move from the map to the exploration stage.
 - World map roads, fog of war and town links. The DM draws roads between places (+ Road, then tap two places) and sets each road's length in legs. A party at a place travels by the shortest road route, one leg per road, passing through each place on the way (each stop ticks travel clocks and spreads rumours). With no road it heads straight there, as before. Fog of war hides places the party has not seen and roads it does not know; arriving somewhere uncovers the roads out of it and the places at their ends. A fogged destination or vote option shows as ???. The DM can turn fog on or off, reveal or fog everything, and tick any place or road in or out of the fog. A place can link to a living-world town by id, so prices, clocks and rumours no longer depend on matching names (an unlinked place still falls back to the name). Phones show how many legs a place is by known roads; the TV title names the stops on the way.
 - Game menu look (`public/theme.css`, `public/theme/*.svg`): aged parchment panels in dark-iron corner frames, wooden plate buttons with an iron band, slate plates for primary actions, round gem sockets on mode buttons, big buttons, phone tabs and the TV mode pill, and parchment lists with coloured gem badges. Covers the DM page, co-DM, phones (one framed parchment page) and the TV (dialogue box, name plate, party plaques, log strips, join card, foes, clock, dungeon nodes). Textures are small SVG noise filters, no bitmaps. Gems glint every few seconds; reduce motion stops it. The Chronicle layout (three DM columns, hero sheet, story feed, top pills) keeps its structure and takes the same look.
@@ -158,12 +102,123 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Timers (`src/timers.js`): a condition can run for a set number of rounds and ends by itself. Concentration starts from the DM's Conditions panel; damage to the caster asks their phone for a DC 10 (or half the damage) Constitution save. The DM drops concentration.
 
 ### Changed
+- The world map stays on the TV in exploration and social (Mike, Nov 16): switching between them no longer takes it off; untick **Show on TV** to give the TV back. Entering combat hands the TV to the combat prep filter, and **Show on TV** can put the map back up mid-fight.
+- A world map travel leg takes **5 seconds** by default (was 60). Saves still on the old 60 s default move to 5 s once; a leg the DM sets is kept.
+- Scenes start with **no points of interest**; the DM adds them. Blank entries are dropped, the TV no longer shows an empty points row, and saves holding the old three placeholder points (Toppled shrine, Cart tracks, Old mill in the fog) are cleared on load.
+- Party sidebar follow-up (Mike, Nov 16):
+  - Conditions are small round buttons on the bottom right of the hero portrait, for party members and for creatures picked on the 3D map. Click one, or right-click the portrait, to open the conditions menu: toggle any of the 15 conditions, pick how long a new one lasts (until cleared, 1, 3 or 10 rounds) and start or drop concentration. A new badge pops in, and the party picker shows a red count per member. The Conditions card is gone.
+  - The **Reset session** button is gone from the Party card (End session covers the end of a night).
+  - The hero opens on **Bio**; Stats is one tap away.
+- **New sample backdrop** (Mike, Nov 16): "Tales of Artheria" is now a medieval village with a stone church, shown at 50% opacity on the TV and DM preview. It fades in up to that level. Backdrops can carry their own `opacity` (only the sample sets one); the file path and id are unchanged, so saves keep it.
+- DM Screen tabs and Party sidebar, from Mike's Nov 16 notes (backlog PR H and S):
+  - The live mode's button is pressed in: a darker plate with an inset shadow and glowing gold text, with a short press animation.
+  - The **Modes** card folds to its title, which then names the live mode. The tab list is its own card under it.
+  - Every tab card starts folded for now (click a title to open it; the laptop remembers). Opening a card slides its contents in. Party, Conditions and Characters in the right **Party** sidebar sit above the hero sheet and start folded too.
+  - **Creature randomizer** is the last card in the Combat tab; it and **Creatures** start folded.
+  - **Choice echo** moved from Scene > TV moments to its own Planning Mode tab.
+  - The **rules system** picker moved from the top bar to Miscellaneous > Rules system.
+  - The **House rules** section is gone from the DM's Legends card and the phone's Legends. A save that had a rule on loads with them all off, so nothing is enforced unseen.
+  - The DM's **Logs** tab and the phone's Misc > Logs have a **Show logs on this screen/phone** switch (the same setting as ⚙ Display settings > Show logs).
+- Phone: ✎ Profile, ⛶ Full screen and ☀ Keep screen on moved from the hero card to the bottom of the page.
+- Entering Social mode no longer asks the DM who speaks first, and no longer pops up on phones; both now happen when the DM starts the conversation.
+- **DM tools** on the 3D battle map are in two sections, **Unit actions** (select, teleport) and **Landscaping** (raise, lower, paint, obstacle); the section of the active tool is highlighted.
+- **End combat** clears the combat window for the next fight: creatures, tokens, the battle map, initiative and movement go (the party and the creature library stay), and the Battle map card unfolds. Because it clears so much, End is now a red hold-for-2-seconds button.
+- Camp and rests (Mike's Nov 16 list, PR M):
+  - Phones vote short or long rest by **holding the button for 1 second** (it fills as you hold); a tap no longer votes. The pop-up rises in and no longer redraws while you type or hold.
+  - The **Rests** card is gone. **End camp** applies the rest: by vote (more long votes than short gives a long rest, otherwise short; no votes, no rest), or the DM's choice in **Rest when camp ends** (short, long or no rest). The button reads e.g. "End camp · long rest", and short-rest votes show the hit dice each player spends.
+- Combat on phones and the 3D battle map (Mike, Nov 16, backlog PR F):
+  - Phones no longer show the 3D battle map; players watch the TV. The TV still follows the latest action.
+  - Phones get a **combat pop-up** at the top of the Play tab, in the "Steel yourselves" card style: waiting for initiative, your turn (attack and actions), someone else's turn, or down. It pops in again each time it changes.
+  - The 3D map shows health bars only to the DM. The TV map shows names only (new `showHp` option in `lib/iso-battle`). Phones no longer show creature HP in the initiative strip or on attack buttons.
+- Shops and items (Mike's Nov 16 list, PR N):
+  - **Shops** is its own tab during play as well as in Planning Mode, with the **Shop pop-up** card at the top, so the DM can pop a shop up from either. The pop-up card is gone from the NPCs part.
+  - Phone shop: wares show only the name and price. **Press and hold** a ware (it fills) to open its description card, and buy from there. The merchant banner shows only on the TV, under the shop title; the phone shows the title.
+  - Phone gold is a coin and a number (🪙 120), in the shop and on the Inventory tab, and bumps when it changes.
+  - Players can't add items or raise a count on their phones (the server refuses it too); they can still use one up (−) or drop an item. The DM gives items from the Items tab.
+- The TV keeps the party's dungeon room centred and glides the board when the party moves (PR R).
+- **Creature actions** on the DM combat cards and the 3D battle map's action bar are icon buttons with the name underneath (Mike, Nov 16, PR O). Hovering shows the details and the maths: to-hit as 1d20 + bonus vs AC, the damage dice with their average and type, and the key to press on the map. Move and End turn use the same style.
+- **Dramatic pause** on the TV drops the "Hold" label. The screen fades to partial black first and the text fades in half a second later (Mike, Nov 16, PR P).
+- TV moments and rolls, from Mike's Nov 16 notes:
+  - Roll results (popup and 3D dice tray) sit in the centre of the TV and fade out instead of vanishing.
+  - A **natural 20** shows a gold "Natural 20!" banner, sparks and turning light rays, and the TV brightens while it shows. A **natural 1** shows a red "Natural 1" banner, the total shakes and sags, and the TV darkens with a pulsing red edge. The dice tray starts the mood as the dice settle. TV only; phones and the DM page keep normal light.
+  - Covered exploration points of interest are hidden from the TV (no more "??? " chips). A point pops in when the DM uncovers it. A new place starts with every point covered, and points removed from the list leave the uncovered set.
+  - Switching modes quickly replaces the previous mode title instead of stacking on it.
+  - Chapter cards, entrances, choice echoes and the day/time card fade out at the end. Every chapter card is saved to the log as `Chapter: <title> (<subtitle>)`. The first chapter card, entrance, echo or relic of a session now plays on the TV (it was skipped).
+  - Segment clocks are round, cut into wedges from the centre, on the TV and in the DM's Clocks and Living world lists. Newly filled wedges sweep out from the middle.
+- Co-DM and combat tools, from Mike's Nov 16 notes:
+  - The **co-DM** now has every DM permission: the invite opens the DM page with the co-DM key (`/codm` stays as a phone soundboard).
+  - Co-DM card: each role (Co-DM, Battle Master, Social Master) is a title with one centred **Invite** button under it.
+  - The **Battle Master** sees only the combat window, and "Waiting for the DM to activate combat." until the DM switches to combat.
+  - **Battle map** is the first card in the Combat tab. Buttons are centred with their fields under them; **Generate terrain** is a green hold-for-2-seconds button at the bottom (no confirm box, sets the grid first if there is none), and the card folds up once terrain is generated. Click the card title to fold or unfold it.
+  - **Next turn** is hold for 2 seconds. A creature's attack still moves the turn on by itself.
+- Phone tabs show symbols only, share the width and never scroll sideways; the word is the button's label for screen readers. Journal and Misc section chips wrap, and the dice pool fits a 320 px phone.
+- 3D battle map look: terrain, walls and crates use 8-step cel shading, so lit faces step between eight flat tones. Rocks and trees are flat 2D cards that turn to face the camera, drawn with the same 8 banded tones and a dark outline (four variants each, shared textures).
+- Combat screen, from Mike's Nov 16 feedback:
+  - In combat the DM's 3D battle map fills the main column. **⛶ Fit** shows the whole field and a **Coverage** slider sets how much of it the view shows (mouse wheel zooms out further too).
+  - **Roll initiative** is press and hold: the button fills over 3 seconds and rolls on release (an early release cancels). It fires an `inithold` DOM event (start, cancel, complete) for later TV hooks. The Encounter card then lists everyone, players and creatures, in initiative order, and the cards slide into their new places.
+  - The **End** button is red and centred under the encounter buttons.
+  - Each creature has one card with initiative, AC, feet of movement left, HP buttons, its attacks and, on its turn, its targets. Once it has attacked, its actions grey out with an **Acted** tag until its next round (`state.combat.acted`).
+  - Tokens not yet on the map wait in a tray on the 3D map, shown as their 2D sprite. Drag one onto a tile to place it; drag a token on the map to move it. The old Place token picker is hidden.
+  - The creature randomizer rolls a token accessory colour for one creature or all of them (`dm:creature:accent`, seed optional). New creatures get a random one.
+  - Modes, tabs and section parts in the tools column are one column.
+- Quieter defaults and DM tabs (Nov 15, later):
+  - No logs on any screen by default. The TV log is an opt-in list of "Show ___ log" types (`display.showLog`, was `hideLog`); with none ticked the TV log column is gone. ⚙ Display settings › Show logs is Off by default on the DM laptop and phones (DM story feed, phone Logs). Older saves and screens switch over once.
+  - The "Join the party" QR on the TV is hidden by default; tick "Show “Join the party” QR on TV".
+  - Legends and NPCs are parts of the Miscellaneous tab, not tabs of their own.
+  - The dungeon board has no torches.
+- Phone and DM cleanup (Nov 15, later):
+  - The dungeon board is gone from the phone: players follow the dungeon on the TV.
+  - Phone dice pool is 2 across, 3 down, with wider buttons (icon beside the label).
+  - The party trail lives with the other logs: the DM Logs tab and the phone's Misc › Logs (**Places** filter). It is off the world map pages.
+  - The day / time / place / quest / coins bar is hidden on every screen.
+- The app no longer calls itself "Tavern Screen": the DM page is titled **DM Screen**, and the pages, server banner and certificate say **TTRPG Session Tool**.
+- DM screen notes (Nov 14):
+  - The top bar folds to its title line with ▴ (▾ brings it back); remembered on that laptop.
+  - The sidebar's first card is now **Modes**: Explore, Combat and Social, then **Planning** and **World map** toggles, then every tab as a labelled list. Tabs are Rolls, Combat, Party, Messages, Logs, Legends, Scene, NPCs and a new **Miscellaneous**. Scene and Miscellaneous have small part chips at the top.
+  - Scene holds the scene, hidden points of interest and dungeon, stage and music (backdrop and music fused), clocks (with the story clock), TV moments and puzzles. Miscellaneous holds smart lights, table tools (with bonds), recap quiz, relations web, notes and journal, camp and downtime, co-DM and campaign data.
+  - Fog of war on the scene is now **Hidden points of interest**.
+  - **Planning Mode** (DM only, nothing changes on the TV): shows the **Shops** tab and a **Road cards** tab (deck, auto table, and how often a card comes up while travelling, 20 s by default). Road cards draw on their own during travel; only their editing moved.
+  - The world map is no longer a sidebar card. The **World map** toggle swaps the DM's main column (stage and story) for the map. Places can be dragged to move them.
+  - Campaign data buttons are gem tiles with a line on what each one does.
+  - The Narrate bar posts under the scene description on the TV as well as to the log. The newest 10 stay; older ones drop off the top, and a new place starts a clean list.
+  - The constant Exploration/Combat/Social label is gone from the TV stage, the DM tools header and the phone header. The short mode card on a mode change stays.
+- Story clock has five segments, Dawn, Day, Noon, Dusk and Night, and no clock hours. The DM taps a segment or Next (Night rolls to Dawn of the next day). Saves with an hour map to a segment.
+- TV: the day and time show on the left only for a few seconds after the story clock moves, with a sound for the segment (birdsong at dawn, a chime by day, a bell at noon, a rooster at dusk, crickets at night; built-in synths).
+- TV: the world map unrolls when the DM puts it on the TV, then roads and places drop in one by one.
+- Only one TV pop-up at a time (`src/popups.js`): opening camp, the relations web, a shop, the hall of fame or trophy shelf, a trophy story, a montage, a relic card or the journal book closes whichever other one is up.
+- Shops no longer have a phone tab. The DM pops a shop up (NPCs tab during play, or Pop up in the Shops list): it opens for trade, the TV shows the shop, its wares and how many players are still shopping, and each phone gets a pop-up with Buy and Sell lists and a Done shopping button. Merchants buy what they sell, at half price.
+
+- Player screen tabs are now Play, Sheet, Inventory, Journal and Misc. Tabs and their sections fade in.
+  - Play: a dice pool sits at the top. D4, D6, D8, D10, D12 and D20 each have an icon and ◀ ▶ arrows to remove or add a die, and Roll is at the bottom. Adv and Dis work when the pool is a single D20. The scene description is on the TV only. A point of interest appears on the phone only once the DM reveals it, so there are no ??? placeholders. Skill buttons and the hero Stats and Bio toggle are gone from the phone (stats are on the Sheet, the bio is in the profile).
+  - Sheet: tap a skill to roll it. Class features are buttons. Tap one to read its description, then press and hold Activate for 3 seconds to spend a use (the bar fills while you hold, and letting go early cancels). The table log records the use. This adds the `player:feature` socket and `useFeature` in `src/rests.js`.
+  - Inventory: a new tab with gold and items, moved from the Sheet.
+  - Journal: the Inbox, Map and Notes sections in one tab. Players no longer see road cards, and the server stops sending them to phones.
+  - Misc: a new tab with the Logs, World, Legends and Bond sections. Your bond moved here from the Play tab.
+  - The phone Shops tab is removed. Shopping only happens when the DM opens a shop, and that pop-up is being built separately. Browsing shops between sessions is set aside for later.
+- DM tools column can be minimized: « in its header slides it away (animated), and a grip on the left screen edge brings it back with a click, a drag to the right (the column follows the pointer; a short drag snaps shut), or the right arrow key. The choice is remembered on that laptop (`public/js/dm/dock.js`).
+- Chronicle look for the DM page and phones (`public/chronicle.css`, `public/chronicle.js`): charcoal panels, muted gold accents, small-caps labels. The TV is unchanged, and the TV preview on the DM page keeps the TV's look.
+  - DM page in three columns: tools on the left (sidebar tabs now show a short label under each icon), the story in the middle, the hero on the right. Every existing card, tab and control is where it was inside its tab.
+  - Pill bar over the stage: day, time of day, location (scene title), quest (open objectives) and coins. Phones show their own quest and coins; the DM sees party coins. A pill flashes when its value changes.
+  - Story feed under the TV preview: narration as prose, NPC and player lines in bordered dialogue boxes with a round portrait and the speaker in small caps. New lines slide in. The phone's Logs tab uses the same feed with its filters.
+  - Hero column on the DM page: pick a party member, see a large portrait, name with an edit button (opens the character editor), level, HP and a resource bar (spell slots, mana or stamina, else hit dice), then Stats or Bio.
+  - Phone header is a hero card with the same bars; tap Stats or Bio to open the ability list or backstory, tap again to close. The pencil opens the profile editor.
 - TV party bar no longer takes a fixed row. Player cards stay hidden below the screen; when a player's HP changes their card slides up for about 4 seconds, then slides back down. The scene and log get the freed space.
 - With the 3D dice tray on, roll results on the TV use the tray instead of the centre roll popup. Turn the tray off to get the popup back.
 - DM sidebar tabs are grouped (Play, Scene, Prep and record) and follow the live mode: a tab shows only when it has content in the current mode.
+- Code cleanup (Nov 16): the front end's twelve copied HTML escapers now call the one in `public/stage.js`, and the three copies of `slug()` (saves, spells, SRD import) are one in `src/util.js`. No change on screen.
 
 ### Removed
+- Moved to the code module archive (`archive/`, not loaded; see `archive/README.md`): the Session plans card, the Intro card and the Epilogue controls. Their server side still works and is still tested, so each comes back with one import line.
 - Table message log on the DM screen, the phones and the TV (the game is played in person).
+- Dead code left over from the Nov 16 parallel changes (no change on screen):
+  - CSS for things no page draws any more: the dungeon torches, the phone's mini visual novel, the old sidebar tab buttons, the mode pill, the conversation pad, the roll box, the cast picker, the shop pick bar and a few one-off classes; an unused `sendpop` animation and duplicate `fadein`/`fadeout` animations.
+  - The saved-campaign key list repeated 24 keys three times; each is listed once.
+  - Server functions nothing called: `isControlled`, `rollHp`, `movementLeft`, `voters`, `storyLight`, `passivePerception`, `PRONOUNS`, `MASTER_ROLES`, `MAX_SHOWN`, and three unused test hooks (`_defaultSend`, `_potionTurns`, `_data`).
 
 ### Fixed
+- The DM can no longer move creatures around in combat without using their movement. Dragging, arrow keys and clicking a tile all use the creature's movement (path cost over heights and terrain). The DM may still go past its speed: the movement count then shows how far over it is in red, on the map's Move button, the creature's Encounter card, the hero column and the right-click menu, and the DM's log notes it. On the 3D map, tiles past the creature's movement are red. Before initiative, set-up moves stay free; the Teleport tool stays free.
+- Switching modes no longer spams the log (Mike, Nov 16, PR P). Pressing the mode you are already in does nothing, and quick switches replace the last mode line instead of stacking one per press, on the DM log, the TV and phones.
+- DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
+- World map page: places were hard to select. The board was redrawn on every state update, which dropped clicks; it now redraws only when it changes and never under a press, and each place has a larger hit area.
 - Battle map tokens vanished on phones and the TV: the framing-token count (Phase I) was sent under the same `tokens` field and overwrote the map positions. The count is now `framingTokens`.
+- `test/gamepad.js` (the DM controller test) was never in a test script and had fallen behind the DM screen (folded cards, the dialogue box inside the live conversation, mode lines that replace each other). It is fixed and runs with `npm run test:ui`. The rest of the test list was checked against every test file and the git history: nothing had been dropped.

@@ -57,20 +57,20 @@ Today: the DM opens a shop pop-up on the TV (`dm:shop:pop`), phones buy and sell
 ### Social: "Join the conversation?" pop-up on phones
 `src/sockets/player.js`, `src/cast.js`, `src/state.js`, `public/js/play/views/social.js`, `public/stage.js`, `public/style.css`
 Today: phones in social mode can pick an expression (`player:expression`, `cast.setExpression`), push a pushed choice (`player:choice`) or type a line, which becomes `state.social.line` with `player: true`.
-- [ ] When the DM loads a social encounter (enters Social mode), every seated phone gets a pop-up that just says "Join the Conversation?", with a green **Yes** button and a **No** button of the same size under it.
-- [ ] **No** closes the pop-up for that phone (the phone keeps its normal Social view).
-- [ ] **Yes** keeps the pop-up open and turns it into a speech box: a text box at the top for what the character says, then a directional pad under it for the character's emotion: the 8 `EMOTIONS` around a 3x3 pad, Send in the centre.
-- [ ] Sending: the character's emotion changes on the TV only when the line is sent, together with the speech.
-- [ ] Speech log line: `[Character name] looks to be [emotion]. He says / She says / They say "[text]"`. Needs a pronoun field on the character (none today): add it to the character profile, default "They".
-- [ ] The pop-up closes for everyone when the DM leaves Social mode.
+- [x] When the DM loads a social encounter (enters Social mode), every seated phone gets a pop-up that just says "Join the Conversation?", with a green **Yes** button and a **No** button of the same size under it.
+- [x] **No** closes the pop-up for that phone (the phone keeps its normal Social view).
+- [x] **Yes** keeps the pop-up open and turns it into a speech box: a text box at the top for what the character says, then a directional pad under it for the character's emotion: the 8 `EMOTIONS` around a 3x3 pad, Send in the centre.
+- [x] Sending: the character's emotion changes on the TV only when the line is sent, together with the speech.
+- [x] Speech log line: `[Character name] looks to be [emotion]. He says / She says / They say "[text]"`. Needs a pronoun field on the character (none today): add it to the character profile, default "They".
+- [x] The pop-up closes for everyone when the DM leaves Social mode.
 
 ### Phone hero card (character header)
 `public/chronicle.js` (`Chronicle.hero`), `public/js/play/game.js`, `public/settings.js`, `public/style.css`, `public/theme.css`
 Today: the header shows 🏅 + the character's level, an HP bar with numbers, one resource bar (spell slots, else a pool, else hit dice), then ✎ Profile, ⛶ (full screen) and ☀ (keep the screen on) under it.
-- [ ] The 🏅 box shows **Inspiration points**, not the level.
-- [ ] HP display is a phone setting: **Number** (28/28, today) or **Description** from the share of HP left, e.g. Fine, Injured, Badly hurt, Near death, Down. Thresholds to set when built.
-- [ ] Hit dice and spell slots show as gems, one per die or slot: coloured when available, black when used. No bars.
-- [ ] The ✎ Profile, ⛶ Full screen and ☀ Keep screen on buttons move to the bottom of the phone page.
+- [x] The 🏅 box shows **Inspiration points**, not the level.
+- [x] HP display is a phone setting: **Number** (28/28, today) or **Description** from the share of HP left, e.g. Fine, Injured, Badly hurt, Near death, Down. Thresholds to set when built.
+- [x] Hit dice and spell slots show as gems, one per die or slot: coloured when available, black when used. No bars.
+- [x] The ✎ Profile, ⛶ Full screen and ☀ Keep screen on buttons move to the bottom of the phone page.
 
 ## Mike's backlog, 2026-11-16 (second list, grouped into PRs by the code they touch)
 
@@ -85,23 +85,23 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR G: DM combat controls (movement, selection, tools)
 `lib/iso-battle/src/client/battle.js`, `lib/iso-battle/src/client/scene.js`, `public/js/dm/combat.js`, `public/js/dm/map.js`, `src/iso.js`, `src/grid.js`, `src/sockets/dm.js`, `public/dm.html`
-- [ ] Fix how enemies can move anywhere without using movement. DM's can move the creatures beyond the limit, past -5 movement ft or more. If they do, the movement count turns red.
-- [ ] DM can move creatures with keyboard arrow keys.
-- [ ] DM can right click enemies in the combat window and that will open up an options menu. LLM chooses what those options are.
-- [ ] DM's Combat DM Tools has sections. one for Unit actions and one for landscaping (raise/lower/paint/obstacle, etc.)
-- [ ] When DM clicks on a unit on the map, the right side bar changes dynamically so the DM can see the selection stats. [DM Screen right-hand sidebar]
-- [ ] When DM ends combat, clear the combat window so that the DM can do another combat another time.
+- [x] Fix how enemies can move anywhere without using movement. DM's can move the creatures beyond the limit, past -5 movement ft or more. If they do, the movement count turns red.
+- [x] DM can move creatures with keyboard arrow keys.
+- [x] DM can right click enemies in the combat window and that will open up an options menu. LLM chooses what those options are.
+- [x] DM's Combat DM Tools has sections. one for Unit actions and one for landscaping (raise/lower/paint/obstacle, etc.)
+- [x] When DM clicks on a unit on the map, the right side bar changes dynamically so the DM can see the selection stats. [DM Screen right-hand sidebar]
+- [x] When DM ends combat, clear the combat window so that the DM can do another combat another time.
 
 ### PR H: DM Screen tabs and layout
 `public/dm.html`, `public/style.css`, `public/theme.css`, `public/js/dm/fold.js`, `public/js/dm/dock.js`, `public/js/dm/modes.js`, `public/js/dm/header.js`, `public/js/dm/legends.js`, `public/js/dm/moments.js`
-- [ ] DM Screen Modes can be minimizable.
-- [ ] Minimize Creature randomizer and creatures tab by default. [DM Screen, Combat; overlaps 15 Nov PR D item 6]
-- [ ] Move creature randomizer tab to bottom. [DM Screen, Combat]
-- [ ] Minimize all tabs by default for now. [DM Screen]
-- [ ] Remove House Rules Section. [DM Screen, Misc > Legends card; the phone Misc > Legends also lists house rules]
-- [ ] Choice Echo tab is more for planning, that should be in the planning mode. [DM Screen, today under Scene > Moments]
-- [ ] Move Changing Rules option to miscellaneous tab. [DM Screen, today the rules system picker in the header]
-- [ ] Settings Option to show/hide logs is also in the logs tab. [Logs tab on the DM Screen and phone Misc > Logs; today only in Settings]
+- [x] DM Screen Modes can be minimizable.
+- [x] Minimize Creature randomizer and creatures tab by default. [DM Screen, Combat; overlaps 15 Nov PR D item 6]
+- [x] Move creature randomizer tab to bottom. [DM Screen, Combat]
+- [x] Minimize all tabs by default for now. [DM Screen]
+- [x] Remove House Rules Section. [DM Screen, Misc > Legends card; the phone Misc > Legends also lists house rules]
+- [x] Choice Echo tab is more for planning, that should be in the planning mode. [DM Screen, today under Scene > Moments]
+- [x] Move Changing Rules option to miscellaneous tab. [DM Screen, today the rules system picker in the header]
+- [x] Settings Option to show/hide logs is also in the logs tab. [Logs tab on the DM Screen and phone Misc > Logs; today only in Settings]
 
 ### PR I: TV moments and roll display
 `public/stage.js`, `public/rollpop.js`, `public/moments.js`, `public/moments.css`, `public/anim.js`, `public/screen.html`, `src/moments.js`, `src/rolls.js`
@@ -113,11 +113,11 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR J: Social mode flow
 `public/js/dm/social.js`, `public/js/dm/hold.js`, `public/js/play/views/social.js`, `public/js/play/socialpop.js`, `src/cast.js`, `src/state.js`, `src/sockets/dm.js`, `public/stage.js`, `public/dm.html`
-- [ ] When DM enters social mode, it presents the DM with an NPC List. For now, use placeholders NPC Albert, Brent, and Christina. DM must select the NPC's to add to the social conversation, then Click/Hold the 'start conversation' button for 1 second to start the conversation.
-- [ ] DM gets a button option underneath the window to end the conversation. TV Screen gets a 'conversation has concluded message at the center. It holds for 1 second before moving everyone and the DM back to Exploration Mode.
-- [ ] When in Social Mode, the DM gets all of the social interaction options in a window above the narration window.
-- [ ] In Social Mode, the DM can still narrate. There is a narration window at the top left of the social window. This during-social narration window is only 3 event lines long.
-- [ ] Social Window does not show up on Player Screen during social event. They have to look at the TV Screen. [Check against the "Join the conversation?" phone pop-up in the section above]
+- [x] When DM enters social mode, it presents the DM with an NPC List. For now, use placeholders NPC Albert, Brent, and Christina. DM must select the NPC's to add to the social conversation, then Click/Hold the 'start conversation' button for 1 second to start the conversation.
+- [x] DM gets a button option underneath the window to end the conversation. TV Screen gets a 'conversation has concluded message at the center. It holds for 1 second before moving everyone and the DM back to Exploration Mode.
+- [x] When in Social Mode, the DM gets all of the social interaction options in a window above the narration window.
+- [x] In Social Mode, the DM can still narrate. There is a narration window at the top left of the social window. This during-social narration window is only 3 event lines long.
+- [x] Social Window does not show up on Player Screen during social event. They have to look at the TV Screen. [Check against the "Join the conversation?" phone pop-up in the section above]
 
 ### PR K: DM Messages, votes and Roll call pop-ups on phones
 `public/js/dm/rolls.js`, `public/js/play/messages.js`, `public/js/play/rolls.js`, `src/messages.js`, `src/popups.js`, `src/rolls.js`, `src/sockets/player.js`, `public/dm.html`
@@ -132,19 +132,19 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR M: Camp, rests and inspiration
 `public/js/dm/camp.js`, `public/js/play/camp.js`, `src/camp.js`, `src/rests.js`, `public/js/dm/hold.js`, `public/dm.html`
-- [ ] On Camp pop up, players must click/hold their short/long rest selection for 1 second to vote. [Phone camp pop-up]
-- [ ] Remove rests tab. This is automated in camp window. [DM Screen, Misc > Camp "Rests" card]
-- [ ] Camp window also has a class section. That section changes depending on their class.
-- [ ] Add an Inspiration Tab. [DM Screen; pairs with the phone hero card Inspiration points above]
+- [x] On Camp pop up, players must click/hold their short/long rest selection for 1 second to vote. [Phone camp pop-up]
+- [x] Remove rests tab. This is automated in camp window. [DM Screen, Misc > Camp "Rests" card]
+- [x] Camp window also has a class section. That section changes depending on their class.
+- [x] Add an Inspiration Tab. [DM Screen; pairs with the phone hero card Inspiration points above]
 
 ### PR N: Shops and items
 `src/shops.js`, `public/js/dm/shops.js`, `public/js/play/shops.js`, `public/js/play/inventory.js`, `public/stage.js`, `src/sockets/dm.js`, `src/sockets/player.js`, `public/dm.html`
-- [ ] In NPC's Tab, shop pop up shouldn't be there. Have a separate tab for shops. [DM Screen, Misc > NPCs]
-- [ ] On player phone, remove item description from item button. Players must press/hold the item button to get another pop up. This pop up will show the item description. Player can buy the item from the description window.
-- [ ] Merchant Image only shows underneath the shop title on the TV Screen. It does not show on the player phone screen.
-- [ ] On player phone screen, Gold is just a symbol and number. Players can't add items, the DM does that.
-- [ ] Add an Items Tab for the DM. [DM Screen]
-- [ ] DM can pop up shops right from planning mode. [DM Screen, Planning mode]
+- [x] In NPC's Tab, shop pop up shouldn't be there. Have a separate tab for shops. [DM Screen, Misc > NPCs]
+- [x] On player phone, remove item description from item button. Players must press/hold the item button to get another pop up. This pop up will show the item description. Player can buy the item from the description window.
+- [x] Merchant Image only shows underneath the shop title on the TV Screen. It does not show on the player phone screen.
+- [x] On player phone screen, Gold is just a symbol and number. Players can't add items, the DM does that.
+- [x] Add an Items Tab for the DM. [DM Screen]
+- [x] DM can pop up shops right from planning mode. [DM Screen, Planning mode]
 
 ## Mike's notes, 2026-11-16 (third list, grouped into PRs by the code they touch)
 
@@ -167,16 +167,16 @@ Items are as Mike wrote them. Bracketed notes say which screen a tab or setting 
 
 ### PR R: Dungeon entry, exit and editing
 `src/dungeon.js`, `src/sockets/dungeon.js`, `public/dungeon.js`, `public/dungeon.css`, `public/js/dm/dungeon.js`, `public/js/play/`
-- [ ] When the Party goes to a dungeon location, they get a phone tab. TV screen gets a pop up too, showing the dungeon image and a count of ready party members. The player phones get a window that shows the dungeon name, the description, and a button that says 'Enter Dungeon'. When all players have held-pressed enter dungeon for 1 second (counter on the TV), Then enter the dungeon.
-- [ ] When all players are at the end of the dungeon, they get an 'exit dungeon' pop up. They just have to press the exit dungeon button which sends them back to the TV Screen world map.
-- [ ] When Party is in a dungeon, A dungeon editing tab appears underneath world map. [DM Screen, World map window]
-- [ ] DM can edit the nodes right from the dungeon window. Can click/drag/etc. nodes and right click nodes for menu. [DM Screen, dungeon window]
-- [ ] Party Dungeon Location node is centered on TV Screen. [TV]
+- [x] When the Party goes to a dungeon location, they get a phone tab. TV screen gets a pop up too, showing the dungeon image and a count of ready party members. The player phones get a window that shows the dungeon name, the description, and a button that says 'Enter Dungeon'. When all players have held-pressed enter dungeon for 1 second (counter on the TV), Then enter the dungeon.
+- [x] When all players are at the end of the dungeon, they get an 'exit dungeon' pop up. They just have to press the exit dungeon button which sends them back to the TV Screen world map.
+- [x] When Party is in a dungeon, A dungeon editing tab appears underneath world map. [DM Screen, World map window]
+- [x] DM can edit the nodes right from the dungeon window. Can click/drag/etc. nodes and right click nodes for menu. [DM Screen, dungeon window]
+- [x] Party Dungeon Location node is centered on TV Screen. [TV]
 
 ### PR S: DM Screen mode buttons and sidebar
 `public/dm.html`, `public/style.css`, `public/js/dm/modes.js`, `public/js/dm/dock.js`
-- [ ] DM Screen Mode Buttons get darker to show DM is currently on them, not just the text turning gold. [DM Screen, mode bar]
-- [ ] Party Tab is on the Right sidebar. [DM Screen; overlaps the 15 Nov PR D item and the 16 Nov PR H layout items]
+- [x] DM Screen Mode Buttons get darker to show DM is currently on them, not just the text turning gold. [DM Screen, mode bar]
+- [x] Party Tab is on the Right sidebar. [DM Screen; overlaps the 15 Nov PR D item and the 16 Nov PR H layout items]
 
 ## Mike's notes, 2026-11-16 (fourth list)
 
@@ -193,3 +193,80 @@ Item is as Mike wrote it. Bracketed notes say which screen it is on.
 ### PR U: Lore tab
 `public/dm.html`, `public/style.css`, `public/js/dm/`, `public/js/play/`, `src/state.js`, `src/sockets/dm.js`
 - [ ] Add a Lore Tab. Lore Tab tracks: Locations, Dungeons, NPCs, Items, Books and Notes. [DM Screen; phone tab placement not stated]
+
+## Mike's notes, 2026-11-16 (sixth list)
+
+Items are as Mike wrote them. Bracketed notes say which screen it is on and what already exists.
+
+### PR V: Time clock, town map and town visits
+`src/worldmap.js`, `src/sockets/worldmap.js`, `src/tracker.js`, `src/dungeon.js`, `src/visibility.js`, `public/worldmap.js`, `public/js/dm/worldmap.js`, `public/js/play/`, `public/stage.js`
+- [ ] Segmented time clock: make going to places take up time segments. [World map, town map; the DM's segment clocks in `src/tracker.js` are a separate countdown]
+- [ ] Traveling roads takes up 1 clock segment per leg. [World map; roads already have a length in legs]
+- [ ] Time of day clock animation slides from the upper left side of TV screen. then advances forward when triggered, plays sound, lingers for 3 seconds, then animation slides back to upper left side of TV screen. [TV; triggered when the clock advances, e.g. a road leg or a confirmed town action]
+- [ ] Mousing over world map town nodes will generate a list of what the town has. [DM Screen and TV world map]
+- [ ] Visiting Towns: I want a similar dungeon entrance system to happen with the players visiting towns. It also has world map elements. [Reuse the PR R dungeon gate and the world map nodes, fog and drag]
+  - [ ] Like in the world map, players start at the settlement entrance node. They have to discover nodes that are hidden. Nodes will give player phone screen a window to interact with whatever is on the node. [Phones, TV]
+  - [ ] When in a town, players get to decide which discovered node they can go to. Once every player has made a decision and press-held the town action button on their phone town window, they interact with the node. [Phones; TV ready count as with the dungeon gate]
+  - [ ] Going to nodes use up time clock segments, which will advance once all players confirm their town action. [Phones, TV clock]
+  - [ ] For now, I want the starting town to have these hidden nodes: Settlement entrance, Farm, Marketplace, Smithy, Wizards Tower. [Starting town, Millbrook in the example map]
+  - [ ] Like with world map, DM can add village nodes by clicking and dragging them on the map. [DM Screen, town map]
+
+## Mike's notes, 2026-11-16 (seventh list)
+
+Item is as Mike wrote it. Bracketed notes say which screen it is on and what already exists.
+
+### PR W: Creature Designer and wiki
+`public/dm.html`, `public/style.css`, `public/js/dm/`, `src/entities.js`, `src/routes.js`, `src/sockets/dm.js`
+- [ ] In Planning, Add Creature Designer button. This is a DM only pop up that lets me create sentient races, animals, etc. it lets me decide a sentient person's stats, skills, lore, race, abilities, inventory, etc. whatever the LLM deems necessary. this is all connected to a wiki system that edits .md files from a github repo. [DM Screen, Planning Mode tab group next to Shops; the creature library in `public/js/dm/creatures.js` and the Lore tab in `public/js/dm/lore.js` already exist; which GitHub repo holds the wiki is not stated, possibly the Arthuria lore repo]
+
+## Mike's notes, 2026-11-16 (eighth list)
+
+Mike is building his own game system, a fusion of Daggerheart, 5e and homebrew, so these items stay system-agnostic: no 5e-only rules baked in. Bracketed notes say which screen it is on and what already exists.
+
+### PR X: Battle map vision, spell areas, conditions and scene audio
+`src/vision.js`, `src/iso.js`, `src/tracker.js`, `src/timers.js`, `src/sockets/dm.js`, `public/js/iso3d.js`, `lib/iso-battle/`, `public/js/dm/combat.js`, `public/stage.js`, `public/audio.js`, `public/soundboard.js`, `public/atmo.js`
+- [ ] Fog of war with line of sight: each token reveals only what it can see, and the TV shows the party's combined view. [Battle map, TV; `src/vision.js` already does light radius and wall/height ray checks, this extends it to per-token sight and makes the TV follow the party's view]
+- [ ] Spell area templates: cones, lines, circles and cubes that snap to the grid and highlight every token inside. [Battle map, DM Screen, phones, TV; sizes are free numbers so any system's spells fit]
+- [ ] Token status icons: conditions show as icons on tokens, tracked automatically, with a duration countdown. [Battle map, TV, phones; conditions in `src/tracker.js` and round countdowns in `src/timers.js` already exist, condition names should be editable per system]
+- [ ] Ambient audio and music per scene: each scene has looping tracks and sound cues that start with it. [TV audio; `public/audio.js` and the soundboard already crossfade music and blend ambience loops, this ties them to a scene]
+
+## Mike's notes, 2026-11-16 (ninth list)
+
+System-agnostic like the eighth list: Mike's own system fuses Daggerheart, 5e and homebrew. Bracketed notes say which screen it is on and what already exists.
+
+### PR Y: Light sources, rest resets, DM undo, autosave, loot, encounters and character creator
+`src/vision.js`, `src/iso.js`, `src/rests.js`, `src/camp.js`, `src/rules/`, `src/living.js`, `src/store.js`, `src/saves.js`, `src/state.js`, `src/dungeon.js`, `src/worldmap.js`, `src/roster.js`, `src/session.js`, `src/sockets/dm.js`, `src/sockets/player.js`, `public/js/dm/`, `public/js/play/join.js`, `public/js/iso3d.js`
+- [ ] Light sources and vision radius: torches and spells light areas, and each token sees only in its own range. [Battle map, TV; `src/vision.js` already has per-token light (`LIGHTS`: none, torch, lantern, darkvision) set from the DM with `dm:token:light`, with wall and height ray checks. This adds lights placed on the map or carried by items and spells, editable radius values instead of the fixed list, and dim versus bright light. Pairs with PR X's per-token line of sight]
+- [ ] Rest resets: short and long rests restore the right resources automatically, with a DM override. [Camp, DM Screen, phones; `src/rests.js` already resets class feature uses and hit dice, and `src/camp.js` applies the voted rest with the DM's short/long/none override. Today the rules are 5e class tables; this moves them to per-system rest rules (`src/rules/`) so any resource, such as Daggerheart Hope or stress or homebrew pools, can say which rest refills it]
+- [x] Undo for DM actions (built Nov 16: ↶ Undo / ↷ Redo in the DM top bar and Ctrl+Z, last 15 steps, `src/undo.js`): one-tap undo for the last few automated changes, so the DM can override any result. [DM Screen; `src/living.js` already records each living-world change with an undo (`dm:living:undo`). This extends that history to HP, conditions, rolls, rests, travel and clocks, with an undo button for the last few changes]
+- [ ] Autosave snapshots: save the session every few minutes, so a crashed laptop loses little. [DM Screen, Saves; `src/store.js` already writes `data/campaign.json` after every change, and `src/saves.js` keeps named save points plus a rolling backup at each start. This adds timed rolling snapshots (for example every 5 minutes, last few kept) listed in Saves so the DM can roll back to one after a crash or a bad write]
+- [ ] Loot generator with DM approval: roll loot from a table, and the DM approves or edits it before players see it. [DM Screen, then phones and TV; the weighted oracle tables in `src/living.js` (roll, then accept or override) and the item library and shops in `public/js/dm/items.js` and `public/js/dm/shops.js` already exist. Dungeon treasure nodes in `src/dungeon.js` are the first place to hook it. Loot tables are plain lists, so any system's items fit]
+- [ ] Random encounter table per scene: roll an encounter when the party travels or rests, and the DM accepts or rerolls it. [DM Screen; travel legs in `src/worldmap.js`, camp in `src/camp.js`, the creature library and seeded randomizer (`src/creatures.js`, `src/randomizer.js`) and `encounterFactor` in `src/living.js` (more often at dusk and night, less in storms) already exist. This adds a table per scene or map node and a pending roll the DM accepts, rerolls or dismisses before anyone sees it]
+- [ ] Character creator: a very basic one with heavy DM override. Players pick a name, portrait, ancestry, class or role and a few stats on the phone, and the DM can edit, approve or replace any field before the character joins the table. [Phones at join, DM Screen; the phone join flow already has a new character form (`public/js/play/join.js`, `src/session.js`), and the DM edit dialog in `public/js/dm/characters.js` already edits every field. This adds a short guided creator with system-agnostic fields (stats, ancestries and classes come from the active rules or a homebrew list), a pending state the DM approves, and DM lock on any field so players cannot change it later]
+
+## Mike's notes, 2026-11-16 (Party sidebar follow-up)
+
+Built in the DM tabs thread right after PR H and S.
+
+### PR S2: Party sidebar conditions and hero
+`public/dm.html`, `public/js/dm/conds.js`, `public/js/dm/chronicle.js`, `public/js/dm/menus.js`, `public/js/dm/tracker.js`, `public/theme.css`
+- [x] Remove reset session button. [DM Screen, Party card in the right sidebar]
+- [x] Conditions appear as a clickable small button on the bottom right of an NPC's portrait. I can edit this with a right click menu. [DM Screen, hero portrait in the right sidebar, for party members and creatures picked on the 3D map]
+- [x] No need to have a conditions window. [DM Screen, right sidebar]
+- [x] Character sidebar shows bio first by default, not stats. [DM Screen, hero in the right sidebar]
+- [ ] Character creator: a very basic one with heavy DM override, and no classes (Mike's game has none). Steps, in Mike's order:
+  1. Basics on the phone: name, ancestry and background only. No class or role field.
+  2. Card questions: a series of questions where the player picks an animated card as the answer. For now, one question:
+     "A dragon appears to slay you and your beloved. What card do you take?"
+     1. The Knight Card (Melee Profession)
+     2. The Arrow Card (Range Profession)
+     3. The Shadow Card (Rogue Type)
+     4. The Lightning Card (Wizard)
+     5. The Automaton Card (Engineer)
+     (Mike wrote "4 animated cards" but listed five; all five are kept here until he confirms.)
+  3. Stats: from a DM preset array or a point budget.
+  4. Starting kit: a pick of DM-defined kits, based on the profession chosen from the cards.
+  5. DM approval: the finished draft goes to the DM, who approves it before the character joins the table.
+  6. Heavy DM override and field locks: the DM can edit anything at any time, and players can't change fields after approval.
+  7. DM-made characters: the DM can create a whole character and hand it to a phone.
+  [Phones at join, DM Screen; the phone join flow already has a new character form (`public/js/play/join.js`, `src/session.js`), and the DM edit dialog in `public/js/dm/characters.js` already edits every field. Questions, cards, professions, ancestries, backgrounds, stat arrays and kits are DM-editable lists, not hard-coded, so the creator stays system-agnostic. Each card answer sets the character's profession, which the kit step reads]

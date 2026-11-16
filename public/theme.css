@@ -77,7 +77,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid #b8862f; outline-
 input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; accent-color: #8a4f12; }
 
 /* ---------- buttons: wooden plates in an iron band ---------- */
-.btn, .bigbtn, .tabs button, .side-tabs button, .settings-btn, .mode-pill, .vn-name {
+.btn, .bigbtn, .tabs button, .settings-btn, .vn-name {
   --ink: #f3e5c4; --muted: #cbb58c; --gold: #f2c96e;
   color: var(--ink);
   background: linear-gradient(180deg, rgb(255 230 190 / .16), transparent 45%, rgb(0 0 0 / .35)), #5e3b20 var(--tx-wood) center / 400px 120px;
@@ -90,7 +90,7 @@ input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; a
 }
 .btn { font-weight: 600; padding: 6px 12px; }
 .btn.small { padding: 2px 9px; }
-.btn:hover, .bigbtn:hover, .tabs button:hover, .side-tabs button:hover { filter: brightness(1.15); border-color: transparent; }
+.btn:hover, .bigbtn:hover, .tabs button:hover { filter: brightness(1.15); border-color: transparent; }
 .btn:active, .bigbtn:active, .tabs button:active { transform: translateY(1px); filter: brightness(.95); }
 .btn:disabled, .bigbtn:disabled { filter: grayscale(.6) brightness(.8); }
 /* slate-iron plate for primary actions, like the grey plates in the menu */
@@ -98,7 +98,7 @@ input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; a
   color: #fff3d6; font-weight: 700;
   background: linear-gradient(180deg, rgb(255 255 255 / .14), transparent 45%, rgb(0 0 0 / .35)), linear-gradient(180deg, #4d5560, #2e333a);
 }
-.btn.on, .side-tabs button.on {
+.btn.on {
   color: #ffe2a0;
   background: linear-gradient(180deg, rgb(255 220 150 / .25), transparent 45%, rgb(0 0 0 / .3)), #6e4622 var(--tx-wood) center / 400px 120px;
   box-shadow: 0 0 0 1px #e6b65a, 0 0 10px rgb(240 190 90 / .55);
@@ -108,7 +108,7 @@ input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; a
 }
 
 /* the round gem socket */
-.bigbtn::before, .modes .btn::before, .btn.primary::before, .tabs button.on::before, .mode-pill::before, .vn-name::before {
+.bigbtn::before, .modes .btn::before, .btn.primary::before, .tabs button.on::before, .vn-name::before {
   content: ''; display: inline-block; vertical-align: -.14em; flex: none;
   width: 1em; height: 1em; margin-right: .5em; border-radius: 50%;
   background:
@@ -133,7 +133,6 @@ input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; a
 .bigbtn::before { width: 1.05em; height: 1.05em; margin-right: .6em; }
 
 /* DM side rail: square iron-banded icon plates */
-.side-tabs button { border-image-width: 5px; }
 .dm-right {
   background: linear-gradient(90deg, rgb(0 0 0 / .45), transparent 18px), #2a1d13 var(--tx-wood) center / 400px 120px;
   border-left: 6px solid #1a1612;
@@ -223,8 +222,6 @@ html:has(> body.codm) { background: radial-gradient(ellipse at 50% -10%, rgb(120
 .vn-box.emo-sad .vn-name { background: linear-gradient(180deg, rgb(255 255 255 / .14), transparent 45%, rgb(0 0 0 / .35)), linear-gradient(180deg, #4d5560, #2e333a); --gem: var(--gem-blue); }
 
 /* mode pill and join card */
-.mode-pill { border-radius: 0; border-image-width: .45cqw; border-width: .2cqw; color: #f8e6bb; padding: .55cqw 1.4cqw; --gem: var(--gem-blue); }
-.mode-combat .mode-pill { --gem: var(--gem-red); }
 .join { background: var(--edge-burn), #e0cb9b var(--tx-parch); border: 4px solid transparent; border-image: var(--frame) 40 / 1.6cqw / 0 stretch; border-radius: 0; padding: 1.1cqw; }
 .join b { color: var(--gold); }
 .join small { color: var(--muted); }
@@ -289,8 +286,8 @@ html:has(> body.codm) { background: radial-gradient(ellipse at 50% -10%, rgb(120
 
 /* ---------- motion ---------- */
 @keyframes gem-glint { 0%, 85%, 100% { filter: none; } 90% { filter: brightness(1.6) saturate(1.3); } }
-.bigbtn::before, .tabs button.on::before, .mode-pill::before { animation: gem-glint 5s ease-in-out infinite; }
-html[data-motion="reduce"] .bigbtn::before, html[data-motion="reduce"] .tabs button.on::before, html[data-motion="reduce"] .mode-pill::before { animation: none; }
+.bigbtn::before, .tabs button.on::before { animation: gem-glint 5s ease-in-out infinite; }
+html[data-motion="reduce"] .bigbtn::before, html[data-motion="reduce"] .tabs button.on::before { animation: none; }
 
 /* ================= Chronicle layout (body.chron) in the game menu look =================
    chronicle.css gives the DM page and phones their three-column / hero layout with a charcoal skin.
@@ -329,11 +326,6 @@ body.chron .dm-bar, body.chron #pills, body.chron .col-head { border-color: #4a3
 body.chron .dm-bar h2 { font-family: var(--orn); font-weight: 900; text-transform: none; letter-spacing: .02em; color: #e8c77e; }
 body.chron .side-title { font-family: var(--display); color: #d8b878; }
 body.chron .tab-group { border-color: #4a3726; }
-body.chron .side-tabs button { border-radius: 0; }
-body.chron .side-tabs button:hover { background: rgb(255 220 160 / .08); }
-body.chron .side-tabs button.on { background: rgb(255 220 160 / .12); border: 1px solid #b8862f; box-shadow: 0 0 8px rgb(240 190 90 / .35); }
-body.chron .side-tabs button::after { font-family: var(--display); color: #cbb68e; }
-body.chron .side-tabs button.on::after { color: #f2c96e; }
 
 /* top pills (day, light, place, quest, coins) as wooden plates */
 body.chron .pill {
@@ -367,7 +359,7 @@ body.phone.chron .tabs { background: rgb(226 204 156 / .96); border-color: #8d6f
 .dm-bar .bar-min:hover { border-color: #e8c77e; }
 .dm-bar > * { transition: opacity .2s; }
 body.bar-min .dm-bar { padding-top: 6px; padding-bottom: 6px; }
-body.bar-min .dm-bar > :not(h2):not(.bar-min) { display: none; }
+body.bar-min .dm-bar > :not(h2):not(.bar-min):not(.undo-bar) { display: none; }
 body.bar-min .dm-bar h2 { font-size: calc(14px * var(--ts)); }
 body.bar-min #pills { display: none; }
 
@@ -491,17 +483,13 @@ body.chron .btn.danger.enc-end:hover { background-color: #cf2c21; }
 .cbt.acted .cbt-head b { color: #6b6158; }
 
 /* Battle map card (Mike, Nov 16): centred buttons with their fields underneath, a green hold-to-generate at the
-   bottom, and a title that folds the card. */
+   bottom. The title folds the card (fold.js). */
 .map-stack { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 .map-stack > .btn { min-width: 60%; justify-content: center; }
 .map-stack .map-under { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: -2px; }
 .map-stack .note { margin: 0; }
 body.chron .btn.go, .btn.go { background: linear-gradient(180deg, rgb(210 255 200 / .22), transparent 45%, rgb(0 0 0 / .35)), #2f7d32; border-color: #5fbf5f; color: #fff; }
 body.chron .btn.go:hover { background-color: #379a3b; }
-.fold-head { all: unset; cursor: pointer; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; }
-.fold-head i { display: inline-block; font-style: normal; transition: transform .2s; }
-.fold-card.folded .fold-head i { transform: rotate(-90deg); }
-.fold-head:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 /* Co-DM card: each role is a title, one centred Invite button under it, then its QR. */
 .invite-role { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-bottom: 10px; }
@@ -509,3 +497,180 @@ body.chron .btn.go:hover { background-color: #379a3b; }
 .invite-role h3 { align-self: stretch; }
 .invite-role > .btn { min-width: 50%; }
 .invite-role .codm-invite { align-self: stretch; }
+
+/* DM tabs and Party sidebar (Mike, Nov 15 PR D, Nov 16 PR H and S) ------------------------------- */
+/* The live mode's button is pressed in: a darker plate and an inset shadow, not only gold text. */
+.modes .btn[data-mode] { transition: filter .15s, transform .12s, box-shadow .2s, background-color .2s; }
+body.chron .modes .btn[data-mode].on {
+  color: #ffe2a0;
+  background: linear-gradient(180deg, rgb(0 0 0 / .72), rgb(0 0 0 / .5) 55%, rgb(40 20 0 / .45)), #2b1a0c var(--tx-wood) center / 400px 120px;
+  text-shadow: 0 0 6px rgb(240 190 90 / .6);
+  box-shadow: inset 0 3px 8px rgb(0 0 0 / .75), 0 0 0 1px #e6b65a, 0 0 10px rgb(240 190 90 / .45);
+  transform: translateY(1px);
+  animation: mode-press .28s ease-out;
+}
+@keyframes mode-press { 0% { transform: translateY(-1px); filter: brightness(1.3); } 60% { transform: translateY(2px); } 100% { transform: translateY(1px); filter: none; } }
+
+/* The Modes card folds to its title, which then names the live mode. The tab list is its own card under it. */
+.modes-card .mode-now { display: none; color: var(--gold); }
+.modes-card.folded .mode-now { display: inline; animation: fade-in .25s ease-out; }
+.tab-card { padding-top: 4px; padding-bottom: 4px; }
+.tab-card .tab-list { margin-top: 0; }
+.tab-card .tab-list .tab-group:first-child { border-top: 0; }
+body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / .55); }
+
+/* Opening a folded card slides its contents in. */
+.card[data-fold]:not(.folded) > :not(h3:first-of-type) { animation: fold-open .22s ease-out; }
+@keyframes fold-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .card[data-fold]:not(.folded) > *, .modes .btn[data-mode].on, .modes-card .mode-now { animation: none; } }
+
+/* Party sidebar on the right (was the Party tab): the hero, then the party list, conditions and characters. */
+.dm-hero .party-side { margin: 0; }
+.dm-hero .party-side .row { flex-wrap: wrap; }
+.dm-hero .party-side select { width: 100%; }
+.dm-hero .party-side h3 .btn { margin-left: 6px; }
+
+/* Logs tab: show or hide the logs on this screen (the same switch as Display settings). */
+.log-toggle { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; font-weight: 600; }
+#tabLogs .log-toggle { padding: 4px 2px; }
+.dm-hero .party-side h3 .note { display: none; } /* the sidebar is narrow: titles only */
+/* ================= Social flow and phone hero (Mike, Nov 16) ================= */
+/* DM: the Social window sits under the TV preview, above the narration bar, in Social mode only. */
+.social-win { flex: 1 1 0; min-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 12px; }
+.social-win[hidden], .convo-live[hidden], .convo-pick[hidden] { display: none; }
+.convo-pick h3 { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.convo-pool { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin: 8px 0 10px; }
+.convo-npc { display: flex; align-items: center; gap: 8px; padding: 8px 10px; text-align: left; transition: transform .15s, box-shadow .2s, border-color .2s; }
+.convo-npc .convo-face { width: 36px; height: 36px; flex: none; border-radius: 50%; overflow: hidden; background: hsl(var(--hue) 30% 20%); filter: grayscale(.7); transition: filter .2s; }
+.convo-npc .convo-face svg { width: 100%; height: 100%; display: block; }
+.convo-npc.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset, 0 0 10px rgb(240 190 90 / .35); transform: translateY(-1px); }
+.convo-npc.on .convo-face { filter: none; }
+#convoStart { width: 100%; padding: 12px; font-size: calc(15px * var(--ts)); }
+#convoStart:disabled { opacity: .5; }
+.convo-live { display: flex; flex-direction: column; gap: 10px; }
+.convo-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.convo-bar #convoEnd { padding: 9px 16px; }
+.social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; align-items: start; }
+.social-grid > .card { margin: 0; }
+
+/* TV: waiting for the DM to start, the social narration box, emotion badges and the end card. */
+.convo-wait { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1cqw; text-align: center; }
+.convo-wait span { font-size: calc(5cqw * var(--ts)); animation: pulse 2.4s ease-in-out infinite; }
+.convo-wait b { font-family: var(--display); font-size: calc(2.4cqw * var(--ts)); letter-spacing: .12em; color: var(--gold); text-shadow: 0 .2cqw 1cqw #000; }
+.vn .vn-narr { position: absolute; left: 2cqw; top: 1.6cqw; z-index: 3; max-width: 40cqw; margin: 0; padding: .8cqw 1.2cqw; background: rgb(10 8 12 / .62); border: 1px solid rgb(255 214 120 / .25); border-radius: .4cqw; backdrop-filter: blur(3px); }
+.vn .vn-narr li { font-size: calc(1.15cqw * var(--ts)); }
+.vn-pc-emo { position: absolute; top: -.6cqw; right: -.4cqw; z-index: 2; font-style: normal; font-size: calc(1.8cqw * var(--ts)); line-height: 1; filter: drop-shadow(0 .2cqw .4cqw #000); animation: emobadge .45s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes emobadge { from { transform: scale(0) rotate(-30deg); } }
+.convo-end { position: absolute; inset: 0; z-index: 40; display: grid; place-items: center; background: rgb(0 0 0 / .55); pointer-events: none; animation: convoend 1.3s ease-out both; }
+.convo-end b { font-family: var(--display); font-size: calc(3.6cqw * var(--ts)); letter-spacing: .14em; color: var(--gold); text-align: center; text-shadow: 0 .3cqw 1.5cqw #000; padding: 0 4cqw; animation: convoendtxt 1.3s ease-out both; animation-delay: inherit; }
+@keyframes convoend { from { opacity: 0; } 20% { opacity: 1; } }
+@keyframes convoendtxt { from { opacity: 0; transform: scale(.94); letter-spacing: .3em; } 25% { opacity: 1; transform: scale(1); letter-spacing: .14em; } }
+
+/* Phone: social view points at the TV; "Join the Conversation?" pop-up with the emotion pad. */
+.social-watch { text-align: center; display: grid; gap: 10px; justify-items: center; }
+.social-watch p { margin: 0; }
+.social-watch-eye { font-size: calc(34px * var(--ts)); animation: pulse 2.4s ease-in-out infinite; }
+.convo-pop { animation: fadein .2s ease-out; }
+.convo-pop .pop-sheet { animation: sheetup .32s cubic-bezier(.2, .8, .2, 1); }
+.convo-pop.closing { animation: fadeout .2s ease-in forwards; }
+.convo-pop.closing .pop-sheet { animation: sheetdown .2s ease-in forwards; }
+@keyframes sheetup { from { transform: translateY(100%); } }
+@keyframes sheetdown { to { transform: translateY(100%); } }
+.convo-sheet h3 { text-align: center; }
+.convo-yn { display: grid; grid-template-rows: 1fr 1fr; gap: 10px; }
+.convo-yn .btn { text-align: center; padding: 16px; font-size: calc(18px * var(--ts)); }
+.convo-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.convo-head h3 { margin: 0; text-align: left; }
+.convo-sheet textarea { width: 100%; margin: 10px 0 12px; font-size: calc(16px * var(--ts)); resize: none; }
+.convo-sheet textarea.shake { animation: shakex .3s; }
+@keyframes shakex { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+/* Phone hero: Inspiration in the 🏅 box, HP as a word, gems for hit dice and spell slots, tools at the bottom. */
+.hbar.hp-word b { font-size: calc(12px * var(--ts)); letter-spacing: .04em; white-space: nowrap; }
+.gems { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 4px; }
+.gem-row { display: flex; align-items: center; gap: 6px; }
+.gem-row small { color: var(--muted); font-size: calc(10px * var(--ts)); letter-spacing: .08em; white-space: nowrap; }
+.gem-row span { display: flex; flex-wrap: wrap; gap: 3px; }
+.gem { width: 11px; height: 11px; transform: rotate(45deg); border: 1px solid rgb(255 255 255 / .35); transition: background .35s, box-shadow .35s, transform .35s; }
+.gem.slot.on { background: linear-gradient(135deg, #b8e1ff, #3d7fd1); box-shadow: 0 0 6px rgb(90 160 255 / .7); }
+.gem.hd.on { background: linear-gradient(135deg, #ffe7a8, #c7891f); box-shadow: 0 0 6px rgb(255 190 80 / .6); }
+.gem.used { background: #0b0b0b; border-color: #333; box-shadow: none; transform: rotate(45deg) scale(.85); }
+.me-foot { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 24px 0 calc(76px + env(safe-area-inset-bottom)); padding-top: 14px; border-top: 1px solid var(--line); }
+.me-foot .btn { flex: 1 1 0; min-width: 0; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .convo-pop, .convo-pop .pop-sheet, .vn-pc-emo, .convo-end b { animation: none; } }
+
+/* PR G (Nov 16): DM combat controls. */
+/* Movement past a creature's speed shows red, on the creature card, in the hero column and in the right-click menu. */
+.mv-left.over, .sel-facts b.over { color: #ff6a5a; font-weight: 700; animation: mv-over .5s ease-out; }
+@keyframes mv-over { 0% { text-shadow: 0 0 10px #ff4a3a; } 100% { text-shadow: none; } }
+
+/* The right-click menu on a 3D map unit is the shared DM menu: public/ctxmenu.css. */
+
+/* Hero column: the unit selected on the 3D battle map. */
+.sel-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; background: #2a1f16; border: 1px solid #8a6a3a; border-radius: 4px; color: #f2c96e; font-size: calc(12px * var(--ts, 1)); }
+.sel-bar b { color: #ffe7b0; }
+#hero.sel-in > * { animation: sel-slide .32s cubic-bezier(.2, .8, .2, 1) both; }
+#hero.sel-in > *:nth-child(2) { animation-delay: .05s; }
+@keyframes sel-slide { from { opacity: 0; transform: translateX(16px); } }
+.sel-foe .hero-art { background: radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--acc) 35%, #1a1010), #121212 70%); }
+.sel-foe .sel-sprite { width: 70%; height: auto; image-rendering: pixelated; font-size: 64px; }
+.sel-facts { margin-top: 6px; }
+.sel-conds { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.sel-cond { padding: 2px 8px; border: 1px solid #8a4a3a; border-radius: 999px; background: #3a1a14; color: #ffc4b8; font-size: calc(12px * var(--ts, 1)); }
+.sel-h { margin: 10px 0 2px; font-size: calc(11px * var(--ts, 1)); letter-spacing: .12em; text-transform: uppercase; color: var(--muted, #8f7e62); }
+.sel-traits p { margin: 4px 0; font-size: calc(13px * var(--ts, 1)); color: #c9c3b4; }
+@media (prefers-reduced-motion: reduce) { #hero.sel-in > *, .mv-left.over, .sel-facts b.over { animation: none; } }
+
+/* Phone emotion wheel (Mike, Nov 16): 8 ring segments around a round Send button; drag one onto Send. */
+.convo-textwrap { margin: 10px 0 12px; }
+.convo-textwrap textarea { margin: 0; }
+.convo-tip { margin: 4px 2px 0; font-size: calc(11px * var(--ts)); line-height: 1.35; color: var(--ink, #2b2118); opacity: .45; text-align: center; font-style: italic; }
+.convo-wheel { position: relative; width: min(300px, 80vw); aspect-ratio: 1; margin: 6px auto 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.wheel-emo { position: absolute; inset: 0; padding: 0; border: 0; cursor: pointer; color: #f3e6c8;
+  background: radial-gradient(circle at 50% 50%, transparent 30%, #6b4426 31%, #4a2d18 70%, #2e1c0f 100%);
+  transform: translate(calc(var(--dx) * 3px), calc(var(--dy) * 3px)); transition: transform .18s cubic-bezier(.2, .8, .2, 1), filter .2s, background .2s;
+  -webkit-tap-highlight-color: transparent; }
+.wheel-emo:active { transform: translate(calc(var(--dx) * 6px), calc(var(--dy) * 6px)); }
+.wheel-emo.on { background: radial-gradient(circle at 50% 50%, transparent 30%, #e9cf8f 31%, #c99a45 70%, #8a6224 100%); color: #2b1a0c; transform: translate(calc(var(--dx) * 8px), calc(var(--dy) * 8px)); filter: drop-shadow(0 0 6px rgb(240 190 90 / .8)); }
+.wheel-lbl { position: absolute; left: calc(50% + var(--dx) * 34%); top: calc(50% + var(--dy) * 34%); transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: none; }
+.wheel-lbl > span { font-size: calc(24px * var(--ts)); line-height: 1; }
+.wheel-lbl small { font-size: calc(10px * var(--ts)); letter-spacing: .03em; white-space: nowrap; }
+.wheel-send { position: absolute; left: 50%; top: 50%; z-index: 2; width: 38%; aspect-ratio: 1; padding: 0; transform: translate(-50%, -50%); border-radius: 50% !important; font-size: calc(17px * var(--ts)); font-weight: 600; box-shadow: 0 0 0 6px var(--panel, #e8d6ae), 0 3px 10px rgb(0 0 0 / .4); transition: transform .15s, box-shadow .2s; }
+.wheel-send.drop { transform: translate(-50%, -50%) scale(1.12); box-shadow: 0 0 0 6px var(--panel, #e8d6ae), 0 0 22px 6px rgb(240 190 90 / .85); }
+.wheel-send.sent { animation: wheelsend .35s ease-out; }
+@keyframes wheelsend { 40% { transform: translate(-50%, -50%) scale(.88); } }
+.convo-wheel.dragging .wheel-emo:not(.on) { filter: brightness(.7); }
+.wheel-ghost { position: fixed; left: 0; top: 0; z-index: 2000; margin: -28px 0 0 -20px; font-size: 40px; line-height: 1; pointer-events: none; filter: drop-shadow(0 4px 8px rgb(0 0 0 / .5)); animation: ghostin .15s ease-out; }
+@keyframes ghostin { from { opacity: 0; scale: .6; } }
+@media (prefers-reduced-motion: reduce) { .wheel-emo, .wheel-send { transition: none; } .wheel-send.sent, .wheel-ghost { animation: none; } }
+/* .btn:active nudges buttons with a transform; keep Send centred while pressed. */
+.convo-wheel .wheel-send:active { transform: translate(-50%, -50%) scale(.95); }
+.convo-wheel .wheel-send.drop { transform: translate(-50%, -50%) scale(1.12); }
+body.chron .convo-wheel .wheel-send, .convo-wheel .wheel-send { border: 0; border-image: none; box-shadow: 0 0 0 2px #1a1612, 0 0 0 4px #9b9183, 0 0 0 9px var(--panel, #e8d6ae), 0 4px 12px rgb(0 0 0 / .45); display: flex; align-items: center; justify-content: center; gap: 6px; }
+.convo-wheel .wheel-send.drop { box-shadow: 0 0 0 2px #1a1612, 0 0 0 4px #f2c96e, 0 0 24px 8px rgb(240 190 90 / .85); }
+
+/* Conditions on the hero portrait (Mike, Nov 16): small round buttons on the bottom right. Click or right-click
+   one to edit. A new badge pops in. The party picker shows how many conditions each member has. */
+.dm-hero .hero-art { position: relative; }
+.cond-badges { position: absolute; right: 6px; bottom: 6px; display: flex; flex-wrap: wrap-reverse; justify-content: flex-end; gap: 4px; max-width: 70%; z-index: 2; }
+.cond-badge { width: 28px; height: 28px; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid #e6b65a; background: radial-gradient(circle at 35% 30%, #4a3420, #1a120b); color: #ffe2a0; font: 600 14px/1 var(--sans, system-ui); box-shadow: 0 2px 6px rgb(0 0 0 / .6); cursor: pointer; transition: transform .12s, box-shadow .15s; }
+.cond-badge:hover, .cond-badge:focus-visible { transform: scale(1.15); box-shadow: 0 0 0 2px #f2c96e, 0 0 10px rgb(240 190 90 / .6); outline: none; }
+.cond-badge.more { font-size: 11px; }
+.cond-badge.add { opacity: .35; border-style: dashed; font-size: 16px; }
+.dm-hero .hero-art:hover .cond-badge.add, .cond-badge.add:focus-visible { opacity: .9; }
+.cond-badge.new { animation: cond-pop .45s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes cond-pop { from { transform: scale(0); opacity: 0; } }
+.hero-pick button { position: relative; }
+.pick-cond { position: absolute; right: -2px; bottom: -2px; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 8px; background: #b3241b; color: #fff; font: 700 10px/15px var(--sans, system-ui); font-style: normal; text-align: center; box-shadow: 0 1px 3px rgb(0 0 0 / .6); }
+@media (prefers-reduced-motion: reduce) { .cond-badge.new { animation: none; } }
+
+/* DM Undo / Redo in the top bar (public/js/dm/undo.js). Stays visible when the bar is minimized. */
+.dm-bar .undo-bar { order: 0; display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.dm-bar .undo-bar[hidden] { display: none; }
+.undo-btn { white-space: nowrap; max-width: 340px; overflow: hidden; text-overflow: ellipsis; }
+.undo-btn small { font-weight: 400; opacity: .8; margin-left: 4px; }
+.undo-note { font-size: calc(12px * var(--ts)); color: #e8c77e; opacity: 0; transform: translateX(-6px); transition: opacity .25s, transform .25s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+.undo-note.show { opacity: 1; transform: none; }
+.undo-note.err { color: #f0a0a0; }
+html[data-motion="reduce"] .undo-note { transition: none; }

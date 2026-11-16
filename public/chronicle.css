@@ -156,13 +156,7 @@ body.dm.chron.hero-dragging .tools-grip.right { cursor: grabbing; transition: no
 @media (prefers-reduced-motion: reduce) { body.dm.chron, .chron .dm-right, .chron .dm-hero, .tools-grip { transition: none; } }
 
 /* sidebar tabs: icon over a small label, like a toolbar */
-.chron .side-tabs { display: block; flex: none; }
 .chron .tab-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); align-content: start; gap: 2px; padding: 6px 0; border-bottom: 1px solid #262626; }
-.chron .side-tabs button { width: auto; height: auto; padding: 7px 2px 5px; border: 1px solid transparent; border-radius: 3px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 16px; transition: background .2s, border-color .2s; }
-.chron .side-tabs button::after { content: attr(data-short); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.chron .side-tabs button:hover { background: #222; }
-.chron .side-tabs button.on { background: #262626; border-color: var(--line); }
-.chron .side-tabs button.on::after { color: var(--gold); }
 .chron .side-title { margin: 0; letter-spacing: .16em; font-size: calc(11px * var(--ts)); font-family: var(--sans); }
 .chron [data-tab]:not([hidden]) { animation: feedin .25s ease-out; }
 .chron .modes .btn { font-family: var(--sans); letter-spacing: .06em; text-transform: uppercase; font-size: calc(12px * var(--ts)); }
@@ -211,7 +205,6 @@ body.phone.chron { padding: 12px 12px 120px; }
 .chron .me b, .chron .me h2 { font-family: var(--sans); }
 .chron .me .hbar b { font-size: inherit; }
 .chron .me-tools { display: flex; gap: 6px; align-items: center; }
-.chron .me-mode { margin-left: auto; text-transform: uppercase; letter-spacing: .14em; font-size: calc(11px * var(--ts)); color: var(--gold); }
 .chron .me > .hp { display: none; }
 body.phone.chron #pills { gap: 6px; padding-bottom: 4px; }
 body.phone.chron .pill { padding: 4px 8px; font-size: calc(12px * var(--ts)); }

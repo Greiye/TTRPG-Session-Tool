@@ -97,4 +97,4 @@ async function sync(state, { force = false, env } = {}) {
   return { sent: list.length - failed.length, failed: failed.length, reason: 'sent' };
 }
 
-module.exports = { PRESETS, MODE_MOOD, colourFor, hueState, goveeMessages, targets, sync, setTransport, _defaultSend: defaultSend };
+module.exports = { PRESETS, MODE_MOOD, colourFor, hueState, goveeMessages, targets, sync, setTransport };

@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/chronicle.css">
   <script src="/settings.js"></script>
   <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/ctxmenu.css">
 </head>
 <body class="dm chron">
   <div class="dm-left">
@@ -18,7 +19,6 @@
       <button class="bar-min" id="barMin" title="Minimize the top bar" aria-label="Minimize the top bar" aria-expanded="true" aria-controls="dmBar">▴</button>
       <a href="/screen" target="_blank">Open TV screen ↗</a>
       <span class="note">Drag that window to the TV, double-click for fullscreen.</span>
-      <label class="note tight">Rules <select id="system"></select></label>
       <span class="note tight">Room <b id="roomCode"></b> <button class="btn small" id="roomNew" title="New phones need the new QR; seated phones stay">New code</button></span>
       <label class="note tight">Join address <select id="hostSel"></select></label>
       <label class="note tight"><input type="checkbox" id="showJoin"> Show “Join the party” QR on TV</label>
@@ -26,6 +26,78 @@
     <div class="battle-wait" id="battleWait" hidden><p>⚔️ Waiting for the DM to activate combat.</p></div>
     <div class="dm-scroll" id="tablePage">
       <div class="stage-wrap"><div id="stage" class="stage"></div></div>
+      <!-- Social window (Mike, Nov 16): only in Social mode, above the narration bar. First the NPC list and a
+           1 s hold to start; once the conversation is live, End conversation and every social control. -->
+      <section id="socialWin" class="social-win" hidden aria-label="Social window">
+        <div id="convoPick" class="card convo-pick">
+          <h3>Who joins the conversation? <span class="note">pick NPCs, then hold Start for 1 second</span></h3>
+          <div id="convoPool" class="convo-pool" role="group" aria-label="NPCs"></div>
+          <button class="btn go hold-btn" id="convoStart" disabled><i class="hold-fill"></i><span>💬 Hold to start conversation</span></button>
+          <div id="convoErr" class="note" role="alert"></div>
+        </div>
+        <div id="convoLive" class="convo-live" hidden>
+          <div class="convo-bar"><button class="btn danger" id="convoEnd" title="The TV shows that the conversation has concluded, then everyone goes back to exploration">🚪 End conversation</button><span class="note" id="convoWho"></span></div>
+          <div class="social-grid">
+        <div class="card">
+          <h3>NPC</h3>
+          <div class="row">
+            <input id="npcName" class="grow" placeholder="NPC name">
+            <input id="npcHue" type="range" min="0" max="359" style="width:110px" title="Palette">
+            <select id="npcFaction" style="width:150px" title="Faction whose reputation sets this NPC's mood" aria-label="NPC faction"></select>
+          </div>
+          <div class="row">
+            <select id="npcFont" style="width:150px" title="Font for this NPC's lines on the TV" aria-label="Speech font"><option value="serif">Serif</option><option value="sans">Sans</option><option value="mono">Mono</option><option value="script">Script</option><option value="runic">Runic</option></select>
+            <select id="npcColor" style="width:150px" title="Colour for this NPC's lines on the TV" aria-label="Speech colour"><option value="ivory">Ivory</option><option value="gold">Gold</option><option value="crimson">Crimson</option><option value="teal">Teal</option><option value="violet">Violet</option><option value="moss">Moss</option><option value="frost">Frost</option></select>
+          </div>
+          <h3>On the scene <span class="note">up to 5 NPCs or items</span></h3>
+          <div id="castList" class="cast-list"></div>
+          <div class="row">
+            <input id="castName" class="grow" maxlength="40" placeholder="Name" aria-label="Cast name">
+            <select id="castKind" style="width:110px" aria-label="Kind"><option value="npc">NPC</option><option value="item">Item</option></select>
+            <button class="btn" data-act="castAdd">+ Add</button>
+          </div>
+          <div id="castErr" class="note" role="alert"></div>
+          <div class="row">
+            <select id="emoTarget" style="width:200px" aria-label="Who the emotion buttons change"><option value="">Speaker</option></select>
+            <input id="spriteId" class="grow" maxlength="40" placeholder="Sprite id (uploaded set)" aria-label="Sprite id">
+            <button class="btn" data-act="spriteSet">Set sprite</button>
+            <button class="btn" data-act="spriteClear">Clear</button>
+          </div>
+          <div id="spriteErr" class="note" role="alert"></div>
+          <h3>Emotion <span class="note">keys 1–8</span></h3>
+          <div id="emotions" class="emotions"></div>
+        </div>
+        <div class="card">
+          <h3>Dialogue</h3>
+          <div class="row"><input id="lineLang" maxlength="30" style="width:200px" placeholder="Tongue (blank = Common)" aria-label="Language of this line"></div>
+          <textarea id="line" rows="2" placeholder="Type the NPC's line. Enter to speak, Shift+Enter for newline."></textarea>
+          <button class="btn primary" data-act="say">Speak as NPC</button>
+          <div id="glossBtns" class="row dm-conds"></div>
+        </div>
+        <div class="card">
+          <h3>Live voice <span><span id="recDot" class="rec-dot"></span></span></h3>
+          <p class="note">Records your mic and transcribes live. Browser engine needs Chrome or Edge. Local model works offline: put a Vosk model archive (<code>.tar.gz</code>, as vosk-browser loads it) in the laptop's <code>models/</code> folder (or <code>MODEL_DIR</code>) as <code>vosk-small-en.tar.gz</code>.</p>
+          <div class="row"><label class="note tight">Engine <select id="sttEngine" style="width:auto"><option value="chrome">Browser (Chrome)</option><option value="vosk">Local model (Vosk)</option></select></label><input id="sttModel" value="/models/vosk-small-en.tar.gz" class="grow" title="Vosk model URL"></div>
+          <div id="voiceBox" class="voice-box"><span class="interim">Press Record and speak in character…</span></div>
+          <label class="chk"><input type="checkbox" id="liveCaption" checked> Show live caption on TV</label>
+          <label class="chk"><input type="checkbox" id="autoSay"> Auto-speak each finished sentence as the NPC</label>
+          <div class="row">
+            <button class="btn primary" id="recBtn">● Record</button>
+            <button class="btn" id="voiceSend">Send transcript as line</button>
+            <button class="btn" id="voiceClear">Clear</button>
+          </div>
+          <div id="voiceStatus" class="note"></div>
+          <div id="recordings" class="recordings"></div>
+        </div>
+        <div class="card">
+          <h3>Player choices</h3>
+          <input class="choice" placeholder="Choice 1"><input class="choice" placeholder="Choice 2">
+          <input class="choice" placeholder="Choice 3"><input class="choice" placeholder="Choice 4">
+          <div class="row"><button class="btn primary" data-act="choices">Push to phones</button><button class="btn" data-act="choicesClear">Clear</button></div>
+        </div>
+          </div>
+        </div>
+      </section>
       <h3 class="col-sub">Story <span class="note">what the TV log shows, newest at the bottom</span></h3>
       <section id="feed" class="feed" aria-live="polite" aria-label="Story so far"></section>
     </div>
@@ -45,29 +117,27 @@
       <div class="row"><input id="key" class="grow"><button class="btn primary" id="authBtn">Unlock</button></div>
     </div>
 
-    <div class="card modes-card">
-      <h3>Modes <span class="note" id="padStatus"></span></h3>
+    <div class="card modes-card" data-fold data-fold-key="modes">
+      <h3>Modes <span class="note mode-now" id="modeNow"></span> <span class="note" id="padStatus"></span></h3>
       <div class="modes">
         <button class="btn" data-mode="exploration">🧭 Explore</button>
         <button class="btn" data-mode="combat">⚔️ Combat</button>
         <button class="btn" data-mode="social">💬 Social</button>
       </div>
       <div class="modes modes-alt">
-        <button class="btn" id="planToggle" aria-pressed="false" title="Prep between sessions: shops and road cards. The table does not see it.">📝 Planning</button>
+        <button class="btn" id="planToggle" aria-pressed="false" title="Prep between sessions: shops and choice echoes. The table does not see it.">📝 Planning</button>
         <button class="btn" id="mapToggle" aria-pressed="false" title="Turn your main page into the world map">🗺 World map</button>
       </div>
-      <div id="castPick" class="cast-pick" hidden>
-        <span class="note">Who speaks in this scene?</span>
-        <div id="castPickList" class="cast-list"></div>
-        <button class="btn small" data-enter="none">Enter without picking</button>
-      </div>
-      <nav class="tab-list" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Rolls"><i>🎲</i><span>Rolls</span></button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat"><i>⚔️</i><span>Combat</span></button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages"><i>✉</i><span>Messages</span></button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs"><i>📜</i><span>Logs</span></button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene, points of interest, stage and music, clocks, TV moments and puzzles" aria-label="Scene"><i>🎬</i><span>Scene</span></button><button role="tab" data-stab="lore" title="Lore: locations, dungeons, NPCs, items, books and notes" aria-label="Lore"><i>📚</i><span>Lore</span></button><button role="tab" data-stab="misc" title="NPCs, legends, lights, table tools, quiz, relations, journal, camp, co-DM and campaign data" aria-label="Miscellaneous"><i>🧰</i><span>Miscellaneous</span></button></div><div class="tab-group" data-group="plan" data-plan aria-label="Planning"><button role="tab" data-stab="shops" title="Shops and party gold" aria-label="Shops"><i>🛒</i><span>Shops</span></button></div></nav>
+    </div>
+    <div class="card tab-card">
+      <nav class="tab-list" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Rolls"><i>🎲</i><span>Rolls</span></button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat"><i>⚔️</i><span>Combat</span></button><button role="tab" data-stab="inspiration" title="Inspiration points" aria-label="Inspiration"><i>✨</i><span>Inspiration</span></button><button role="tab" data-stab="items" title="Items: give, count and take back each character's items" aria-label="Items"><i>🎒</i><span>Items</span></button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages"><i>✉</i><span>Messages</span></button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs"><i>📜</i><span>Logs</span></button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene, points of interest, stage and music, clocks, TV moments and puzzles" aria-label="Scene"><i>🎬</i><span>Scene</span></button><button role="tab" data-stab="lore" title="Lore: locations, dungeons, NPCs, items, books and notes" aria-label="Lore"><i>📚</i><span>Lore</span></button><button role="tab" data-stab="misc" title="NPCs, legends, lights, table tools, quiz, relations, journal, camp, road cards, rules system, co-DM and campaign data" aria-label="Miscellaneous"><i>🧰</i><span>Miscellaneous</span></button></div><div class="tab-group" data-group="plan" data-plan aria-label="Planning"><button role="tab" data-stab="shops" data-live title="Shops and party gold: pop a shop up during play or from Planning Mode" aria-label="Shops"><i>🛒</i><span>Shops</span></button><button role="tab" data-stab="echo" title="Choice echoes: plant a consequence now, it fires after N scenes" aria-label="Choice echo"><i>🔁</i><span>Choice echo</span></button></div></nav>
     </div>
 
     <p class="side-title" id="sideTitle"></p>
     <div class="sub-tabs" id="subTabs" role="tablist" aria-label="Section parts"></div>
 
 <div class="card" data-tab="misc" data-sub="codm">
+      <h3>Co-DM and helpers <span class="note">invite by QR</span></h3>
       <div class="invite-role">
         <h3>🐉 Co-DM <span id="codmCount" class="note"></span></h3>
         <button class="btn" data-invite="codm" aria-expanded="false" aria-controls="codmInvite">Invite</button>
@@ -107,12 +177,13 @@
       <div id="trStatus" class="note" role="status"></div>
       <div id="trList" class="list"></div>
       <div class="row"><button class="btn small" id="trClose">Close story on TV</button></div>
-      <h3>House rules <span class="note">the tool enforces each one while it is on</span></h3>
-      <div id="ruleList" class="list"></div>
-      <div id="ruleStatus" class="note" role="status"></div>
       <h3>Empty chairs <span class="note">a character whose phone is gone</span></h3>
       <div id="chairList" class="list"></div>
       <div id="chairStatus" class="note" role="status"></div>
+    </div>
+    <div class="card" data-tab="misc" data-sub="rules">
+      <h3>Rules system <span class="note">checks and new characters use it</span></h3>
+      <div class="row"><select id="system" class="grow" aria-label="Rules system"></select></div>
     </div>
     <div class="card" data-tab="misc" data-sub="data">
       <h3>Campaign data <span class="note" id="dataStatus"></span></h3>
@@ -194,6 +265,11 @@
       <div class="row"><select id="relNpc" class="grow"></select></div>
       <div id="relList" class="list"></div>
     </div>
+    <div class="card" data-tab="shops" data-dm-only id="shopPopCard">
+      <h3>Shop pop-up <span class="note" id="shPopStatus"></span></h3>
+      <div class="row"><select id="shPopPick" class="grow" aria-label="Shop to open"></select><button class="btn primary" id="shPopOpen">Pop up</button><button class="btn" id="shPopClose">Close</button></div>
+      <p class="note">The TV shows the shop and how many are still shopping; phones get a buy and sell list. Works in play and in Planning Mode.</p>
+    </div>
     <div class="card" data-tab="shops" data-fold="closed" data-fold-key="shop-new">
       <h3>New shop <span class="note">import a price list</span></h3>
       <div class="row"><input id="shName" placeholder="Shop name" style="width:150px"><input id="shNpc" class="grow" placeholder="Merchant (NPC name)"><select id="shFaction" style="width:150px" title="Faction whose standing sets this shop's prices" aria-label="Shop faction"></select></div>
@@ -246,8 +322,9 @@
     </div>
     <div class="card" data-tab="misc" data-sub="camp">
       <h3>Camp <span class="note" id="campStatus">no camp yet</span></h3>
-      <p class="note">Open camp: the TV shows the image, and phones get a pop-up to vote short or long rest and describe downtime. Apply the rest below.</p>
+      <p class="note">Open camp: the TV shows the image, and phones get a pop-up to vote short or long rest and describe downtime. Ending camp applies the rest the party voted for.</p>
       <div class="row"><button class="btn primary" id="campToggle">Open camp</button><select id="campImg" class="grow" aria-label="Camp image from your backdrops"></select></div>
+      <div class="row"><label class="note grow">Rest when camp ends <select id="campApply" aria-label="Rest when camp ends"><option value="auto">By vote</option><option value="short">☕ Short rest</option><option value="long">🛏 Long rest</option><option value="none">No rest</option></select></label><b id="campRest" class="camp-rest"></b></div>
       <div id="campList" class="list"></div>
     </div>
     <div class="card" data-tab="misc" data-sub="camp">
@@ -256,15 +333,26 @@
       <div class="row"><button class="btn primary" id="dtStart">Start week</button><button class="btn" id="dtOpen" disabled>Open picks</button></div>
       <div id="dtList" class="list"></div>
     </div>
-    <div class="card" data-tab="misc" data-sub="camp">
-      <h3>Rests <span class="note">short and long</span></h3>
-      <div class="row"><button class="btn" data-act="restShort">☕ Short rest</button><button class="btn" data-act="restLong">🛏 Long rest</button></div>
+    <div class="card" data-tab="inspiration">
+      <h3>Inspiration <span class="note">a point turns a roll into advantage · up to 5 each</span></h3>
+      <div class="row"><button class="btn primary" id="inspAll">✨ Everyone +1</button></div>
+      <div id="inspList" class="list insp-list"></div>
     </div>
+    <div class="card" data-tab="items">
+      <h3>Items <span class="note">players can't add items; you give them</span></h3>
+      <div class="row"><select id="itWho" class="grow" aria-label="Character"></select></div>
+      <div class="row"><input id="itName" class="grow" maxlength="60" list="itNames" placeholder="Item name" autocomplete="off" aria-label="Item name"><input id="itQty" type="number" min="1" max="9999" value="1" style="width:64px" aria-label="Quantity"></div>
+      <div class="row"><input id="itNote" class="grow" maxlength="200" placeholder="Description (shown on the phone)" aria-label="Description"><button class="btn primary" id="itGive">Give</button></div>
+      <datalist id="itNames"></datalist>
+      <div id="itList" class="list"></div>
+    </div>
+    
     <div class="card" data-tab="scene" data-sub="clocks">
       <h3>Clocks <span class="note">countdowns on the TV</span></h3>
       <div class="row"><input id="clockName" class="grow" placeholder="The ritual completes"><input id="clockSegs" type="number" min="2" max="12" value="4" style="width:64px" title="Segments"><button class="btn small" id="clockAdd">Add</button></div>
       <div id="clockList" class="list"></div>
     </div>
+
     <!-- EXPLORATION -->
     <div class="card" data-tab="scene" data-sub="scene" data-panel="exploration">
       <h3>Scene</h3>
@@ -328,17 +416,19 @@
       <div id="secList" class="list"></div>
     </div>
     <div class="card" data-tab="logs" data-panel="exploration">
-      <h3>TV log <span class="note">nothing shows until you tick a type</span></h3>
+      <h3>Logs <span class="note">on this screen and the TV</span></h3>
+      <label class="chk log-toggle"><input type="checkbox" id="logShowHere" data-log-here> Show logs on this screen</label>
+      <h4>TV log <span class="note">nothing shows until you tick a type</span></h4>
       <div id="tvLogKinds" class="row" style="flex-wrap:wrap"></div>
-      <h3>Dice log</h3>
+      <h4>Dice log</h4>
       <div id="rollLog" class="list roll-log"></div>
-      <h3>Party trail <span class="note">where the party has been, newest first</span></h3>
+      <h4>Party trail <span class="note">where the party has been, newest first</span></h4>
       <div id="wmTrail"></div>
     </div>
 
     <!-- COMBAT -->
-    <div class="card fold-card" data-tab="combat" data-panel="combat" id="mapCard">
-      <h3><button class="fold-head" id="mapFold" aria-expanded="true" aria-controls="mapBody">Battle map <i aria-hidden="true">▾</i></button> <span class="note">drag tokens onto the 3D map</span></h3>
+    <div class="card" data-tab="combat" data-panel="combat" id="mapCard" data-fold="closed" data-fold-key="battle-map">
+      <h3>Battle map <span class="note">drag tokens onto the 3D map</span></h3>
       <div class="fold-body map-stack" id="mapBody">
         <label class="btn">⬆ Map image<input type="file" accept="image/*" id="mapFile" hidden></label>
         <button class="btn" id="mapSet">Set grid</button>
@@ -367,20 +457,11 @@
       <div class="enc-btns">
         <button class="btn primary hold-btn" id="initHold" title="Press and hold, then release to roll initiative and sort everyone in turn order"><i class="hold-fill"></i><span>🎲 Hold to roll initiative</span></button>
         <button class="btn hold-btn" id="nextHold" title="Press and hold for 2 seconds to end this turn"><i class="hold-fill"></i><span>Hold for next turn ▸</span></button>
-        <button class="btn danger enc-end" data-act="combatEnd">End</button>
+        <button class="btn danger enc-end hold-btn" id="endHold" title="Press and hold for 2 seconds: ends combat and clears creatures, tokens and the battle map for the next fight"><i class="hold-fill"></i><span>Hold to end combat</span></button>
       </div>
       <div id="initOrder" class="init-order" aria-live="polite"></div>
     </div>
-    <div class="card" data-tab="combat" data-panel="combat" data-fold="closed" data-fold-key="creature-randomizer">
-      <h3>Creature randomizer <span class="note">seed locks a result</span></h3>
-      <div class="row">
-        <select id="rndTable" class="grow"></select>
-        <input id="rndSeed" placeholder="seed (optional)" style="width:130px">
-        <button class="btn primary" id="rndRoll">Roll</button>
-      </div>
-      <div id="rndOut" class="list"></div>
-      <div class="row"><span class="note">Token accessory colour</span><select id="rndAccWho" class="grow" aria-label="Creature"></select><button class="btn small" id="rndAcc" title="Random accessory colour for the creature's 2D token">🎨 Randomize</button></div>
-    </div>
+    
     <div class="card" data-tab="combat" data-panel="combat" data-fold="closed" data-fold-key="creatures">
       <h3>Creatures <span><button class="btn small" id="crNew">+ New</button> <button class="btn small" id="crImportBtn">Import</button></span></h3>
       <input id="crSearch" placeholder="Search stat blocks…">
@@ -402,65 +483,17 @@
         <button class="btn" data-act="enemyAdd">Add</button>
       </div>
     </div>
+    <div class="card" data-tab="combat" data-panel="combat" data-fold="closed" data-fold-key="creature-randomizer">
+      <h3>Creature randomizer <span class="note">seed locks a result</span></h3>
+      <div class="row">
+        <select id="rndTable" class="grow"></select>
+        <input id="rndSeed" placeholder="seed (optional)" style="width:130px">
+        <button class="btn primary" id="rndRoll">Roll</button>
+      </div>
+      <div id="rndOut" class="list"></div>
+      <div class="row"><span class="note">Token accessory colour</span><select id="rndAccWho" class="grow" aria-label="Creature"></select><button class="btn small" id="rndAcc" title="Random accessory colour for the creature's 2D token">🎨 Randomize</button></div>
+    </div>
 
-    <!-- SOCIAL -->
-    <div class="card" data-tab="misc" data-sub="npc" data-panel="social">
-      <h3>NPC</h3>
-      <div class="row">
-        <input id="npcName" class="grow" placeholder="NPC name">
-        <input id="npcHue" type="range" min="0" max="359" style="width:110px" title="Palette">
-        <select id="npcFaction" style="width:150px" title="Faction whose reputation sets this NPC's mood" aria-label="NPC faction"></select>
-      </div>
-      <div class="row">
-        <select id="npcFont" style="width:150px" title="Font for this NPC's lines on the TV" aria-label="Speech font"><option value="serif">Serif</option><option value="sans">Sans</option><option value="mono">Mono</option><option value="script">Script</option><option value="runic">Runic</option></select>
-        <select id="npcColor" style="width:150px" title="Colour for this NPC's lines on the TV" aria-label="Speech colour"><option value="ivory">Ivory</option><option value="gold">Gold</option><option value="crimson">Crimson</option><option value="teal">Teal</option><option value="violet">Violet</option><option value="moss">Moss</option><option value="frost">Frost</option></select>
-      </div>
-      <h3>On the scene <span class="note">up to 5 NPCs or items</span></h3>
-      <div id="castList" class="cast-list"></div>
-      <div class="row">
-        <input id="castName" class="grow" maxlength="40" placeholder="Name" aria-label="Cast name">
-        <select id="castKind" style="width:110px" aria-label="Kind"><option value="npc">NPC</option><option value="item">Item</option></select>
-        <button class="btn" data-act="castAdd">+ Add</button>
-      </div>
-      <div id="castErr" class="note" role="alert"></div>
-      <div class="row">
-        <select id="emoTarget" style="width:200px" aria-label="Who the emotion buttons change"><option value="">Speaker</option></select>
-        <input id="spriteId" class="grow" maxlength="40" placeholder="Sprite id (uploaded set)" aria-label="Sprite id">
-        <button class="btn" data-act="spriteSet">Set sprite</button>
-        <button class="btn" data-act="spriteClear">Clear</button>
-      </div>
-      <div id="spriteErr" class="note" role="alert"></div>
-      <h3>Emotion <span class="note">keys 1–8</span></h3>
-      <div id="emotions" class="emotions"></div>
-    </div>
-    <div class="card" data-tab="misc" data-sub="npc" data-panel="social">
-      <h3>Dialogue</h3>
-      <div class="row"><input id="lineLang" maxlength="30" style="width:200px" placeholder="Tongue (blank = Common)" aria-label="Language of this line"></div>
-      <textarea id="line" rows="2" placeholder="Type the NPC's line. Enter to speak, Shift+Enter for newline."></textarea>
-      <button class="btn primary" data-act="say">Speak as NPC</button>
-      <div id="glossBtns" class="row dm-conds"></div>
-    </div>
-    <div class="card" data-tab="misc" data-sub="npc" data-panel="social">
-      <h3>Live voice <span><span id="recDot" class="rec-dot"></span></span></h3>
-      <p class="note">Records your mic and transcribes live. Browser engine needs Chrome or Edge. Local model works offline: put a Vosk model archive (<code>.tar.gz</code>, as vosk-browser loads it) in the laptop's <code>models/</code> folder (or <code>MODEL_DIR</code>) as <code>vosk-small-en.tar.gz</code>.</p>
-      <div class="row"><label class="note tight">Engine <select id="sttEngine" style="width:auto"><option value="chrome">Browser (Chrome)</option><option value="vosk">Local model (Vosk)</option></select></label><input id="sttModel" value="/models/vosk-small-en.tar.gz" class="grow" title="Vosk model URL"></div>
-      <div id="voiceBox" class="voice-box"><span class="interim">Press Record and speak in character…</span></div>
-      <label class="chk"><input type="checkbox" id="liveCaption" checked> Show live caption on TV</label>
-      <label class="chk"><input type="checkbox" id="autoSay"> Auto-speak each finished sentence as the NPC</label>
-      <div class="row">
-        <button class="btn primary" id="recBtn">● Record</button>
-        <button class="btn" id="voiceSend">Send transcript as line</button>
-        <button class="btn" id="voiceClear">Clear</button>
-      </div>
-      <div id="voiceStatus" class="note"></div>
-      <div id="recordings" class="recordings"></div>
-    </div>
-    <div class="card" data-tab="misc" data-sub="npc" data-panel="social">
-      <h3>Player choices</h3>
-      <input class="choice" placeholder="Choice 1"><input class="choice" placeholder="Choice 2">
-      <input class="choice" placeholder="Choice 3"><input class="choice" placeholder="Choice 4">
-      <div class="row"><button class="btn primary" data-act="choices">Push to phones</button><button class="btn" data-act="choicesClear">Clear</button></div>
-    </div>
     <div class="card" data-tab="scene" data-sub="moments" data-panel="exploration social combat" id="momentsCard"></div>
     <div id="atmo" data-tab="scene" data-sub="stage"></div>
     <div class="card lore-card" data-tab="lore" id="loreCard">
@@ -518,6 +551,7 @@
         </div>
       </div>
       <label class="fld">Catchphrase<input name="catchphrase" maxlength="120"></label>
+      <label class="fld">Pronoun <small>(how their speech reads in the log)</small><select name="pronoun"><option value="they">They</option><option value="he">He</option><option value="she">She</option></select></label>
       <label class="fld">Turn theme <small>(plays when their combat turn starts, an intro, or a crit)</small><select name="theme"></select></label>
       <label class="fld">Backstory <small>(the player can edit this too)</small><textarea name="backstory" rows="3" maxlength="2000"></textarea></label>
       <label class="fld">🪝 Plot hooks <small>(DM only)</small><textarea name="hooks" rows="2" maxlength="2000" placeholder="Their missing sister, the debt to the Thieves Guild…"></textarea></label>
@@ -567,29 +601,21 @@
   </dialog>
 
   <button class="tools-grip" id="toolsGrip" title="Click or drag right to bring the tools back" aria-label="Show tools" aria-controls="toolsCol" aria-expanded="false"></button>
-  <button class="tools-grip right" id="heroGrip" title="Click or drag left to bring the hero back" aria-label="Show hero" aria-controls="heroCol" aria-expanded="false"></button>
-  <aside class="dm-hero" id="heroCol" aria-label="Hero">
-    <div class="col-head"><span>🛡 Hero</span><button class="tools-min" id="heroMin" title="Minimize the hero column (drag the edge tab to bring it back)" aria-label="Minimize hero" aria-controls="heroCol">»</button></div>
+  <button class="tools-grip right" id="heroGrip" title="Click or drag left to bring the party sidebar back" aria-label="Show party sidebar" aria-controls="heroCol" aria-expanded="false"></button>
+  <aside class="dm-hero" id="heroCol" aria-label="Party">
+    <div class="col-head"><span>👥 Party</span><button class="tools-min" id="heroMin" title="Minimize the party sidebar (drag the edge tab to bring it back)" aria-label="Minimize party sidebar" aria-controls="heroCol">»</button></div>
     <div id="heroPick" class="hero-pick" role="tablist" aria-label="Party member"></div>
-    <div id="hero"></div>
-    <!-- Party, Conditions and Characters live in the right sidebar (Mike, Nov 15). -->
-    <div class="card hero-card" data-fold="open" data-fold-key="hero-party">
-      <h3>Party <button class="btn small danger" data-act="reset" title="Clears log, enemies, heals party">Reset session</button></h3>
+    <!-- Party and Characters live in the right sidebar (Mike, Nov 15 and 16), folded by default. Conditions are
+         badges on the hero portrait (public/js/dm/conds.js). -->
+    <div class="card party-side hero-card" data-fold="closed" data-fold-key="party-list">
+      <h3>Party</h3>
       <div id="party" class="list"></div>
     </div>
-    <div class="card hero-card" data-fold="closed" data-fold-key="hero-conditions">
-      <h3>Conditions <span class="note">on players and creatures in the encounter</span></h3>
-      <select id="condWho"></select>
-      <div id="condBtns" class="dm-conds"></div>
-      <div class="row"><input id="condRounds" type="number" min="0" max="99" value="0" style="width:90px" title="Rounds a condition lasts. 0 means until you clear it." aria-label="Rounds"><small class="note">rounds (0 = until cleared)</small></div>
-      <h3>Concentration <span class="note">for the player picked above</span></h3>
-      <div class="row"><input id="concSpell" class="grow" maxlength="60" placeholder="Spell, e.g. Hold Person" aria-label="Spell"><button class="btn small" data-conc="start">Concentrate</button><button class="btn small" data-conc="drop">Drop</button></div>
-      <div id="timerList" class="list"></div>
-    </div>
-    <div class="card hero-card" data-fold="closed" data-fold-key="hero-characters">
+    <div class="card party-side hero-card" data-fold="closed" data-fold-key="party-chars">
       <h3>Characters <button class="btn small" id="charNew">+ New</button></h3>
       <div id="chars" class="chars"></div>
     </div>
+    <div id="hero"></div>
   </aside>
 
   <script src="/socket.io/socket.io.js"></script>
