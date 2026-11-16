@@ -193,3 +193,19 @@ Item is as Mike wrote it. Bracketed notes say which screen it is on.
 ### PR U: Lore tab
 `public/dm.html`, `public/style.css`, `public/js/dm/`, `public/js/play/`, `src/state.js`, `src/sockets/dm.js`
 - [ ] Add a Lore Tab. Lore Tab tracks: Locations, Dungeons, NPCs, Items, Books and Notes. [DM Screen; phone tab placement not stated]
+
+## Mike's notes, 2026-11-16 (sixth list)
+
+Items are as Mike wrote them. Bracketed notes say which screen it is on and what already exists.
+
+### PR V: Time clock, town map and town visits
+`src/worldmap.js`, `src/sockets/worldmap.js`, `src/tracker.js`, `src/dungeon.js`, `src/visibility.js`, `public/worldmap.js`, `public/js/dm/worldmap.js`, `public/js/play/`, `public/stage.js`
+- [ ] Segmented time clock: make going to places take up time segments. [World map, town map; the DM's segment clocks in `src/tracker.js` are a separate countdown]
+- [ ] Traveling roads takes up 1 clock segment per leg. [World map; roads already have a length in legs]
+- [ ] Mousing over world map town nodes will generate a list of what the town has. [DM Screen and TV world map]
+- [ ] Visiting Towns: I want a similar dungeon entrance system to happen with the players visiting towns. It also has world map elements. [Reuse the PR R dungeon gate and the world map nodes, fog and drag]
+  - [ ] Like in the world map, players start at the settlement entrance node. They have to discover nodes that are hidden. Nodes will give player phone screen a window to interact with whatever is on the node. [Phones, TV]
+  - [ ] When in a town, players get to decide which discovered node they can go to. Once every player has made a decision and press-held the town action button on their phone town window, they interact with the node. [Phones; TV ready count as with the dungeon gate]
+  - [ ] Going to nodes use up time clock segments, which will advance once all players confirm their town action. [Phones, TV clock]
+  - [ ] For now, I want the starting town to have these hidden nodes: Settlement entrance, Farm, Marketplace, Smithy, Wizards Tower. [Starting town, Millbrook in the example map]
+  - [ ] Like with world map, DM can add village nodes by clicking and dragging them on the map. [DM Screen, town map]
