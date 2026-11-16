@@ -1,8 +1,8 @@
 // DM: the world map. It is a page, not a sidebar card (Mike, Nov 14): the Modes card's World map button swaps
 // the DM's main column for it. Place towns and sites on the picture (tap to edit, drag to move), run votes
 // and travel (with an override), and veto or reveal road cards as they come up. Road cards draw on their own
-// while the party travels; the deck, the auto table and how often a card shows are edited in Planning Mode
-// (the Road cards tab).
+// while the party travels; the deck, the auto table and how often a card shows are edited under
+// Miscellaneous, in the Road cards part (Mike, Nov 15; it was a Planning Mode tab).
 import { $, emit, call, onState, onClick, mount, state } from '../client.js';
 import { dmKey } from './auth.js';
 
@@ -36,7 +36,7 @@ mount(`<div class="card wm-page-card">
   <div id="wmEdit"></div>
   <h4>Vote</h4>
   <div id="wmVote"></div>
-  <h4>Road cards <span class="note">drawn on their own while the party travels · edit them in Planning Mode</span></h4>
+  <h4>Road cards <span class="note">drawn on their own while the party travels · edit them in Miscellaneous · Road cards</span></h4>
   <div id="wmCards"></div>
   <div class="row wrap wm-foot">
     <label class="btn small">⬆ Map picture<input type="file" accept="image/*" id="wmFile" hidden></label>
@@ -45,7 +45,7 @@ mount(`<div class="card wm-page-card">
 </div>`, '#wmPageEnd');
 
 // Planning Mode: the road card deck, the auto table and how often a card comes up.
-mount(`<div class="card" data-tab="roads">
+mount(`<div class="card" data-tab="misc" data-sub="roads">
   <h3>Road cards <span class="note">a DM deck drawn first, then the auto table</span></h3>
   <div class="row"><label class="note tight">A card every <input id="wmCard" type="number" min="5" max="600" style="width:72px"> seconds while travelling</label></div>
   <form id="wmDeck" class="row wrap">
