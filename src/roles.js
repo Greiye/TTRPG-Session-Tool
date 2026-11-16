@@ -16,7 +16,7 @@ const BATTLE = [
   'dm:roll:creature', 'dm:rnd:art',
   // Battle map
   'dm:map', 'dm:map:generate', 'dm:map:paint', 'dm:map:tile', 'dm:fog',
-  'dm:token', 'dm:token:move', 'dm:token:light',
+  'dm:token', 'dm:token:move', 'dm:token:light', 'dm:token:remove', 'dm:move:reset',
 ];
 
 const SOCIAL = [

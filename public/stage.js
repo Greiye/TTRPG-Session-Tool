@@ -281,7 +281,8 @@
       <div class="check-res">${res.map((r) => `<span class="${r.pass ? 'pass' : 'fail'}">${esc(r.name)} ${r.total}</span>`).join('') || '<span class="wait">Roll on your phone!</span>'}</div></div>`;
   }
 
-  // Fog of war (item 7c): POIs the party has not uncovered show as fog.
+  // Fog of war (item 7c): POIs the party has not uncovered stay hidden.
+  let poiSeen = null;
   function exploration(s) {
     const sc = s.scene;
     // Dungeon nodes take over the exploration stage while the DM shows them (public/dungeon.js).
@@ -289,13 +290,17 @@
       return `<div class="dg-wrap">${Dungeon.board(s.dungeon, { title: sc.title, dm: document.body.classList.contains('dm'), selected: window.DungeonSel })}${checkBanner(s)}</div>`;
     }
     // The server sends null for a covered point unless the viewer is the DM.
+    // Covered points stay off the TV entirely (Mike, Nov 16): no "???" chips hinting at what is there.
+    // A point the DM uncovers pops in once.
     const open = new Set(sc.revealed || []);
-    const poi = sc.poi.map((p) => (p !== null && open.has(p) ? `<span>🔍 ${esc(p)}</span>` : '<span class="fog">☁ ???</span>')).join('');
+    const shown = sc.poi.filter((p) => p !== null && open.has(p));
+    const poi = shown.map((p) => `<span class="${poiSeen && !poiSeen.has(p) ? 'poi-in' : ''}">🔍 ${esc(p)}</span>`).join('');
+    poiSeen = new Set(shown);
     return `<div class="explore">
       <h1>${esc(sc.title)}</h1>
       <p class="scene-text">${esc(sc.text)}</p>
       ${narration(s)}
-      <div class="poi">${poi}</div>
+      ${poi ? `<div class="poi">${poi}</div>` : ''}
       ${checkBanner(s)}
     </div>`;
   }
@@ -309,7 +314,7 @@
 
   // Shop pop-up on the TV: the shop, its wares, and how many are still shopping.
   const gp = (n) => Number(n || 0).toFixed(2).replace(/\.?0+$/, '');
-  // Greer's-style pop-up (Mike, Nov 15): the shop's banner centred on top, then up to 60 wares as buttons in
+  // Greer's-style pop-up (Mike, Nov 15): the shop's title, the merchant banner under it (TV only, Nov 16), then up to 60 wares as buttons in
   // 3 columns (rows grow as needed and shrink to fit the TV): name, description, price.
   function shopTv(s) {
     const pop = s.shopPop;
@@ -319,7 +324,7 @@
     const items = shown.map((i) => `<li class="shop-ware ${i.stock === 0 ? 'out' : ''}"><b>${esc(i.name)}</b>${i.note ? `<span>${esc(i.note)}</span>` : ''}<em>${gp(i.price)} gp${i.stock === null ? '' : i.stock ? ` · ${i.stock} left` : ' · sold out'}</em></li>`).join('');
     const left = pop.shopping;
     return `<div class="shop-tv" data-n="${pop.n}"><div class="shop-box" style="--rows:${Math.max(1, Math.ceil(shown.length / 3))}">
-      ${shop.banner ? `<img class="shop-banner" src="${esc(shop.banner)}" alt="">` : `<h2>🛒 ${esc(shop.name)}</h2>`}
+      <h2>🛒 ${esc(shop.name)}</h2>${shop.banner ? `<img class="shop-banner" src="${esc(shop.banner)}" alt="${esc(shop.npc || '')}">` : ''}
       <ul class="shop-grid">${items || '<li class="shop-ware"><b>Nothing for sale.</b></li>'}</ul>
       <p class="shop-left">${left ? `<b>${left}</b> still shopping` : 'Open for business'}</p>
     </div></div>`;
@@ -472,6 +477,8 @@
     // Mode title: a short card fades in and out when the table changes mode (not on the first draw).
     const prevMode = root.dataset.mode;
     if (prevMode && prevMode !== s.mode) {
+      // A new mode skips the previous card, so two titles never overlap (Mike, Nov 16).
+      root.querySelectorAll(':scope > .mode-title').forEach((x) => x.remove());
       const t = document.createElement('div');
       t.className = 'mode-title';
       t.textContent = `— ${s.mode.toUpperCase()} —`;
@@ -536,13 +543,27 @@
     }
   }
 
+  // Segment clocks (17): a round clock cut into wedges from the centre (Mike, Nov 16: not vertical bars).
+  // Shared by the TV, the DM preview and the DM clock lists. Wedges filled since the last draw of the same
+  // clock (key) sweep in, so re-renders never replay old fills.
+  const pieSeen = new Map();
+  function pie(segments, filled, key = null, cls = '') {
+    const n = Math.max(1, Math.min(24, Number(segments) || 1));
+    const f = Math.max(0, Math.min(n, Number(filled) || 0));
+    const prev = key == null || !pieSeen.has(key) ? f : pieSeen.get(key);
+    if (key != null) pieSeen.set(key, f);
+    const pt = (i) => { const a = (i / n) * 2 * Math.PI - Math.PI / 2; return `${(50 + 46 * Math.cos(a)).toFixed(2)} ${(50 + 46 * Math.sin(a)).toFixed(2)}`; };
+    const wedge = (i) => (n === 1 ? '<circle cx="50" cy="50" r="46"/>' : `<path d="M50 50 L${pt(i)} A46 46 0 0 1 ${pt(i + 1)} Z"/>`);
+    const parts = Array.from({ length: n }, (_, i) => wedge(i).replace(/^<(\w+)/, `<$1 class="${i < f ? 'on' : ''}${i < f && i >= prev ? ' fill-in' : ''}" style="--i:${i - prev}"`));
+    const spokes = n > 1 ? Array.from({ length: n }, (_, i) => `<line x1="50" y1="50" x2="${pt(i).replace(' ', '" y2="')}"/>`).join('') : '';
+    return `<svg class="pie ${esc(cls)}" viewBox="0 0 100 100" role="img" aria-label="${f} of ${n}"><g class="wedges">${parts.join('')}</g><g class="spokes">${spokes}</g><circle class="rim" cx="50" cy="50" r="46"/></svg>`;
+  }
+
   // End of a conversation (Nov 16): a centred card, then the server returns everyone to exploration.
   const convoEnd = (s) => (s.mode === 'social' && s.social.convo?.ending ? '<div class="convo-end" role="status"><b>The conversation has concluded</b></div>' : '');
-
-  // Segment clocks (17): a pie of segments on the TV, filled as the DM advances them.
   function clocks(s) {
     if (!s.clocks?.length) return '';
-    return `<div class="clocks">${s.clocks.map((k) => `<div class="clock"><small>${esc(k.name)}</small><div class="pie" style="--n:${k.segments}">${Array.from({ length: k.segments }, (_, i) => `<i class="${i < k.filled ? 'on' : ''}"></i>`).join('')}</div></div>`).join('')}</div>`;
+    return `<div class="clocks">${s.clocks.map((k) => `<div class="clock"><small>${esc(k.name)}</small>${pie(k.segments, k.filled, 'tv:' + k.id)}</div>`).join('')}</div>`;
   }
   // Conditions (16): small chips under a combatant's name.
   const conds = (x) => (x?.conditions?.length ? `<em class="conds">${x.conditions.map((c) => esc(c)).join(', ')}</em>` : '');
@@ -706,7 +727,7 @@
       <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Relations web">${lines}${dots}</svg></div>`;
   }
 
-  window.Stage = { stage, vn, portrait, avatar, layeredSprite, refillLayered, hpBar, logFeed, checkBanner, hallHtml, shelfHtml, esc, EMO };
+  window.Stage = { stage, vn, pie, portrait, avatar, layeredSprite, refillLayered, hpBar, logFeed, checkBanner, hallHtml, shelfHtml, esc, EMO };
 })();
 
 // Press and hold a portrait for a moment to see it full screen; Back returns. Works on the TV and the phone.

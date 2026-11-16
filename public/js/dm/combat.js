@@ -49,7 +49,8 @@ function renderOrder(s, turn, def) {
     }
     const spent = c.active && c.acted?.[id] === c.round;
     const down = x.hp <= 0;
-    const left = Math.max(0, (x.speed?.fly && x.flying !== false ? x.speed.fly : x.speed?.walk ?? 30) - (c.moved?.[id] || 0));
+    // Movement left this turn; negative (red) once the DM has moved it past its speed.
+    const left = (x.speed?.fly && x.flying !== false ? x.speed.fly : x.speed?.walk ?? 30) - (c.moved?.[id] || 0);
     const atks = (x.attacks || []).map((a, i) => {
       const on = now && !spent && !down;
       const hint = spent ? 'Already acted this round' : now ? 'Pick this attack, then a target' : 'Not its turn';
@@ -59,7 +60,7 @@ function renderOrder(s, turn, def) {
       ? `<div class="row cbt-targets">${targetsFor(x).map((t) => `<button class="btn small primary" data-atk="${esc(t.id)}">🎯 ${esc(t.name)}</button>`).join('') || '<span class="note">No targets.</span>'}</div>` : '';
     return `<div class="item cbt cbt-foe ${now ? 'turn' : ''} ${spent ? 'acted' : ''} ${down ? 'down' : ''}" data-oid="${esc(id)}">
       <span class="cbt-head" title="${esc((x.traits || []).map((t) => `${t.name}: ${t.text}`).join('\n'))}">${ini}${SIDE[x.side] || '👹'} <b>${esc(x.name)}</b>
-        <small class="muted">${esc(def)}${x.ac} · ${left} ft${x.cr != null && x.cr !== '' ? ` · CR ${esc(x.cr)}` : ''}${x.traits?.length ? ' · ⓘ' : ''}</small>
+        <small class="muted">${esc(def)}${x.ac} · <span class="mv-left ${left < 0 ? 'over' : ''}" title="Movement left this turn">${left < 0 ? `${-left} ft over` : `${left} ft`}</span>${x.cr != null && x.cr !== '' ? ` · CR ${esc(x.cr)}` : ''}${x.traits?.length ? ' · ⓘ' : ''}</small>
         ${spent ? '<small class="cbt-tag">Acted</small>' : now ? '<small class="cbt-tag now">Its turn</small>' : ''}</span>
       <span class="row cbt-ctl">${x.boss ? `<button class="btn small" data-boss="${esc(id)}" title="Show the title card on the TV">👑</button>` : ''}${hpButtons(id, [-5, -1, 1])}<button class="btn small danger" data-rm="${esc(id)}" title="Remove">✕</button></span>
       ${hpBar(x)}
@@ -95,6 +96,8 @@ holdButton(initBtn, {
 });
 // Next turn: hold 2 seconds (Mike, Nov 16), so a stray tap never skips someone's turn.
 holdButton($('#nextHold'), { ms: 2000, idle: 'Hold for next turn ▸', holding: 'Keep holding…', onFire: () => emit('dm:combat:next') });
+// End combat clears the creatures, tokens and battle map for the next fight, so it is a 2 second hold too.
+holdButton($('#endHold'), { ms: 2000, idle: 'Hold to end combat', holding: 'Clearing…', onFire: () => emit('dm:combat:end') });
 
 const actions = {
   combatStart: () => emit('dm:combat:start'),

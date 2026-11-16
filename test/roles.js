@@ -36,7 +36,7 @@ const { ok, until } = h;
   await until(() => a.last.camp?.open);
   const blocked = await h.call(a, 'player:camp', { vote: 'short' });
   ok(blocked.error && blocked.missing?.length === 1, 'a fighter with no weapon cannot rest yet');
-  a.emit('player:sheet', { inv: { op: 'add', name: 'Longsword', qty: 1 } });
+  dm.emit('dm:sheet', { id: a.me.id, inv: { op: 'add', name: 'Longsword', qty: 1 } });
   await until(() => a.last.players.find((x) => x.id === a.me.id)?.inventory?.length === 1);
   const ready = await h.call(a, 'player:camp', { vote: 'short' });
   ok(ready.ok, 'after a weapon is set up the vote goes through');

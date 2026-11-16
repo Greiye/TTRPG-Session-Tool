@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/chronicle.css">
   <script src="/settings.js"></script>
   <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/ctxmenu.css">
 </head>
 <body class="dm chron">
   <div class="dm-left">
@@ -261,6 +262,11 @@
       <div class="row"><select id="relNpc" class="grow"></select></div>
       <div id="relList" class="list"></div>
     </div>
+    <div class="card" data-tab="shops" data-dm-only id="shopPopCard">
+      <h3>Shop pop-up <span class="note" id="shPopStatus"></span></h3>
+      <div class="row"><select id="shPopPick" class="grow" aria-label="Shop to open"></select><button class="btn primary" id="shPopOpen">Pop up</button><button class="btn" id="shPopClose">Close</button></div>
+      <p class="note">The TV shows the shop and how many are still shopping; phones get a buy and sell list. Works in play and in Planning Mode.</p>
+    </div>
     <div class="card" data-tab="shops" data-fold="closed" data-fold-key="shop-new">
       <h3>New shop <span class="note">import a price list</span></h3>
       <div class="row"><input id="shName" placeholder="Shop name" style="width:150px"><input id="shNpc" class="grow" placeholder="Merchant (NPC name)"><select id="shFaction" style="width:150px" title="Faction whose standing sets this shop's prices" aria-label="Shop faction"></select></div>
@@ -313,8 +319,9 @@
     </div>
     <div class="card" data-tab="misc" data-sub="camp">
       <h3>Camp <span class="note" id="campStatus">no camp yet</span></h3>
-      <p class="note">Open camp: the TV shows the image, and phones get a pop-up to vote short or long rest and describe downtime. Apply the rest below.</p>
+      <p class="note">Open camp: the TV shows the image, and phones get a pop-up to vote short or long rest and describe downtime. Ending camp applies the rest the party voted for.</p>
       <div class="row"><button class="btn primary" id="campToggle">Open camp</button><select id="campImg" class="grow" aria-label="Camp image from your backdrops"></select></div>
+      <div class="row"><label class="note grow">Rest when camp ends <select id="campApply" aria-label="Rest when camp ends"><option value="auto">By vote</option><option value="short">☕ Short rest</option><option value="long">🛏 Long rest</option><option value="none">No rest</option></select></label><b id="campRest" class="camp-rest"></b></div>
       <div id="campList" class="list"></div>
     </div>
     <div class="card" data-tab="misc" data-sub="camp">
@@ -323,9 +330,18 @@
       <div class="row"><button class="btn primary" id="dtStart">Start week</button><button class="btn" id="dtOpen" disabled>Open picks</button></div>
       <div id="dtList" class="list"></div>
     </div>
-    <div class="card" data-tab="misc" data-sub="camp">
-      <h3>Rests <span class="note">short and long</span></h3>
-      <div class="row"><button class="btn" data-act="restShort">☕ Short rest</button><button class="btn" data-act="restLong">🛏 Long rest</button></div>
+    <div class="card" data-tab="inspiration">
+      <h3>Inspiration <span class="note">a point turns a roll into advantage · up to 5 each</span></h3>
+      <div class="row"><button class="btn primary" id="inspAll">✨ Everyone +1</button></div>
+      <div id="inspList" class="list insp-list"></div>
+    </div>
+    <div class="card" data-tab="items">
+      <h3>Items <span class="note">players can't add items; you give them</span></h3>
+      <div class="row"><select id="itWho" class="grow" aria-label="Character"></select></div>
+      <div class="row"><input id="itName" class="grow" maxlength="60" list="itNames" placeholder="Item name" autocomplete="off" aria-label="Item name"><input id="itQty" type="number" min="1" max="9999" value="1" style="width:64px" aria-label="Quantity"></div>
+      <div class="row"><input id="itNote" class="grow" maxlength="200" placeholder="Description (shown on the phone)" aria-label="Description"><button class="btn primary" id="itGive">Give</button></div>
+      <datalist id="itNames"></datalist>
+      <div id="itList" class="list"></div>
     </div>
     <div class="card" data-tab="scene" data-sub="clocks">
       <h3>Clocks <span class="note">countdowns on the TV</span></h3>
@@ -434,7 +450,7 @@
       <div class="enc-btns">
         <button class="btn primary hold-btn" id="initHold" title="Press and hold, then release to roll initiative and sort everyone in turn order"><i class="hold-fill"></i><span>🎲 Hold to roll initiative</span></button>
         <button class="btn hold-btn" id="nextHold" title="Press and hold for 2 seconds to end this turn"><i class="hold-fill"></i><span>Hold for next turn ▸</span></button>
-        <button class="btn danger enc-end" data-act="combatEnd">End</button>
+        <button class="btn danger enc-end hold-btn" id="endHold" title="Press and hold for 2 seconds: ends combat and clears creatures, tokens and the battle map for the next fight"><i class="hold-fill"></i><span>Hold to end combat</span></button>
       </div>
       <div id="initOrder" class="init-order" aria-live="polite"></div>
     </div>
