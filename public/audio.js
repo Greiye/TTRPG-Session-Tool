@@ -9,6 +9,15 @@
   let sfxVolume = 0.9;
   let ctx = null;
   let isOutput = () => true;
+  // Soundscape output choice (state.audio.output): 'auto' keeps isOutput's rule; 'tv' or 'laptop' forces one.
+  let device = 'tv';
+  let eligible = () => true; // a helper's page is never a speaker
+  let master = 1;
+  const routed = (s) => {
+    const o = s?.audio?.output;
+    if (o === 'tv' || o === 'laptop') return eligible() && o === device;
+    return isOutput(s);
+  };
   let lastState = null;
   const tweens = new Map();
 
@@ -29,7 +38,8 @@
   }
 
   function apply() {
-    const want = isOutput(lastState) && target.playing ? target.url : null;
+    const want = routed(lastState) && target.playing ? target.url : null;
+    const vol = target.volume * master;
     const deck = decks[live];
     if (want !== current) {
       // Crossfade: fade out the live deck, bring the new track up on the other.
@@ -43,10 +53,10 @@
       next.currentTime = 0;
       next.volume = 0;
       play(next);
-      tween(next, target.volume, FADE_MS);
+      tween(next, vol, FADE_MS);
     } else if (want) {
       if (deck.paused) play(deck);
-      if (Math.abs(deck.volume - target.volume) > 0.01) tween(deck, target.volume, 250);
+      if (Math.abs(deck.volume - vol) > 0.01) tween(deck, vol, 250);
     }
   }
 
@@ -228,7 +238,7 @@
   };
 
   function sfx({ url, builtin }) {
-    if (!isOutput(lastState)) return;
+    if (!routed(lastState)) return;
     if (builtin && SYNTH[builtin]) SYNTH[builtin](audioCtx());
     else if (url) { const a = new Audio(url); a.volume = sfxVolume; play(a); }
   }
@@ -260,7 +270,7 @@
     tween(L.el, 0, FADE_MS, () => { if (L.leaving) { L.el.pause(); layers.delete(id); } });
   }
   function syncMix(mix) {
-    const want = isOutput(lastState) ? mix : [];
+    const want = routed(lastState) ? mix : [];
     const ids = new Set(want.map((m) => m.id));
     for (const [id, L] of layers) if (!ids.has(id) && !L.leaving) fadeOutLayer(id, L);
     for (const m of want) {
@@ -270,32 +280,37 @@
         el.loop = true;
         el.preload = 'auto';
         el.volume = 0;
-        L = { el, want: m.volume, leaving: false };
+        L = { el, want: m.volume * master, leaving: false };
         layers.set(m.id, L);
         play(el);
-        tween(el, m.volume, FADE_MS);
+        tween(el, L.want, FADE_MS);
         continue;
       }
       L.leaving = false; // a layer taken off and put back during its fade-out keeps playing
       if (L.el.paused) play(L.el);
-      if (L.want !== m.volume) { L.want = m.volume; tween(L.el, m.volume, 250); }
+      const v = m.volume * master;
+      if (L.want !== v) { L.want = v; tween(L.el, v, 400); }
     }
   }
 
   window.AudioOut = {
     init(socket, opts = {}) {
       if (opts.isOutput) isOutput = opts.isOutput;
+      if (opts.device) device = opts.device;
+      if (opts.eligible) eligible = opts.eligible;
       socket.on('state', (s) => {
         lastState = s;
         const a = s.audio;
         target = { url: a.music?.url || null, playing: a.playing, volume: a.volume };
-        sfxVolume = a.sfxVolume;
+        master = Math.max(0, Math.min(1, a.master ?? 1)); // the DM's master volume scales music, layers and SFX
+        sfxVolume = Math.max(0.0001, a.sfxVolume * master); // never 0: the synth envelopes ramp exponentially
         apply();
         syncMix(a.mix || []);
       });
       socket.on('sfx', sfx);
     },
-    get output() { return isOutput(lastState); },
+    get output() { return routed(lastState); },
+    get master() { return master; },
     status: () => ({ track: current, paused: decks[live].paused, volume: +decks[live].volume.toFixed(2) }),
   };
 })();

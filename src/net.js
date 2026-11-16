@@ -1,7 +1,7 @@
 // LAN address detection for the join QR code.
 // Prefers private ranges (192.168/10/172.16-31) and skips virtual adapters (Docker, WSL, VPNs, VirtualBox).
 const os = require('os');
-const { PORT, CODM_KEY, BATTLE_KEY, SOCIAL_KEY, HTTPS, HTTPS_PORT } = require('./config');
+const { PORT, CODM_KEY, BATTLE_KEY, SOCIAL_KEY, MUSIC_KEY, HTTPS, HTTPS_PORT } = require('./config');
 
 const VIRTUAL = /^(docker|br-|veth|vbox|vmnet|virbr|vEthernet|utun|tun|tap|zt|tailscale|wg|lo)/i;
 const privateRank = (ip) => (ip.startsWith('192.168.') ? 0 : ip.startsWith('10.') ? 1 : /^172\.(1[6-9]|2\d|3[01])\./.test(ip) ? 2 : 3);
@@ -27,9 +27,10 @@ function lanAddress() {
 // Phones get the HTTPS address when it's on, so their mic works later (item 13).
 const baseUrl = () => (HTTPS ? `https://${lanAddress()}:${HTTPS_PORT}` : `http://${lanAddress()}:${PORT}`);
 const joinUrl = (room) => `${baseUrl()}/play${room ? `?room=${room}` : ''}`;
-// Co-DM invite links: all three open the DM page with their key.
+// Co-DM invite links: all four open the DM page with their key.
 const codmUrl = (role = 'codm') => (role === 'battle' ? `${baseUrl()}/dm?key=${BATTLE_KEY}`
-  : role === 'social' ? `${baseUrl()}/dm?key=${SOCIAL_KEY}` : `${baseUrl()}/dm?key=${CODM_KEY}`); // the co-DM is a second DM
+  : role === 'social' ? `${baseUrl()}/dm?key=${SOCIAL_KEY}`
+  : role === 'music' ? `${baseUrl()}/dm?key=${MUSIC_KEY}` : `${baseUrl()}/dm?key=${CODM_KEY}`); // the co-DM is a second DM
 const isLocalAddr = (a) => ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(a);
 
 module.exports = { lanAddresses, lanAddress, setHost, baseUrl, joinUrl, codmUrl, isLocalAddr };

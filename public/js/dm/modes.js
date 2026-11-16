@@ -13,7 +13,7 @@ const KINDS = ['action', 'check', 'combat', 'downtime', 'narrate', 'npc', 'say',
 const MODE_NAMES = { exploration: '🧭 Explore', combat: '⚔️ Combat', social: '💬 Social' };
 const KIND_NAMES = { action: 'Actions', check: 'Checks', combat: 'Combat', downtime: 'Downtime', narrate: 'Narration', npc: 'NPC speech', say: 'Player speech', shop: 'Shops', system: 'System', notice: 'Notices' };
 const SUB_NAMES = {
-  scene: 'Scene', stage: 'Stage and music', clocks: 'Clocks', moments: 'TV moments', puzzle: 'Puzzles',
+  scene: 'Scene', stage: 'Stage and music', sound: 'Soundscape', clocks: 'Clocks', moments: 'TV moments', puzzle: 'Puzzles',
   npc: 'NPCs', legends: 'Legends', lights: 'Smart lights', table: 'Table tools', quiz: 'Recap quiz', web: 'Relations web', journal: 'Notes and journal', camp: 'Camp and downtime', roads: 'Road cards', rules: 'Rules system', codm: 'Co-DM', data: 'Campaign data',
 };
 const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
@@ -31,7 +31,8 @@ const inMode = (c) => !c.dataset.panel || c.dataset.panel.split(' ').includes(mo
 // Battle and Social Masters (src/roles.js) see only their cards, in every mode, so they can prep ahead.
 // The Battle Master sees only the combat window, and only once the DM switches to combat (Mike, Nov 16).
 // The Social Master's controls live in the Social window on the main page (public/js/dm/social.js), not the tools column.
-const MASTER_CARDS = { battle: (c) => c.dataset.tab === 'combat' && mode === 'combat', social: () => false };
+// The Music Co-DM gets the Soundscape card only (Scene › Soundscape).
+const MASTER_CARDS = { battle: (c) => c.dataset.tab === 'combat' && mode === 'combat', social: () => false, music: (c) => c.id === 'soundscape' };
 // data-dm-only keeps a card from helpers even when it sits in their tab.
 const fits = (c) => { const m = MASTER_CARDS[masterRole()]; return m ? m(c) && !c.hasAttribute('data-dm-only') : inMode(c); };
 // A planning tab marked data-live (Shops) also shows during play.

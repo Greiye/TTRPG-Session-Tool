@@ -49,9 +49,13 @@ import { isoStage } from '../iso3d.js';
 
 window.dmEmit = emit; // used by the live voice panel in stt.js (classic script)
 Settings.mount({ table: { get: () => state()?.settings.display || {}, set: (display) => emit('dm:settings', { display }) } });
-// The laptop is the speaker only when no /screen tab is open (e.g. TV mirroring the laptop).
-AudioOut.init(socket, { isOutput: (s) => !masterRole() && (!s || !s.screens) }); // never a helper's phone
+// The laptop is the speaker only when no /screen tab is open (e.g. TV mirroring the laptop), unless the DM picks
+// TV or Laptop under Soundscape › Output. Never a helper's phone.
+AudioOut.init(socket, { isOutput: (s) => !masterRole() && (!s || !s.screens), device: 'laptop', eligible: () => !masterRole() });
 const renderAtmo = Atmo.mount($('#atmo'), { emit, key: dmKey });
+const renderSound = Soundscape.mount($('#soundscape'), { emit, role: masterRole }); // DM and Music Co-DM
+// The Music Co-DM's page is this one card, so it opens unfolded (the DM's starts folded like every tab card).
+window.addEventListener('dm:role', (e) => { if (e.detail === 'music') $('#soundscape').classList.remove('folded'); });
 // The 3D battle map sits over the stage's main area in combat (public/js/iso3d.js).
 // Clicking a unit on it shows that unit's stats in the hero column (public/js/dm/chronicle.js listens).
 const iso = isoStage($('#stage'), { role: 'dm', socket, emit, slotSel: '.stage-main', onSelect: (id) => window.dispatchEvent(new CustomEvent('iso:select', { detail: id })) });
@@ -63,4 +67,5 @@ onState((s) => {
   else Stage.stage($('#stage'), s);
   iso.update(s);
   renderAtmo(s);
+  renderSound(s);
 });

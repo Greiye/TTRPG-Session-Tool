@@ -20,7 +20,7 @@ function viewerOf(socket) {
   if (d.takeover) return { role: 'player', charId: d.takeover }; // a DM tab playing a character sees that character's view
   if (d.role === 'dm') return { role: 'dm' };
   if (d.role === 'codm') return { role: 'codm' };
-  if (d.role === 'battle' || d.role === 'social') return { role: 'dm', master: d.role }; // co-DM helpers (src/roles.js)
+  if (['battle', 'social', 'music'].includes(d.role)) return { role: 'dm', master: d.role }; // co-DM helpers (src/roles.js)
   if (d.charId) return { role: 'player', charId: d.charId };
   if (d.screen) return { role: 'screen' };
   if (d.spectator) return { role: 'spectator' };

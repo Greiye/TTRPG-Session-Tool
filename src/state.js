@@ -63,6 +63,7 @@ const state = {
   clocks: [], // segment clocks (item 17), src/tracker.js
   relations: {}, // NPC id -> character id -> stance (item 19, DM only)
   moodMap: {}, // mode -> music track id (item 21)
+  soundscape: require('./soundscape').fresh(), // mood wheel, environment, layers, favourites (src/soundscape.js)
   map: null, // { image, cols, rows, terrain } battle map (item 24, src/grid.js)
   worldMap: worldmap.example(), // starts on the example world (Mike, Nov 15); world map: places, votes, travel and flavour cards (Phase G, src/worldmap.js)
   tokens: {}, // id -> { x, y, z, light } on the map (light: none | torch | lantern | darkvision, src/vision.js)
@@ -118,6 +119,7 @@ store.EXTRA.push('puzzle', 'web'); // Phase F teamwork puzzle and relations web
 store.EXTRA.push('lore'); // Lore tab (Mike, Nov 16)
 store.EXTRA.push('shopSeed'); // Greer's Trinkets seeded once
 store.EXTRA.push('town', 'townSeed'); // town maps and visits (PR V)
+store.EXTRA.push('soundscape'); // soundscape for the DM and Music Co-DM
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -127,6 +129,7 @@ state.scene.secrets ??= [];
 state.factions ??= [];
 state.living = living.ensure(state.living);
 state.weather ??= { kind: 'none', intensity: 2 };
+require('./soundscape').ensure(state);
 state.web ??= web.fresh();
 state.dungeon ??= dungeon.fresh();
 state.puzzle ??= null;
@@ -186,7 +189,7 @@ function fullState() {
   const all = [...io.sockets.sockets.values()];
   const helpers = all.map((x) => x.data.role);
   const codms = all.filter((x) => x.data.coDm).length;
-  const masters = { battle: helpers.filter((r) => r === 'battle').length, social: helpers.filter((r) => r === 'social').length };
+  const masters = { battle: helpers.filter((r) => r === 'battle').length, social: helpers.filter((r) => r === 'social').length, music: helpers.filter((r) => r === 'music').length };
   const spectators = [...io.sockets.sockets.values()].filter((x) => x.data.spectator).length;
   const bulbsTargets = require('./bulbs').targets().length;
   const legendsView = legends.view(); // hall of fame and trophy shelf: public, kept across campaigns
@@ -205,6 +208,8 @@ function broadcast() {
       state.log.push({ id: ++seq, t: Date.now(), kind: 'notice', text: `${c.name} notices: ${s.text}`, tone: 'call', vis: { to: [c.id] } });
       if (c.socketId) hub.io.to(c.socketId).emit('notice', { id: s.id, text: s.text });
     });
+    // Soundscape layers follow the shared weather however it changed (buttons, oracles, undo): src/soundscape.js.
+    require('./soundscape').sync(state);
     const base = fullState();
     const cache = new Map();
     for (const socket of hub.io.sockets.sockets.values()) {

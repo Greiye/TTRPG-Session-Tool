@@ -4,7 +4,7 @@ import { $, onState } from '../client.js';
 import { dmKey } from './auth.js';
 
 const keyQs = dmKey() ? `key=${encodeURIComponent(dmKey())}&` : '';
-for (const role of ['codm', 'battle', 'social']) {
+for (const role of ['codm', 'battle', 'social', 'music']) {
   let loaded = false;
   const btn = $(`[data-invite="${role}"]`);
   // Fetched on first open: a Battle or Social Master's page gets a 403 here and never shows this card anyway.
@@ -24,4 +24,5 @@ onState((s) => {
   $('#codmCount').textContent = count(s.codms);
   $('#battleCount').textContent = count(s.masters?.battle);
   $('#socialCount').textContent = count(s.masters?.social);
+  $('#musicCount').textContent = count(s.masters?.music);
 });

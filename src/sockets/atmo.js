@@ -4,6 +4,7 @@ const hub = require('../hub');
 const { removeUrl } = require('../assets');
 const { state, broadcast, EFFECTS } = require('../state');
 const { BUILTIN_SFX, MIX_MAX } = require('../media');
+const soundscape = require('../soundscape');
 
 const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) || 0));
 
@@ -17,15 +18,18 @@ module.exports = function atmoSockets(socket) {
   // Soundboard layers: the DM and co-DM both run them. Each layer keeps its own volume.
   atmo('atmo:mix:add', ({ id }) => {
     const t = trackOf(id);
-    if (!t || state.audio.mix.some((m) => m.id === id) || state.audio.mix.length >= MIX_MAX) return;
+    if (!t || state.audio.mix.some((m) => m.id === id) || state.audio.mix.filter((m) => !m.ss).length >= MIX_MAX) return;
     state.audio.mix = [...state.audio.mix, { id: t.id, url: t.url, name: t.name, volume: 0.5 }];
   });
+  // A soundscape layer (ss) stopped or turned here changes the soundscape too, or the next sync would undo it.
   atmo('atmo:mix:remove', ({ id }) => {
+    if (state.audio.mix.some((m) => m.id === id && m.ss)) soundscape.removeLayer(state, id, socket.data.role);
     state.audio.mix = state.audio.mix.filter((m) => m.id !== id);
   });
   atmo('atmo:mix:volume', ({ id, volume }) => {
     const m = state.audio.mix.find((x) => x.id === id);
-    if (m) m.volume = clamp01(volume);
+    if (m?.ss) soundscape.layerVolume(state, id, volume, socket.data.role);
+    else if (m) m.volume = clamp01(volume);
   });
   atmo('atmo:backdrop', ({ id }) => {
     state.backdrop.image = state.backdrop.library.find((b) => b.id === id) || null;

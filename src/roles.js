@@ -3,6 +3,8 @@
 //   codm     atmosphere: backdrops, overlays, music, SFX (src/sockets/atmo.js checks any role)
 //   battle   Battle Master: runs combat, edits the battle map, controls the DM's creatures
 //   social   Social Master: runs NPC dialogue (the visual novel box), emotions, cast and player choices
+//   music    Music Co-DM: runs the soundscape (mood wheel, environment, layers, favourites); not the master
+//            volume, the output, the weather or the DM lock (src/sockets/sound.js)
 // Battle and Social Masters use the DM page (/dm?key=...) with every other card hidden; the server
 // refuses any DM event not listed here, so hiding a card is never the only guard.
 
@@ -25,9 +27,17 @@ const SOCIAL = [
   'dm:convo:start', 'dm:convo:end',
 ];
 
+// Soundscape events (src/sockets/sound.js). Left out on purpose: sound:master, sound:output, sound:weather
+// (the weather is the world's: travel and sight read it), sound:lock and sound:autocombat.
+const MUSIC = [
+  'sound:mood', 'sound:env', 'sound:layer:add', 'sound:layer:remove', 'sound:layer:volume', 'sound:density',
+  'sound:stop', 'sound:fav:save', 'sound:fav:load', 'sound:fav:delete', 'sound:auto:undo',
+];
+
 const ROLES = {
   battle: { name: 'Battle Master', icon: '⚔️', events: new Set(BATTLE), assets: ['map', 'creature'], rolls: true },
   social: { name: 'Social Master', icon: '💬', events: new Set(SOCIAL), assets: [], rolls: false },
+  music: { name: 'Music Co-DM', icon: '🎻', events: new Set(MUSIC), assets: ['audio'], rolls: false },
 };
 
 // May this role run this DM event?
@@ -35,4 +45,4 @@ const can = (role, event) => role === 'dm' || !!ROLES[role]?.events.has(event);
 // May this role upload this asset kind?
 const canUpload = (role, kind) => role === 'dm' || !!ROLES[role]?.assets.includes(kind);
 
-module.exports = { ROLES, BATTLE, SOCIAL, can, canUpload };
+module.exports = { ROLES, BATTLE, SOCIAL, MUSIC, can, canUpload };

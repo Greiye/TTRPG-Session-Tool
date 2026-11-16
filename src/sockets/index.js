@@ -1,5 +1,5 @@
 // Socket wiring: every connection gets the state, then role-gated handlers.
-const { DM_KEY, CODM_KEY, BATTLE_KEY, SOCIAL_KEY } = require('../config');
+const { DM_KEY, CODM_KEY, BATTLE_KEY, SOCIAL_KEY, MUSIC_KEY } = require('../config');
 const { isLocalAddr } = require('../net');
 const { stateFor, broadcast } = require('../state');
 const worldSockets = require('./worldmap');
@@ -25,10 +25,10 @@ module.exports = function sockets(io) {
     socket.on('screen:hello', () => { socket.data.screen = true; broadcast(); });
 
     // Roles: DM (localhost or DM_KEY), co-DM (CODM_KEY: every DM permission, Mike Nov 16),
-    // Battle Master (BATTLE_KEY), Social Master (SOCIAL_KEY).
+    // Battle Master (BATTLE_KEY), Social Master (SOCIAL_KEY), Music Co-DM (MUSIC_KEY).
     // A helper key wins over localhost, so a helper link opened on the laptop still gets the helper's view.
     socket.on('dm:auth', ({ key } = {}, ack) => {
-      const byKey = { [CODM_KEY]: 'dm', [BATTLE_KEY]: 'battle', [SOCIAL_KEY]: 'social' };
+      const byKey = { [CODM_KEY]: 'dm', [BATTLE_KEY]: 'battle', [SOCIAL_KEY]: 'social', [MUSIC_KEY]: 'music' };
       socket.data.role = key === DM_KEY ? 'dm' : (key && byKey[key]) || (isLocalAddr(socket.handshake.address) ? 'dm' : null);
       socket.data.coDm = !!key && key === CODM_KEY; // counted on the DM page's Co-DM card
       // The 'dms' room gets secret rolls; the Battle Master rolls for the DM's creatures, so they get them too.
@@ -41,6 +41,7 @@ module.exports = function sockets(io) {
     require('./dm')(socket);
     require('./plans')(socket);
     require('./atmo')(socket);
+    require('./sound')(socket); // soundscape: DM and Music Co-DM (src/soundscape.js)
     // Phase 5: what kind of screen this is (phone, tablet or laptop). Spectators are phone only.
     socket.on('client:device', ({ device } = {}) => {
       if (['phone', 'tablet', 'laptop'].includes(device)) socket.data.device = device;

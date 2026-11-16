@@ -13,6 +13,8 @@ const config = {
   // Battle Master (combat, battle map, the DM's creatures) and Social Master (NPC dialogue). See src/roles.js.
   BATTLE_KEY: process.env.BATTLE_KEY || crypto.randomBytes(3).toString('hex'),
   SOCIAL_KEY: process.env.SOCIAL_KEY || crypto.randomBytes(3).toString('hex'),
+  // Music Co-DM: runs the soundscape (mood, environment, layers), not the master volume or output. See src/roles.js.
+  MUSIC_KEY: process.env.MUSIC_KEY || crypto.randomBytes(3).toString('hex'),
   // HTTPS for phones (mic + speech need a secure origin). HTTPS=0 turns it off.
   HTTPS: process.env.HTTPS !== '0',
   HTTPS_PORT: Number(process.env.HTTPS_PORT) || 3443,

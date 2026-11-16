@@ -5,9 +5,9 @@ import { socket, $ } from '../client.js';
 
 export const dmKey = () => new URLSearchParams(location.search).get('key') || localStorage.dmKey || '';
 
-const MASTERS = { battle: { icon: '⚔️', name: 'Battle Master' }, social: { icon: '💬', name: 'Social Master' } };
+const MASTERS = { battle: { icon: '⚔️', name: 'Battle Master' }, social: { icon: '💬', name: 'Social Master' }, music: { icon: '🎻', name: 'Music Co-DM' } };
 let role = null;
-// 'battle', 'social', or null for the DM.
+// 'battle', 'social', 'music', or null for the DM.
 export const masterRole = () => (MASTERS[role] ? role : null);
 
 function authed({ ok, role: r } = {}) {
