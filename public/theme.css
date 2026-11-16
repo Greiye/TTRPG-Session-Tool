@@ -475,9 +475,19 @@ body.chron .btn.danger.enc-end:hover { background-color: #cf2c21; }
 .cbt-tag { margin-left: auto; padding: 0 6px; border-radius: 3px; background: #6b6b6b; color: #fff; font-size: 11px; }
 .cbt-tag.now { background: #b8862f; }
 .cbt-ctl { gap: 4px; }
-.cbt-atks { gap: 4px; flex-wrap: wrap; }
+.cbt-atks { gap: 6px; flex-wrap: wrap; align-items: flex-start; }
 .cbt .btn.atk:disabled { cursor: default; }
-.cbt .btn.atk.spent, .cbt.acted .btn.atk { filter: grayscale(1) brightness(.75); opacity: .55; text-decoration: line-through; }
+.cbt .btn.atk.spent, .cbt.acted .btn.atk { filter: grayscale(1) brightness(.75); opacity: .55; }
+.cbt .btn.atk.spent span, .cbt.acted .btn.atk span { text-decoration: line-through; }
+/* Creature actions (PR O): an icon button with its name under it; details and maths in a hover card. */
+.act-wrap { position: relative; display: inline-flex; }
+.act-btn { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; min-width: 58px; max-width: 84px; padding: 5px 6px 4px; line-height: 1.1; }
+.act-btn i { font-style: normal; font-size: 20px; line-height: 1; transition: transform .15s ease-out; }
+.act-btn span { font-size: 11px; text-align: center; overflow-wrap: anywhere; }
+.act-btn:hover:not(:disabled) i, .act-btn.on i { transform: scale(1.18) rotate(-6deg); }
+.act-tip { position: absolute; left: 0; bottom: calc(100% + 6px); z-index: 40; width: max-content; max-width: 240px; padding: 6px 9px; border: 1px solid #b8862f; border-radius: 5px; background: #1c140f; color: #f4ead5; font: 12px/1.4 var(--sans, system-ui); text-align: left; box-shadow: 0 6px 16px rgb(0 0 0 / .45); pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s; }
+.act-tip b { color: #f2c96e; } .act-tip small { display: block; margin-top: 3px; color: #b9a98a; font-size: 11px; }
+.act-wrap:hover .act-tip, .act-wrap:focus-within .act-tip { opacity: 1; transform: none; }
 .cbt.acted .cbt-head b { color: #6b6158; }
 
 /* Battle map card (Mike, Nov 16): centred buttons with their fields underneath, a green hold-to-generate at the

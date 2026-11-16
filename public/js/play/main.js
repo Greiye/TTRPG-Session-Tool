@@ -13,14 +13,17 @@ import './inventory.js';
 import './shops.js';
 import './downtime.js';
 import './journal.js';
+import './lore.js';
 import './logs.js';
 import './world.js';
 import './legends.js';
 import './camp.js';
 import './control.js';
 import './socialpop.js';
+import './popups.js';
 import './table.js';
 import './spotlight.js';
+import './ended.js';
 
 
 Settings.mount();

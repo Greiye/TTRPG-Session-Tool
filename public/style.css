@@ -514,7 +514,7 @@ body.phone .settings-btn { bottom: 76px; }
 @keyframes rp-slam { 0% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; } 100% { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
 @keyframes rp-flip { 0% { transform: translate(-50%,-50%) rotateX(90deg); opacity: 0; } 100% { transform: translate(-50%,-50%) rotateX(0); opacity: 1; } }
 html[data-motion="reduce"] .rollpop.tumble, html[data-motion="reduce"] .rollpop.slam, html[data-motion="reduce"] .rollpop.flip { animation: none; }
-.call-box { border-color: var(--gold); }
+
 .roll-box { display: flex; gap: 6px; }
 .roll-box input { flex: 1; }
 
@@ -999,5 +999,124 @@ body.battle-waiting #tablePage, body.battle-waiting #toolsCol .modes-card, body.
 .card[data-fold] > h3 { cursor: pointer; user-select: none; }
 .card[data-fold] > h3::after { content: '▾'; float: right; opacity: .6; transition: transform .2s; }
 .card[data-fold].folded > h3::after { transform: rotate(-90deg); }
-.card[data-fold].folded > :not(h3) { display: none !important; }
+.card[data-fold].folded > :not(:first-child) { display: none !important; }
 .card[data-fold].folded > h3 { margin-bottom: 0; }
+
+/* End of session (Mike, Nov 16): red hold button at the bottom of the DM tools sidebar, TV and phone end cards, DM dialog. */
+.end-session-bar { position: sticky; bottom: 0; margin: auto -14px -14px; padding: 12px 14px 14px; background: linear-gradient(transparent, var(--panel) 30%); z-index: 3; }
+.end-session-bar[hidden] { display: none; }
+body .dm-right .btn.end-session { width: 100%; padding: 10px 12px; color: #fff; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  background: linear-gradient(180deg, rgb(255 210 200 / .22), transparent 45%, rgb(0 0 0 / .35)), linear-gradient(180deg, #d1352b, #8e1b14); box-shadow: 0 2px 6px rgb(0 0 0 / .5), 0 0 12px rgb(210 50 40 / .35); }
+body .dm-right .btn.end-session.holding { animation: end-shake .1s linear infinite; }
+body .dm-right .btn.end-session .hold-fill { background: rgb(255 255 255 / .4); }
+body .dm-right .btn.end-session.ended { background: linear-gradient(180deg, rgb(255 210 200 / .1), transparent 45%, rgb(0 0 0 / .35)), #5a1a16; box-shadow: none; }
+@keyframes end-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1px); } 75% { transform: translateX(1px); } }
+.end-card { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; text-align: center; color: #f4ead5;
+  background: radial-gradient(ellipse at center, rgb(40 22 48 / .97), rgb(6 4 10)); animation: end-fade 1.2s ease both; }
+.end-card[hidden] { display: none; }
+.end-card .end-inner { animation: end-rise 1.6s .3s cubic-bezier(.2,.8,.2,1) both; }
+.end-card i { display: block; font-style: normal; font-size: 3rem; animation: end-glow 3s 1.5s ease-in-out infinite alternate; }
+.end-card h1 { font-family: var(--display, Georgia, serif); font-size: clamp(3rem, 9vw, 8rem); margin: .1em 0; letter-spacing: .04em; text-shadow: 0 0 24px rgb(240 190 90 / .45); }
+.end-card h2 { font-family: var(--display, Georgia, serif); font-size: 2rem; margin: .3em 0; }
+.end-card .end-sub { opacity: .75; font-size: 1.1rem; margin: 0; }
+.end-card.tv .end-sub { font-size: 1.8rem; }
+.end-card.tv i { font-size: 5rem; }
+@keyframes end-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes end-rise { from { opacity: 0; transform: translateY(24px) scale(.94); letter-spacing: .3em; } to { opacity: 1; transform: none; } }
+@keyframes end-glow { from { filter: drop-shadow(0 0 0 #f2c96e); } to { filter: drop-shadow(0 0 18px #f2c96e); } }
+.end-dlg { width: min(720px, 94vw); max-height: 90vh; background: var(--panel); color: inherit; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+.end-dlg[open] { display: flex; flex-direction: column; gap: 8px; animation: end-rise .4s ease both; }
+.end-dlg::backdrop { background: rgb(0 0 0 / .6); }
+.end-dlg h4 { margin: 8px 0 0; }
+.end-log { overflow: auto; min-height: 120px; max-height: 42vh; border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
+.end-log-row { display: grid; grid-template-columns: 52px 92px 1fr; gap: 8px; padding: 3px 4px; border-bottom: 1px solid rgb(255 255 255 / .05); font-size: .9rem; animation: end-fade .3s calc(var(--i) * 15ms) both; }
+.end-log-row small { opacity: .6; }
+.end-log-row b { opacity: .8; font-weight: 600; }
+.end-foot { justify-content: flex-end; }
+/* Phone pop-ups from the DM: roll call, party vote, message (Mike, Nov 16). Centred sheet, Continue at the bottom. */
+.phone-pop { align-items: center; padding: 16px; animation: ppFade .2s ease both; }
+.phone-pop.leaving { animation: ppFade .2s ease reverse both; }
+.phone-pop .pop-sheet { border-radius: 16px; max-height: calc(100vh - 32px); overflow-y: auto; display: flex; flex-direction: column; gap: 8px; text-align: center; }
+.phone-pop .pop-sheet h3 { margin: 0; }
+.phone-pop .pp-kicker { margin: 0; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; opacity: .75; }
+.phone-pop .pp-text { white-space: pre-wrap; text-align: left; line-height: 1.45; margin: 4px 0; }
+.phone-pop .pp-text.glyphs { text-align: center; font-size: 1.4rem; letter-spacing: .15em; }
+.phone-pop .pp-img { max-width: 100%; border-radius: 8px; }
+.phone-pop .pp-opts .btn { text-align: center; padding: 14px; font-size: 1.05rem; }
+.phone-pop .pp-continue { margin-top: 10px; }
+.phone-pop .pp-result { display: grid; place-items: center; margin: 6px auto; width: 96px; height: 96px; border-radius: 50%; border: 3px solid var(--gold); }
+.phone-pop .pp-result b { font-size: 2.2rem; line-height: 1; }
+.phone-pop .pp-result small { font-size: .75rem; opacity: .75; }
+.phone-pop .pp-result.pass { border-color: #4caf6a; }
+.phone-pop .pp-result.fail { border-color: #c2483f; }
+.phone-pop .pp-bump { animation: ppBump .45s cubic-bezier(.2,.8,.2,1); }
+@keyframes ppFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ppBump { 0% { transform: scale(.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .phone-pop, .phone-pop .pp-bump { animation: none; } }
+
+/* DM party vote card: one bar per option. */
+.vote-tally { display: grid; gap: 6px; margin-top: 6px; }
+.vt-row { display: grid; grid-template-columns: minmax(0, 1fr) 2fr auto; gap: 8px; align-items: center; }
+.vt-lbl { overflow-wrap: anywhere; }
+.vt-bar { height: 10px; border-radius: 5px; background: rgb(0 0 0 / .18); overflow: hidden; }
+.vt-bar i { display: block; height: 100%; background: var(--gold); transition: width .4s cubic-bezier(.2,.8,.2,1); }
+.vt-n { min-width: 1.5em; text-align: right; }
+
+/* Effects and weather draw over the 3D combat map (Mike, Nov 15). The backdrop shows behind the map. */
+.stage > .fx, .stage > .wx { z-index: 3; }
+
+/* Combat prep filter on the TV (Nov 15): "Combat · Get ready" over the map, shaking while the DM holds Roll
+   initiative, then lifting away when the roll lands. */
+.prep-tv { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; background: radial-gradient(ellipse at center, rgb(60 8 8 / .82), rgb(8 2 2 / .96)); animation: fadein .5s; pointer-events: none; }
+.prep-box { text-align: center; color: #f4ead5; }
+.prep-box h1 { margin: 0; font-family: var(--display); font-size: 11cqw; letter-spacing: .08em; text-transform: uppercase; color: #ffdfa0; text-shadow: 0 0 2cqw rgb(255 80 40 / .7), 0 .4cqw 0 #5a1208; }
+.prep-box p { margin: .5cqw 0 0; font-family: var(--display); font-size: 3.4cqw; letter-spacing: .4em; text-transform: uppercase; color: #f0c9a0; }
+.prep-tv.shaking .prep-box { animation: prep-shake .09s linear infinite; }
+.prep-tv.shaking { background: radial-gradient(ellipse at center, rgb(110 12 8 / .85), rgb(12 2 2 / .96)); }
+@keyframes prep-shake { 0% { transform: translate(0, 0) rotate(0); } 20% { transform: translate(-1.2cqw, .6cqw) rotate(-1.5deg); } 40% { transform: translate(1cqw, -.8cqw) rotate(1.2deg); } 60% { transform: translate(-.8cqw, -.5cqw) rotate(-.8deg); } 80% { transform: translate(1.1cqw, .7cqw) rotate(1.5deg); } 100% { transform: translate(0, 0) rotate(0); } }
+.prep-tv.lift { animation: prep-lift .85s cubic-bezier(.6,0,.4,1) forwards; }
+@keyframes prep-lift { 0% { opacity: 1; transform: none; } 30% { opacity: 1; transform: scale(1.06); } 100% { opacity: 0; transform: translateY(-100%) scale(1.06); } }
+html[data-motion="reduce"] .prep-tv.shaking .prep-box { animation: none; }
+html[data-motion="reduce"] .prep-tv.lift { animation: fadeout .3s forwards; }
+@keyframes fadeout { to { opacity: 0; } }
+
+/* Join QR card slides in and out from the right (Nov 15). */
+.join-dock { position: absolute; top: 1.2cqw; right: 1.6cqw; z-index: 4; transform: translateX(calc(100% + 3cqw)); opacity: 0; transition: transform .7s cubic-bezier(.2,.8,.2,1), opacity .5s; pointer-events: none; }
+.join-dock.shown { transform: none; opacity: 1; }
+.join-dock .join { margin-left: 0; }
+html[data-motion="reduce"] .join-dock { transition: opacity .3s; transform: none; }
+/* The DM sets the field under the filter, so the DM page shows only a small "TV: Get ready" tag instead. */
+body:not(.tv) .prep-tv { inset: auto auto 1cqw 50%; transform: translateX(-50%); background: rgb(90 12 8 / .9); padding: .3em 1em; border-radius: 999px; animation: none; }
+body:not(.tv) .prep-tv .prep-box h1 { font-size: 14px; display: inline; text-shadow: none; }
+body:not(.tv) .prep-tv .prep-box p { display: inline; font-size: 12px; margin-left: .6em; letter-spacing: .2em; }
+body:not(.tv) .prep-tv.lift { display: none; }
+
+/* DM column layout (Nov 15): a row of buttons alone in a card is centred, and so is a lone button. */
+body.dm .card > .row:not(:has(input, select, textarea, .grow, .note, label, .chip)) { justify-content: center; }
+body.dm .card > .btn, body.dm .card > button { display: block; margin-inline: auto; }
+/* Party, Conditions and Characters in the right sidebar. */
+.dm-hero .hero-card { margin: 0; }
+.dm-hero .hero-card #party .item { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.dm-hero .hero-card #party .item > .row { flex-wrap: nowrap; justify-content: space-between; gap: 4px; }
+.dm-hero .hero-card #party .item > .row .btn { flex: 1; padding-inline: 0; min-width: 0; }
+
+/* Lore tab (Mike, Nov 16): category chips, collapsible entries, shared badge. Phones: Journal > Lore. */
+.lore-cats { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.lore-cats .chip { display: inline-flex; align-items: baseline; gap: 4px; }
+.lore-cats .chip small { display: inline; opacity: .7; }
+.lore-list { display: flex; flex-direction: column; gap: 6px; }
+.lore-entry { border: 1px solid rgb(0 0 0 / .2); border-radius: 8px; background: rgb(255 255 255 / .06); transition: opacity .2s, transform .2s; }
+.lore-entry summary { display: flex; align-items: center; gap: 8px; padding: 6px 8px; cursor: pointer; list-style: none; }
+.lore-entry summary::-webkit-details-marker { display: none; }
+.lore-entry summary i { font-style: normal; }
+.lore-entry summary b { flex: 1; }
+.lore-entry.shared { border-color: rgb(80 160 110 / .6); }
+.lore-badge { font-size: .75rem; padding: 1px 6px; border-radius: 99px; background: rgb(80 160 110 / .25); }
+.lore-entry[open] .lore-body { animation: lore-open .2s ease both; }
+.lore-body { display: flex; flex-direction: column; gap: 6px; padding: 0 8px 8px; }
+.lore-body textarea { width: 100%; resize: vertical; }
+.lore-entry.fresh { animation: lore-flash 1.2s ease; }
+.lore-entry.leaving { opacity: 0; transform: translateX(-12px); }
+@keyframes lore-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes lore-flash { 0% { box-shadow: 0 0 0 2px #f2c96e; } 100% { box-shadow: none; } }
+.lore-phone .lore-entry p { margin: 0; padding: 0 8px 8px; white-space: pre-wrap; }

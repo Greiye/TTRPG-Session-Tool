@@ -247,9 +247,11 @@ ok(wm.migrate(oldSet).legSeconds === 90, 'an old save with its own leg keeps it'
   ok(await h.until(() => a1.last.worldMap.roads.length === 1), 'revealing all shows every road to the table');
   dm.emit('dm:mode', { mode: 'combat' });
   ok(await h.until(() => a1.last.mode === 'combat'), 'the DM switches to combat');
-  ok(a1.last.worldMap.onTv === true, 'the world map stays on the TV in any mode');
+  ok(a1.last.worldMap.onTv === false, 'entering combat hands the TV to the combat prep filter');
+  dm.emit('dm:worldmap:show', { on: true });
+  ok(await h.until(() => a1.last.worldMap.onTv === true), 'the DM can still show the map during combat');
   dm.emit('dm:mode', { mode: 'social' });
-  ok(await h.until(() => a1.last.mode === 'social') && a1.last.worldMap.onTv === true, 'social keeps the world map on the TV too');
+  ok(await h.until(() => a1.last.mode === 'social') && a1.last.worldMap.onTv === true, 'social keeps the world map on the TV');
   dm.emit('dm:worldmap:show', { on: false });
   ok(await h.until(() => a1.last.worldMap.onTv === false), 'Show on TV off gives the TV back');
   dm.emit('dm:session:next', {});

@@ -86,7 +86,7 @@ function viewState(base, viewer) {
   out.rolls = filterList(base.rolls, viewer);
   out.objectives = filterList(base.objectives, viewer); // secret objectives: the owner's phone and the DM until revealed (src/objectives.js)
   out.suggestions = filterList(base.suggestions, viewer); // spectator suggestions: DM and players only (src/spectate.js)
-  out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h));
+  out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h)).map((h) => require('./messages').readFor(h, viewer));
   if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
   // Fog of war (src/vision.js): every viewer gets the tiles the party can see. Phones and the TV never get
   // enemy tokens standing in the dark; the DM sees everything, with the fog drawn dimmer.
@@ -116,6 +116,7 @@ function viewState(base, viewer) {
   if (base.worldMap) out.worldMap = require('./worldmap').viewFor(base.worldMap, viewer, base.players.length); // Phase G: see src/worldmap.js
   // Party journal: phones and the DM only (src/journal.js).
   out.journal = ['dm', 'player'].includes(viewer.role) ? base.journal || [] : null;
+  out.lore = require('./lore').viewFor(base.lore, viewer); // Lore tab: DM sees all, phones shared entries without DM notes
   // Phase D: a line in a tongue reads as glyphs unless the viewer knows it or the DM glossed it (src/speech.js).
   if (base.social) out.social = { ...base.social, line: require('./speech').lineFor(base.social.line, viewer, base) };
   out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own
