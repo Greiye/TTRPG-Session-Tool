@@ -68,7 +68,7 @@ const d20Dice = (r) => {
 };
 
 // ----- roll calls -----
-function call({ kind = 'skill', key, dc, targets, mode, hideDc, pass, fail, preset } = {}) {
+function call({ kind = 'skill', key, dc, targets, mode, hideDc, pass, fail, preset, concentration } = {}) {
   const p = preset && describe().presets.find((x) => x.id === preset);
   if (p) ({ kind, key } = p);
   if (!KINDS.includes(kind) || !validKey(kind, key)) return null;
@@ -77,6 +77,7 @@ function call({ kind = 'skill', key, dc, targets, mode, hideDc, pass, fail, pres
     id: nextId(), kind, key, skill: key, label: labelFor(kind, key), dc: int(dc ?? p?.dc, 1, 40, 10), hideDc: !!hideDc,
     targets: ids.length ? ids : null, mode: MODES.includes(mode) ? mode : null, results: {},
     outcome: { pass: str(pass ?? p?.pass, 200), fail: str(fail ?? p?.fail, 200) },
+    ...(concentration ? { concentration: true } : {}), // a failed save ends the caster's spell (src/timers.js)
   };
   const who = ids.length ? ids.map((id) => state.players[id].name).join(', ') : 'Everyone';
   log('check', `${who}: roll a ${state.check.label}${state.check.hideDc ? '' : ` (${sys().dcLabel} ${state.check.dc})`}${state.check.mode ? ` with ${state.check.mode === 'adv' ? 'advantage' : 'disadvantage'}` : ''}.`, { tone: 'call' });
@@ -113,6 +114,8 @@ function answer(p, mode, { inspire } = {}) {
   // DM auto-outcome: the preset text is posted for each player as their roll lands.
   const text = r.pass ? chk.outcome.pass : chk.outcome.fail;
   if (text) log('narrate', `${p.name} ${text}`);
+  // Concentration save (Mike, Nov 16): a failed save drops the spell on its own. The DM's Drop button still works.
+  if (chk.concentration && r.pass === false) require('./timers').dropConcentration(p.id);
   return r;
 }
 // A roll nobody asked for: a player tapping a skill, a save or an ability on their phone.
