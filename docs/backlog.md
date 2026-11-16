@@ -256,14 +256,13 @@ Built in the DM tabs thread right after PR H and S.
 - [x] Character sidebar shows bio first by default, not stats. [DM Screen, hero in the right sidebar]
 - [ ] Character creator: a very basic one with heavy DM override, and no classes (Mike's game has none). Steps, in Mike's order:
   1. Basics on the phone: name, ancestry and background only. No class or role field.
-  2. Card questions: a series of questions where the player picks an animated card as the answer. For now, one question:
+  2. Card questions: a series of questions where the player picks an animated card as the answer. For now, one question with five cards:
      "A dragon appears to slay you and your beloved. What card do you take?"
      1. The Knight Card (Melee Profession)
      2. The Arrow Card (Range Profession)
      3. The Shadow Card (Rogue Type)
      4. The Lightning Card (Wizard)
      5. The Automaton Card (Engineer)
-     (Mike wrote "4 animated cards" but listed five; all five are kept here until he confirms.)
   3. Stats: from a DM preset array or a point budget.
   4. Starting kit: a pick of DM-defined kits, based on the profession chosen from the cards.
   5. DM approval: the finished draft goes to the DM, who approves it before the character joins the table.
