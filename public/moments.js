@@ -62,10 +62,11 @@
   function pauseCard(p) {
     const el = slot('mo-pause');
     if (!p) { el.hidden = true; return; }
-    if (el.hidden) { el.hidden = false; el.innerHTML = '<div class="mo-card"></div>'; Anim.play(el.firstElementChild, 'fade'); }
+    // The backdrop fades to partial black first; the text fades in half a second later (moments.css).
+    if (el.hidden) { el.hidden = false; el.innerHTML = '<div class="mo-card"></div>'; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); }
     const box = el.firstElementChild;
     const text = p.text || '';
-    if (box.dataset.text !== text) { box.dataset.text = text; box.innerHTML = `<small>Hold</small><p>${esc(text)}</p>`; }
+    if (box.dataset.text !== text) { box.dataset.text = text; box.innerHTML = text ? `<p>${esc(text)}</p>` : ''; }
   }
 
   function book(b) {

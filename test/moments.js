@@ -124,5 +124,16 @@ const { ok, until } = h;
   await h.wait(120);
   ok(tv.last.tv.trans.kind !== 'ink', 'a phone cannot trigger a transition');
 
+  // Mode switching (Nov 16, PR P): pressing the current mode logs nothing, and quick switches keep one mode line.
+  const modeLines = () => dm.last.log.filter((l) => /^— [A-Z]+ —$/.test(l.text)).length;
+  const before = modeLines();
+  const cur = dm.last.mode;
+  dm.emit('dm:mode', { mode: cur });
+  await h.wait(120);
+  ok(modeLines() === before, 'pressing the current mode adds no log line');
+  for (const m of ['combat', 'social', 'exploration']) dm.emit('dm:mode', { mode: m });
+  ok(await until(() => dm.last.mode === 'exploration' && /EXPLORATION/.test(dm.last.log.at(-1).text)), 'quick switches land on the last mode');
+  ok(modeLines() <= before + 1, 'quick switches leave one mode line, not three');
+
   await h.done(srv);
 })();

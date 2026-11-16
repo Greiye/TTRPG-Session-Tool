@@ -52,7 +52,8 @@ function render() {
   const S = state();
   const c = S?.players.find((p) => p.id === me.charId);
   if (!c) return;
-  const items = (S.handouts || []).slice().reverse();
+  // Handouts and phrases are pop-ups now (popups.js); only spoils stay in the inbox (Mike, Nov 16).
+  const items = (S.handouts || []).filter((h) => h.kind === 'spoil').slice().reverse();
   const vote = S.vote;
   const voteHtml = vote ? `<div class="card vote"><h3>${vote.open ? 'The party votes' : 'Vote closed'}</h3>
       <div class="list">${vote.options.map((o, i) => `<button class="btn ${vote.mine === i ? 'primary' : ''}" data-vote="${i}" ${vote.open ? '' : 'disabled'}>${esc(o)}</button>`).join('')}</div>
@@ -80,7 +81,7 @@ function render() {
   const quizPending = q?.open ? q.questions.filter((x) => q.mine?.[x.id] === undefined).length : 0;
   const quiz = quizHtml(q, c);
   const pz = puzzleHtml(S.puzzle);
-  root().innerHTML = objHtml + pz + quiz + voteHtml + body + (items.length || objs.length || vote || q || pz ? '' : '<p class="note" style="text-align:center">Nothing here yet. Handouts, phrases and spoils from the DM show up here.</p>');
+  root().innerHTML = objHtml + pz + quiz + voteHtml + body + (items.length || objs.length || vote || q || pz ? '' : '<p class="note" style="text-align:center">Nothing here yet. Spoils, votes and quizzes from the DM show up here.</p>');
   // A handout that just arrived unfolds like paper. Items already on screen (and the first load) stay still.
   const wraps = [...root().querySelectorAll('.hwrap[data-hid]')];
   const arrived = wraps.filter((el) => !shownHandouts.has(el.dataset.hid));

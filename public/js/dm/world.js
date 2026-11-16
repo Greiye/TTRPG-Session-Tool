@@ -7,6 +7,14 @@ const MODES = [['#moodExp', 'exploration'], ['#moodCom', 'combat'], ['#moodSoc',
 const LIGHTS = ['day', 'dusk', 'night', 'dawn', 'torchlight'];
 let libKey = null; let tplKey = null; let relKey = null;
 
+// Who has pressed Continue on a message pop-up.
+function readNote(s, h) {
+  const to = h.vis?.to || ['*'];
+  const ids = to.includes('*') ? s.players.map((p) => p.id) : to;
+  const read = ids.filter((id) => h.read?.[id]);
+  if (!ids.length) return 'no phones';
+  return read.length === ids.length ? 'read by all ✓' : `read ${read.length}/${ids.length}`;
+}
 onState((s) => {
   const lk = s.audio.library.map((t) => t.id + t.name).join();
   if (lk !== libKey) {
@@ -30,12 +38,31 @@ onState((s) => {
     const who = h.vis?.to ? (h.vis.to.includes('*') ? 'all phones' : h.vis.to.map((id) => s.players.find((p) => p.id === id)?.name || '?').join(', ')) : '';
     if (h.kind === 'spoil') return `<div class="item"><span>🎁 <b>${esc(h.title)}</b> <small class="muted">${h.items.map((i) => `${i.qty}× ${esc(i.name)}`).join(', ')} · ${Object.keys(h.claims).length} claim(s)${h.awarded ? ` · to ${esc(s.players.find((p) => p.id === h.awarded)?.name || '?')}` : ''}</small></span>
       <span class="row">${Object.values(h.claims).map((c) => `<small class="muted">${esc(c.name)}${c.note ? `: "${esc(c.note)}"` : ''}</small>`).join(' ')}${h.awarded ? '' : Object.keys(h.claims).map((id) => `<button class="btn small" data-award="${esc(h.id)}" data-char="${esc(id)}">Give ${esc(s.players.find((p) => p.id === id)?.name || '?')}</button>`).join('')}</span></div>`;
-    if (h.kind === 'phrase') return `<div class="item"><span>🔤 <b>${esc(h.lang)}</b>: ${esc(h.text)} <small class="muted">phones see glyphs${h.revealed ? ' · revealed' : ''}</small></span><span class="row"><button class="btn small ${h.revealed ? 'on' : ''}" data-reveal="${esc(h.id)}">Reveal</button><button class="btn small danger" data-msg-del="${esc(h.id)}">✕</button></span></div>`;
+    if (h.kind === 'phrase') return `<div class="item"><span>🔤 <b>${esc(h.lang)}</b>: ${esc(h.text)} <small class="muted">phones see glyphs${h.revealed ? ' · revealed' : ''} · ${readNote(s, h)}</small></span><span class="row"><button class="btn small ${h.revealed ? 'on' : ''}" data-reveal="${esc(h.id)}">Reveal</button><button class="btn small danger" data-msg-del="${esc(h.id)}">✕</button></span></div>`;
     const shared = h.vis?.screen ? 'on' : '';
-    return `<div class="item"><span>📜 <b>${esc(h.title)}</b> <small class="muted">${esc(who)}</small></span><span class="row"><button class="btn small ${shared}" data-share="${esc(h.id)}" title="Show on the TV">📺</button><button class="btn small danger" data-msg-del="${esc(h.id)}">✕</button></span></div>`;
+    return `<div class="item"><span>📜 <b>${esc(h.title)}</b> <small class="muted">${esc(who)} · ${readNote(s, h)}</small></span><span class="row"><button class="btn small ${shared}" data-share="${esc(h.id)}" title="Show on the TV">📺</button><button class="btn small danger" data-msg-del="${esc(h.id)}">✕</button></span></div>`;
   }).join('') || '<p class="note">Handouts, phrases and spoils appear here.</p>';
   const v = s.vote;
-  $('#voteTally').textContent = v ? v.options.map((o, i) => `${o}: ${v.counts?.[i] ?? 0}`).join(' · ') + (v.open ? '  (open)' : '  (closed)') : '';
+  // Party vote card: one bar per option, and who has not voted yet.
+  const total = v ? (v.counts || []).reduce((a, b) => a + b, 0) : 0;
+  $('#voteState').textContent = v ? (v.open ? `open · ${total} of ${s.players.length} voted` : `closed · ${total} vote(s)`) : 'pops up on every phone';
+  const waiting = v?.open ? s.players.filter((p) => v.votes?.[p.id] === undefined).map((p) => p.name) : [];
+  // Rows are kept between updates so the bars slide to their new widths.
+  const vk = v ? v.id + v.options.join('|') : '';
+  if ($('#voteTally').dataset.k !== vk) {
+    $('#voteTally').dataset.k = vk;
+    $('#voteTally').innerHTML = v ? v.options.map((o, i) => `<div class="vt-row"><span class="vt-lbl">${esc(o)}</span><span class="vt-bar"><i data-vt="${i}" style="width:0"></i></span><b class="vt-n" data-vtn="${i}">0</b></div>`).join('') + '<p class="note" id="voteWait"></p>'
+      : '<p class="note">No vote running. Blank options mean Yes, No, Unsure.</p>';
+  }
+  if (v) {
+    requestAnimationFrame(() => v.options.forEach((_, i) => {
+      const n = v.counts?.[i] ?? 0;
+      const bar = $(`#voteTally [data-vt="${i}"]`); const num = $(`#voteTally [data-vtn="${i}"]`);
+      if (bar) bar.style.width = `${total ? Math.round((100 * n) / total) : 0}%`;
+      if (num) num.textContent = n;
+    }));
+    $('#voteWait').textContent = waiting.length ? `Waiting on ${waiting.join(', ')}` : '';
+  }
   // NPC relations
   const npcs = s.entities?.filter((x) => x.type === 'npc') || [];
   const nk = npcs.map((n) => n.id + n.name).join();
