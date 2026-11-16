@@ -269,3 +269,12 @@ Built in the DM tabs thread right after PR H and S.
   6. Heavy DM override and field locks: the DM can edit anything at any time, and players can't change fields after approval.
   7. DM-made characters: the DM can create a whole character and hand it to a phone.
   [Phones at join, DM Screen; the phone join flow already has a new character form (`public/js/play/join.js`, `src/session.js`), and the DM edit dialog in `public/js/dm/characters.js` already edits every field. Questions, cards, professions, ancestries, backgrounds, stat arrays and kits are DM-editable lists, not hard-coded, so the creator stays system-agnostic. Each card answer sets the character's profession, which the kit step reads]
+
+## Mike's notes, 2026-11-16 (drawing pad)
+
+### PR Z: Pressure-sensitive drawing pad
+`public/js/drawpad.js` (new), `public/js/dm/`, `public/js/play/`, `public/js/play/journal.js`, `src/assets.js`, `src/routes.js`, `src/journal.js`, `src/sockets/journal.js`
+- [ ] Drawing pad on the DM page. Line width follows pen pressure (Pointer Events `pressure`, `pointerType` "pen"); mouse and finger draw at a fixed width. Palm rejection: once a pen is seen, finger touches don't draw. [DM Screen; one shared module, opened as a pop-up]
+- [ ] Tools: pen, eraser, a few colours, size, undo, clear, paper (parchment, white or night). The pad slides in and out like the other dialogs.
+- [ ] DM saves a drawing as the scene backdrop, a character portrait, a handout or a journal entry. [Uses what exists: the backdrop upload with `?live=1`, `/api/portrait/:id`, `dm:handout` (already takes an `image`) and the party journal. Adds a `drawing` asset kind in `uploads/drawings/` and an optional image on journal entries]
+- [ ] Players get their own sketch pad on phones and tablets (Mike, Nov 16), the same pad with pen pressure. They save a sketch to the party journal or as their own portrait. [Phones; a Sketch button opens it]
