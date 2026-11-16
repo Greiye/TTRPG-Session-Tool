@@ -63,3 +63,11 @@ Today: phones in social mode can pick an expression (`player:expression`, `cast.
 - [ ] Sending: the character's emotion changes on the TV only when the line is sent, together with the speech.
 - [ ] Speech log line: `[Character name] looks to be [emotion]. He says / She says / They say "[text]"`. Needs a pronoun field on the character (none today): add it to the character profile, default "They".
 - [ ] The pop-up closes for everyone when the DM leaves Social mode.
+
+### Phone hero card (character header)
+`public/chronicle.js` (`Chronicle.hero`), `public/js/play/game.js`, `public/settings.js`, `public/style.css`, `public/theme.css`
+Today: the header shows 🏅 + the character's level, an HP bar with numbers, one resource bar (spell slots, else a pool, else hit dice), then ✎ Profile, ⛶ (full screen) and ☀ (keep the screen on) under it.
+- [ ] The 🏅 box shows **Inspiration points**, not the level.
+- [ ] HP display is a phone setting: **Number** (28/28, today) or **Description** from the share of HP left, e.g. Fine, Injured, Badly hurt, Near death, Down. Thresholds to set when built.
+- [ ] Hit dice and spell slots show as gems, one per die or slot: coloured when available, black when used. No bars.
+- [ ] The ✎ Profile, ⛶ Full screen and ☀ Keep screen on buttons move to the bottom of the phone page.
