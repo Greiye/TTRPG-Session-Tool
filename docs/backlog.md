@@ -145,3 +145,35 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 - [ ] On player phone screen, Gold is just a symbol and number. Players can't add items, the DM does that.
 - [ ] Add an Items Tab for the DM. [DM Screen]
 - [ ] DM can pop up shops right from planning mode. [DM Screen, Planning mode]
+
+## Mike's notes, 2026-11-16 (third list, grouped into PRs by the code they touch)
+
+Items are as Mike wrote them. Bracketed notes say which screen a tab or setting is on, or where an item overlaps an earlier list.
+
+### PR O: Creature actions on the combat map
+`lib/iso-battle/src/client/battle.js`, `lib/iso-battle/src/client/styles.js`, `public/js/dm/combat.js`, `public/theme.css`
+- [ ] Creature Actions are usually just an icon button with text underneath it. The action, math equations, details appear when I have mouse over it. [DM Screen, Combat]
+
+### PR P: Dramatic pause and mode switching
+`public/moments.js`, `public/moments.css`, `public/stage.js`, `public/js/dm/modes.js`, `src/moments.js`
+- [ ] Remove Dramatic pause effect 'hold' text. When the Dramatic pause fade to partial back happens, the text fades in half a second after. [TV]
+- [ ] Fix issue where entering modes spams the logs. [DM Screen, Logs; TV and phones]
+
+### PR Q: Exploration points of interest and world map travel
+`src/worldmap.js`, `src/sockets/worldmap.js`, `src/visibility.js`, `public/js/dm/worldmap.js`, `public/js/dm/exploration.js`, `public/worldmap.js`
+- [ ] Blank Points of interest still appear in exploration. Have no points of interest initially by default. DM will add them in when they can. [DM Screen, Exploration; TV]
+- [ ] Default map travel leg duration is 5 seconds. [DM Screen, World map]
+- [ ] Show world map to TV Screen no matter the current mode. [TV; overlaps the 15 Nov PR A and 16 Nov PR L world map items]
+
+### PR R: Dungeon entry, exit and editing
+`src/dungeon.js`, `src/sockets/dungeon.js`, `public/dungeon.js`, `public/dungeon.css`, `public/js/dm/dungeon.js`, `public/js/play/`
+- [ ] When the Party goes to a dungeon location, they get a phone tab. TV screen gets a pop up too, showing the dungeon image and a count of ready party members. The player phones get a window that shows the dungeon name, the description, and a button that says 'Enter Dungeon'. When all players have held-pressed enter dungeon for 1 second (counter on the TV), Then enter the dungeon.
+- [ ] When all players are at the end of the dungeon, they get an 'exit dungeon' pop up. They just have to press the exit dungeon button which sends them back to the TV Screen world map.
+- [ ] When Party is in a dungeon, A dungeon editing tab appears underneath world map. [DM Screen, World map window]
+- [ ] DM can edit the nodes right from the dungeon window. Can click/drag/etc. nodes and right click nodes for menu. [DM Screen, dungeon window]
+- [ ] Party Dungeon Location node is centered on TV Screen. [TV]
+
+### PR S: DM Screen mode buttons and sidebar
+`public/dm.html`, `public/style.css`, `public/js/dm/modes.js`, `public/js/dm/dock.js`
+- [ ] DM Screen Mode Buttons get darker to show DM is currently on them, not just the text turning gold. [DM Screen, mode bar]
+- [ ] Party Tab is on the Right sidebar. [DM Screen; overlaps the 15 Nov PR D item and the 16 Nov PR H layout items]
