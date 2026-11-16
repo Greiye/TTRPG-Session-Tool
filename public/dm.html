@@ -605,19 +605,11 @@
   <aside class="dm-hero" id="heroCol" aria-label="Party">
     <div class="col-head"><span>👥 Party</span><button class="tools-min" id="heroMin" title="Minimize the party sidebar (drag the edge tab to bring it back)" aria-label="Minimize party sidebar" aria-controls="heroCol">»</button></div>
     <div id="heroPick" class="hero-pick" role="tablist" aria-label="Party member"></div>
-    <!-- Party, Conditions and Characters live in the right sidebar (Mike, Nov 15 and 16), folded by default. -->
+    <!-- Party and Characters live in the right sidebar (Mike, Nov 15 and 16), folded by default. Conditions are
+         badges on the hero portrait (public/js/dm/conds.js). -->
     <div class="card party-side hero-card" data-fold="closed" data-fold-key="party-list">
-      <h3>Party <button class="btn small danger" data-act="reset" title="Clears log, enemies, heals party">Reset session</button></h3>
+      <h3>Party</h3>
       <div id="party" class="list"></div>
-    </div>
-    <div class="card party-side hero-card" data-fold="closed" data-fold-key="party-conds">
-      <h3>Conditions <span class="note">on players and creatures in the encounter</span></h3>
-      <select id="condWho"></select>
-      <div id="condBtns" class="dm-conds"></div>
-      <div class="row"><input id="condRounds" type="number" min="0" max="99" value="0" style="width:90px" title="Rounds a condition lasts. 0 means until you clear it." aria-label="Rounds"><small class="note">rounds (0 = until cleared)</small></div>
-      <h3>Concentration <span class="note">for the player picked above</span></h3>
-      <div class="row"><input id="concSpell" class="grow" maxlength="60" placeholder="Spell, e.g. Hold Person" aria-label="Spell"><button class="btn small" data-conc="start">Concentrate</button><button class="btn small" data-conc="drop">Drop</button></div>
-      <div id="timerList" class="list"></div>
     </div>
     <div class="card party-side hero-card" data-fold="closed" data-fold-key="party-chars">
       <h3>Characters <button class="btn small" id="charNew">+ New</button></h3>
