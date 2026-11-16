@@ -218,3 +218,14 @@ Item is as Mike wrote it. Bracketed notes say which screen it is on and what alr
 ### PR W: Creature Designer and wiki
 `public/dm.html`, `public/style.css`, `public/js/dm/`, `src/entities.js`, `src/routes.js`, `src/sockets/dm.js`
 - [ ] In Planning, Add Creature Designer button. This is a DM only pop up that lets me create sentient races, animals, etc. it lets me decide a sentient person's stats, skills, lore, race, abilities, inventory, etc. whatever the LLM deems necessary. this is all connected to a wiki system that edits .md files from a github repo. [DM Screen, Planning Mode tab group next to Shops; the creature library in `public/js/dm/creatures.js` and the Lore tab in `public/js/dm/lore.js` already exist; which GitHub repo holds the wiki is not stated, possibly the Arthuria lore repo]
+
+## Mike's notes, 2026-11-16 (eighth list)
+
+Mike is building his own game system, a fusion of Daggerheart, 5e and homebrew, so these items stay system-agnostic: no 5e-only rules baked in. Bracketed notes say which screen it is on and what already exists.
+
+### PR X: Battle map vision, spell areas, conditions and scene audio
+`src/vision.js`, `src/iso.js`, `src/tracker.js`, `src/timers.js`, `src/sockets/dm.js`, `public/js/iso3d.js`, `lib/iso-battle/`, `public/js/dm/combat.js`, `public/stage.js`, `public/audio.js`, `public/soundboard.js`, `public/atmo.js`
+- [ ] Fog of war with line of sight: each token reveals only what it can see, and the TV shows the party's combined view. [Battle map, TV; `src/vision.js` already does light radius and wall/height ray checks, this extends it to per-token sight and makes the TV follow the party's view]
+- [ ] Spell area templates: cones, lines, circles and cubes that snap to the grid and highlight every token inside. [Battle map, DM Screen, phones, TV; sizes are free numbers so any system's spells fit]
+- [ ] Token status icons: conditions show as icons on tokens, tracked automatically, with a duration countdown. [Battle map, TV, phones; conditions in `src/tracker.js` and round countdowns in `src/timers.js` already exist, condition names should be editable per system]
+- [ ] Ambient audio and music per scene: each scene has looping tracks and sound cues that start with it. [TV audio; `public/audio.js` and the soundboard already crossfade music and blend ambience loops, this ties them to a scene]
