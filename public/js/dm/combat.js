@@ -1,5 +1,6 @@
 // Party HP, enemies, initiative and enemy turns.
 import { holdButton } from './hold.js';
+import { actionIcon, actionDetail } from '../actions.js';
 import { $, emit, onState, onClick } from '../client.js';
 
 const { esc, hpBar } = Stage;
@@ -52,7 +53,8 @@ function renderOrder(s, turn, def) {
     const left = (x.speed?.fly && x.flying !== false ? x.speed.fly : x.speed?.walk ?? 30) - (c.moved?.[id] || 0);
     const atks = (x.attacks || []).map((a, i) => {
       const on = now && !spent && !down;
-      return `<button class="btn small atk ${on && i === atkIdx ? 'on' : ''} ${spent ? 'spent' : ''}" ${on ? `data-atk-pick="${i}"` : 'disabled'} title="${spent ? 'Already acted this round' : now ? 'Pick this attack, then a target' : 'Not its turn'}">${esc(a.name)} ${a.atk >= 0 ? '+' : ''}${a.atk} · ${esc(a.dmg)}</button>`;
+      const hint = spent ? 'Already acted this round' : now ? 'Pick this attack, then a target' : 'Not its turn';
+      return `<span class="act-wrap"><button class="btn act-btn atk ${on && i === atkIdx ? 'on' : ''} ${spent ? 'spent' : ''}" ${on ? `data-atk-pick="${i}"` : 'disabled'} aria-label="${esc(a.name)}: ${a.atk >= 0 ? '+' : ''}${a.atk} to hit, ${esc(a.dmg)}"><i aria-hidden="true">${actionIcon(a)}</i><span>${esc(a.name)}</span></button><span class="act-tip" role="tooltip">${actionDetail(a, def)}<small>${hint}</small></span></span>`;
     }).join('');
     const targets = now && !spent && !down
       ? `<div class="row cbt-targets">${targetsFor(x).map((t) => `<button class="btn small primary" data-atk="${esc(t.id)}">🎯 ${esc(t.name)}</button>`).join('') || '<span class="note">No targets.</span>'}</div>` : '';

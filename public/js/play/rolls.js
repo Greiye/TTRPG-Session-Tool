@@ -1,38 +1,8 @@
-// Phone side of Phase 2: the roll-call button, the dice pool for free rolls, and the notice popup.
-import { socket, $, onState, state } from '../client.js';
-import { me } from './identity.js';
+// Phone side of Phase 2: the dice pool for free rolls, and the notice popup.
+import { socket, $ } from '../client.js';
 
 const { esc } = Stage;
-let lastCall = null;
-
-// The roll-call banner appears above the Play tab when the DM calls a check you can answer.
-onState((s) => {
-  const c = s.players.find((p) => p.id === me.charId);
-  const chk = s.check;
-  const mine = c && chk && (!chk.targets || chk.targets.includes(c.id));
-  const done = mine && chk.results[c.id];
-  const host = $('#main');
-  if (!host) return;
-  let box = document.getElementById('callBox');
-  if (!mine) { box?.remove(); lastCall = null; return; }
-  if (!box) { box = document.createElement('div'); box.id = 'callBox'; box.className = 'card call-box'; host.prepend(box); }
-  const bonus = chk.kind === 'skill' ? c.skills?.[chk.key] : chk.kind === 'save' ? c.derived?.saves?.[chk.key] : c.derived?.mods?.[chk.key];
-  const label = chk.label;
-  const key = `${chk.id}:${!!done}:${c.inspiration || 0}`;
-  if (key === lastCall) return;
-  lastCall = key;
-  box.innerHTML = done
-    ? `<h3>${esc(label)}</h3><p class="note">You rolled ${done.roll}${done.total !== undefined ? ` → ${done.total}` : ''}. Waiting for the others…</p>`
-    : `<h3>DM calls: ${esc(label)}</h3>
-       <p class="note">${chk.hideDc ? 'The DC is secret.' : `${esc(s.rules.dcLabel)} ${chk.dc}`}${chk.mode ? ` · ${chk.mode === 'adv' ? 'advantage' : 'disadvantage'}` : ''}</p>
-       <button class="bigbtn" data-answer="1">🎲 Roll ${esc(label)} (${bonus >= 0 ? '+' : ''}${bonus ?? 0})</button>
-       ${c.inspiration > 0 && chk.mode !== 'dis' ? `<button class="btn" data-answer="1" data-inspire="1">✨ Roll with inspiration (${c.inspiration} left, advantage)</button>` : ''}`;
-});
-
-$('#main').addEventListener('click', (e) => {
-  const b = e.target.closest('[data-answer]');
-  if (b) { socket.emit('player:answer', { inspire: !!b.dataset.inspire }); navigator.vibrate?.(40); }
-});
+// Roll calls from the DM are a phone pop-up now (public/js/play/popups.js, Mike Nov 16).
 
 // Dice pool (top of the Play tab): D4 to D20, each with ◀ ▶ to take away or add a die, and a Roll button.
 // Adv and Dis apply when the pool is a single D20. The pool stays as it is after a roll, for repeat rolls.
