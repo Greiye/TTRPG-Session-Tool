@@ -210,3 +210,11 @@ Items are as Mike wrote them. Bracketed notes say which screen it is on and what
   - [ ] Going to nodes use up time clock segments, which will advance once all players confirm their town action. [Phones, TV clock]
   - [ ] For now, I want the starting town to have these hidden nodes: Settlement entrance, Farm, Marketplace, Smithy, Wizards Tower. [Starting town, Millbrook in the example map]
   - [ ] Like with world map, DM can add village nodes by clicking and dragging them on the map. [DM Screen, town map]
+
+## Mike's notes, 2026-11-16 (seventh list)
+
+Item is as Mike wrote it. Bracketed notes say which screen it is on and what already exists.
+
+### PR W: Creature Designer and wiki
+`public/dm.html`, `public/style.css`, `public/js/dm/`, `src/entities.js`, `src/routes.js`, `src/sockets/dm.js`
+- [ ] In Planning, Add Creature Designer button. This is a DM only pop up that lets me create sentient races, animals, etc. it lets me decide a sentient person's stats, skills, lore, race, abilities, inventory, etc. whatever the LLM deems necessary. this is all connected to a wiki system that edits .md files from a github repo. [DM Screen, Planning Mode tab group next to Shops; the creature library in `public/js/dm/creatures.js` and the Lore tab in `public/js/dm/lore.js` already exist; which GitHub repo holds the wiki is not stated, possibly the Arthuria lore repo]
