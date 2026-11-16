@@ -37,6 +37,7 @@ const ok = (c, m) => { console.log(`${c ? '  ok  ' : '  FAIL'} ${m}`); if (!c) f
 
     // Message: a pop-up with Continue, not an inbox item. The DM sees who read it.
     await dm.click('[data-stab="messages"]');
+    await dm.evaluate(() => document.querySelectorAll('.card.folded').forEach((c) => c.classList.remove('folded'))); // cards start folded (Mike, Nov 16)
     await dm.fill('#hoTitle', 'Wanted poster');
     await dm.fill('#hoText', 'Reward: 50 gp for the wolf.');
     await dm.click('[data-act="handout"]');
@@ -67,6 +68,7 @@ const ok = (c, m) => { console.log(`${c ? '  ok  ' : '  FAIL'} ${m}`); if (!c) f
 
     // Roll call: roll type changes the outcome text; the call pops up on the phone.
     await dm.click('[data-stab="rolls"]');
+    await dm.evaluate(() => document.querySelectorAll('.card.folded').forEach((c) => c.classList.remove('folded'))); // cards start folded (Mike, Nov 16)
     const skillPh = await dm.getAttribute('#callPass', 'placeholder');
     await dm.selectOption('#callKind', 'save');
     const savePh = await dm.getAttribute('#callPass', 'placeholder');
