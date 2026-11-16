@@ -44,7 +44,4 @@ $('#clockList').addEventListener('click', (e) => {
   else emit('dm:clock:fill', { id: b.dataset.clock, delta: Number(b.dataset.d) });
 });
 $('#clockAdd').onclick = () => { const name = $('#clockName').value.trim(); if (name) { emit('dm:clock:add', { name, segments: $('#clockSegs').value }); $('#clockName').value = ''; } };
-onClick('act', (a) => {
-  if (a === 'restShort') { if (confirm('Short rest? Players spend hit dice from their sheets.')) emit('dm:rest', { kind: 'short' }); }
-  if (a === 'restLong') { if (confirm('Long rest? HP, spell slots and half the hit dice come back.')) emit('dm:rest', { kind: 'long' }); }
-});
+// Rests are applied when camp ends (public/js/dm/camp.js).

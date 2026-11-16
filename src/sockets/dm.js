@@ -180,9 +180,26 @@ module.exports = function dmSockets(socket) {
     const why = open && !was ? houserules.blockCamp(state) : null; // house rule (src/houserules.js)
     if (why) { log('system', why, { tone: 'bad' }); return; }
     if (open && !was) require('../popups').only(state, 'camp');
+    const kind = !open && was ? camp.restKind(state.camp) : null; // ending camp applies the voted (or overridden) rest
     camp.setOpen(state.camp, open);
     if (state.camp.open && !was) log('system', 'Camp is set. Choose a short or long rest.', { tone: 'call' });
-    if (!state.camp.open && was) log('system', 'Camp is over.', { tone: 'call' });
+    if (kind) {
+      tracker.rest(kind, kind === 'short' ? (state.camp.dice || {}) : {});
+      state.camp.dice = {};
+    }
+    if (!state.camp.open && was) log('system', kind ? `Camp is over after a ${kind} rest.` : 'Camp is over. No rest was taken.', { tone: 'call' });
+  });
+  dm('dm:camp:apply', ({ apply }) => camp.setApply(state.camp, apply));
+
+  // ----- Inspiration tab: the DM gives or takes inspiration points (capped like the recap quiz) -----
+  dm('dm:inspiration', ({ id, delta, all }) => {
+    const d = Math.sign(Number(delta) || 0);
+    if (!d) return;
+    const who = all ? Object.values(state.players) : [state.players[id]].filter(Boolean);
+    const changed = who.filter((c) => { const was = c.inspiration || 0; return require('../quiz').adjust(c, d) !== was; });
+    if (!changed.length) return;
+    const names = changed.map((c) => c.name).join(', ');
+    log('system', d > 0 ? `✨ ${names} ${changed.length > 1 ? 'gain' : 'gains'} inspiration.` : `${names} ${changed.length > 1 ? 'lose' : 'loses'} an inspiration point.`, { tone: d > 0 ? 'good' : 'call' });
   });
   dm('dm:camp:image', ({ id }) => camp.setImage(state.camp, state.backdrop.library.find((b) => b.id === id)));
 

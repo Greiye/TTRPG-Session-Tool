@@ -17,6 +17,7 @@ import './logs.js';
 import './world.js';
 import './legends.js';
 import './camp.js';
+import './inspiration.js';
 import './control.js';
 import './socialpop.js';
 import './table.js';

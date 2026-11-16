@@ -5,12 +5,17 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Inspiration tab** on the DM screen (✨, Play group): each seated character's inspiration points as gold gems, with − and + to take or give one, and **Everyone +1**. Points cap at 5, as with the recap quiz. A new gem pops in, and the player's phone shows a short "✨ Inspiration!" toast.
+- **Class section in the phone camp pop-up**: the character's class and level, its limited-use features with uses left, what a short and a long rest give back for that class (hit dice, Pact Magic, Arcane Recovery, Second Wind and so on), and camp ideas for the class that fill the downtime box when tapped.
 - **Battle Master** and **Social Master** co-DM roles (Mike, Nov 16), each with its own private QR on the DM page's Co-DM card (`BATTLE_KEY`, `SOCIAL_KEY`). The Battle Master runs combat, the battle map and the DM's creatures; the Social Master runs NPC dialogue. Both open the DM page showing only their cards, and the server allows only the events listed per role in `src/roles.js`. A helper key now wins over localhost, so a helper link opened on the laptop gets the helper view.
 
 ### Fixed
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- Camp and rests (Mike's Nov 16 list, PR M):
+  - Phones vote short or long rest by **holding the button for 1 second** (it fills as you hold); a tap no longer votes. The pop-up rises in and no longer redraws while you type or hold.
+  - The **Rests** card is gone. **End camp** applies the rest: by vote (more long votes than short gives a long rest, otherwise short; no votes, no rest), or the DM's choice in **Rest when camp ends** (short, long or no rest). The button reads e.g. "End camp · long rest", and short-rest votes show the hit dice each player spends.
 - Co-DM and combat tools, from Mike's Nov 16 notes:
   - The **co-DM** now has every DM permission: the invite opens the DM page with the co-DM key (`/codm` stays as a phone soundboard).
   - Co-DM card: each role (Co-DM, Battle Master, Social Master) is a title with one centred **Invite** button under it.
