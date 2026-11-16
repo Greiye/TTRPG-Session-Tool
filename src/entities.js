@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const Ajv2020 = require('ajv/dist/2020');
 const { DATA_DIR, ROOT } = require('./config');
-const { writeJson, readJson } = require('./store');
+const { readJson, saver } = require('./store');
 
 const FILE = path.join(DATA_DIR, 'entities.json');
 const TYPES = ['npc', 'location', 'faction', 'event', 'lore'];
@@ -19,8 +19,8 @@ const validateBundle = ajv.getSchema('https://tavern-screen.local/schema/v1/bund
 const errorsText = (v) => (v.errors || []).slice(0, 5).map((e) => `${e.instancePath || '/'} ${e.message}`).join('; ');
 
 const newId = (type) => `${type}_${crypto.randomBytes(5).toString('hex')}`;
-let timer = null;
-const save = () => { clearTimeout(timer); timer = setTimeout(() => writeJson(FILE, entities), 300); };
+const disk = saver(FILE, () => entities);
+const save = () => disk.schedule();
 
 // Create or update. Returns { entity } or { error }.
 function upsert(input, source = 'tavern-screen') {
@@ -37,4 +37,4 @@ function upsert(input, source = 'tavern-screen') {
 }
 function remove(id) { if (entities[id]) { delete entities[id]; save(); return true; } return false; }
 
-module.exports = { entities, TYPES, upsert, remove, newId, validateEntity, validateBundle, errorsText, flush: () => { clearTimeout(timer); writeJson(FILE, entities); } };
+module.exports = { entities, TYPES, upsert, remove, newId, validateEntity, validateBundle, errorsText, flush: () => disk.flush() };

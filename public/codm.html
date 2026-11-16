@@ -18,12 +18,14 @@
     <div id="board" class="atmo" style="margin-top:14px"></div>
   </div>
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/conn.js"></script>
   <script src="/anim.js"></script>
   <script src="/dungeon.js"></script>
   <script src="/stage.js"></script>
   <script src="/soundboard.js"></script>
   <script>
     const socket = io();
+    ConnPill(socket);
     Settings.mount();
     const key = new URLSearchParams(location.search).get('key') || '';
     const render = Soundboard.mount(document.getElementById('board'), { emit: (ev, d = {}) => socket.emit(ev, d), key: () => key });

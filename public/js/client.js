@@ -4,6 +4,7 @@
 /* global io */
 export const socket = io();
 window.socket = socket;
+window.ConnPill?.(socket); // "Reconnecting" pill while the laptop is out of reach (public/conn.js)
 
 // Phase 5: phone, tablet or laptop. Spectators must watch from a phone.
 export const deviceKind = () => {
