@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Changed
+- 3D battle map look: terrain, walls and crates use 8-step cel shading, so lit faces step between eight flat tones. Rocks and trees are flat 2D cards that turn to face the camera, drawn with the same 8 banded tones and a dark outline (four variants each, shared textures).
 - Combat screen, from Mike's Nov 16 feedback:
   - In combat the DM's 3D battle map fills the main column. **⛶ Fit** shows the whole field and a **Coverage** slider sets how much of it the view shows (mouse wheel zooms out further too).
   - **Roll initiative** is press and hold: the button fills over 3 seconds and rolls on release (an early release cancels). It fires an `inithold` DOM event (start, cancel, complete) for later TV hooks. The Encounter card then lists everyone, players and creatures, in initiative order, and the cards slide into their new places.
