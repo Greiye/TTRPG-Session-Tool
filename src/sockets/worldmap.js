@@ -12,12 +12,12 @@ const legFactor = () => living.travelCost(living.weatherOf(state), state.scene?.
 // A place linked to a town by id uses that town; an unlinked place falls back to a town of the same name.
 const townOf = (node) => (node?.town && state.living.towns.find((t) => t.id === node.town)) || living.townFor(state.living, node?.name);
 const trail = require('../trail');
-// Arriving: the living world ticks, the trail logs the place, and a dungeon entrance opens its pop-up for all.
+// Arriving: the living world ticks and the trail logs the place. A dungeon entrance shows its Enter Dungeon
+// window on phones and the TV (src/dungeon.js gate); the party goes in once every player holds Enter (PR R).
 const onArrive = (node) => {
   require('./living').flush(living.onTravel(state, townOf(node)?.id));
   if (node) trail.add(state, 'world', node.name);
 };
-const afterTick = () => { if (wm.dungeonHere(state.worldMap) && !state.dungeon.on) require('./dungeon').open(); };
 // While the dungeon pop-up is open the party is underground: no travel until it leaves from the start or end.
 const inDungeon = () => (state.dungeon?.on ? { error: 'The party is in the dungeon. Leave it from its entrance or end first.' } : null);
 const ctx = (extra = {}) => ({ now: Date.now(), seated: Object.keys(state.players).length, log, nextId, random: Math.random, legFactor: legFactor(), onArrive, ...extra });
@@ -34,7 +34,7 @@ function openSession() {
 openSession();
 
 // Travel and card timers run on the server, so they keep going with no phone open.
-setInterval(() => { if (wm.tick(state.worldMap, ctx())) { afterTick(); broadcast(); } }, 500).unref?.();
+setInterval(() => { if (wm.tick(state.worldMap, ctx())) broadcast(); }, 500).unref?.();
 
 module.exports = function worldSockets(socket) {
   // DM events: payload defaults to {}, and an ack gets the result when there is one.

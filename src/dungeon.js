@@ -35,10 +35,10 @@ const EXAMPLE = [
 // Every room starts hidden; entering the dungeon puts the party in the entrance, which reveals it.
 function example() {
   const nodes = EXAMPLE.map(([id, name, kind, parents, pill]) => ({ id, name, kind, parents, pill, note: '', revealed: false, visited: false }));
-  return { on: false, here: null, nodes, seq: EXAMPLE.length };
+  return { on: false, here: null, nodes, seq: EXAMPLE.length, image: '', ready: [], readyAt: null, skipAt: null };
 }
 const fresh = example;
-const blank = () => ({ on: false, here: null, nodes: [], seq: 0 });
+const blank = () => ({ on: false, here: null, nodes: [], seq: 0, image: '', ready: [], readyAt: null, skipAt: null });
 
 const byId = (d, id) => d.nodes.find((n) => n.id === id);
 
@@ -156,15 +156,41 @@ function leave(d) {
   return { ok: true };
 }
 
+// ----- the gate and the way out (Mike, Nov 16, PR R) -----
+// The gate: the party stands on a dungeon entrance with the dungeon closed. Phones get an "Enter Dungeon" window
+// and hold its button for a second; the TV counts who is ready. When every online player is ready, the party enters.
+// `wm` is the world map, `players` the player list with `online`. After the party exits, the gate stays shut at
+// that place (skipAt) until the party moves on, so it does not pop straight back up.
+function gate(d, wm, players = []) {
+  const at = !wm || wm.travel || !wm.here ? null : (wm.nodes || []).find((n) => n.id === wm.here && n.dungeon);
+  if (d.skipAt && d.skipAt !== at?.id) d.skipAt = null; // the party moved on: the gate opens again next time
+  if (!at || d.on || !d.nodes.length || d.skipAt === at.id) return null;
+  if (d.readyAt !== at.id) { d.ready = []; d.readyAt = at.id; } // a new gate starts with nobody ready
+  const online = players.filter((p) => p.online).map((p) => p.id);
+  const ready = (d.ready || []).filter((id) => online.includes(id));
+  return { id: at.id, name: at.name, info: at.revealed ? at.info || '' : '', image: d.image || '', ready, total: online.length };
+}
+// A player holds (or lets go of) Enter Dungeon. Returns the gate after the change, or null when there is none.
+function setReady(d, wm, players, id, on = true) {
+  const g = gate(d, wm, players);
+  if (!g) return null;
+  d.ready = (d.ready || []).filter((x) => x !== id);
+  if (on) d.ready.push(id);
+  return gate(d, wm, players);
+}
+const allReady = (g) => !!g && g.total > 0 && g.ready.length >= g.total;
+// The party stands in an end room: phones get the Exit Dungeon button.
+const atEnd = (d) => !!(d.on && d.here && ends(d).some((n) => n.id === d.here));
+
 // What a viewer sees. The DM gets everything; anyone else gets the discovered (revealed) rooms only, with
 // ropes between them. Hidden rooms do not reach the table at all. DM notes never leave the DM.
 function viewFor(d, viewer) {
   if (!d) return null;
-  if (viewer.role === 'dm') return { ...d, canExit: canExit(d) };
-  if (!d.on) return { on: false, here: null, nodes: [] };
+  if (viewer.role === 'dm') return { ...d, canExit: canExit(d), atEnd: atEnd(d) };
+  if (!d.on) return { on: false, here: null, nodes: [], image: d.image || '' };
   const open = new Set(d.nodes.filter((n) => n.revealed).map((n) => n.id));
   const nodes = d.nodes.filter((n) => open.has(n.id)).map((n) => ({ id: n.id, name: n.name, kind: n.kind, pill: n.pill, parents: n.parents.filter((p) => open.has(p)), revealed: true, visited: n.visited }));
-  return { on: true, here: open.has(d.here) ? d.here : null, nodes, canExit: canExit(d) };
+  return { on: true, here: open.has(d.here) ? d.here : null, nodes, canExit: canExit(d), atEnd: atEnd(d), image: d.image || '' };
 }
 
-module.exports = { KINDS, MAX_NODES, fresh, blank, example, byId, levels, save, link, remove, reveal, moveTo, viewFor, isAncestor, starts, ends, canExit, enter, leave };
+module.exports = { KINDS, MAX_NODES, fresh, blank, example, byId, levels, save, link, remove, reveal, moveTo, viewFor, isAncestor, starts, ends, canExit, enter, leave, gate, setReady, allReady, atEnd };
