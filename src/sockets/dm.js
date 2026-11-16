@@ -53,16 +53,23 @@ module.exports = function dmSockets(socket) {
 
   function setMode(mode, npcId) {
     if (!['exploration', 'combat', 'social'].includes(mode)) return;
-    const was = state.mode;
+    // Pressing the mode you are already in does nothing (no log line, no re-entry), except picking who speaks.
+    if (mode === state.mode) { if (mode === 'social' && npcId) cast.pick(state.social, npcId); return; }
     state.mode = mode;
     world.applyMood(mode);
     if (mode !== 'exploration') state.worldMap.onTv = false; // the world map belongs to exploration: combat and social take the TV
+    // Combat prep (Mike, Nov 15): entering combat puts a "Combat · Get ready" filter on the TV while the DM sets
+    // the field. It lifts when the DM's 3-second initiative hold rolls initiative (dm:combat:start).
+    state.combatPrep = mode === 'combat' && !state.combat.active ? { holding: false } : null;
     state.check = null;
-    log('system', `— ${mode.toUpperCase()} —`);
+    // Quick switching keeps one mode line: a mode line still at the end of the log is replaced, not stacked.
+    const last = state.log[state.log.length - 1];
+    if (last?.modeLine) state.log.pop();
+    log('system', `— ${mode.toUpperCase()} —`, { modeLine: true });
     void bulbs.sync(state);
     // Entering social mode opens the DM's NPC list; the conversation (and the phones' pop-up) starts
     // when the DM holds Start conversation (dm:convo:start). Leaving social closes it.
-    if (mode !== 'social' || was !== 'social') cast.close(state.social);
+    cast.close(state.social); // a real switch (same-mode presses return above)
     if (mode === 'social' && npcId) cast.pick(state.social, npcId);
   }
   dm('dm:mode', ({ mode, npcId }) => setMode(mode, npcId));
@@ -174,7 +181,7 @@ module.exports = function dmSockets(socket) {
   // ----- Phase 7: world and content -----
   dm('dm:relation', ({ npc, charId, stance }) => world.relate(npc, charId, stance));
   dm('dm:phrase', (f) => { const p = world.phrase(f); if (p) state.handouts.push(p); });
-  dm('dm:phrase:reveal', ({ id, on }) => { const p = state.handouts.find((h) => h.id === id && h.kind === 'phrase'); if (p) p.revealed = !!on; });
+  dm('dm:phrase:reveal', ({ id, on }) => { const p = state.handouts.find((h) => h.id === id && h.kind === 'phrase'); if (p) { p.revealed = !!on; if (on) p.read = {}; } }); // a reveal pops the phrase up again, now readable
   dm('dm:mood', ({ mode, track }) => { if (['exploration', 'combat', 'social'].includes(mode)) world.setMood(mode, track); });
   dm('dm:light', ({ light }) => { world.setLight(light); void bulbs.sync(state); });
   dm('dm:template', ({ key }) => { world.applyTemplate(key); void bulbs.sync(state); });
@@ -387,7 +394,9 @@ module.exports = function dmSockets(socket) {
     const s0 = seed === undefined || seed === '' ? undefined : Number(seed) >>> 0;
     list.forEach((e, i) => { e.accent = randomizer.accent(s0 === undefined ? undefined : (s0 + i) >>> 0); });
   });
-  dm('dm:combat:start', () => game.startCombat());
+  dm('dm:combat:start', () => { state.combatPrep = null; game.startCombat(); });
+  // The DM is holding Roll initiative: the TV filter shakes until the hold completes or is let go early.
+  dm('dm:combat:prep', ({ holding }) => { if (state.combatPrep) state.combatPrep.holding = !!holding; });
   dm('dm:combat:end', () => {
     Object.assign(state.combat, { active: false, order: [], turn: 0, round: 0, acted: {} });
     log('combat', 'Combat ends.');
@@ -582,5 +591,17 @@ module.exports = function dmSockets(socket) {
     Object.assign(state.combat, { active: false, round: 0, turn: 0, order: [], enemies: [] });
     for (const p of Object.values(state.players)) p.hp = p.maxHp;
     log('system', 'Session reset.');
+  });
+  // End of session (Mike, Nov 16): a 1 s hold on the DM page. The TV shows "End of Session", phones
+  // show "Thanks for playing.", and the DM gets a save and log dialog. Resume clears it.
+  dm('dm:session:end', () => {
+    if (state.ended) return;
+    state.ended = { n: nextId(), at: Date.now(), session: state.intro?.session || null };
+    log('system', '— END OF SESSION —');
+  });
+  dm('dm:session:resume', () => {
+    if (!state.ended) return;
+    state.ended = null;
+    log('system', 'Session resumed.');
   });
 };
