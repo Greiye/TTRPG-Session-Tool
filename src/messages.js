@@ -11,7 +11,7 @@ function handout(f, id, roster) {
   const to = f.to === 'all' || !Array.isArray(f.to) ? 'all' : f.to.filter((x) => roster[x]);
   return {
     id, kind: 'handout', title: str(f.title, 80) || 'Handout', text: str(f.text, 1200), image: f.image ? str(f.image, 200) : null,
-    vis: { to: to === 'all' ? ['*'] : to, screen: false }, at: Date.now(),
+    vis: { to: to === 'all' ? ['*'] : to, screen: false }, read: {}, at: Date.now(),
   };
 }
 
@@ -33,4 +33,24 @@ function tally(v) {
   return counts;
 }
 
-module.exports = { VOTE_OPTIONS, handout, spoil, vote, tally };
+// Handouts and phrases pop up on phones (Mike, Nov 16) and stay until the player presses Continue.
+// `read` maps charId -> time; a phone only learns whether it has read the item itself.
+const POPS = new Set(['handout', 'phrase']);
+const isPop = (h) => POPS.has(h.kind || 'handout');
+function markRead(h, charId) {
+  if (!h || !isPop(h)) return false;
+  h.read = h.read || {};
+  if (h.read[charId]) return false;
+  h.read[charId] = Date.now();
+  return true;
+}
+// Phone view of the read map: just `seen` for this character.
+function readFor(h, viewer) {
+  if (viewer.role === 'dm' || !isPop(h)) return h;
+  const { read, ...rest } = h;
+  return { ...rest, seen: viewer.role === 'player' && !!read?.[viewer.charId] };
+}
+// Who has voted (DM only). Phones never see who picked what.
+const voters = (v) => Object.keys(v.votes || {});
+
+module.exports = { VOTE_OPTIONS, handout, spoil, vote, tally, isPop, markRead, readFor, voters };

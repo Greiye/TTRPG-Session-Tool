@@ -5,6 +5,11 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- Phone pop-ups from the DM (Mike, Nov 16), one at a time and each staying up until answered:
+  - **Messages**: a handout or a phrase from the Messages tab pops up on the phone with a **Continue** button at the bottom instead of landing in the Inbox. The DM's list shows "read 1/4" until everyone has pressed Continue (`player:handout:read`). Revealing a phrase pops it up again, now readable.
+  - **Party vote** has its own card in the Messages tab with a bar per option (bars slide as votes come in) and who has not voted yet. Starting a vote pops it up on every phone; after voting the phone shows the pick (tap another to change) and Continue.
+  - **Roll call** is a phone pop-up: roll (or roll with inspiration), then the total, pass or fail and Continue.
+- Roll call: the **Roll type** drop-down renames the second drop-down (Skill, Saving throw, Ability) and changes the outcome text boxes at the bottom of the card to fit the type and the chosen skill or ability.
 - **Battle Master** and **Social Master** co-DM roles (Mike, Nov 16), each with its own private QR on the DM page's Co-DM card (`BATTLE_KEY`, `SOCIAL_KEY`). The Battle Master runs combat, the battle map and the DM's creatures; the Social Master runs NPC dialogue. Both open the DM page showing only their cards, and the server allows only the events listed per role in `src/roles.js`. A helper key now wins over localhost, so a helper link opened on the laptop gets the helper view.
 
 ### Fixed

@@ -152,7 +152,7 @@ module.exports = function dmSockets(socket) {
   // ----- Phase 7: world and content -----
   dm('dm:relation', ({ npc, charId, stance }) => world.relate(npc, charId, stance));
   dm('dm:phrase', (f) => { const p = world.phrase(f); if (p) state.handouts.push(p); });
-  dm('dm:phrase:reveal', ({ id, on }) => { const p = state.handouts.find((h) => h.id === id && h.kind === 'phrase'); if (p) p.revealed = !!on; });
+  dm('dm:phrase:reveal', ({ id, on }) => { const p = state.handouts.find((h) => h.id === id && h.kind === 'phrase'); if (p) { p.revealed = !!on; if (on) p.read = {}; } }); // a reveal pops the phrase up again, now readable
   dm('dm:mood', ({ mode, track }) => { if (['exploration', 'combat', 'social'].includes(mode)) world.setMood(mode, track); });
   dm('dm:light', ({ light }) => { world.setLight(light); void bulbs.sync(state); });
   dm('dm:template', ({ key }) => { world.applyTemplate(key); void bulbs.sync(state); });
