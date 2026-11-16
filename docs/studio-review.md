@@ -16,8 +16,8 @@ quick changes merged. The game log is capped at 80 lines in the live state, so u
 | --- | --- | --- | --- |
 | High | Can stop or spoil a game night, or blocks Mike's own rules | 6 | 4 |
 | Medium | Friction the table will notice, or a risk worth closing soon | 18 | 4 |
-| Low | Polish or nice to have | 16 | 0 |
-| **Total** | | **40** | **8** |
+| Low | Polish or nice to have | 16 | 1 |
+| **Total** | | **40** | **9** |
 
 What is already strong, and should be kept as it is: one shared state with per-viewer filtering
 (`src/visibility.js`), guarded socket handlers, debounced atomic saves that retry, startup backups, save
@@ -52,7 +52,7 @@ Legend: ✅ fixed in this review · 📋 already in `docs/backlog.md` · 🆕 ne
 | Q1 | High | ✅ CI ran only `npm test`. The 11 browser tests (`npm run test:ui`: DM, TV and phone pages, pop-ups, menus, animations) never ran on pull requests, so a broken page could merge with green CI. | New `ui` job in `.github/workflows/ci.yml` that installs headless Chromium and runs `npm run test:ui`. |
 | Q2 | Medium | ✅ Testing the TV and DM screens alone needs several real phones. | `npm run bots -- 4`: playtest bots that join like phones and answer roll calls, votes, world map votes, message pop-ups, the dungeon gate, social lines and their own combat turns. Named `[Bot] …`. |
 | Q3 | Medium | 🆕 `npm test` is 62 scripts chained with `&&`: the first failure hides every later result, and a full run takes about 2 minutes. | A tiny runner (`test/run.js`) that runs every script, prints a summary and fails at the end; optionally in parallel. |
-| Q4 | Low | 🆕 `test:ui` prints clipped-text warnings (the Creature Designer token field at 1280 and 1500 px) but does not fail. | Shorten the placeholder text or widen the field, then make clipping a failure for new pages. |
+| Q4 | Low | ✅ `test:ui` failed on `main`: the Creature Designer's Folder and Token fields cut off their text at 1280 and 1500 px (`test/dm-fields.js`). Nobody saw it because CI did not run browser tests (Q1). | Folder field gets more room; the token hint is shorter, with the full wording on hover. |
 | Q5 | Low | 🆕 No way to report a bug from the table; it gets forgotten by the next day. | A DM **Bug note** (Misc) that saves the note with the last 20 log lines and the mode to `data/bugs/`. |
 
 ## 4. VTT tools (battle map and scene)
