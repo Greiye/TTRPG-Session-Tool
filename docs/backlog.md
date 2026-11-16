@@ -229,3 +229,14 @@ Mike is building his own game system, a fusion of Daggerheart, 5e and homebrew, 
 - [ ] Spell area templates: cones, lines, circles and cubes that snap to the grid and highlight every token inside. [Battle map, DM Screen, phones, TV; sizes are free numbers so any system's spells fit]
 - [ ] Token status icons: conditions show as icons on tokens, tracked automatically, with a duration countdown. [Battle map, TV, phones; conditions in `src/tracker.js` and round countdowns in `src/timers.js` already exist, condition names should be editable per system]
 - [ ] Ambient audio and music per scene: each scene has looping tracks and sound cues that start with it. [TV audio; `public/audio.js` and the soundboard already crossfade music and blend ambience loops, this ties them to a scene]
+
+## Mike's notes, 2026-11-16 (ninth list)
+
+System-agnostic like the eighth list: Mike's own system fuses Daggerheart, 5e and homebrew. Bracketed notes say which screen it is on and what already exists.
+
+### PR Y: Light sources, rest resets, DM undo and autosave snapshots
+`src/vision.js`, `src/iso.js`, `src/rests.js`, `src/camp.js`, `src/rules/`, `src/living.js`, `src/store.js`, `src/saves.js`, `src/state.js`, `src/sockets/dm.js`, `public/js/dm/`, `public/js/iso3d.js`
+- [ ] Light sources and vision radius: torches and spells light areas, and each token sees only in its own range. [Battle map, TV; `src/vision.js` already has per-token light (`LIGHTS`: none, torch, lantern, darkvision) set from the DM with `dm:token:light`, with wall and height ray checks. This adds lights placed on the map or carried by items and spells, editable radius values instead of the fixed list, and dim versus bright light. Pairs with PR X's per-token line of sight]
+- [ ] Rest resets: short and long rests restore the right resources automatically, with a DM override. [Camp, DM Screen, phones; `src/rests.js` already resets class feature uses and hit dice, and `src/camp.js` applies the voted rest with the DM's short/long/none override. Today the rules are 5e class tables; this moves them to per-system rest rules (`src/rules/`) so any resource, such as Daggerheart Hope or stress or homebrew pools, can say which rest refills it]
+- [ ] Undo for DM actions: one-tap undo for the last few automated changes, so the DM can override any result. [DM Screen; `src/living.js` already records each living-world change with an undo (`dm:living:undo`). This extends that history to HP, conditions, rolls, rests, travel and clocks, with an undo button for the last few changes]
+- [ ] Autosave snapshots: save the session every few minutes, so a crashed laptop loses little. [DM Screen, Saves; `src/store.js` already writes `data/campaign.json` after every change, and `src/saves.js` keeps named save points plus a rolling backup at each start. This adds timed rolling snapshots (for example every 5 minutes, last few kept) listed in Saves so the DM can roll back to one after a crash or a bad write]
