@@ -133,6 +133,7 @@ function viewState(base, viewer) {
   out.puzzle = require('./puzzle').viewFor(base.puzzle, viewer); // teamwork puzzle: clues per phone, answer once solved (src/puzzle.js)
   out.dungeon = require('./dungeon').viewFor(base.dungeon, viewer); // dungeon nodes: unrevealed rooms show as fog (src/dungeon.js)
   if (out.dungeon) out.dungeon.gate = require('./dungeon').gate(base.dungeon, base.worldMap, base.players); // the Enter Dungeon window (PR R)
+  if (base.town) out.town = require('./town').viewFor(base.town, base.worldMap, viewer, base.players); // town map and visit (PR V)
   out.web = require('./web').viewFor(base.web, viewer, base.factions || []); // relations web: TV sees revealed parts only (src/web.js)
   if (base.scene) out.scene = { ...sceneFor(base.scene, viewer), secrets: require('./perception').view(base.scene, viewer, require('./rules').get(base.system), base.players) };
   // The check on a phone or the TV: no DC when hidden, no outcome text, and only on the targeted phones.

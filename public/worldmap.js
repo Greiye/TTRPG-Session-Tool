@@ -93,7 +93,9 @@
       ? `<div class="wm-token ${t ? 'moving' : ''}" ${t && to ? `data-travel="${t.fromPt.x},${t.fromPt.y},${to.x},${to.y},${t.startAt},${t.endAt}"` : ''} style="left:${pct(p.x)};top:${pct(p.y)}" title="The party"><span>⚑</span></div>`
       : '';
     // The party's place is marked ("You are here"); a dungeon entrance carries a gate icon.
-    const nodes = wm.nodes.map((n) => `<div class="wm-node ${n.id === wm.here ? 'here' : ''} ${n.dungeon && !n.fogged ? 'dungeon' : ''} ${n.id === opts.selected ? 'sel' : ''} ${n.id === opts.from ? 'from' : ''} ${n.revealed ? '' : 'unrevealed'} ${n.fogged ? 'fogged' : ''} ${opts.dm && wm.fog && !n.seen ? 'unseen' : ''} ${t && n.id === (t.dest || t.to) ? 'dest' : ''}" data-node="${esc(n.id)}" style="left:${pct(n.x)};top:${pct(n.y)}"><i></i><span>${n.dungeon && !n.fogged ? '🏰 ' : ''}${esc(n.name)}${opts.dm && !n.revealed ? ' <small>(hidden)</small>' : ''}</span>${n.id === wm.here && !t ? '<b class="wm-here">You are here</b>' : ''}</div>`).join('');
+    // A town with a town map lists what it has when the pointer is over it (PR V, public/town.js).
+    const has = (n) => (n.settlement && !n.fogged && window.Town ? Town.contents(s.town?.contents?.[n.id]) : '');
+    const nodes = wm.nodes.map((n) => `<div class="wm-node ${n.id === wm.here ? 'here' : ''} ${n.dungeon && !n.fogged ? 'dungeon' : ''} ${n.settlement && !n.fogged ? 'settlement' : ''} ${n.y > 0.62 ? 'low' : ''} ${n.id === opts.selected ? 'sel' : ''} ${n.id === opts.from ? 'from' : ''} ${n.revealed ? '' : 'unrevealed'} ${n.fogged ? 'fogged' : ''} ${opts.dm && wm.fog && !n.seen ? 'unseen' : ''} ${t && n.id === (t.dest || t.to) ? 'dest' : ''}" data-node="${esc(n.id)}" style="left:${pct(n.x)};top:${pct(n.y)}"><i></i><span>${n.dungeon && !n.fogged ? '🏰 ' : ''}${n.settlement && !n.fogged ? '🏘 ' : ''}${esc(n.name)}${opts.dm && !n.revealed ? ' <small>(hidden)</small>' : ''}</span>${n.id === wm.here && !t ? '<b class="wm-here">You are here</b>' : ''}${has(n)}</div>`).join('');
     const pic = wm.image ? `<img src="${esc(wm.image)}" alt="">` : '<div class="wm-blank"></div>';
     return `<div class="wm-board ${opts.tv ? 'tv' : ''} ${opts.dm ? 'dm' : ''}"><div class="wm-pic">${pic}<div class="wm-layer">${roadsSvg(wm, opts)}${fogSvg(wm, p, opts)}${nodes}${token}</div></div></div>`;
   }
@@ -142,8 +144,9 @@
     root.innerHTML = `<div class="wm-tv${reveal}">
       <header class="wm-head"><div class="wm-title">🧭 ${esc(title)}</div>${wm.vote ? `<div class="wm-vote-line">${voteLine(wm)}</div>` : ''}</header>
       <main class="wm-main">${board(s, { tv: true })}</main>
-      ${showCard && !dungeonOn(s) ? `<aside class="wm-card-tv" data-card="${esc(latest.id)}"><p>${esc(latest.text)}</p>${latest.lore ? `<p class="wm-lore"><b>Lore</b> ${esc(latest.lore)}</p>` : ''}</aside>` : ''}
+      ${showCard && !dungeonOn(s) && !s.town?.on ? `<aside class="wm-card-tv" data-card="${esc(latest.id)}"><p>${esc(latest.text)}</p>${latest.lore ? `<p class="wm-lore"><b>Lore</b> ${esc(latest.lore)}</p>` : ''}</aside>` : ''}
       ${dungeonPop(s, here, opts)}
+      ${window.Town && !dungeonOn(s) ? Town.pop(s, opts) : ''}
     </div>`;
     if (reveal) root.querySelectorAll('.wm-node').forEach((el, i) => el.style.setProperty('--i', i));
     if (showCard && window.Anim) Anim.once(root.querySelector('.wm-card-tv'), `wm:${latest.id}`, 'unfold');
@@ -153,6 +156,12 @@
       window.Dungeon?.hydrate(pop, s.dungeon);
     }
     root.dataset.dgPop = pop ? '1' : '';
+    const tp = root.querySelector('.tn-pop');
+    if (tp) {
+      if (root.dataset.tnPop !== '1' && window.Anim) Anim.play(tp.firstElementChild, 'unfold', null);
+      Town.hydrate(tp, { key: opts.dm ? 'dm-pop' : 'tv' });
+    }
+    root.dataset.tnPop = tp ? '1' : '';
   }
 
   // The dungeon pop-up (Mike, Nov 15): while the party stands on a dungeon entrance and the DM has opened it,
@@ -179,8 +188,8 @@
   }, 100);
 
     // The party trail (src/trail.js): newest first. opts.max limits the rows.
-  const TRAIL_ICON = { world: '🧭', enter: '⬇', leave: '⬆', room: '⚑' };
-  const TRAIL_VERB = { world: 'At', enter: 'Entered', leave: 'Left', room: 'In' };
+  const TRAIL_ICON = { world: '🧭', enter: '⬇', leave: '⬆', room: '⚑', town: '🏘' };
+  const TRAIL_VERB = { world: 'At', enter: 'Entered', leave: 'Left', room: 'In', town: 'Visited' };
   function trail(list, opts = {}) {
     const rows = (list || []).slice(-(opts.max || 30)).reverse();
     if (!rows.length) return '<p class="note">No places yet.</p>';

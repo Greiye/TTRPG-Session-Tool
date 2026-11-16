@@ -55,7 +55,8 @@ const clockLabel = (story) => `Day ${story.day} · ${SEG_NAMES[segOf(story)]}`;
 // moved counts clock changes, so the TV shows its time card and plays the segment sound once per change.
 const storyView = (story) => {
   const seg = segOf(story);
-  return { day: story.day, seg, segment: SEGMENTS[seg], name: SEG_NAMES[seg], label: clockLabel(story), light: SEG_LIGHT[seg], moved: story.moved || 0 };
+  const from = story.from && Number.isInteger(story.from.seg) ? { day: story.from.day, seg: story.from.seg, segment: SEGMENTS[story.from.seg], name: SEG_NAMES[story.from.seg] } : null;
+  return { day: story.day, seg, segment: SEGMENTS[seg], name: SEG_NAMES[seg], label: clockLabel(story), light: SEG_LIGHT[seg], moved: story.moved || 0, from };
 };
 
 // Returns true only when the day or segment really changed.
@@ -63,6 +64,8 @@ function touch(story, before) {
   delete story.hour;
   if (before === `${story.day}:${story.seg}`) return false;
   story.moved = (story.moved || 0) + 1;
+  const [d, sg] = before.split(':').map(Number);
+  story.from = { day: d, seg: sg }; // where the TV dial starts its turn (PR V)
   return true;
 }
 function setTime(story, day, seg) {

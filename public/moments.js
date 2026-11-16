@@ -111,11 +111,27 @@
     el.innerHTML = list.slice(-3).map((q) => `<blockquote>“${esc(q.text)}”${q.who ? `<cite>— ${esc(q.who)}</cite>` : ''}</blockquote>`).join('');
   }
 
-  // Day and time card (Mike, Nov 14): on the left, only for a few seconds after the story clock moves.
-  // The server plays the segment's sound with it (crickets at night, a rooster at dusk).
+  // Time-of-day dial (Mike, Nov 14; animation PR V, Nov 16). Each time the story clock moves, the dial slides in
+  // from the upper left showing the old segment, turns to the new one (the server plays the segment's sound as it
+  // turns, src/clock.js), lingers for 3 seconds, then slides back out to the upper left.
   const TOD_ICON = { dawn: '🌅', day: '☀️', noon: '🌞', dusk: '🌇', night: '🌙' };
-  const CLOCK_MS = 4500;
+  const TOD = ['dawn', 'day', 'noon', 'dusk', 'night'];
+  const TOD_NAME = ['Dawn', 'Day', 'Noon', 'Dusk', 'Night'];
+  const CLOCK_IN_MS = 700; // slide in (src/clock.js times the sound to this)
+  const CLOCK_TURN_MS = 1200; // the dial turns
+  const CLOCK_HOLD_MS = 3000; // lingers (Mike: 3 seconds)
+  const CLOCK_OUT_MS = 700; // slides back
+  const OFF = 'translate(-140%, -140%) rotate(-14deg) scale(.6)';
+  const wedge = (i) => {
+    const pt = (deg, r) => { const a = (deg * Math.PI) / 180; return `${(r * Math.sin(a)).toFixed(2)} ${(-r * Math.cos(a)).toFixed(2)}`; };
+    const a = i * 72;
+    return `<path class="w-${TOD[i]}" d="M0 0 L${pt(a - 36, 46)} A46 46 0 0 1 ${pt(a + 36, 46)} Z"/><text x="${(30 * Math.sin((a * Math.PI) / 180)).toFixed(2)}" y="${(-30 * Math.cos((a * Math.PI) / 180) + 5).toFixed(2)}">${TOD_ICON[TOD[i]]}</text>`;
+  };
+  const dialSvg = `<svg viewBox="-52 -58 104 110" aria-hidden="true"><g class="mo-disc">${TOD.map((_, i) => wedge(i)).join('')}<circle r="8" class="hub"/></g><path class="ptr" d="M0 -46 L-6 -56 L6 -56 Z"/></svg>`;
+  // The disc turns so the current segment sits under the pointer at the top; whole days add full turns.
+  const angle = (day, seg) => -(((day - 1) * 5 + seg) * 72);
   let clockMoved;
+  let clockRun = 0;
   function clock(story) {
     const el = L.querySelector('.mo-clock');
     if (!story) { el.hidden = true; return; }
@@ -123,12 +139,40 @@
     if (story.moved === clockMoved) return;
     clockMoved = story.moved;
     if (first) return; // a TV that just loaded does not replay the last move
-    el.className = `mo-clock seg-${story.segment}`;
-    el.innerHTML = `<i>${TOD_ICON[story.segment] || '🕰'}</i><span><small>Day ${esc(story.day)}</small><b>${esc(story.name)}</b></span>`;
+    const run = ++clockRun;
+    const from = story.from || { day: story.day, seg: story.seg };
+    const label = (day, seg) => `<small>Day ${esc(day)}</small><b>${esc(TOD_NAME[seg] || '')}</b>`;
+    el.className = `mo-clock seg-${TOD[from.seg] || story.segment}`;
+    el.innerHTML = `<div class="mo-dial">${dialSvg}</div><span class="mo-clock-label">${label(from.day, from.seg)}</span>`;
     el.hidden = false;
-    Anim.play(el, 'slideIn', null);
+    const disc = el.querySelector('.mo-disc');
+    const a0 = angle(from.day, from.seg);
+    let a1 = angle(story.day, story.seg);
+    if (a1 > a0) a1 = a0 - (((a0 - a1) % 360) + 360) % 360; // set back by the DM: still turn forward to it visually
+    disc.style.transform = `rotate(${a0}deg)`;
     clearTimeout(timers.clock);
-    timers.clock = setTimeout(() => fadeOut(el, 'clock'), CLOCK_MS);
+    const reduced = window.Anim?.reduced?.() || !el.animate;
+    const later = (fn, ms) => { timers.clock = setTimeout(() => { if (run === clockRun) fn(); }, ms); };
+    const turn = () => {
+      const lab = el.querySelector('.mo-clock-label');
+      if (reduced) disc.style.transform = `rotate(${a1}deg)`;
+      else disc.animate([{ transform: `rotate(${a0}deg)` }, { transform: `rotate(${a1}deg)` }], { duration: CLOCK_TURN_MS, easing: 'cubic-bezier(.5,0,.2,1.15)', fill: 'forwards' });
+      setTimeout(() => {
+        if (run !== clockRun) return;
+        el.className = `mo-clock seg-${story.segment}`;
+        lab.innerHTML = label(story.day, story.seg);
+        if (!reduced) lab.animate([{ transform: 'rotateX(90deg)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 400, easing: 'ease-out' });
+      }, reduced ? 0 : CLOCK_TURN_MS / 2);
+      later(out, (reduced ? 0 : CLOCK_TURN_MS) + CLOCK_HOLD_MS);
+    };
+    const out = () => {
+      if (reduced) { el.hidden = true; return; }
+      const a = el.animate([{ transform: 'none', opacity: 1 }, { transform: OFF, opacity: 0 }], { duration: CLOCK_OUT_MS, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' });
+      a.finished.then(() => { if (run === clockRun) el.hidden = true; a.cancel(); }, () => {});
+    };
+    if (reduced) { turn(); return; }
+    el.animate([{ transform: OFF, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: CLOCK_IN_MS, easing: 'cubic-bezier(.2,.9,.3,1.1)' });
+    later(turn, CLOCK_IN_MS + 100);
   }
 
   // Story clock lights the TV: the time of day replaces the scene's light setting.

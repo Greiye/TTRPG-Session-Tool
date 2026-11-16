@@ -19,8 +19,11 @@ const onArrive = (node) => {
   if (node) trail.add(state, 'world', node.name);
 };
 // While the dungeon pop-up is open the party is underground: no travel until it leaves from the start or end.
-const inDungeon = () => (state.dungeon?.on ? { error: 'The party is in the dungeon. Leave it from its entrance or end first.' } : null);
-const ctx = (extra = {}) => ({ now: Date.now(), seated: Object.keys(state.players).length, log, nextId, random: Math.random, legFactor: legFactor(), onArrive, ...extra });
+const inDungeon = () => (state.dungeon?.on ? { error: 'The party is in the dungeon. Leave it from its entrance or end first.' }
+  : state.town?.on ? { error: 'The party is in town. Leave it from the Settlement entrance first.' } : null); // town visits (PR V)
+// Each road leg uses up story clock segments, one per leg of the road's length (PR V, src/clock.js).
+const onLeg = (legs, to) => require('../clock').spend(state, legs, to ? `on the road to ${to.name}` : 'on the road', log);
+const ctx = (extra = {}) => ({ now: Date.now(), seated: Object.keys(state.players).length, log, nextId, random: Math.random, legFactor: legFactor(), onArrive, onLeg, ...extra });
 
 // A session opens on the world map: exploration mode, map on the TV. Runs when the server starts (game night)
 // and on the DM's Next session. Skipped while the DM has switched it off or the map is still empty.
@@ -54,7 +57,7 @@ module.exports = function worldSockets(socket) {
     const n = wm.saveNode(W(), f, ctx());
     return n ? { id: n.id } : { error: 'Too many places, or unknown place.' };
   });
-  dm('dm:worldmap:node:remove', ({ id }) => wm.removeNode(W(), id));
+  dm('dm:worldmap:node:remove', ({ id }) => { if (state.town?.on && state.town.at === id) return { error: 'The party is in that town.' }; delete state.town?.maps?.[id]; return wm.removeNode(W(), id); });
   dm('dm:worldmap:reveal', ({ id, on }) => wm.reveal(W(), id, on));
   dm('dm:worldmap:vote:start', ({ candidates }) => inDungeon() || wm.startVote(W(), candidates, ctx()));
   dm('dm:worldmap:vote:close', () => wm.closeVote(W(), ctx()));
@@ -65,12 +68,14 @@ module.exports = function worldSockets(socket) {
   dm('dm:worldmap:clear', () => {
     if (state.dungeon.on) return inDungeon();
     Object.assign(W(), { nodes: [], roads: [], here: null, travel: null, vote: null, fog: false });
+    state.town = require('../town').fresh();
     return { ok: true };
   });
   // Load the example world: a village to start in, fog, and a dungeon entrance.
   dm('dm:worldmap:example', () => {
     if (state.dungeon.on) return inDungeon();
-    state.worldMap = { ...wm.example(), openOnSession: W().openOnSession, onTv: W().onTv, legSeconds: W().legSeconds, cardSeconds: W().cardSeconds, deck: W().deck, table: W().table };
+    state.worldMap = { ...wm.example(), openOnSession: W().openOnSession, onTv: W().onTv, legSeconds: W().legSeconds, cardSeconds: W().cardSeconds, timeOnTravel: W().timeOnTravel !== false, deck: W().deck, table: W().table };
+    state.town = require('../town').withStarter(); // Millbrook's town map: the five starting places (PR V)
     trail.add(state, 'world', wm.example().nodes[0].name);
     return { ok: true };
   });

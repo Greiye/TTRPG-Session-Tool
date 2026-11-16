@@ -15,6 +15,7 @@ mount(`<div class="card wm-page-card">
     <label class="chk" title="Shows on the TV in any mode. Changing mode gives the TV back to the scene."><input type="checkbox" id="wmTv"> Show on TV</label>
     <label class="chk" title="When the server starts and on Next session: exploration mode with the world map on the TV"><input type="checkbox" id="wmOpen"> Open each session here</label>
     <label class="note tight">Leg (s) <input id="wmLeg" type="number" min="5" max="1800" style="width:72px"></label>
+    <label class="chk" title="Each road leg moves the day clock on one segment; a two-leg road takes two (PR V)"><input type="checkbox" id="wmTime"> Travel uses time</label>
   </div>
   <div class="row wrap">
     <label class="chk"><input type="checkbox" id="wmFog"> Fog of war</label>
@@ -24,7 +25,7 @@ mount(`<div class="card wm-page-card">
   </div>
   <div class="row wrap wm-tools">
     <span class="note">Drag onto the map:</span>
-    <span class="wm-chip" data-wm-new="town" title="Drag onto the map to add a town">🏘 Town</span>
+    <span class="wm-chip" data-wm-new="town" title="Drag onto the map to add a town with its own town map">🏘 Town</span>
     <span class="wm-chip" data-wm-new="site" title="Drag onto the map to add a site">📍 Site</span>
     <span class="wm-chip" data-wm-new="dungeon" title="Drag onto the map to add a dungeon entrance">🏰 Dungeon</span>
     <button class="btn small" id="wmRoad">+ Road</button>
@@ -109,6 +110,7 @@ function editorHtml(S, sel) {
     <div class="row wrap">
       <label class="chk"><input type="checkbox" id="wmRev" ${sel.revealed ? 'checked' : ''}> Info revealed to the table</label>
       <label class="chk" title="Standing here opens the dungeon pop-up for everyone"><input type="checkbox" id="wmDg" ${sel.dungeon ? 'checked' : ''}> 🏰 Dungeon entrance</label>
+      <label class="chk" title="Standing here opens the Enter Town window; the town map is edited below"><input type="checkbox" id="wmSettle" ${sel.settlement ? 'checked' : ''}> 🏘 Town map</label>
       ${wm.fog ? `<label class="chk"><input type="checkbox" id="wmSeen" ${sel.seen ? 'checked' : ''}> On the map (out of the fog)</label>` : ''}
       <button class="btn small primary" id="wmSave">Save place</button>
       <button class="btn small" id="wmGo" ${wm.here === sel.id && !wm.travel ? 'disabled' : ''}>Send the party here now</button>
@@ -155,6 +157,7 @@ function draw(S) {
   $('#wmTv').checked = !!wm.onTv;
   $('#wmOpen').checked = wm.openOnSession !== false;
   $('#wmFog').checked = !!wm.fog;
+  $('#wmTime').checked = wm.timeOnTravel !== false;
   hint();
 
   // Redraw the board only when it changed, and never under a press: replacing the places between pointerdown
@@ -162,6 +165,7 @@ function draw(S) {
   if (!drag && !pressing) once('#wmBoard', null, WM().board(S, { dm: true, selected: selId, selRoad, from: roadFrom }));
   const sel = wm.nodes.find((n) => n.id === selId);
   if (!sel) selId = null;
+  if (window.WmSel !== selId) { window.WmSel = selId; document.dispatchEvent(new CustomEvent('wm:sel')); } // the town editor follows (public/js/dm/town.js)
   once('#wmEdit', JSON.stringify([sel, wm.here, !!wm.travel, wm.fog, wm.roads, selRoad, (S.living?.towns || []).map((t) => t.id + t.name)]), sel ? editorHtml(S, sel) : '');
   once('#wmTrail', JSON.stringify(S.trail || []), WM().trail(S.trail, { max: 40 }));
   once('#wmDungeon', JSON.stringify([wm.here, !!wm.travel, wm.nodes.map((n) => n.id + n.name + !!n.dungeon), !!S.dungeon?.on, !!S.dungeon?.canExit]), dungeonHtml(S));
@@ -235,7 +239,7 @@ $('#wmBoard').addEventListener('pointercancel', dragEnd);
 
 // Palette: drag a Town, Site or Dungeon chip onto the picture to add a place there. A tap on a chip arms it
 // instead, and the next tap on the picture places it (for touch screens where dragging is awkward).
-const NEW_PLACE = { town: { name: 'New town' }, site: { name: 'New site' }, dungeon: { name: 'New dungeon', dungeon: true } };
+const NEW_PLACE = { town: { name: 'New town', settlement: true }, site: { name: 'New site' }, dungeon: { name: 'New dungeon', dungeon: true } };
 let newKind = null;
 let ghost = null;
 async function addPlace(kind, e, pic) {
@@ -313,6 +317,7 @@ $('#wmExample').onclick = async () => {
 };
 $('#wmRoad').onclick = () => { roading = !roading; placing = false; newKind = null; chips(); roadFrom = null; if (last) draw(last); };
 $('#wmFog').onchange = (e) => emit('dm:worldmap:fog', { on: e.target.checked });
+$('#wmTime').onchange = (e) => emit('dm:worldmap:timing', { timeOnTravel: e.target.checked });
 $('#wmFogAll').onclick = () => emit('dm:worldmap:fog:all', { on: true });
 $('#wmFogNone').onclick = () => emit('dm:worldmap:fog:all', { on: false });
 $('#wmTv').onchange = (e) => emit('dm:worldmap:show', { on: e.target.checked });
@@ -332,7 +337,7 @@ $('#wmFile').onchange = async (e) => {
 $('#wmEdit').addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b || !selId) return;
-  if (b.id === 'wmSave') emit('dm:worldmap:node', { id: selId, name: $('#wmName').value.trim() || 'Unnamed place', info: $('#wmInfo').value, revealed: $('#wmRev').checked, town: $('#wmTown').value, dungeon: $('#wmDg').checked, ...($('#wmSeen') ? { seen: $('#wmSeen').checked } : {}) });
+  if (b.id === 'wmSave') emit('dm:worldmap:node', { id: selId, name: $('#wmName').value.trim() || 'Unnamed place', info: $('#wmInfo').value, revealed: $('#wmRev').checked, town: $('#wmTown').value, dungeon: $('#wmDg').checked, settlement: $('#wmSettle').checked, ...($('#wmSeen') ? { seen: $('#wmSeen').checked } : {}) });
   else if (b.dataset.wmRrm) { emit('dm:worldmap:road:remove', { id: b.dataset.wmRrm }); if (selRoad === b.dataset.wmRrm) selRoad = null; }
   else if (b.id === 'wmGo') emit('dm:worldmap:go', { node: selId });
   else if (b.id === 'wmDel') { emit('dm:worldmap:node:remove', { id: selId }); selId = null; }

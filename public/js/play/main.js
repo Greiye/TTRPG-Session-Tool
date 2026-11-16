@@ -21,6 +21,7 @@ import './inspiration.js';
 import './control.js';
 import './socialpop.js';
 import './dungeon.js';
+import './town.js'; // town visits (PR V)
 import './popups.js';
 import './table.js';
 import './spotlight.js';

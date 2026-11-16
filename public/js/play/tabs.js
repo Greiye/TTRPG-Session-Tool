@@ -5,7 +5,7 @@
 // tab() returns the open section when the open top tab has sections, so feature modules check their own id.
 import { $ } from '../client.js';
 
-const ORDER = ['play', 'dungeon', 'sheet', 'inventory', 'journal', 'misc', 'downtime', 'shop'];
+const ORDER = ['play', 'dungeon', 'town', 'sheet', 'inventory', 'journal', 'misc', 'downtime', 'shop'];
 const tabs = []; // { id, label, badge, sections: [{ id, label, badge }], sec }
 const hiddenTabs = new Set(['shop']); // tabs not shown on this phone: Downtime outside camp; the old Shops tab never (shops are a DM pop-up)
 const subs = [];

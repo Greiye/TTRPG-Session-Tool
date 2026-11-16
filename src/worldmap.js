@@ -34,6 +34,7 @@ function fresh() {
     onTv: false, // the TV shows the world map instead of the stage
     openOnSession: true, // each session opens in exploration with the world map on the TV (src/sockets/worldmap.js)
     legSeconds: 60, // real seconds for one leg of travel
+    timeOnTravel: true, // each road leg moves the story clock on one segment (PR V, src/clock.js)
     cardSeconds: 20, // a flavour card comes up this often while travelling
     nodes: [], // { id, name, x, y, info, revealed, town, seen } with x and y as fractions of the picture
     roads: [], // { id, a, b, length, known }: length counts legs; known matters only under fog
@@ -60,7 +61,7 @@ const EXAMPLE_PLACES = [
 const EXAMPLE_ROADS = [['w1', 'w2', 1], ['w2', 'w3', 2], ['w2', 'w4', 2], ['w2', 'w5', 2], ['w4', 'w6', 2], ['w5', 'w6', 3]];
 function example() {
   const wm = fresh();
-  wm.nodes = EXAMPLE_PLACES.map(([id, name, x, y, info, dungeon]) => ({ id, name, x, y, info, revealed: true, town: null, seen: false, dungeon }));
+  wm.nodes = EXAMPLE_PLACES.map(([id, name, x, y, info, dungeon]) => ({ id, name, x, y, info, revealed: true, town: null, seen: false, dungeon, settlement: id === 'w1' || id === 'w5' }));
   wm.roads = EXAMPLE_ROADS.map(([a, b, length], i) => ({ id: `wr${i + 1}`, a, b, length, known: false }));
   wm.fog = true;
   wm.here = 'w1';
@@ -103,6 +104,7 @@ function saveNode(wm, f, ctx) {
   if (f.town !== undefined) n.town = f.town ? str(f.town, 40) || null : null; // living-world town id (src/living.js)
   if (f.seen !== undefined) n.seen = !!f.seen;
   if (f.dungeon !== undefined) n.dungeon = !!f.dungeon; // a dungeon entrance: standing here opens the dungeon pop-up
+  if (f.settlement !== undefined) n.settlement = !!f.settlement; // a town with a town map: standing here opens the Enter Town gate (src/town.js)
   return n;
 }
 
@@ -297,6 +299,7 @@ function tick(wm, ctx) {
     if (road) road.known = true;
     uncover(wm, t.to);
     ctx.onArrive?.(to); // living world: travel clocks tick and rumours follow the road
+    if (wm.timeOnTravel !== false) ctx.onLeg?.(road ? road.length : 1, to); // the story clock: one segment per leg (PR V)
     const next = (t.route || []).find((id) => find(wm, id));
     if (to && next) {
       // Not there yet: carry on along the route. Card timing runs on across legs.
@@ -380,7 +383,8 @@ function setFog(wm, on) {
   if (wm.fog && wm.here) uncover(wm, wm.here);
   return true;
 }
-function setTiming(wm, { legSeconds, cardSeconds } = {}) {
+function setTiming(wm, { legSeconds, cardSeconds, timeOnTravel } = {}) {
+  if (timeOnTravel !== undefined) wm.timeOnTravel = !!timeOnTravel;
   if (legSeconds !== undefined) wm.legSeconds = int(legSeconds, LEG_S[0], LEG_S[1], wm.legSeconds);
   if (cardSeconds !== undefined) wm.cardSeconds = int(cardSeconds, CARD_S[0], CARD_S[1], wm.cardSeconds);
   return true;
@@ -402,12 +406,13 @@ function viewFor(wm, viewer, seated = 0) {
     onTv: wm.onTv,
     openOnSession: wm.openOnSession !== false,
     legSeconds: wm.legSeconds,
+    timeOnTravel: wm.timeOnTravel !== false,
     cardSeconds: wm.cardSeconds,
     here: wm.here,
     fog: !!wm.fog,
     nodes: wm.nodes.filter((n) => dm || seenBy(wm, n)).map((n) => ({
       id: n.id, name: n.name, x: n.x, y: n.y, revealed: n.revealed, info: dm || n.revealed ? n.info : null,
-      seen: !wm.fog || !!n.seen, town: dm ? n.town || null : undefined, dungeon: !!n.dungeon,
+      seen: !wm.fog || !!n.seen, town: dm ? n.town || null : undefined, dungeon: !!n.dungeon, settlement: !!n.settlement,
     })).concat(dm ? [] : wm.nodes.filter((n) => !seenBy(wm, n) && pinned(wm, n.id)).map((n) => ({ id: n.id, name: '???', x: n.x, y: n.y, revealed: false, info: null, seen: false, fogged: true }))),
     roads: (wm.roads || []).filter((r) => dm || !wm.fog || r.known).map((r) => ({ id: r.id, a: r.a, b: r.b, length: r.length, known: !wm.fog || r.known })),
     vote: v ? {
