@@ -22,11 +22,16 @@
 .wm-vote.on { background: #3d2f14; }
 .wm-tv { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 2.2% 3%; gap: 1.2%; color: #f4ead5; }
 .wm-head { display: flex; justify-content: space-between; align-items: baseline; gap: 2%; }
-.wm-title { font-size: 2.2em; font-weight: 600; }
+.wm-title { font-size: 1.4em; font-weight: 600; }
 .wm-vote-line { font-size: 1.4em; color: #c9a86a; }
 .wm-main { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
-.wm-tv .wm-board { max-height: 100%; }
-.wm-tv .wm-pic > img { max-height: 74vh; width: auto; max-width: 100%; margin: 0 auto; object-fit: contain; }
+/* TV: fit the whole map inside the space under the title. The picture box shrinks to the image, so places
+   (positioned in picture fractions) stay on the right spot. */
+.wm-tv .wm-main { container-type: size; }
+.wm-tv .wm-board { width: auto; }
+.wm-tv .wm-pic { width: fit-content; }
+.wm-tv .wm-pic > img { width: auto; height: auto; max-width: 100cqw; max-height: 100cqh; }
+.wm-tv .wm-blank { width: min(100cqw, 160cqh); }
 .wm-tv .wm-node span { font-size: 1.5em; }
 .wm-tv .wm-node i { width: 22px; height: 22px; }
 .wm-tv .wm-token { font-size: 2.6em; }

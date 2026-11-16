@@ -88,7 +88,10 @@ code { font-family: ui-monospace, Menlo, monospace; }
 
 .stage-main { display: grid; grid-template-columns: 1fr 27cqw; gap: 1.5cqw; padding: 1cqw 2cqw; min-height: 0; z-index: 1; }
 .stage-center { min-height: 0; position: relative; }
-.stage.no-log .stage-main { grid-template-columns: 1fr; } /* no log types shown on the TV: the scene takes the width */
+.stage.no-log .stage-main { grid-template-columns: 1fr; }
+/* Logs hidden on this screen, or no entries to show: the scene and the dialogue box take the full width. */
+html[data-log="hide"] .stage-main, .stage-main:has(> .stage-log > .log:empty) { grid-template-columns: 1fr; }
+html[data-log="hide"] .stage-main > .stage-log, .stage-main > .stage-log:has(> .log:empty) { display: none; } /* no log types shown on the TV: the scene takes the width */
 .stage-log { min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
 
 .log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .45em; font-size: .78em; }
@@ -644,6 +647,20 @@ span.av.lay { width: 2.5em; height: 2.5em; border-radius: 50%; }
 .vn-item { display: block; font-size: 9cqw; line-height: 1.2; }
 .vn-cast-m.on .vn-item { font-size: 13cqw; }
 .vn-cast-m.item { width: 13cqw; }
+/* TV (Nov 15): the cast stands on the dialogue box with no gap and rises out from behind it. stage.js sets
+   --vn-box-h to the box's height. Names sit above each portrait; the speaker's name is on the box's plate. */
+.vn-box { z-index: 3; }
+.vn .vn-right { bottom: calc(var(--vn-box-h, 15cqw) - 1.2cqw); }
+.vn .vn-cast-m { display: flex; flex-direction: column-reverse; }
+.vn .vn-left { bottom: calc(var(--vn-box-h, 15cqw) + 1.2cqw); flex-direction: row; align-items: flex-end; gap: 0; }
+.vn .vn-pc-l + .vn-pc-l { margin-left: -3cqw; } /* sits above the speaker name plate */
+.vn .vn-pc-l { position: relative; display: flex; flex-direction: column-reverse; }
+.vn .vn-pc-l.speaking { transform: translateY(-1cqw); }
+.vn .vn-pc-l.front { filter: none; }
+.vn .vn-cast-m.on > small { display: none; }
+.vn .vn-cast-m.rise { animation: vn-rise .65s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes vn-rise { from { transform: translateY(45%); } }
+html[data-motion="reduce"] .vn .vn-cast-m.rise { animation: none; }
 .vn-full { position: fixed; inset: 0; z-index: 1000; background: rgb(8 5 10 / .94); display: flex; align-items: center; justify-content: center; }
 .vn-full-art { height: 88vh; max-width: 94vw; display: flex; align-items: flex-end; justify-content: center; }
 .vn-full-art svg, .vn-full-art img, .vn-full-art video { height: 100%; width: auto; max-width: 100%; }
