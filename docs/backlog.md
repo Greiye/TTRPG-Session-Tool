@@ -22,7 +22,7 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 
 ### PR B: TV combat entrance and join QR animation
 `public/stage.js`, `public/screen.html`, `public/anim.js`, `public/moments.css`, `public/js/dm/combat.js`, `src/sockets/dm.js`
-- [ ] 5. When the DM picks Combat mode, the TV shows a preparation filter reading "Combat" with "Get Ready" under it, and the battle map stays hidden. The DM sets up the fight, then presses and holds Roll initiative for 3 seconds. While it is held, the filter shakes hard (it is still under reduce motion). On release after 3 s, the filter lifts and the TV shows the combat map. Builds on the press-and-hold Roll initiative from the combat screen thread (that thread's item 2): use one hold control for both.
+- [ ] 5. When the DM picks Combat mode, the TV shows a preparation filter reading "Combat" with "Get Ready" under it, and the battle map stays hidden. The DM sets up the fight, then presses and holds Roll initiative for 3 seconds. While it is held, the filter shakes hard (it is still under reduce motion). On release after 3 s, the filter lifts and the TV shows the combat map. Builds on the press-and-hold Roll initiative from the combat screen thread (that thread's item 2): use one hold control for both. Since PR #72, `#initHold` fires a bubbling `inithold` CustomEvent with `detail.phase` set to `start`, `cancel` or `complete` (on complete, `dm:combat:start` has already been sent); forward those phases to the server to drive the TV filter.
 - [ ] 1. The "Join the party" QR card slides in and out on the TV.
 
 ### PR C: DM Rolls card
@@ -34,5 +34,5 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 `public/dm.html`, `public/style.css`, `public/chronicle.css`, `public/js/dm/dock.js`, `public/js/dm/modes.js`
 - [ ] 6. Battle map, Creature randomizer and Creatures cards start minimized.
 - [ ] 8. Buttons are centred in their card where it fits.
-- Pairs with the combat screen thread's item 7 (all modes and tabs in one column). Build after that lands so the two layout passes do not conflict.
+- Pairs with the combat screen thread's item 7 (all modes and tabs in one column). Build after that lands so the two layout passes do not conflict. The one-column rules are at the end of `public/theme.css`, under "Combat screen feedback (Nov 16)" (PR #72).
 
