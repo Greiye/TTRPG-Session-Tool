@@ -94,14 +94,14 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR H: DM Screen tabs and layout
 `public/dm.html`, `public/style.css`, `public/theme.css`, `public/js/dm/fold.js`, `public/js/dm/dock.js`, `public/js/dm/modes.js`, `public/js/dm/header.js`, `public/js/dm/legends.js`, `public/js/dm/moments.js`
-- [ ] DM Screen Modes can be minimizable.
-- [ ] Minimize Creature randomizer and creatures tab by default. [DM Screen, Combat; overlaps 15 Nov PR D item 6]
-- [ ] Move creature randomizer tab to bottom. [DM Screen, Combat]
-- [ ] Minimize all tabs by default for now. [DM Screen]
-- [ ] Remove House Rules Section. [DM Screen, Misc > Legends card; the phone Misc > Legends also lists house rules]
-- [ ] Choice Echo tab is more for planning, that should be in the planning mode. [DM Screen, today under Scene > Moments]
-- [ ] Move Changing Rules option to miscellaneous tab. [DM Screen, today the rules system picker in the header]
-- [ ] Settings Option to show/hide logs is also in the logs tab. [Logs tab on the DM Screen and phone Misc > Logs; today only in Settings]
+- [x] DM Screen Modes can be minimizable.
+- [x] Minimize Creature randomizer and creatures tab by default. [DM Screen, Combat; overlaps 15 Nov PR D item 6]
+- [x] Move creature randomizer tab to bottom. [DM Screen, Combat]
+- [x] Minimize all tabs by default for now. [DM Screen]
+- [x] Remove House Rules Section. [DM Screen, Misc > Legends card; the phone Misc > Legends also lists house rules]
+- [x] Choice Echo tab is more for planning, that should be in the planning mode. [DM Screen, today under Scene > Moments]
+- [x] Move Changing Rules option to miscellaneous tab. [DM Screen, today the rules system picker in the header]
+- [x] Settings Option to show/hide logs is also in the logs tab. [Logs tab on the DM Screen and phone Misc > Logs; today only in Settings]
 
 ### PR I: TV moments and roll display
 `public/stage.js`, `public/rollpop.js`, `public/moments.js`, `public/moments.css`, `public/anim.js`, `public/screen.html`, `src/moments.js`, `src/rolls.js`
@@ -175,8 +175,8 @@ Items are as Mike wrote them. Bracketed notes say which screen a tab or setting 
 
 ### PR S: DM Screen mode buttons and sidebar
 `public/dm.html`, `public/style.css`, `public/js/dm/modes.js`, `public/js/dm/dock.js`
-- [ ] DM Screen Mode Buttons get darker to show DM is currently on them, not just the text turning gold. [DM Screen, mode bar]
-- [ ] Party Tab is on the Right sidebar. [DM Screen; overlaps the 15 Nov PR D item and the 16 Nov PR H layout items]
+- [x] DM Screen Mode Buttons get darker to show DM is currently on them, not just the text turning gold. [DM Screen, mode bar]
+- [x] Party Tab is on the Right sidebar. [DM Screen; overlaps the 15 Nov PR D item and the 16 Nov PR H layout items]
 
 ## Mike's notes, 2026-11-16 (fourth list)
 
