@@ -192,4 +192,4 @@ Item is as Mike wrote it. Bracketed notes say which screen it is on.
 
 ### PR U: Lore tab
 `public/dm.html`, `public/style.css`, `public/js/dm/`, `public/js/play/`, `src/state.js`, `src/sockets/dm.js`
-- [ ] Add a Lore Tab. Lore Tab tracks: Locations, Dungeons, NPCs. [DM Screen; phone tab placement not stated]
+- [ ] Add a Lore Tab. Lore Tab tracks: Locations, Dungeons, NPCs, Items, Books and Notes. [DM Screen; phone tab placement not stated]
