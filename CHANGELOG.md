@@ -5,6 +5,16 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Right-click menus across the DM screen** (Mike, Nov 16), styled like the 3D battle map's unit menu and built from one shared component (`public/js/ctxmenu.js`, menus in `public/js/dm/menus.js`). The menu scales in from the pointer, the clicked thing glows briefly, numbers update live while it is open, and anything destructive needs a second click.
+  - **Party members** (hero portraits, party list, TV preview party bar and tokens, combat cards, saved characters): HP −10 to +10, conditions, inspiration, show in the hero column, spotlight on the TV, drop concentration, edit, play or give back, remove from the table.
+  - **Creatures**: attack it with the creature whose turn it is, HP, conditions, boss card, centre the 3D map on it, remove.
+  - **World map places**: edit, send the party, start a "here or stay" vote, draw a road from here, info revealed, out of the fog, dungeon entrance, add to lore, remove. **Roads**: legs ±1, known, send the party to either end, remove.
+  - **Points of interest**: reveal or hide on the TV, call an Investigation check, add to lore, remove from the scene.
+  - **NPCs on the scene**: talk as them, set their emotion while they talk, add to lore, remove.
+  - **Lore entries**: open to edit, share with phones, read it out on the TV, copy, delete. **Story log lines**: copy, narrate again, save as a lore note.
+  - **Everything else with buttons** (clocks, shops, items, towns, rumours, road cards, timers and so on) gets a menu of that row's own buttons and checkboxes.
+  - The 3D battle map's unit menu now uses the same shared component.
+  - Text fields keep the browser's menu, and **Shift + right-click** always does. Arrow keys move through the menu, Escape closes it.
 - DM combat controls, from Mike's Nov 16 backlog (PR G):
   - **Right-click a unit** on the 3D battle map for a menu: attack it with the creature whose turn it is (one entry per attack), HP −5/−1/+1/+5, toggle Prone, Restrained, Grappled, Frightened, Poisoned or Invisible, set its light, centre the camera, give its movement back, show the boss card, take it off the map (back to the tray) or remove the creature (click twice). The menu animates in and its numbers stay live; Esc or a click outside closes it.
   - **Arrow keys** move the selected unit one tile in the direction the arrow points on screen, whatever the camera angle.

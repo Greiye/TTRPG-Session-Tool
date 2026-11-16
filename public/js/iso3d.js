@@ -4,6 +4,7 @@
 // The view itself is lib/iso-battle, built to /iso/iso-battle.js (npm run build:iso).
 import { mountBattle, diffView } from '/iso/iso-battle.js';
 import { actionIcon, actionDetail } from './actions.js';
+import * as Ctx from './ctxmenu.js';
 
 const STEP_FT = 5;
 const COVER = { rock: 2, crate: 2, tree: 5, wall: 5 }; // same as src/iso.js
@@ -288,25 +289,18 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
 
   // DM right-click menu on a unit. Picked for what a DM reaches for mid-fight: attack it with the creature whose turn
   // it is, damage or heal, conditions, movement back, light, boss card, take it off the map, remove it.
-  let menu = null; let menuFor = null;
+  // The menu itself is the shared DM right-click menu (public/js/ctxmenu.js), so it matches the rest of the screen.
+  let menuFor = null;
   const MENU_CONDITIONS = ['Prone', 'Restrained', 'Grappled', 'Frightened', 'Poisoned', 'Invisible'];
   const LIGHT_CHOICES = [['none', 'No light'], ['torch', 'Torch'], ['lantern', 'Lantern'], ['darkvision', 'Darkvision']];
-  function closeMenu() {
-    if (!menu) return;
-    const m = menu; menu = menuFor = null;
-    m.classList.add('closing');
-    setTimeout(() => m.remove(), 140);
-    window.removeEventListener('pointerdown', outside, true);
-    window.removeEventListener('keydown', escClose, true);
-  }
-  const outside = (e) => { if (menu && !menu.contains(e.target)) closeMenu(); };
-  const escClose = (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeMenu(); } };
-  function menuHtml(s, id) {
-    const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function closeMenu() { if (menuFor) { menuFor = null; Ctx.closeMenu(); } }
+  function menuSpec(id) {
+    const s = last;
+    if (!s || !s.tokens?.[id] || menuFor !== id) return null;
     const c = s.combat;
     const pc = s.players.find((p) => p.id === id);
     const x = pc || c.enemies.find((e) => e.id === id);
-    if (!x) return '';
+    if (!x) return null;
     const moved = c.moved?.[id] || 0;
     const left = speedOf(x) - moved;
     const turnId = c.active ? c.order[c.turn]?.id : null;
@@ -314,57 +308,32 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
     const canHit = foe && foe.id !== id && foe.hp > 0 && x.hp > 0 && c.acted?.[foe.id] !== c.round;
     const conds = x.conditions || [];
     const light = s.tokens?.[id]?.light || 'none';
-    const b = (act, label, extra = '') => `<button type="button" role="menuitem" data-m="${act}" ${extra}>${label}</button>`;
-    return `<header><b>${esc(x.name)}</b><small>HP ${x.hp ?? 0}/${x.maxHp || x.hp || 0} · AC ${x.ac ?? '?'} · <span class="${left < 0 ? 'over' : ''}">${left < 0 ? `${-left} ft over` : `${left} ft left`}</span></small></header>
-      ${canHit ? `<section><h5>Attack with ${esc(foe.name)}</h5>${(foe.attacks || []).map((a, i) => b('atk', `⚔ ${esc(a.name)} ${a.atk >= 0 ? '+' : ''}${a.atk}`, `data-v="${i}"`)).join('') || b('atk', '⚔ Attack', 'data-v="0"')}</section>` : ''}
-      <section><h5>Hit points</h5><div class="iso-menu-row">${[-5, -1, 1, 5].map((d) => b('hp', `${d > 0 ? '+' : ''}${d}`, `data-v="${d}" class="${d < 0 ? 'neg' : 'pos'}"`)).join('')}</div></section>
-      <section><h5>Conditions</h5><div class="iso-menu-row wrap">${MENU_CONDITIONS.map((n) => b('cond', esc(n), `data-v="${n}" class="${conds.includes(n) ? 'on' : ''}" aria-pressed="${conds.includes(n)}"`)).join('')}</div></section>
-      <section><h5>Light</h5><div class="iso-menu-row wrap">${LIGHT_CHOICES.map(([v, n]) => b('light', n, `data-v="${v}" class="${light === v ? 'on' : ''}"`)).join('')}</div></section>
-      <section>${b('focus', '🎯 Centre camera')}${moved ? b('reset', `↺ Give back movement (${moved} ft used)`) : ''}${x.boss ? b('boss', '👑 Show boss card') : ''}${b('tray', '⇩ Take off the map')}${pc ? '' : b('rm', '✕ Remove creature', 'class="danger"')}</section>`;
+    return {
+      title: x.name,
+      sub: `HP ${x.hp ?? 0}/${x.maxHp || x.hp || 0} · AC ${x.ac ?? '?'} · ${left < 0 ? `${-left} ft over` : `${left} ft left`}`,
+      sections: [
+        canHit && { h: `Attack with ${foe.name}`, items: (foe.attacks?.length ? foe.attacks : [{ name: 'Attack', atk: null }]).map((a, i) => ({ label: `⚔ ${a.name}${a.atk != null ? ` ${a.atk >= 0 ? '+' : ''}${a.atk}` : ''}`, run: () => emit('dm:enemy:attack', { target: id, attack: i }) })) },
+        { h: 'Hit points', row: true, wrap: false, items: [-5, -1, 1, 5].map((d) => ({ label: `${d > 0 ? '+' : ''}${d}`, tone: d < 0 ? 'neg' : 'pos', keep: true, run: () => emit('dm:hp', { id, delta: d }) })) },
+        { h: 'Conditions', row: true, items: MENU_CONDITIONS.map((n) => ({ label: n, on: conds.includes(n), keep: true, run: () => emit('dm:condition', { id, name: n, on: !conds.includes(n) }) })) },
+        { h: 'Light', row: true, items: LIGHT_CHOICES.map(([v, n]) => ({ label: n, on: light === v, keep: true, run: () => emit('dm:token:light', { id, light: v }) })) },
+        { items: [
+          { label: '🎯 Centre camera', run: () => { const t = last?.tokens?.[id]; if (t) battle?.camera.focus(t.x, t.y); } },
+          moved && { label: `↺ Give back movement (${moved} ft used)`, run: () => emit('dm:move:reset', { id }) },
+          x.boss && { label: '👑 Show boss card', run: () => emit('dm:boss:card', { id }) },
+          { label: '⇩ Take off the map', run: () => emit('dm:token:remove', { id }) },
+          !pc && { label: '✕ Remove creature', danger: true, arm: '✕ Click again to remove', run: () => emit('dm:enemy:remove', { id }) },
+        ] },
+      ],
+      rebuild: () => menuSpec(id),
+    };
   }
   function openMenu(id, cx, cy) {
-    closeMenu();
-    if (!last) return;
-    menu = document.createElement('div');
-    menu.className = 'iso-menu'; menu.setAttribute('role', 'menu');
     menuFor = id;
-    menu.innerHTML = menuHtml(last, id);
-    document.body.append(menu);
-    const r = menu.getBoundingClientRect();
-    menu.style.left = `${Math.max(8, Math.min(cx, innerWidth - r.width - 8))}px`;
-    menu.style.top = `${Math.max(8, Math.min(cy, innerHeight - r.height - 8))}px`;
-    menu.addEventListener('click', (e) => {
-      const bt = e.target.closest('button[data-m]');
-      if (!bt) return;
-      const v = bt.dataset.v;
-      const s = last;
-      const x = [...s.players, ...s.combat.enemies].find((u) => u.id === id);
-      switch (bt.dataset.m) {
-        case 'atk': emit('dm:enemy:attack', { target: id, attack: Number(v) || 0 }); return closeMenu();
-        case 'hp': emit('dm:hp', { id, delta: Number(v) }); return; // stays open for repeated taps
-        case 'cond': emit('dm:condition', { id, name: v, on: !(x?.conditions || []).includes(v) }); return;
-        case 'light': emit('dm:token:light', { id, light: v }); return;
-        case 'focus': { const t = s.tokens?.[id]; if (t) battle?.camera.focus(t.x, t.y); return closeMenu(); }
-        case 'reset': emit('dm:move:reset', { id }); return closeMenu();
-        case 'boss': emit('dm:boss:card', { id }); return closeMenu();
-        case 'tray': emit('dm:token:remove', { id }); return closeMenu();
-        case 'rm':
-          // Two clicks: the first arms the button, the second removes.
-          if (!bt.classList.contains('armed')) { bt.classList.add('armed'); bt.textContent = '✕ Click again to remove'; return; }
-          emit('dm:enemy:remove', { id }); return closeMenu();
-      }
-    });
-    setTimeout(() => { window.addEventListener('pointerdown', outside, true); window.addEventListener('keydown', escClose, true); });
+    const spec = menuSpec(id);
+    if (spec) Ctx.openMenu({ ...spec, x: cx, y: cy });
   }
   // Keep an open menu's numbers live (HP, conditions, light) as the state changes.
-  function refreshMenu(s) {
-    if (!menu || !menuFor) return;
-    if (!s.tokens?.[menuFor]) return closeMenu();
-    if (menu.querySelector('.armed')) return;
-    const html = menuHtml(s, menuFor);
-    if (!html) return closeMenu();
-    menu.innerHTML = html;
-  }
+  function refreshMenu() { if (menuFor && Ctx.isOpen()) Ctx.refreshMenu(); else menuFor = null; }
 
   return {
     update(s) {
@@ -379,9 +348,10 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       transport.push(s);
       battle.setGroundImage(s.map.image || null);
       renderTray(s);
-      refreshMenu(s);
+      refreshMenu();
     },
     get battle() { return battle; },
     fit: () => battle?.camera.fit(),
+    menu: (id, x = 200, y = 200) => openMenu(id, x, y), // for tests and debugging
   };
 }
