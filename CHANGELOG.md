@@ -220,6 +220,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Code cleanup (Nov 16): the front end's twelve copied HTML escapers now call the one in `public/stage.js`, and the three copies of `slug()` (saves, spells, SRD import) are one in `src/util.js`. No change on screen.
 
 ### Removed
+- The archived DM modules in `archive/` (session plans, intro card, epilogue controls), on Mike's decision after the studio review (Nov 16). Their server side stays.
+- `docs/termux.md` (Termux is off for now).
+- `public/voice.js`: the DM live voice panel moved into `public/stt.js`, next to the speech engines it uses. Nothing changes on the DM page.
 - Moved to the code module archive (`archive/`, not loaded; see `archive/README.md`): the Session plans card, the Intro card and the Epilogue controls. Their server side still works and is still tested, so each comes back with one import line.
 - Table message log on the DM screen, the phones and the TV (the game is played in person).
 - Dead code left over from the Nov 16 parallel changes (no change on screen):

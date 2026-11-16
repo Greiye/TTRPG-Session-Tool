@@ -46,7 +46,7 @@ import './undo.js';
 import { isoStage } from '../iso3d.js';
 
 
-window.dmEmit = emit; // used by voice.js (classic script)
+window.dmEmit = emit; // used by the live voice panel in stt.js (classic script)
 Settings.mount({ table: { get: () => state()?.settings.display || {}, set: (display) => emit('dm:settings', { display }) } });
 // The laptop is the speaker only when no /screen tab is open (e.g. TV mirroring the laptop).
 AudioOut.init(socket, { isOutput: (s) => !masterRole() && (!s || !s.screens) }); // never a helper's phone
