@@ -14,6 +14,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
   - The **Battle Master** sees only the combat window, and "Waiting for the DM to activate combat." until the DM switches to combat.
   - **Battle map** is the first card in the Combat tab. Buttons are centred with their fields under them; **Generate terrain** is a green hold-for-2-seconds button at the bottom (no confirm box, sets the grid first if there is none), and the card folds up once terrain is generated. Click the card title to fold or unfold it.
   - **Next turn** is hold for 2 seconds. A creature's attack still moves the turn on by itself.
+- Phone tabs show symbols only, share the width and never scroll sideways; the word is the button's label for screen readers. Journal and Misc section chips wrap, and the dice pool fits a 320 px phone.
 - 3D battle map look: terrain, walls and crates use 8-step cel shading, so lit faces step between eight flat tones. Rocks and trees are flat 2D cards that turn to face the camera, drawn with the same 8 banded tones and a dark outline (four variants each, shared textures).
 - Combat screen, from Mike's Nov 16 feedback:
   - In combat the DM's 3D battle map fills the main column. **⛶ Fit** shows the whole field and a **Coverage** slider sets how much of it the view shows (mouse wheel zooms out further too).

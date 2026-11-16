@@ -41,6 +41,10 @@ const SHOTS = process.env.SHOTS;
   // Player tabs (Nov 14): Play, Sheet, Inventory, Journal, Misc; no Shops tab. Dice pool on top of Play.
   const tabNames = await ph.$$eval('#tabs [data-tab]', (bs) => bs.map((b) => b.dataset.tab).join());
   if (tabNames !== 'play,sheet,inventory,journal,misc') errors.push('phone tabs: ' + tabNames);
+  // Symbols only, and the tab bar never scrolls sideways (Mike, Nov 16).
+  const bar = await ph.$eval('#tabs', (t) => ({ fits: t.scrollWidth <= t.clientWidth + 1, text: [...t.querySelectorAll('button')].map((b) => b.querySelector('.tab-ico')?.textContent + '|' + b.getAttribute('aria-label')).join() }));
+  if (!bar.fits) errors.push('phone tab bar scrolls sideways');
+  if (!/^🎲\|Play,📜\|Sheet,/.test(bar.text)) errors.push('phone tabs should be symbols with a name label: ' + bar.text);
   if (await ph.isVisible('[data-skill]')) errors.push('skill buttons should be on the Sheet tab, not Play');
   await ph.click('#dicePool [data-die="6"][data-step="1"]');
   await ph.click('#dicePool [data-die="6"][data-step="1"]');
