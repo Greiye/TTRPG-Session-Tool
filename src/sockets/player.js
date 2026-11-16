@@ -9,6 +9,7 @@ const session = require('../session');
 const rolls = require('../rolls');
 const shops = require('../shops');
 const living = require('../living');
+const messages = require('../messages');
 const factions = require('../factions');
 const camp = require('../camp');
 const control = require('../control');
@@ -79,6 +80,12 @@ module.exports = function playerSockets(socket) {
     if (!p || !v || !v.open || !v.options[index]) return;
     v.votes[p.id] = Number(index);
     broadcast();
+  });
+  // Handout and phrase pop-ups: the player pressed Continue. The DM sees who has read it.
+  socket.on('player:handout:read', ({ id } = {}) => {
+    const p = me();
+    const h = p && state.handouts.find((x) => x.id === id);
+    if (h && require('../visibility').filterList([h], { role: 'player', charId: p.id }).length && messages.markRead(h, p.id)) broadcast();
   });
   // Spoils: a character asks for an item (a claim). Others can still claim; the DM awards.
   socket.on('player:claim', ({ id, note } = {}) => {

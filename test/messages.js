@@ -25,6 +25,25 @@ const { ok, until } = h;
   await until(() => b.last.handouts.some((x) => x.title === 'Secret letter'));
   ok(!a.last.handouts.some((x) => x.title === 'Secret letter'), 'targeted handout is not on other phones');
 
+  // Handouts pop up on phones until Continue (Mike, Nov 16): read state per character, the DM sees who read.
+  ok(a.last.handouts.find((x) => x.id === hid).seen === false, 'an unread handout is marked unseen on the phone');
+  ok(a.last.handouts.find((x) => x.id === hid).read === undefined, 'phones do not get the read map');
+  a.emit('player:handout:read', { id: hid });
+  await until(() => dm.last.handouts.find((x) => x.id === hid).read?.[a.me.id]);
+  ok(await until(() => a.last.handouts.find((x) => x.id === hid).seen === true), 'Continue marks the handout read on that phone');
+  ok(b.last.handouts.find((x) => x.id === hid).seen === false, 'other phones still have it unread');
+  const sid = dm.last.handouts.find((x) => x.title === 'Secret letter').id;
+  a.emit('player:handout:read', { id: sid });
+  await h.wait(120);
+  ok(!dm.last.handouts.find((x) => x.id === sid).read?.[a.me.id], 'a phone cannot mark a handout it was not sent');
+  dm.emit('dm:phrase', { lang: 'Elvish', text: 'Mellon' });
+  await until(() => a.last.handouts.some((x) => x.kind === 'phrase'));
+  const ph = a.last.handouts.find((x) => x.kind === 'phrase');
+  a.emit('player:handout:read', { id: ph.id });
+  await until(() => a.last.handouts.find((x) => x.id === ph.id).seen === true);
+  dm.emit('dm:phrase:reveal', { id: ph.id, on: true });
+  ok(await until(() => a.last.handouts.find((x) => x.id === ph.id).seen === false && a.last.handouts.find((x) => x.id === ph.id).text === 'Mellon'), 'revealing a phrase pops it up again, now readable');
+
   // Spoils (11): drop items to phones, claims, DM award.
   dm.emit('dm:spoil', { title: 'Bandit camp', items: [{ name: 'Gold', qty: 40 }, { name: 'Dagger', qty: 1 }] });
   await until(() => a.last.handouts.some((x) => x.kind === 'spoil'));
