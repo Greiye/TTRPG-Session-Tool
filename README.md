@@ -16,7 +16,7 @@ The console prints:
 | `http://localhost:3000/dm` | DM (laptop) | Controls + live preview of the TV. Localhost is auto-authorized as DM. |
 | `http://localhost:3000/screen` | TV | Presentation only. Drag to the TV, double-click for fullscreen. If the TV just mirrors the laptop, use `/dm` alone. |
 | `https://<lan-ip>:3443/play?room=ABCD` | Players | Encoded in the QR on the TV. Short link: `/j/ABCD`. |
-| `https://<lan-ip>:3443/codm?key=YYYY` | Co-DM (phone/tablet) | Private QR under **Co-DM → Invite** on the DM page. Atmosphere only. |
+| `https://<lan-ip>:3443/dm?key=YYYY` | Co-DM | Private QR under **Co-DM → Invite** on the DM page. A second DM with every DM permission. `/codm?key=YYYY` is a phone soundboard for them. |
 | `https://<lan-ip>:3443/dm?key=BBBB` | Battle Master | Private QR under **Co-DM → ⚔️ Battle Master**. Combat, battle map and the DM's creatures only. |
 | `https://<lan-ip>:3443/dm?key=SSSS` | Social Master | Private QR under **Co-DM → 💬 Social Master**. NPC dialogue only. |
 | `https://<lan-ip>:3443/dm?key=XXXX` | DM from another device | Key printed at startup (or set `DM_KEY`). |
@@ -79,10 +79,10 @@ Plug a gamepad into the laptop and press any button with the `/dm` tab in front;
 
 ## Co-DM & atmosphere
 
-A co-DM runs the mood while the DM runs the game. On the DM page, **Co-DM → Invite** shows a private QR (don't put it on the TV). The co-DM page has the same atmosphere controls the DM has, at the bottom of the DM panel, and nothing else: it can't change modes, HP, combat or NPCs.
+A co-DM is a second DM with every DM permission. On the DM page, **Co-DM → Invite** shows a private QR (don't put it on the TV) that opens the DM page on their device. `/codm?key=…` is still there as a phone-sized soundboard with the atmosphere controls.
 
 Two more helpers take work off the DM, each with its own private QR on the same card (permissions in `src/roles.js`; the server refuses every other DM event):
-- **⚔️ Battle Master**: initiative, turns and ending combat; adding, attacking with, damaging and removing the DM's creatures (conditions, concentration, boss card, creature library and randomizer); the battle map (grid, terrain, map art, fog, tokens, lights). Opens the DM page with only the Combat cards.
+- **⚔️ Battle Master**: sees "Waiting for the DM to activate combat." until the DM switches to combat, then only the combat window. Initiative, turns and ending combat; adding, attacking with, damaging and removing the DM's creatures (conditions, concentration, boss card, creature library and randomizer); the battle map (grid, terrain, map art, fog, tokens, lights). Opens the DM page with only the Combat cards.
 - **💬 Social Master**: the NPC dialogue box: NPC name and style, emotions, lines (typed or live voice), tongues and glosses, who is on the scene, sprites, NPC stances and player choices. Opens the DM page with only the NPC cards.
 
 Neither can switch modes, change the scene, send handouts or votes, kick players, or load and save. They see the live table as the DM does, without session plans, save slots or the world library.

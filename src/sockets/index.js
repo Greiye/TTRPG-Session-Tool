@@ -24,11 +24,13 @@ module.exports = function sockets(io) {
     // TV pages announce themselves so the DM laptop knows whether it should output audio.
     socket.on('screen:hello', () => { socket.data.screen = true; broadcast(); });
 
-    // Roles: DM (localhost or DM_KEY), co-DM (CODM_KEY), Battle Master (BATTLE_KEY), Social Master (SOCIAL_KEY).
-    // A co-DM key wins over localhost, so a helper link opened on the laptop still gets the helper's view.
+    // Roles: DM (localhost or DM_KEY), co-DM (CODM_KEY: every DM permission, Mike Nov 16),
+    // Battle Master (BATTLE_KEY), Social Master (SOCIAL_KEY).
+    // A helper key wins over localhost, so a helper link opened on the laptop still gets the helper's view.
     socket.on('dm:auth', ({ key } = {}, ack) => {
-      const byKey = { [CODM_KEY]: 'codm', [BATTLE_KEY]: 'battle', [SOCIAL_KEY]: 'social' };
+      const byKey = { [CODM_KEY]: 'dm', [BATTLE_KEY]: 'battle', [SOCIAL_KEY]: 'social' };
       socket.data.role = key === DM_KEY ? 'dm' : (key && byKey[key]) || (isLocalAddr(socket.handshake.address) ? 'dm' : null);
+      socket.data.coDm = !!key && key === CODM_KEY; // counted on the DM page's Co-DM card
       // The 'dms' room gets secret rolls; the Battle Master rolls for the DM's creatures, so they get them too.
       if (['dm', 'battle'].includes(socket.data.role)) socket.join('dms'); else socket.leave('dms');
       ack?.({ ok: !!socket.data.role, role: socket.data.role });

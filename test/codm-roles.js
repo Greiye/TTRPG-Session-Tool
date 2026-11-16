@@ -12,7 +12,7 @@ const { ok, until, call } = h;
   ok(!roles.can('battle', 'dm:say') && !roles.can('battle', 'dm:mode') && !roles.can('battle', 'dm:kick'), 'the Battle Master cannot speak as NPCs, switch modes or kick players');
   ok(roles.can('social', 'dm:say') && roles.can('social', 'dm:emotion') && roles.can('social', 'dm:choices'), 'the Social Master runs NPC dialogue');
   ok(!roles.can('social', 'dm:enemy:add') && !roles.can('social', 'dm:scene') && !roles.can('social', 'dm:handout'), 'the Social Master cannot touch combat, the scene or handouts');
-  ok(!roles.can('codm', 'dm:say') && !roles.can(null, 'dm:say'), 'the atmosphere co-DM and strangers get no DM events');
+  ok(!roles.can(null, 'dm:say'), 'strangers get no DM events');
   ok(roles.canUpload('battle', 'map') && !roles.canUpload('battle', 'portrait') && !roles.canUpload('social', 'map'), 'uploads follow the role');
 }
 
@@ -84,7 +84,14 @@ const { ok, until, call } = h;
     const qr = await fetch(`${h.URL}/codm-qr.svg?role=${role}`);
     ok(qr.status === 200 && /<svg/.test(await qr.text()), `the ${role} QR is served to the DM`);
   }
-  ok((await (await fetch(`${h.URL}/api/codm-url`)).json()).url.includes('/codm?key=codmkey'), 'the atmosphere co-DM invite is unchanged');
+  ok((await (await fetch(`${h.URL}/api/codm-url`)).json()).url.endsWith('/dm?key=codmkey'), 'the co-DM invite opens the DM page');
+  // The co-DM has every DM permission (Mike, Nov 16).
+  const co = await h.client();
+  ok((await call(co, 'dm:auth', { key: 'codmkey' })).role === 'dm', 'the co-DM key makes a second DM');
+  co.emit('dm:scene', { title: 'Co-DM scene' });
+  await until(() => dm.last.scene.title === 'Co-DM scene');
+  ok(dm.last.scene.title === 'Co-DM scene' && co.last.saves !== undefined, 'the co-DM changes the scene and sees what the DM sees');
+  ok(dm.last.codms === 1, 'the DM page counts the co-DM');
 
   // Uploads follow roles.canUpload (checked above); HTTP from localhost always counts as the DM, so not here.
   await h.done(srv);

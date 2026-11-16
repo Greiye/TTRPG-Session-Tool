@@ -28,7 +28,8 @@ let kindsKey = null;
 
 const inMode = (c) => !c.dataset.panel || c.dataset.panel.split(' ').includes(mode);
 // Battle and Social Masters (src/roles.js) see only their cards, in every mode, so they can prep ahead.
-const MASTER_CARDS = { battle: (c) => c.dataset.tab === 'combat', social: (c) => c.dataset.tab === 'misc' && c.dataset.sub === 'npc' };
+// The Battle Master sees only the combat window, and only once the DM switches to combat (Mike, Nov 16).
+const MASTER_CARDS = { battle: (c) => c.dataset.tab === 'combat' && mode === 'combat', social: (c) => c.dataset.tab === 'misc' && c.dataset.sub === 'npc' };
 // data-dm-only keeps a card from helpers even when it sits in their tab.
 const fits = (c) => { const m = MASTER_CARDS[masterRole()]; return m ? m(c) && !c.hasAttribute('data-dm-only') : inMode(c); };
 const planTab = (id) => !!$(`[data-group][data-plan] [data-stab="${id}"]`);
@@ -42,6 +43,9 @@ function visibleTabs() {
 
 function apply() {
   if (masterRole()) { planning = false; mapPage = false; } // not saved: the laptop keeps the DM's choice
+  const waiting = masterRole() === 'battle' && mode !== 'combat';
+  document.body.classList.toggle('battle-waiting', waiting);
+  $('#battleWait').hidden = !waiting;
   document.body.classList.toggle('planning', planning);
   document.body.classList.toggle('map-page', mapPage);
   $('#planToggle')?.classList.toggle('on', planning);
