@@ -51,6 +51,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
   - Conditions are small round buttons on the bottom right of the hero portrait, for party members and for creatures picked on the 3D map. Click one, or right-click the portrait, to open the conditions menu: toggle any of the 15 conditions, pick how long a new one lasts (until cleared, 1, 3 or 10 rounds) and start or drop concentration. A new badge pops in, and the party picker shows a red count per member. The Conditions card is gone.
   - The **Reset session** button is gone from the Party card (End session covers the end of a night).
   - The hero opens on **Bio**; Stats is one tap away.
+- **New sample backdrop** (Mike, Nov 16): "Tales of Artheria" is now a medieval village with a stone church, shown at 50% opacity on the TV and DM preview. It fades in up to that level. Backdrops can carry their own `opacity` (only the sample sets one); the file path and id are unchanged, so saves keep it.
 - DM Screen tabs and Party sidebar, from Mike's Nov 16 notes (backlog PR H and S):
   - The live mode's button is pressed in: a darker plate with an inset shadow and glowing gold text, with a short press animation.
   - The **Modes** card folds to its title, which then names the live mode. The tab list is its own card under it.

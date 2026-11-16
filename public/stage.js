@@ -436,6 +436,9 @@
         ? `<video src="${esc(img.url)}" autoplay muted loop playsinline></video>`
         : `<img src="${esc(img.url)}" alt="">`;
     }
+    // Per-backdrop opacity (the bundled sample shows at 50%); the fade-in animates up to it.
+    const op = Number(img?.opacity);
+    bd.style.setProperty('--bd-op', op > 0 && op < 1 ? String(op) : '1');
     const fx = root.querySelector(':scope > .fx');
     const fxKey = (s.backdrop?.effects || []).join(',');
     if (fx.dataset.key !== fxKey) {

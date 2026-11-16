@@ -36,6 +36,7 @@ const stop = (p) => new Promise((res) => { p.on('exit', res); p.kill(); });
   tv.emit('screen:hello');
   for (let i = 0; i < 40 && !dm.last; i++) await wait(50);
   ok(dm.last.backdrop.image?.id === 'sample-artheria-village', 'fresh table starts on the Tales of Artheria sample backdrop');
+  ok(dm.last.backdrop.image?.opacity === 0.5, 'sample backdrop shows at 50% opacity');
   ok((await fetch(`${URL}/samples/artheria-village.jpg`)).headers.get('content-type') === 'image/jpeg', 'sample backdrop image is served');
   const joinInfo = await fetch(`${URL}/api/join-info`).then((r) => r.ok ? r.json() : {}).catch(() => ({}));
   const room = joinInfo.room;

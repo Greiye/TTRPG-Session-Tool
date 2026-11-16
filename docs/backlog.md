@@ -254,3 +254,19 @@ Built in the DM tabs thread right after PR H and S.
 - [x] Conditions appear as a clickable small button on the bottom right of an NPC's portrait. I can edit this with a right click menu. [DM Screen, hero portrait in the right sidebar, for party members and creatures picked on the 3D map]
 - [x] No need to have a conditions window. [DM Screen, right sidebar]
 - [x] Character sidebar shows bio first by default, not stats. [DM Screen, hero in the right sidebar]
+- [ ] Character creator: a very basic one with heavy DM override, and no classes (Mike's game has none). Steps, in Mike's order:
+  1. Basics on the phone: name, ancestry and background only. No class or role field.
+  2. Card questions: a series of questions where the player picks an animated card as the answer. For now, one question:
+     "A dragon appears to slay you and your beloved. What card do you take?"
+     1. The Knight Card (Melee Profession)
+     2. The Arrow Card (Range Profession)
+     3. The Shadow Card (Rogue Type)
+     4. The Lightning Card (Wizard)
+     5. The Automaton Card (Engineer)
+     (Mike wrote "4 animated cards" but listed five; all five are kept here until he confirms.)
+  3. Stats: from a DM preset array or a point budget.
+  4. Starting kit: a pick of DM-defined kits, based on the profession chosen from the cards.
+  5. DM approval: the finished draft goes to the DM, who approves it before the character joins the table.
+  6. Heavy DM override and field locks: the DM can edit anything at any time, and players can't change fields after approval.
+  7. DM-made characters: the DM can create a whole character and hand it to a phone.
+  [Phones at join, DM Screen; the phone join flow already has a new character form (`public/js/play/join.js`, `src/session.js`), and the DM edit dialog in `public/js/dm/characters.js` already edits every field. Questions, cards, professions, ancestries, backgrounds, stat arrays and kits are DM-editable lists, not hard-coded, so the creator stays system-agnostic. Each card answer sets the character's profession, which the kit step reads]
