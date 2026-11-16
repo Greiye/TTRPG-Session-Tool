@@ -123,3 +123,10 @@ onClick('boss', (id) => emit('dm:boss:card', { id }));
 onClick('atk', (target) => emit('dm:enemy:attack', { target, attack: atkIdx }));
 onClick('atk-pick', (i, b) => { atkIdx = Number(i); b.parentElement.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); });
 
+
+// The TV's "Combat · Get ready" filter follows the initiative hold: it shakes while held and lifts on the roll.
+document.addEventListener('inithold', (e) => {
+  const { phase } = e.detail || {};
+  if (phase === 'start') emit('dm:combat:prep', { holding: true });
+  else if (phase === 'cancel') emit('dm:combat:prep', { holding: false });
+});

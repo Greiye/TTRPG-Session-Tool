@@ -24,9 +24,9 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 
 ### PR B: TV combat entrance and join QR animation
 `public/stage.js`, `public/screen.html`, `public/anim.js`, `public/moments.css`, `public/js/dm/combat.js`, `src/sockets/dm.js`
-- [ ] 5. When the DM picks Combat mode, the TV shows a preparation filter reading "Combat" with "Get Ready" under it, and the battle map stays hidden. The DM sets up the fight, then presses and holds Roll initiative for 3 seconds. While it is held, the filter shakes hard (it is still under reduce motion). On release after 3 s, the filter lifts and the TV shows the combat map. Builds on the press-and-hold Roll initiative from the combat screen thread (that thread's item 2): use one hold control for both. Since PR #72, `#initHold` fires a bubbling `inithold` CustomEvent with `detail.phase` set to `start`, `cancel` or `complete` (on complete, `dm:combat:start` has already been sent); forward those phases to the server to drive the TV filter.
-- [ ] 1. The "Join the party" QR card slides in and out on the TV.
-- [ ] (Nov 15, second list) Bug: the backdrop and its effects draw in front of the combat window. Put the battle map (`.iso-layer`) above the backdrop and effect layers on the TV and in the DM preview.
+- [x] 5. When the DM picks Combat mode, the TV shows a preparation filter reading "Combat" with "Get Ready" under it, and the battle map stays hidden. The DM sets up the fight, then presses and holds Roll initiative for 3 seconds. While it is held, the filter shakes hard (it is still under reduce motion). On release after 3 s, the filter lifts and the TV shows the combat map. Builds on the press-and-hold Roll initiative from the combat screen thread (that thread's item 2): use one hold control for both. Since PR #72, `#initHold` fires a bubbling `inithold` CustomEvent with `detail.phase` set to `start`, `cancel` or `complete` (on complete, `dm:combat:start` has already been sent); forward those phases to the server to drive the TV filter.
+- [x] 1. The "Join the party" QR card slides in and out on the TV.
+- [x] (Nov 15, second list) Backdrop and effects are in front of the combat window: effects and weather now draw over the 3D combat map; the backdrop shows behind it.
 
 ### PR C: DM Rolls card
 `public/js/dm/rolls.js`, `public/dm.html`, `public/style.css` (reuse the phone dice pool from `public/js/play/`)
