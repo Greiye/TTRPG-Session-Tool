@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Combat aesthetic design** (Mike, Nov 16, docs only): `docs/combat-aesthetic.md` collects Mike's combat feel ideas as possible features: body-part health, strike gestures on enemy silhouettes with weapon haptics, bows press and hold, fist combos through nodes, cosmetic or rules, spellcasting styles (rhythm, song, alchemy), casting together, throwables and potions by drag, putting armour on and off, and impact cues on every screen. Nothing built yet.
 - **Drawing pad plan** (Mike, Nov 16, docs only): backlog PR Z in `docs/backlog.md`, a pressure-sensitive drawing pad for the DM that saves to the scene, a portrait, a handout or the journal, and a sketch pad for players on phones and tablets. Nothing built yet.
 - **Soundscape for the DM and a Music Co-DM** (Mike, Nov 16). A new card under Scene › **🎧 Soundscape** builds the table's sound as a scene, on top of the existing soundboard and music decks (no second audio system):
   - **Mood wheel**: Calm, Happy, Funny, Epic, Sad, Creepy, Tense, Mystic and Magical round a hub that names the mood playing. A tap cross-fades the music to that mood; tapping it again stops the music.
