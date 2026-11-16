@@ -217,7 +217,7 @@ Item is as Mike wrote it. Bracketed notes say which screen it is on and what alr
 
 ### PR W: Creature Designer and wiki
 `public/dm.html`, `public/style.css`, `public/js/dm/`, `src/entities.js`, `src/routes.js`, `src/sockets/dm.js`
-- [ ] In Planning, Add Creature Designer button. This is a DM only pop up that lets me create sentient races, animals, etc. it lets me decide a sentient person's stats, skills, lore, race, abilities, inventory, etc. whatever the LLM deems necessary. this is all connected to a wiki system that edits .md files from a github repo. [DM Screen, Planning Mode tab group next to Shops; the creature library in `public/js/dm/creatures.js` and the Lore tab in `public/js/dm/lore.js` already exist; which GitHub repo holds the wiki is not stated, possibly the Arthuria lore repo]
+- [x] (built Nov 16: Planning › 🐉 Creatures, `src/designer.js`, `src/wiki.js`, pages in the lore repo's `content/creatures/`, format in `docs/creature-wiki-format.md`) In Planning, Add Creature Designer button. This is a DM only pop up that lets me create sentient races, animals, etc. it lets me decide a sentient person's stats, skills, lore, race, abilities, inventory, etc. whatever the LLM deems necessary. this is all connected to a wiki system that edits .md files from a github repo. [DM Screen, Planning Mode tab group next to Shops; the creature library in `public/js/dm/creatures.js` and the Lore tab in `public/js/dm/lore.js` already exist; which GitHub repo holds the wiki is not stated, possibly the Arthuria lore repo]
 
 ## Mike's notes, 2026-11-16 (eighth list)
 

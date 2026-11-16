@@ -3,7 +3,7 @@
 import { $, call, onState, state } from '../client.js';
 
 const { esc } = Stage;
-const CATS = { location: ['🏰', 'Locations'], dungeon: ['🕳', 'Dungeons'], npc: ['🧑', 'NPCs'], item: ['🗡', 'Items'], book: ['📖', 'Books'], note: ['📝', 'Notes'] };
+const CATS = { location: ['🏰', 'Locations'], dungeon: ['🕳', 'Dungeons'], npc: ['🧑', 'NPCs'], creature: ['🐾', 'Creatures'], item: ['🗡', 'Items'], book: ['📖', 'Books'], note: ['📝', 'Notes'] };
 const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
 

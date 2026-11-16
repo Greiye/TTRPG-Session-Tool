@@ -60,6 +60,7 @@ module.exports = function sockets(io) {
     require('./dungeon')(socket);
     require('./town')(socket); // town visits (PR V)
     require('./lore')(socket); // Lore tab (Mike, Nov 16)
+    require('./designer')(socket); // Creature Designer and lore wiki (PR W)
   });
 };
 module.exports.guard = guard;
