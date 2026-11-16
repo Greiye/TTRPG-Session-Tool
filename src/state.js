@@ -112,6 +112,7 @@ store.EXTRA.push('houseRules', 'absent'); // phase J house rules and empty chair
 store.EXTRA.push('intro', 'timers'); // phase D intro card text and timers
 store.EXTRA.push('dungeon', 'trail'); // exploration dungeon nodes and the party trail
 store.EXTRA.push('puzzle', 'web'); // Phase F teamwork puzzle and relations web
+store.EXTRA.push('shopSeed'); // Greer's Trinkets seeded once
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -133,6 +134,8 @@ state.worldMap.roads ??= []; // roads and fog came after Phase G: older saves ha
 state.worldMap.fog ??= false;
 state.worldMap.openOnSession ??= true;
 state.trail ??= [];
+// Every table starts with Greer's Trinkets (Mike, Nov 15). Seeded once: removing it keeps it gone.
+if (!state.shopSeed) { state.shops ??= []; if (!state.shops.some((x) => x.name === "Greer's Trinkets")) state.shops.unshift(require('./shops').greer('greer')); state.shopSeed = 1; }
 // Mike, Nov 15: logs and the join QR are off by default on every screen. Older saves switch over once (quiet: 1);
 // after that the DM's choices stand. hideLog (a deny list) became showLog (an allow list).
 {

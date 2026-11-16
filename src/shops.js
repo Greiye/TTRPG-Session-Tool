@@ -54,8 +54,8 @@ function parseList(text) {
   const find = (re) => head.findIndex((c) => re.test(c.toLowerCase()));
   const hasHeader = find(/^(name|item)$/) !== -1;
   const col = hasHeader
-    ? { name: find(/^(name|item)$/), price: find(/^(price|cost|gp|value)/), stock: find(/^(stock|qty|quantity|available|count)/), note: find(/^(note|notes|description|desc|details)/) }
-    : { name: 0, price: 1, stock: 2, note: 3 };
+    ? { name: find(/^(name|item)$/), price: find(/^(price|cost|gp|value)/), stock: find(/^(stock|qty|quantity|available|count)/), note: find(/^(note|notes|description|desc|details)/), category: find(/^(category|cat|type|kind)$/) }
+    : { name: 0, price: 1, stock: 2, note: 3, category: 4 };
   if (hasHeader) rows = rows.slice(1);
   const items = [];
   const skipped = [];
@@ -68,7 +68,8 @@ function parseList(text) {
     if (price === null) { skipped.push(`row ${row} (${name}): no readable price`); return; }
     const rawStock = col.stock >= 0 ? cells[col.stock] : '';
     const stock = rawStock === undefined || rawStock === '' || /^(∞|inf|unlimited|-)$/i.test(rawStock) ? null : int(rawStock, 0, 9999, 0);
-    items.push({ name, price, stock, note: str(col.note >= 0 ? cells[col.note] : '', 200) });
+    // category is DM-only data (visibility.js strips it for phones and the TV).
+    items.push({ name, price, stock, note: str(col.note >= 0 ? cells[col.note] : '', 200), category: str(col.category >= 0 ? cells[col.category] : '', 40) });
   });
   return { items, skipped };
 }
@@ -132,4 +133,16 @@ function offers(shop, c, mult = 1) {
     .map((x) => ({ id: x.id, name: x.name, qty: x.qty, offer: Math.floor(unitCp(byName.get(x.name.toLowerCase()), mult) * SELL_SHARE) / 100 }));
 }
 
-module.exports = { money, clampGold, parseList, create, buy, sell, offers, unitCp, MAX_SHOPS, SELL_SHARE };
+// "Greer's Trinkets" (Mike, Nov 15): the sample shop every table starts with. Placeholder wares the DM
+// renames or replaces with an import; categories are DM-only. The banner is an inline-drawn SVG.
+const GREER_CATS = ['Trinket', 'Potion', 'Gear', 'Curio', 'Charm', 'Tool'];
+const GREER_PRICES = [1, 2, 5, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 90, 100, 120, 150];
+function greer(id) {
+  return {
+    id, npc: 'Greer', name: "Greer's Trinkets", open: true, faction: null, banner: '/samples/greers-trinkets.svg', skipped: [], at: Date.now(),
+    items: GREER_PRICES.map((price, i) => ({ id: `${id}-${i + 1}`, name: 'Item Name', price, stock: null, note: 'Item description', category: GREER_CATS[i % GREER_CATS.length] })),
+  };
+}
+const MAX_SHOWN = 60; // items on the shop pop-up (3 columns, rows as needed)
+
+module.exports = { greer, MAX_SHOWN, money, clampGold, parseList, create, buy, sell, offers, unitCp, MAX_SHOPS, SELL_SHARE };

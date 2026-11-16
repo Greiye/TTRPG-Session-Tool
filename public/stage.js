@@ -295,18 +295,19 @@
 
   // Shop pop-up on the TV: the shop, its wares, and how many are still shopping.
   const gp = (n) => Number(n || 0).toFixed(2).replace(/\.?0+$/, '');
+  // Greer's-style pop-up (Mike, Nov 15): the shop's banner centred on top, then up to 60 wares as buttons in
+  // 3 columns (rows grow as needed and shrink to fit the TV): name, description, price.
   function shopTv(s) {
     const pop = s.shopPop;
     const shop = pop && (s.shops || []).find((x) => x.id === pop.shopId);
     if (!shop) return '';
-    const items = shop.items.slice(0, 10).map((i) => `<li class="${i.stock === 0 ? 'out' : ''}"><span>${esc(i.name)}</span><b>${gp(i.price)} gp</b>${i.stock === null ? '' : `<small>${i.stock ? `${i.stock} left` : 'sold out'}</small>`}</li>`).join('');
-    const more = shop.items.length > 10 ? `<p class="shop-more">and ${shop.items.length - 10} more on your phones</p>` : '';
+    const shown = shop.items.slice(0, 60);
+    const items = shown.map((i) => `<li class="shop-ware ${i.stock === 0 ? 'out' : ''}"><b>${esc(i.name)}</b>${i.note ? `<span>${esc(i.note)}</span>` : ''}<em>${gp(i.price)} gp${i.stock === null ? '' : i.stock ? ` · ${i.stock} left` : ' · sold out'}</em></li>`).join('');
     const left = pop.shopping;
-    return `<div class="shop-tv" data-n="${pop.n}"><div class="shop-box">
-      <div class="shop-kicker">${shop.npc ? esc(shop.npc) : 'A merchant'} opens shop</div>
-      <h2>🛒 ${esc(shop.name)}</h2>
-      <ul class="shop-wares">${items || '<li>Nothing for sale.</li>'}</ul>${more}
-      <p class="shop-left">${left ? `<b>${left}</b> still shopping` : pop.done.length ? 'Everyone is done shopping' : 'Open for business'}</p>
+    return `<div class="shop-tv" data-n="${pop.n}"><div class="shop-box" style="--rows:${Math.max(1, Math.ceil(shown.length / 3))}">
+      ${shop.banner ? `<img class="shop-banner" src="${esc(shop.banner)}" alt="">` : `<h2>🛒 ${esc(shop.name)}</h2>`}
+      <ul class="shop-grid">${items || '<li class="shop-ware"><b>Nothing for sale.</b></li>'}</ul>
+      <p class="shop-left">${left ? `<b>${left}</b> still shopping` : 'Open for business'}</p>
     </div></div>`;
   }
 

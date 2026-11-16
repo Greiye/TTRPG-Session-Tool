@@ -25,12 +25,30 @@ ok(shops.create({ text: 'nothing here' }, 's1').error, 'an empty list is refused
   const b = await h.player(room, 'Lyra', 'Wizard');
   await until(() => a.last?.players.length === 2 && b.last?.players.length === 2);
 
+  // Greer's Trinkets (Mike, Nov 15): every table starts with it; categories stay with the DM.
+  ok(await until(() => dm.last.shops?.some((x) => x.name === "Greer's Trinkets")), "Greer's Trinkets is there from the start");
+  const greer = dm.last.shops.find((x) => x.name === "Greer's Trinkets");
+  ok(greer.items.length >= 12 && greer.items[0].name === 'Item Name' && greer.items[0].note === 'Item description' && greer.items[0].category && greer.banner, 'placeholder wares with a description, price, category and banner');
+  ok(await until(() => a.last.shops?.some((x) => x.id === greer.id)) && a.last.shops.find((x) => x.id === greer.id).items.every((i) => !('category' in i)), 'phones never get the item categories');
+  ok(shops.parseList('Name,Price,Stock,Description,Category\nRope,1,,Hemp,Gear').items[0].category === 'Gear', 'a Category column is read');
+
+  // Shop pop-up: leaving shows a waiting state; when everyone has left, it closes everywhere.
+  dm.emit('dm:shop:pop', { id: greer.id });
+  ok(await until(() => a.last.shopPop?.shopId === greer.id && b.last.shopPop?.shopping === 2), 'the pop-up opens with two shopping');
+  a.emit('player:shop:done', { done: true });
+  ok(await until(() => a.last.shopPop?.mine === true && b.last.shopPop?.shopping === 1), 'Thorn leaves the shop and waits for the others');
+  a.emit('player:shop:done', { done: false });
+  ok(await until(() => a.last.shopPop?.mine === false && a.last.shopPop.shopping === 2), 'Shop again puts Thorn back in');
+  a.emit('player:shop:done', { done: true });
+  b.emit('player:shop:done', { done: true });
+  ok(await until(() => a.last.shopPop === null && b.last.shopPop === null && dm.last.shopPop === null), 'when everyone has left, the pop-up closes on every screen');
+
   const imp = await h.call(dm, 'dm:shop:import', { name: 'Mirela’s stall', npc: 'Mirela', text: 'Rope,1 gp,2,\nPotion of healing,50 gp,1,Red\nBig crate,100,0,\n' });
   ok(imp.ok && imp.items === 3, 'DM imports a price list');
   const sid = imp.id;
   const rope = (s) => s.shops.find((x) => x.id === sid).items.find((i) => i.name === 'Rope');
-  ok(await until(() => a.last.shops.length === 1 && a.last.shops[0].items.length === 3), 'phones see the open shop and its prices');
-  ok(!('skipped' in a.last.shops[0]) && !('skipped' in b.last), 'phones do not see the import notes');
+  ok(await until(() => a.last.shops.find((x) => x.id === sid)?.items.length === 3), 'phones see the open shop and its prices');
+  ok(!('skipped' in a.last.shops.find((x) => x.id === sid)) && !('skipped' in b.last), 'phones do not see the import notes');
 
   // Gold is private: the DM sets it, the owner sees it, others do not.
   const buy0 = await h.call(a, 'player:buy', { shopId: sid, itemId: rope(a.last).id, qty: 1 });
@@ -53,7 +71,7 @@ ok(shops.create({ text: 'nothing here' }, 's1').error, 'an empty list is refused
 
   // Closed shops: hidden from phones and refused at the counter.
   dm.emit('dm:shop:open', { id: sid, open: false });
-  ok(await until(() => a.last.shops.length === 0), 'a closed shop disappears from phones');
+  ok(await until(() => !a.last.shops.some((x) => x.id === sid)), 'a closed shop disappears from phones');
   const r5 = await h.call(a, 'player:buy', { shopId: sid, itemId: `${sid}-1`, qty: 1 });
   ok(r5.error && /closed/.test(r5.error), 'closed shops refuse purchases');
   ok(dm.last.shops.find((x) => x.id === sid).open === false, 'the DM still sees the closed shop');
@@ -61,6 +79,6 @@ ok(shops.create({ text: 'nothing here' }, 's1').error, 'an empty list is refused
   // Persistence: shops survive a restart (campaign.json).
   await h.wait(500);
   const saved = JSON.parse(fs.readFileSync(path.join(h.TMP, 'data', 'campaign.json'), 'utf8'));
-  ok(saved.shops?.[0]?.items?.length === 3 && saved.shops[0].open === false, 'shops are saved with the campaign');
+  { const sv = saved.shops?.find((x) => x.id === sid); ok(sv?.items?.length === 3 && sv.open === false && saved.shopSeed === 1, 'shops are saved with the campaign'); }
   await h.done(srv);
 })().catch((e) => { console.error(e); process.exit(1); });
