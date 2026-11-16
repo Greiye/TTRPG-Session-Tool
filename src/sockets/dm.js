@@ -562,6 +562,15 @@ module.exports = function dmSockets(socket) {
     saveRoster();
     log('system', `Loaded save point "${s.name}".`);
   });
+  // One-tap undo and redo of the last table changes (src/undo.js). DM only: helpers' screens hide the button.
+  for (const [event, fn] of [['dm:undo', 'undo'], ['dm:redo', 'redo']]) {
+    socket.on(event, (_p, ack) => {
+      if (socket.data.role !== 'dm') return ack?.({ error: 'DM only.' });
+      const r = require('../undo')[fn]();
+      if (r.ok) { saveRoster(); broadcast(); }
+      ack?.(r);
+    });
+  }
   dm('dm:char:delete', ({ id }) => {
     const c = roster[id];
     if (!c) return;

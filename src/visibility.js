@@ -168,10 +168,11 @@ function viewState(base, viewer) {
     out.lan = require('./net').lanAddresses();
     out.entities = Object.values(require('./entities').entities); // world library (Arthuria), DM only for now
     out.saves = require('./saves').list();
+    out.undo = require('./undo').view(); // what Undo and Redo would change (src/undo.js)
   }
   // Battle and Social Masters run the table live, so they get the DM view without the DM's prep and admin:
   // session plans (DM notes), save slots, the world library and the laptop's network addresses.
-  if (viewer.master) for (const k of ['plans', 'saves', 'entities', 'lan']) delete out[k];
+  if (viewer.master) for (const k of ['plans', 'saves', 'entities', 'lan', 'undo']) delete out[k];
   return out;
 }
 
