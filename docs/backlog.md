@@ -156,8 +156,8 @@ Items are as Mike wrote them. Bracketed notes say which screen a tab or setting 
 
 ### PR P: Dramatic pause and mode switching
 `public/moments.js`, `public/moments.css`, `public/stage.js`, `public/js/dm/modes.js`, `src/moments.js`
-- [ ] Remove Dramatic pause effect 'hold' text. When the Dramatic pause fade to partial back happens, the text fades in half a second after. [TV]
-- [ ] Fix issue where entering modes spams the logs. [DM Screen, Logs; TV and phones]
+- [x] Remove Dramatic pause effect 'hold' text. When the Dramatic pause fade to partial back happens, the text fades in half a second after. [TV]
+- [x] Fix issue where entering modes spams the logs. [DM Screen, Logs; TV and phones]
 
 ### PR Q: Exploration points of interest and world map travel
 `src/worldmap.js`, `src/sockets/worldmap.js`, `src/visibility.js`, `public/js/dm/worldmap.js`, `public/js/dm/exploration.js`, `public/worldmap.js`
