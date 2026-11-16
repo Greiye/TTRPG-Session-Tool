@@ -5,6 +5,15 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Right-click menus across the DM screen** (Mike, Nov 16), styled like the 3D battle map's unit menu and built from one shared component (`public/js/ctxmenu.js`, menus in `public/js/dm/menus.js`). The menu scales in from the pointer, the clicked thing glows briefly, numbers update live while it is open, and anything destructive needs a second click.
+  - **Party members** (hero portraits, party list, TV preview party bar and tokens, combat cards, saved characters): HP −10 to +10, conditions, inspiration, show in the hero column, spotlight on the TV, drop concentration, edit, play or give back, remove from the table.
+  - **Creatures**: attack it with the creature whose turn it is, HP, conditions, boss card, centre the 3D map on it, remove.
+  - **World map places**: edit, send the party, start a "here or stay" vote, draw a road from here, info revealed, out of the fog, dungeon entrance, add to lore, remove. **Roads**: legs ±1, known, send the party to either end, remove.
+  - **Points of interest**: reveal or hide on the TV, call an Investigation check, add to lore, remove from the scene.
+  - **NPCs on the scene**: talk as them, set their emotion while they talk, add to lore, remove.
+  - **Lore entries**: open to edit, share with phones, read it out on the TV, copy, delete. **Story log lines**: copy, narrate again, save as a lore note.
+  - **Everything else with buttons** (clocks, shops, items, towns, rumours, road cards, timers and so on) gets a menu of that row's own buttons and checkboxes.
+  - Text fields keep the browser's menu, and **Shift + right-click** always does. Arrow keys move through the menu, Escape closes it.
 - **Inspiration tab** on the DM screen (✨, Play group): each seated character's inspiration points as gold gems, with − and + to take or give one, and **Everyone +1**. Points cap at 5, as with the recap quiz. A new gem pops in, and the player's phone shows a short "✨ Inspiration!" toast.
 - **Class section in the phone camp pop-up**: the character's class and level, its limited-use features with uses left, what a short and a long rest give back for that class (hit dice, Pact Magic, Arcane Recovery, Second Wind and so on), and camp ideas for the class that fill the downtime box when tapped.
 - **Lore tab** on the DM screen (Mike, Nov 16): tracks Locations, Dungeons, NPCs, Items, Books and Notes. Filter by category chip or search; each entry folds open to edit its name, category, what the party can learn, and a DM-only note. **From the table** adds the world map's places and dungeon entrances and the NPCs on the social scene that the lore does not have yet. **Share with phones** puts an entry (never the DM note) in a new Journal › Lore section on the phones; the TV shows no lore. Saved with the campaign.

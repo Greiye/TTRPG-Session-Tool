@@ -38,6 +38,7 @@ import './chronicle.js';
 import './dock.js';
 import './endsession.js';
 import './lore.js';
+import './menus.js';
 import { isoStage } from '../iso3d.js';
 
 
