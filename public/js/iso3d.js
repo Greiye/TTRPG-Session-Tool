@@ -214,6 +214,7 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       moveLabel: (u) => `Move · ${u.ap * STEP_FT} ft left [M]`,
       formatCost: (tiles) => `${tiles * STEP_FT} ft`,
       showPips: false,
+      showHp: dm, // health bars are for the DM only; the TV shows names (Mike, Nov 16)
       transparent: role === 'screen', // the TV keeps its backdrop behind the map
       camera: { followActive: true, zoom: 6 },
       describeAttack: (u, ab, tgt) => { const cv = coverOf(battle.getView(), u, tgt); return `Attack ${tgt.name} · AC ${tgt.defense ?? '?'}${cv ? ` +${cv} ${cv === 5 ? 'three-quarters' : 'half'} cover` : ''}`; },

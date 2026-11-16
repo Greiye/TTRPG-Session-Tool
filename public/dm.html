@@ -472,6 +472,14 @@
 
     <div class="card" data-tab="scene" data-sub="moments" data-panel="exploration social combat" id="momentsCard"></div>
     <div id="atmo" data-tab="scene" data-sub="stage"></div>
+    <div class="card lore-card" data-tab="lore" id="loreCard">
+      <h3>📚 Lore <span class="note" id="loreCount"></span></h3>
+      <div class="lore-cats" id="loreCats" role="tablist" aria-label="Lore categories"></div>
+      <div class="row"><input id="loreFind" class="grow" placeholder="Search the lore"><button class="btn small" id="lorePull" title="Add world map places and dungeons, and the NPCs on the scene, that the lore does not have yet">⤓ From the table</button></div>
+      <div class="row"><select id="loreCat" style="width:auto" aria-label="Category"></select><input id="loreName" class="grow" maxlength="80" placeholder="Name"><button class="btn primary" id="loreAdd">Add</button></div>
+      <p class="note" id="loreMsg" aria-live="polite"></p>
+      <div id="loreList" class="lore-list"></div>
+    </div>
     <div class="end-session-bar" data-dm-only><button class="btn hold-btn end-session" id="endSession" title="Press and hold for 1 second to end the session"><i class="hold-fill"></i><span>End Session</span></button></div>
   </div>
 
