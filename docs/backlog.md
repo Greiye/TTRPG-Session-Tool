@@ -24,6 +24,7 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 `public/stage.js`, `public/screen.html`, `public/anim.js`, `public/moments.css`, `public/js/dm/combat.js`, `src/sockets/dm.js`
 - [ ] 5. When the DM picks Combat mode, the TV shows a preparation filter reading "Combat" with "Get Ready" under it, and the battle map stays hidden. The DM sets up the fight, then presses and holds Roll initiative for 3 seconds. While it is held, the filter shakes hard (it is still under reduce motion). On release after 3 s, the filter lifts and the TV shows the combat map. Builds on the press-and-hold Roll initiative from the combat screen thread (that thread's item 2): use one hold control for both. Since PR #72, `#initHold` fires a bubbling `inithold` CustomEvent with `detail.phase` set to `start`, `cancel` or `complete` (on complete, `dm:combat:start` has already been sent); forward those phases to the server to drive the TV filter.
 - [ ] 1. The "Join the party" QR card slides in and out on the TV.
+- [ ] (Nov 15, second list) Bug: the backdrop and its effects draw in front of the combat window. Put the battle map (`.iso-layer`) above the backdrop and effect layers on the TV and in the DM preview.
 
 ### PR C: DM Rolls card
 `public/js/dm/rolls.js`, `public/dm.html`, `public/style.css` (reuse the phone dice pool from `public/js/play/`)
@@ -34,5 +35,17 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 `public/dm.html`, `public/style.css`, `public/chronicle.css`, `public/js/dm/dock.js`, `public/js/dm/modes.js`
 - [ ] 6. Battle map, Creature randomizer and Creatures cards start minimized.
 - [ ] 8. Buttons are centred in their card where it fits.
+- [ ] (Nov 15, second list) The Road cards tab moves into Miscellaneous (as a Misc part). Planning keeps Shops.
+- [ ] (Nov 15, second list) The DM's Party tab moves to a right-hand sidebar.
 - Pairs with the combat screen thread's item 7 (all modes and tabs in one column). Build after that lands so the two layout passes do not conflict. The one-column rules are at the end of `public/theme.css`, under "Combat screen feedback (Nov 16)" (PR #72).
+
+### PR E: Shop pop-up, "Greer's Trinkets"
+`src/shops.js`, `src/sockets/player.js`, `src/sockets/dm.js`, `src/popups.js`, `src/visibility.js`, `public/stage.js`, `public/js/play/shops.js`, `public/js/dm/shops.js`
+Today: the DM opens a shop pop-up on the TV (`dm:shop:pop`), phones buy and sell, and `player:shop:done` toggles each player's done flag.
+- [ ] Seed one shop, "Greer's Trinkets".
+- [ ] TV pop-up: a centred banner image of the merchant's store at the top, then items in a 3-column grid of buttons (up to 60, rows wrap automatically). Each button shows "Item Name", then "Item description", then the price, as placeholders for now.
+- [ ] Items keep a category and other data, but only the name, description and price reach phones and the TV.
+- [ ] Phones get the same shop as a pop-up. A player can leave and come back in as they like. After leaving, the phone shows "Waiting for the others" with a "Shop again" button under it.
+- [ ] When every seated player has left the shop, the pop-up closes on the TV and on all phones.
+- [ ] The DM's Shops cards start minimized.
 
