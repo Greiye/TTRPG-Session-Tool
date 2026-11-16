@@ -1,6 +1,7 @@
 // Tabs inside the phone's game screen. Each top tab owns one container (#tabPlay, #tabSheet, ...).
 // A top tab can hold sections (Journal: Inbox, Map, Notes; Misc: Logs, World, Legends, Bond) shown as
 // a chip bar inside it; each section owns its own container (#tabInbox, #tabMap, ...).
+// Top tabs show their symbol only (Mike, Nov 16); the word is the button's title and aria-label.
 // tab() returns the open section when the open top tab has sections, so feature modules check their own id.
 import { $ } from '../client.js';
 
@@ -16,7 +17,7 @@ const badgeOf = (t) => t.badge + t.sections.reduce((n, s) => n + s.badge, 0);
 function draw() {
   if (active !== 'play' && hiddenTabs.has(active)) active = 'play';
   const shown = tabs.filter((t) => !hiddenTabs.has(t.id)).sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
-  $('#tabs').innerHTML = shown.map((t) => { const n = badgeOf(t); return `<button class="${t.id === active ? 'on' : ''}" data-tab="${t.id}">${t.label}${n ? `<i>${n}</i>` : ''}</button>`; }).join('');
+  $('#tabs').innerHTML = shown.map((t) => { const n = badgeOf(t); const [icon, ...words] = t.label.split(' '); const name = words.join(' ') || icon; return `<button class="${t.id === active ? 'on' : ''}" data-tab="${t.id}" title="${name}" aria-label="${name}"><span class="tab-ico" aria-hidden="true">${icon}</span>${n ? `<i>${n}</i>` : ''}</button>`; }).join('');
   for (const t of tabs) {
     const el = $(`#tab${cap(t.id)}`);
     if (!el) continue;

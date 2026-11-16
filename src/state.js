@@ -165,8 +165,9 @@ function fullState() {
   const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId, derived: derived(p) }));
   const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId, dead: !!c.death }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
-  const helpers = [...io.sockets.sockets.values()].map((x) => x.data.role);
-  const codms = helpers.filter((r) => r === 'codm').length;
+  const all = [...io.sockets.sockets.values()];
+  const helpers = all.map((x) => x.data.role);
+  const codms = all.filter((x) => x.data.coDm).length;
   const masters = { battle: helpers.filter((r) => r === 'battle').length, social: helpers.filter((r) => r === 'social').length };
   const spectators = [...io.sockets.sockets.values()].filter((x) => x.data.spectator).length;
   const bulbsTargets = require('./bulbs').targets().length;

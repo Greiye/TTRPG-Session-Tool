@@ -8,7 +8,7 @@ const config = {
   ROOT,
   PORT: Number(process.env.PORT) || 3000,
   DM_KEY: process.env.DM_KEY || crypto.randomBytes(3).toString('hex'),
-  // Co-DM runs atmosphere (backdrops, effects, music, SFX) from their own device; no game controls.
+  // Co-DM: a second DM with every DM permission (Mike, Nov 16). /codm is still a phone soundboard for them.
   CODM_KEY: process.env.CODM_KEY || crypto.randomBytes(3).toString('hex'),
   // Battle Master (combat, battle map, the DM's creatures) and Social Master (NPC dialogue). See src/roles.js.
   BATTLE_KEY: process.env.BATTLE_KEY || crypto.randomBytes(3).toString('hex'),

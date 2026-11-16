@@ -27,9 +27,9 @@ function lanAddress() {
 // Phones get the HTTPS address when it's on, so their mic works later (item 13).
 const baseUrl = () => (HTTPS ? `https://${lanAddress()}:${HTTPS_PORT}` : `http://${lanAddress()}:${PORT}`);
 const joinUrl = (room) => `${baseUrl()}/play${room ? `?room=${room}` : ''}`;
-// Co-DM invite links: the atmosphere co-DM has its own page; Battle and Social Masters use the DM page.
+// Co-DM invite links: all three open the DM page with their key.
 const codmUrl = (role = 'codm') => (role === 'battle' ? `${baseUrl()}/dm?key=${BATTLE_KEY}`
-  : role === 'social' ? `${baseUrl()}/dm?key=${SOCIAL_KEY}` : `${baseUrl()}/codm?key=${CODM_KEY}`);
+  : role === 'social' ? `${baseUrl()}/dm?key=${SOCIAL_KEY}` : `${baseUrl()}/dm?key=${CODM_KEY}`); // the co-DM is a second DM
 const isLocalAddr = (a) => ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(a);
 
 module.exports = { lanAddresses, lanAddress, setHost, baseUrl, joinUrl, codmUrl, isLocalAddr };

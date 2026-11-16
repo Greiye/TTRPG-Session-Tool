@@ -1,4 +1,5 @@
 // Party HP, enemies, initiative and enemy turns.
+import { holdButton } from './hold.js';
 import { $, emit, onState, onClick } from '../client.js';
 
 const { esc, hpBar } = Stage;
@@ -84,30 +85,14 @@ function renderOrder(s, turn, def) {
 // Roll initiative is press and hold: the button fills while held; releasing once it is full rolls and sorts the order.
 // The button fires a DOM event 'inithold' with detail.phase 'start' | 'cancel' | 'complete' (complete = rolled),
 // so other features (e.g. a TV "Get ready" filter) can follow the hold.
-const HOLD_MS = 3000;
-(function holdToRoll() {
-  const b = $('#initHold');
-  if (!b) return;
-  const label = b.querySelector('span');
-  let t0 = 0; let raf = 0; let ready = false;
-  const hook = (phase) => b.dispatchEvent(new CustomEvent('inithold', { bubbles: true, detail: { phase } }));
-  const reset = () => { cancelAnimationFrame(raf); t0 = 0; ready = false; b.classList.remove('holding', 'ready'); b.style.setProperty('--hold', 0); label.textContent = '🎲 Hold to roll initiative'; };
-  const tick = () => {
-    const k = Math.min(1, (performance.now() - t0) / HOLD_MS);
-    b.style.setProperty('--hold', k);
-    if (k >= 1 && !ready) { ready = true; b.classList.add('ready'); label.textContent = '🎲 Release to roll'; }
-    if (t0) raf = requestAnimationFrame(tick);
-  };
-  const start = () => { t0 = performance.now(); b.classList.add('holding'); label.textContent = '🎲 Keep holding…'; raf = requestAnimationFrame(tick); hook('start'); };
-  const release = () => { if (!t0) return; const go = ready; reset(); if (go) { emit('dm:combat:start'); hook('complete'); } else hook('cancel'); };
-  b.addEventListener('pointerdown', (e) => { if (e.button !== 0) return; b.setPointerCapture(e.pointerId); start(); });
-  b.addEventListener('pointerup', release);
-  b.addEventListener('pointercancel', () => { if (t0) { reset(); hook('cancel'); } });
-  b.addEventListener('lostpointercapture', () => { if (t0) { reset(); hook('cancel'); } });
-  // Keyboard: hold Enter or Space the same way.
-  b.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && !t0) { e.preventDefault(); start(); } });
-  b.addEventListener('keyup', (e) => { if (e.key === 'Enter' || e.key === ' ') release(); });
-})();
+const initBtn = $('#initHold');
+holdButton(initBtn, {
+  ms: 3000, idle: '🎲 Hold to roll initiative', holding: '🎲 Keep holding…', ready: '🎲 Release to roll', fireOnRelease: true,
+  onFire: () => emit('dm:combat:start'),
+  onPhase: (phase) => initBtn.dispatchEvent(new CustomEvent('inithold', { bubbles: true, detail: { phase } })),
+});
+// Next turn: hold 2 seconds (Mike, Nov 16), so a stray tap never skips someone's turn.
+holdButton($('#nextHold'), { ms: 2000, idle: 'Hold for next turn ▸', holding: 'Keep holding…', onFire: () => emit('dm:combat:next') });
 
 const actions = {
   combatStart: () => emit('dm:combat:start'),

@@ -23,6 +23,7 @@
       <label class="note tight">Join address <select id="hostSel"></select></label>
       <label class="note tight"><input type="checkbox" id="showJoin"> Show “Join the party” QR on TV</label>
     </div>
+    <div class="battle-wait" id="battleWait" hidden><p>⚔️ Waiting for the DM to activate combat.</p></div>
     <div class="dm-scroll" id="tablePage">
       <div class="stage-wrap"><div id="stage" class="stage"></div></div>
       <h3 class="col-sub">Story <span class="note">what the TV log shows, newest at the bottom</span></h3>
@@ -67,23 +68,31 @@
     <div class="sub-tabs" id="subTabs" role="tablist" aria-label="Section parts"></div>
 
 <div class="card" data-tab="misc" data-sub="codm">
-      <h3>Co-DM <span><span id="codmCount" class="note"></span> <button class="btn small" id="codmToggle">Invite</button></span></h3>
-      <div id="codmInvite" class="codm-invite" hidden>
-        <img id="codmQr" alt="Co-DM QR">
-        <div><p class="note">Your co-DM scans this to run music, sound effects and backdrops from their phone. Don't show it on the TV.</p><code id="codmUrl"></code></div>
+      <div class="invite-role">
+        <h3>🐉 Co-DM <span id="codmCount" class="note"></span></h3>
+        <button class="btn" data-invite="codm" aria-expanded="false" aria-controls="codmInvite">Invite</button>
+        <div id="codmInvite" class="codm-invite" hidden>
+          <img id="codmQr" alt="Co-DM QR">
+          <div><p class="note">A second DM: every DM control, on their own device. Don't show it on the TV.</p><code id="codmUrl"></code></div>
+        </div>
       </div>
-      <h3>⚔️ Battle Master <span><span id="battleCount" class="note"></span> <button class="btn small" data-invite="battle">Invite</button></span></h3>
-      <div id="battleInvite" class="codm-invite" hidden>
-        <img id="battleQr" alt="Battle Master QR">
-        <div><p class="note">Runs combat for you: initiative and turns, the battle map and fog, and your creatures' attacks, HP and conditions. Nothing outside combat. Don't show it on the TV.</p><code id="battleUrl"></code></div>
+      <div class="invite-role">
+        <h3>⚔️ Battle Master <span id="battleCount" class="note"></span></h3>
+        <button class="btn" data-invite="battle" aria-expanded="false" aria-controls="battleInvite">Invite</button>
+        <div id="battleInvite" class="codm-invite" hidden>
+          <img id="battleQr" alt="Battle Master QR">
+          <div><p class="note">Runs combat for you: initiative and turns, the battle map and fog, and your creatures' attacks, HP and conditions. Nothing outside combat. Don't show it on the TV.</p><code id="battleUrl"></code></div>
+        </div>
       </div>
-      <h3>💬 Social Master <span><span id="socialCount" class="note"></span> <button class="btn small" data-invite="social">Invite</button></span></h3>
-      <div id="socialInvite" class="codm-invite" hidden>
-        <img id="socialQr" alt="Social Master QR">
-        <div><p class="note">Voices NPCs for you: types their lines into the dialogue box, sets emotions, picks who is on the scene and pushes player choices. Nothing else. Don't show it on the TV.</p><code id="socialUrl"></code></div>
+      <div class="invite-role">
+        <h3>💬 Social Master <span id="socialCount" class="note"></span></h3>
+        <button class="btn" data-invite="social" aria-expanded="false" aria-controls="socialInvite">Invite</button>
+        <div id="socialInvite" class="codm-invite" hidden>
+          <img id="socialQr" alt="Social Master QR">
+          <div><p class="note">Voices NPCs for you: types their lines into the dialogue box, sets emotions, picks who is on the scene and pushes player choices. Nothing else. Don't show it on the TV.</p><code id="socialUrl"></code></div>
+        </div>
       </div>
     </div>
-
     <div class="card" data-tab="misc" data-sub="legends" id="legCard">
       <h3>Hall of fame <span class="note">kept across campaigns · natural 1s are counted automatically</span></h3>
       <div id="legBoard" class="list"></div>
@@ -343,39 +352,39 @@
     </div>
 
     <!-- COMBAT -->
+    <div class="card fold-card" data-tab="combat" data-panel="combat" id="mapCard">
+      <h3><button class="fold-head" id="mapFold" aria-expanded="true" aria-controls="mapBody">Battle map <i aria-hidden="true">▾</i></button> <span class="note">drag tokens onto the 3D map</span></h3>
+      <div class="fold-body map-stack" id="mapBody">
+        <label class="btn">⬆ Map image<input type="file" accept="image/*" id="mapFile" hidden></label>
+        <button class="btn" id="mapSet">Set grid</button>
+        <div class="map-under">
+          <label class="note tight">Columns <input id="mapCols" type="number" min="4" max="60" value="20" style="width:64px"></label>
+          <label class="note tight">Rows <input id="mapRows" type="number" min="4" max="40" value="14" style="width:64px"></label>
+        </div>
+        <label class="chk"><input type="checkbox" id="mapFog"> Fog of war</label>
+        <label class="note tight">Light for selected token <select id="mapLight" style="width:auto"><option value="none">None</option><option value="torch">Torch (20 ft)</option><option value="lantern">Lantern (30 ft)</option><option value="darkvision">Darkvision (60 ft)</option></select></label>
+        <p class="note">Drag tokens from the tray on the 3D map onto a tile. Drag a token on the map to move it.</p>
+        <div class="row" hidden>
+          <select id="mapTool" style="width:auto"><option value="place">Place token</option><option value="difficult">Paint difficult</option><option value="wall">Paint wall</option><option value="clear">Clear tile</option></select>
+          <select id="mapToken" class="grow"></select>
+          <label class="note tight">Height <input id="mapZ" type="number" min="0" max="10" value="0" style="width:56px"></label>
+        </div>
+        <p class="note" id="mapInfo"></p>
+        <button class="btn go hold-btn" id="mapGen" title="Press and hold for 2 seconds: fills the map with hills, water, ruined walls, trees and rocks. Replaces the terrain."><i class="hold-fill"></i><span>⛰ Hold to generate terrain</span></button>
+        <div class="map-under">
+          <input id="mapSeed" placeholder="seed (optional)" style="width:130px" title="Same seed, same terrain">
+          <span class="note tight" id="mapSeedNow"></span>
+        </div>
+      </div>
+    </div>
     <div class="card" data-tab="combat" data-panel="combat">
       <h3>Encounter <span class="note" id="encRound"></span></h3>
       <div class="enc-btns">
         <button class="btn primary hold-btn" id="initHold" title="Press and hold, then release to roll initiative and sort everyone in turn order"><i class="hold-fill"></i><span>🎲 Hold to roll initiative</span></button>
-        <button class="btn" data-act="combatNext">Next turn ▸</button>
+        <button class="btn hold-btn" id="nextHold" title="Press and hold for 2 seconds to end this turn"><i class="hold-fill"></i><span>Hold for next turn ▸</span></button>
         <button class="btn danger enc-end" data-act="combatEnd">End</button>
       </div>
       <div id="initOrder" class="init-order" aria-live="polite"></div>
-    </div>
-    <div class="card" data-tab="combat" data-panel="combat">
-      <h3>Battle map <span class="note">drag tokens onto the 3D map</span></h3>
-      <div class="row">
-        <label class="btn small">⬆ Map image<input type="file" accept="image/*" id="mapFile" hidden></label>
-        <input id="mapCols" type="number" min="4" max="60" value="20" style="width:64px" title="Columns">
-        <input id="mapRows" type="number" min="4" max="40" value="14" style="width:64px" title="Rows">
-        <button class="btn small" id="mapSet">Set grid</button>
-      </div>
-      <div class="row">
-        <input id="mapSeed" placeholder="seed (optional)" style="width:130px" title="Same seed, same terrain">
-        <button class="btn small" id="mapGen" title="Fill the map with hills, water, ruined walls, trees and rocks. Replaces the terrain.">⛰ Generate terrain</button>
-        <span class="note tight" id="mapSeedNow"></span>
-      </div>
-      <p class="note">Drag tokens from the tray on the 3D map onto a tile. Drag a token on the map to move it.</p>
-      <div class="row" hidden>
-        <select id="mapTool" style="width:auto"><option value="place">Place token</option><option value="difficult">Paint difficult</option><option value="wall">Paint wall</option><option value="clear">Clear tile</option></select>
-        <select id="mapToken" class="grow"></select>
-        <label class="note tight">Height <input id="mapZ" type="number" min="0" max="10" value="0" style="width:56px"></label>
-      </div>
-      <div class="row">
-        <label class="chk"><input type="checkbox" id="mapFog"> Fog of war</label>
-        <label class="note tight">Light for selected token <select id="mapLight" style="width:auto"><option value="none">None</option><option value="torch">Torch (20 ft)</option><option value="lantern">Lantern (30 ft)</option><option value="darkvision">Darkvision (60 ft)</option></select></label>
-      </div>
-      <p class="note" id="mapInfo"></p>
     </div>
     <div class="card" data-tab="combat" data-panel="combat">
       <h3>Creature randomizer <span class="note">seed locks a result</span></h3>

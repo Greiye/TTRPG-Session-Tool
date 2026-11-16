@@ -29,11 +29,11 @@ module.exports = function routes(app) {
   });
   // Speech models for the offline (Vosk) engine. Only files in MODEL_DIR are served; nothing else.
   app.use('/models', express.static(MODEL_DIR, { maxAge: '1d', dotfiles: 'deny', index: false }));
-  const dmOnly = (req) => isLocalAddr(req.socket.remoteAddress) || req.query.key === DM_KEY;
+  const dmOnly = (req) => isLocalAddr(req.socket.remoteAddress) || [DM_KEY, CODM_KEY].includes(req.query.key); // the co-DM is a second DM
 
   // One upload endpoint for every asset kind (see assets.js). Body is the raw file; content-type says what it is.
   const raw = express.raw({ type: () => true, limit: Math.max(...Object.values(assets.KINDS).map((k) => k.maxBytes)) });
-  const isDm = (req) => isLocalAddr(req.socket.remoteAddress) || req.get('x-dm-key') === DM_KEY;
+  const isDm = (req) => isLocalAddr(req.socket.remoteAddress) || [DM_KEY, CODM_KEY].includes(req.get('x-dm-key'));
   const isCodm = (req) => req.get('x-dm-key') === CODM_KEY;
   // Battle or Social Master, by the key their page sends (src/roles.js).
   const masterOf = (req) => ({ [BATTLE_KEY]: 'battle', [SOCIAL_KEY]: 'social' })[req.get('x-dm-key')] || null;
