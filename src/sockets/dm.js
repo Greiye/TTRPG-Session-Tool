@@ -56,6 +56,9 @@ module.exports = function dmSockets(socket) {
     state.mode = mode;
     world.applyMood(mode);
     if (mode !== 'exploration') state.worldMap.onTv = false; // the world map belongs to exploration: combat and social take the TV
+    // Combat prep (Mike, Nov 15): entering combat puts a "Combat · Get ready" filter on the TV while the DM sets
+    // the field. It lifts when the DM's 3-second initiative hold rolls initiative (dm:combat:start).
+    state.combatPrep = mode === 'combat' && !state.combat.active ? { holding: false } : null;
     state.check = null;
     log('system', `— ${mode.toUpperCase()} —`);
     void bulbs.sync(state);
@@ -365,7 +368,9 @@ module.exports = function dmSockets(socket) {
     const s0 = seed === undefined || seed === '' ? undefined : Number(seed) >>> 0;
     list.forEach((e, i) => { e.accent = randomizer.accent(s0 === undefined ? undefined : (s0 + i) >>> 0); });
   });
-  dm('dm:combat:start', () => game.startCombat());
+  dm('dm:combat:start', () => { state.combatPrep = null; game.startCombat(); });
+  // The DM is holding Roll initiative: the TV filter shakes until the hold completes or is let go early.
+  dm('dm:combat:prep', ({ holding }) => { if (state.combatPrep) state.combatPrep.holding = !!holding; });
   dm('dm:combat:end', () => {
     Object.assign(state.combat, { active: false, order: [], turn: 0, round: 0, acted: {} });
     log('combat', 'Combat ends.');
