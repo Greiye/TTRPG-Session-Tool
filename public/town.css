@@ -55,18 +55,18 @@
 /* Phones: the town tab and windows. */
 .tnp { display: flex; flex-direction: column; gap: 10px; }
 .tnp h3 { margin: 0; font-family: var(--display); color: var(--gold, #e3b45a); text-align: center; }
-.tnp-here { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border: 1px solid #6b5a3a; border-radius: 10px; background: #1b1420; animation: dgp-up .35s both; }
+.tnp-here { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border: 1px solid #8a6a3a; border-radius: 10px; background: rgb(255 248 230 / .55); color: inherit; animation: dgp-up .35s both; }
 .tnp-here > i { font-style: normal; font-size: 40px; line-height: 1; }
 .tnp-here p { margin: 4px 0 0; line-height: 1.4; }
 .tnp-list { display: grid; gap: 8px; }
-.tnp-opt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; text-align: left; border-radius: 10px; border: 1px solid #5a4a30; background: #221a26; color: inherit; font: inherit; transition: background .2s, border-color .2s, transform .15s; }
+.tnp-opt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; text-align: left; border-radius: 10px; border: 1px solid #8a6a3a; background: rgb(255 248 230 / .45); color: inherit; font: inherit; transition: background .2s, border-color .2s, transform .15s; }
 .tnp-opt > i { font-style: normal; font-size: 26px; }
 .tnp-opt b { display: block; }
-.tnp-opt small { color: #b8a888; }
-.tnp-opt.on { border-color: #ffd36b; background: #3d2f14; transform: scale(1.01); }
-.tnp-opt .tnp-n { margin-left: auto; font-size: 12px; color: #ffd36b; }
+.tnp-opt small { opacity: .75; }
+.tnp-opt.on { border-color: #b8860b; background: rgb(255 214 120 / .55); box-shadow: 0 0 0 2px rgb(184 134 11 / .35); transform: scale(1.01); }
+.tnp-opt .tnp-n { margin-left: auto; font-size: 12px; font-weight: 700; color: #8a5a00; }
 .tnp-go { width: 100%; min-height: 52px; font-size: 1.05em; }
-.tnp-wait { margin: 0; color: #9fe0a8; font-weight: 600; text-align: center; }
+.tnp-wait { margin: 0; color: #2f7a3a; font-weight: 600; text-align: center; }
 .tnp-count { margin: 0; text-align: center; }
 .tnp .tn-board { margin-top: 4px; }
 .tnp .tn-node i { width: 30px; height: 30px; font-size: 17px; }
