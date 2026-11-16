@@ -23,6 +23,7 @@ const worldmap = require('./worldmap');
 const living = require('./living');
 const web = require('./web');
 const dungeon = require('./dungeon');
+const undo = require('./undo');
 
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 const EFFECTS = ['rain', 'snow', 'fog', 'embers', 'lightning', 'darkness', 'blood', 'magic'];
@@ -205,6 +206,7 @@ function broadcast() {
     hub.io.to('dms').emit('dm:roster', Object.values(roster).map(({ socketId, ...c }) => ({ ...c, online: !!socketId })));
     saveRoster();
     store.scheduleSave(snap);
+    undo.touch();
   });
 }
 // Save immediately on shutdown so the last change is never lost.
@@ -223,3 +225,24 @@ module.exports.loadSnapshot = (saved) => {
   cast.ensure(state.social);
 };
 module.exports.snapshot = snap;
+
+// DM undo (src/undo.js): the history holds the campaign and each character sheet. Going back restores both;
+// phones stay connected (socket ids are kept) and characters made since then are left alone.
+const sheets = () => Object.fromEntries(Object.values(roster).map(({ socketId, ...c }) => [c.id, c]));
+undo.init({
+  snapshot: snap,
+  characters: sheets,
+  changed: () => broadcast(),
+  lastLine: () => { const e = state.log[state.log.length - 1]; return e ? { id: e.id, text: e.text } : null; },
+  apply(step) {
+    const campaign = Object.fromEntries(Object.entries(step.parts).map(([k, v]) => [k, JSON.parse(v)]));
+    module.exports.loadSnapshot({ ...campaign, version: store.VERSION, seq: 0 });
+    for (const [id, json] of Object.entries(step.chars)) {
+      const saved = JSON.parse(json);
+      const c = roster[id];
+      if (!c) continue;
+      for (const k of Object.keys(c)) if (k !== 'socketId' && !(k in saved)) delete c[k];
+      Object.assign(c, saved);
+    }
+  },
+});

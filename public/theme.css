@@ -359,7 +359,7 @@ body.phone.chron .tabs { background: rgb(226 204 156 / .96); border-color: #8d6f
 .dm-bar .bar-min:hover { border-color: #e8c77e; }
 .dm-bar > * { transition: opacity .2s; }
 body.bar-min .dm-bar { padding-top: 6px; padding-bottom: 6px; }
-body.bar-min .dm-bar > :not(h2):not(.bar-min) { display: none; }
+body.bar-min .dm-bar > :not(h2):not(.bar-min):not(.undo-bar) { display: none; }
 body.bar-min .dm-bar h2 { font-size: calc(14px * var(--ts)); }
 body.bar-min #pills { display: none; }
 
@@ -664,3 +664,13 @@ body.chron .convo-wheel .wheel-send, .convo-wheel .wheel-send { border: 0; borde
 .hero-pick button { position: relative; }
 .pick-cond { position: absolute; right: -2px; bottom: -2px; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 8px; background: #b3241b; color: #fff; font: 700 10px/15px var(--sans, system-ui); font-style: normal; text-align: center; box-shadow: 0 1px 3px rgb(0 0 0 / .6); }
 @media (prefers-reduced-motion: reduce) { .cond-badge.new { animation: none; } }
+
+/* DM Undo / Redo in the top bar (public/js/dm/undo.js). Stays visible when the bar is minimized. */
+.dm-bar .undo-bar { order: 0; display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.dm-bar .undo-bar[hidden] { display: none; }
+.undo-btn { white-space: nowrap; max-width: 340px; overflow: hidden; text-overflow: ellipsis; }
+.undo-btn small { font-weight: 400; opacity: .8; margin-left: 4px; }
+.undo-note { font-size: calc(12px * var(--ts)); color: #e8c77e; opacity: 0; transform: translateX(-6px); transition: opacity .25s, transform .25s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+.undo-note.show { opacity: 1; transform: none; }
+.undo-note.err { color: #f0a0a0; }
+html[data-motion="reduce"] .undo-note { transition: none; }
