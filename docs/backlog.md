@@ -229,6 +229,7 @@ Mike is building his own game system, a fusion of Daggerheart, 5e and homebrew, 
 - [ ] Spell area templates: cones, lines, circles and cubes that snap to the grid and highlight every token inside. [Battle map, DM Screen, phones, TV; sizes are free numbers so any system's spells fit]
 - [ ] Token status icons: conditions show as icons on tokens, tracked automatically, with a duration countdown. [Battle map, TV, phones; conditions in `src/tracker.js` and round countdowns in `src/timers.js` already exist, condition names should be editable per system]
 - [ ] Ambient audio and music per scene: each scene has looping tracks and sound cues that start with it. [TV audio; `public/audio.js` and the soundboard already crossfade music and blend ambience loops, this ties them to a scene]
+
 ## Mike's notes, 2026-11-16 (ninth list)
 
 System-agnostic like the eighth list: Mike's own system fuses Daggerheart, 5e and homebrew. Bracketed notes say which screen it is on and what already exists.
