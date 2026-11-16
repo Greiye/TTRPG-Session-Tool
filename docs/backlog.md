@@ -177,3 +177,11 @@ Items are as Mike wrote them. Bracketed notes say which screen a tab or setting 
 `public/dm.html`, `public/style.css`, `public/js/dm/modes.js`, `public/js/dm/dock.js`
 - [ ] DM Screen Mode Buttons get darker to show DM is currently on them, not just the text turning gold. [DM Screen, mode bar]
 - [ ] Party Tab is on the Right sidebar. [DM Screen; overlaps the 15 Nov PR D item and the 16 Nov PR H layout items]
+
+## Mike's notes, 2026-11-16 (fourth list)
+
+Item is as Mike wrote it. Bracketed notes say which screen it is on.
+
+### PR T: End session
+`public/dm.html`, `public/style.css`, `public/stage.js`, `public/js/play/`, `src/sockets/dm.js`, `src/sockets/player.js`
+- [ ] Red End Session button at the bottom of the left sidebar. I click-hold this for 1 second to end the session. It displays on the TV Screen a big message: End of Session. On the player phones it shows "Thanks for playing." For DM, it asks to save and explore the logs. [DM Screen, left sidebar]
