@@ -479,3 +479,23 @@ body.chron .btn.danger.enc-end:hover { background-color: #cf2c21; }
 .cbt .btn.atk:disabled { cursor: default; }
 .cbt .btn.atk.spent, .cbt.acted .btn.atk { filter: grayscale(1) brightness(.75); opacity: .55; text-decoration: line-through; }
 .cbt.acted .cbt-head b { color: #6b6158; }
+
+/* Battle map card (Mike, Nov 16): centred buttons with their fields underneath, a green hold-to-generate at the
+   bottom, and a title that folds the card. */
+.map-stack { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.map-stack > .btn { min-width: 60%; justify-content: center; }
+.map-stack .map-under { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: -2px; }
+.map-stack .note { margin: 0; }
+body.chron .btn.go, .btn.go { background: linear-gradient(180deg, rgb(210 255 200 / .22), transparent 45%, rgb(0 0 0 / .35)), #2f7d32; border-color: #5fbf5f; color: #fff; }
+body.chron .btn.go:hover { background-color: #379a3b; }
+.fold-head { all: unset; cursor: pointer; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; }
+.fold-head i { display: inline-block; font-style: normal; transition: transform .2s; }
+.fold-card.folded .fold-head i { transform: rotate(-90deg); }
+.fold-head:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* Co-DM card: each role is a title, one centred Invite button under it, then its QR. */
+.invite-role { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-bottom: 10px; }
+.invite-role + .invite-role { border-top: 1px solid var(--line); padding-top: 10px; }
+.invite-role h3 { align-self: stretch; }
+.invite-role > .btn { min-width: 50%; }
+.invite-role .codm-invite { align-self: stretch; }

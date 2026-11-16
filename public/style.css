@@ -957,3 +957,7 @@ body[data-role] .dm-bar > :not(h2):not(.bar-min),
 body[data-role] .composer,
 body[data-role] .modes-card .modes,
 body[data-role] #wmPage { display: none !important; }
+/* Battle Master outside combat: one message instead of the table. */
+.battle-wait { flex: 1; display: grid; place-items: center; padding: 24px; text-align: center; }
+.battle-wait p { font-family: var(--display); color: var(--gold); font-size: calc(26px * var(--ts)); margin: 0; animation: pulse 2s infinite; }
+body.battle-waiting #tablePage, body.battle-waiting #toolsCol .modes-card, body.battle-waiting #sideTitle, body.battle-waiting #subTabs { display: none !important; }

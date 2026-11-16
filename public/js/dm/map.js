@@ -2,6 +2,7 @@
 // The map is edited directly on the stage (in combat): click a tile, drag a token, or select a token and use the arrow keys.
 import { $, emit, onState, state } from '../client.js';
 import { dmKey } from './auth.js';
+import { holdButton } from './hold.js';
 
 const { esc } = Stage;
 let mapKey = null;
@@ -62,12 +63,24 @@ onState((s) => {
 });
 
 $('#mapSet').onclick = () => emit('dm:map', { cols: $('#mapCols').value, rows: $('#mapRows').value, image: state()?.map?.image || null });
-$('#mapGen').onclick = () => {
-  if (!state()?.map) return alert('Set a grid first.');
-  if (!confirm('Replace the terrain (heights, ground, walls, trees, rocks) with a generated map?')) return;
-  const seed = $('#mapSeed').value.trim();
-  emit('dm:map:generate', seed ? { seed: Number(seed) || [...seed].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) } : {});
-};
+// Generate terrain: hold 2 seconds (the hold replaces the old confirm box). With no grid yet, it sets one first.
+// Once generated, the Battle map card folds up out of the way (Mike, Nov 16).
+holdButton($('#mapGen'), {
+  ms: 2000, idle: '⛰ Hold to generate terrain', holding: '⛰ Keep holding…',
+  onFire: () => {
+    if (!state()?.map) emit('dm:map', { cols: $('#mapCols').value, rows: $('#mapRows').value, image: null });
+    const seed = $('#mapSeed').value.trim();
+    emit('dm:map:generate', seed ? { seed: Number(seed) || [...seed].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) } : {});
+    fold(true);
+  },
+});
+// The Battle map card folds by its title.
+function fold(on) {
+  $('#mapCard').classList.toggle('folded', on);
+  $('#mapFold').setAttribute('aria-expanded', String(!on));
+  $('#mapBody').hidden = on;
+}
+$('#mapFold').onclick = () => fold(!$('#mapCard').classList.contains('folded'));
 $('#mapFile').onchange = async (e) => {
   const file = e.target.files[0];
   e.target.value = '';
