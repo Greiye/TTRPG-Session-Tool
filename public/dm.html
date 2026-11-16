@@ -61,7 +61,7 @@
         <div id="castPickList" class="cast-list"></div>
         <button class="btn small" data-enter="none">Enter without picking</button>
       </div>
-      <nav class="tab-list" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Rolls"><i>🎲</i><span>Rolls</span></button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat"><i>⚔️</i><span>Combat</span></button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages"><i>✉</i><span>Messages</span></button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs"><i>📜</i><span>Logs</span></button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene, points of interest, stage and music, clocks, TV moments and puzzles" aria-label="Scene"><i>🎬</i><span>Scene</span></button><button role="tab" data-stab="misc" title="NPCs, legends, lights, table tools, quiz, relations, journal, camp, co-DM and campaign data" aria-label="Miscellaneous"><i>🧰</i><span>Miscellaneous</span></button></div><div class="tab-group" data-group="plan" data-plan aria-label="Planning"><button role="tab" data-stab="shops" title="Shops and party gold" aria-label="Shops"><i>🛒</i><span>Shops</span></button></div></nav>
+      <nav class="tab-list" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Rolls"><i>🎲</i><span>Rolls</span></button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat"><i>⚔️</i><span>Combat</span></button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages"><i>✉</i><span>Messages</span></button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs"><i>📜</i><span>Logs</span></button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene, points of interest, stage and music, clocks, TV moments and puzzles" aria-label="Scene"><i>🎬</i><span>Scene</span></button><button role="tab" data-stab="lore" title="Lore: locations, dungeons, NPCs, items, books and notes" aria-label="Lore"><i>📚</i><span>Lore</span></button><button role="tab" data-stab="misc" title="NPCs, legends, lights, table tools, quiz, relations, journal, camp, co-DM and campaign data" aria-label="Miscellaneous"><i>🧰</i><span>Miscellaneous</span></button></div><div class="tab-group" data-group="plan" data-plan aria-label="Planning"><button role="tab" data-stab="shops" title="Shops and party gold" aria-label="Shops"><i>🛒</i><span>Shops</span></button></div></nav>
     </div>
 
     <p class="side-title" id="sideTitle"></p>
@@ -463,6 +463,14 @@
     </div>
     <div class="card" data-tab="scene" data-sub="moments" data-panel="exploration social combat" id="momentsCard"></div>
     <div id="atmo" data-tab="scene" data-sub="stage"></div>
+    <div class="card lore-card" data-tab="lore" id="loreCard">
+      <h3>📚 Lore <span class="note" id="loreCount"></span></h3>
+      <div class="lore-cats" id="loreCats" role="tablist" aria-label="Lore categories"></div>
+      <div class="row"><input id="loreFind" class="grow" placeholder="Search the lore"><button class="btn small" id="lorePull" title="Add world map places and dungeons, and the NPCs on the scene, that the lore does not have yet">⤓ From the table</button></div>
+      <div class="row"><select id="loreCat" style="width:auto" aria-label="Category"></select><input id="loreName" class="grow" maxlength="80" placeholder="Name"><button class="btn primary" id="loreAdd">Add</button></div>
+      <p class="note" id="loreMsg" aria-live="polite"></p>
+      <div id="loreList" class="lore-list"></div>
+    </div>
     <div class="end-session-bar" data-dm-only><button class="btn hold-btn end-session" id="endSession" title="Press and hold for 1 second to end the session"><i class="hold-fill"></i><span>End Session</span></button></div>
   </div>
 

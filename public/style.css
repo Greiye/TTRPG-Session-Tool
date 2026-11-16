@@ -1099,3 +1099,24 @@ body.dm .card > .btn, body.dm .card > button { display: block; margin-inline: au
 .dm-hero .hero-card #party .item { display: grid; grid-template-columns: 1fr; gap: 4px; }
 .dm-hero .hero-card #party .item > .row { flex-wrap: nowrap; justify-content: space-between; gap: 4px; }
 .dm-hero .hero-card #party .item > .row .btn { flex: 1; padding-inline: 0; min-width: 0; }
+
+/* Lore tab (Mike, Nov 16): category chips, collapsible entries, shared badge. Phones: Journal > Lore. */
+.lore-cats { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.lore-cats .chip { display: inline-flex; align-items: baseline; gap: 4px; }
+.lore-cats .chip small { display: inline; opacity: .7; }
+.lore-list { display: flex; flex-direction: column; gap: 6px; }
+.lore-entry { border: 1px solid rgb(0 0 0 / .2); border-radius: 8px; background: rgb(255 255 255 / .06); transition: opacity .2s, transform .2s; }
+.lore-entry summary { display: flex; align-items: center; gap: 8px; padding: 6px 8px; cursor: pointer; list-style: none; }
+.lore-entry summary::-webkit-details-marker { display: none; }
+.lore-entry summary i { font-style: normal; }
+.lore-entry summary b { flex: 1; }
+.lore-entry.shared { border-color: rgb(80 160 110 / .6); }
+.lore-badge { font-size: .75rem; padding: 1px 6px; border-radius: 99px; background: rgb(80 160 110 / .25); }
+.lore-entry[open] .lore-body { animation: lore-open .2s ease both; }
+.lore-body { display: flex; flex-direction: column; gap: 6px; padding: 0 8px 8px; }
+.lore-body textarea { width: 100%; resize: vertical; }
+.lore-entry.fresh { animation: lore-flash 1.2s ease; }
+.lore-entry.leaving { opacity: 0; transform: translateX(-12px); }
+@keyframes lore-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes lore-flash { 0% { box-shadow: 0 0 0 2px #f2c96e; } 100% { box-shadow: none; } }
+.lore-phone .lore-entry p { margin: 0; padding: 0 8px 8px; white-space: pre-wrap; }
