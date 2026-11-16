@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Exports design** (Mike, Nov 16, docs only): `docs/exports.md` plans how sessions turn into material for artists, musicians, animators and comic makers: a full session journal with a one-tap Keep button, a DM-reviewed story pack, a comic panel format, a mood timeline for music, TV and battle map stills, character reference sheets and TV clips. Secrets and DM-only fields stay out. Nothing built yet.
 - **Town visits and the segmented time clock** (Mike, Nov 16, backlog PR V):
   - **Travel uses time.** Each road leg on the world map moves the story clock (Dawn, Day, Noon, Dusk, Night) on one segment, so a two-leg road takes two. A straight trip with no road takes one. The DM can switch it off with **Travel uses time** on the world map page.
   - **Town maps.** A world map place marked **🏘 Town map** (new Town places get it) has its own town map, edited under the world map: drag **🏠 Place** onto the picture to add a place, drag a place to move it or into the bin to remove it, tap one to edit its name, kind, what is there, time cost (0 to 5 segments), shop and which places visiting it reveals. Upload a picture or use the parchment default. Millbrook starts with five hidden places: Settlement entrance, Farm, Marketplace, Smithy and Wizards Tower (the entrance reveals the farm and marketplace; the marketplace reveals the smithy and tower). **Starter town** resets a town to these.
