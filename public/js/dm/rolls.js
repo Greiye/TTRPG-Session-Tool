@@ -75,3 +75,44 @@ $('#callKind').addEventListener('change', () => { skillsKey = null; });
 // The DM's own screen shows secret rolls and roll calls it made.
 socket.on('rollpop', (p) => window.RollPop?.show(p));
 socket.on('rollpop:skip', () => window.RollPop?.hide());
+
+// Dice buttons like the phones' dice pool (Mike, Nov 15): D4 to D20 with ◀ ▶. They write the roll into the
+// expression box (keeping any +N modifier typed after the dice), so Secret, Label and Roll work as before.
+const DICE = [4, 6, 8, 10, 12, 20];
+const MAX_DIE = 20;
+const SHAPE = {
+  4: '<polygon points="12,2 22,21 2,21"/>',
+  6: '<rect x="3" y="3" width="18" height="18" rx="2"/>',
+  8: '<polygon points="12,1 23,12 12,23 1,12"/><line x1="1" y1="12" x2="23" y2="12"/>',
+  10: '<polygon points="12,1 22,10 12,23 2,10"/><polyline points="2,10 12,14 22,10"/><line x1="12" y1="14" x2="12" y2="23"/>',
+  12: '<polygon points="12,1 23,9 19,22 5,22 1,9"/><polygon points="12,6 17,10 15,16 9,16 7,10"/>',
+  20: '<polygon points="12,1 22,6.5 22,17.5 12,23 2,17.5 2,6.5"/><polygon points="12,6 18,16 6,16"/>',
+};
+const pool = Object.fromEntries(DICE.map((n) => [n, 0]));
+const diceExpr = () => DICE.filter((n) => pool[n]).map((n) => `${pool[n]}d${n}`).join('+');
+let modTail = '';
+function drawDmPool(bump) {
+  const el = $('#dmDicePool');
+  if (!el) return;
+  el.innerHTML = `<div class="dice-grid">${DICE.map((n) => `<div class="die ${pool[n] ? 'has' : ''} ${bump === n ? 'bump' : ''}">
+      <button class="die-step" data-dm-die="${n}" data-step="-1" aria-label="One less D${n}" ${pool[n] ? '' : 'disabled'}>◀</button>
+      <span class="die-face"><svg class="die-ico" viewBox="0 0 24 24" aria-hidden="true">${SHAPE[n]}</svg><b>D${n}</b>${pool[n] ? `<i class="die-n">${pool[n]}</i>` : ''}</span>
+      <button class="die-step" data-dm-die="${n}" data-step="1" aria-label="One more D${n}" ${pool[n] >= MAX_DIE ? 'disabled' : ''}>▶</button>
+    </div>`).join('')}</div>
+    <div class="row dice-opts"><span class="grow"></span><button class="btn small" data-dm-dclear ${diceExpr() ? '' : 'disabled'}>Clear dice</button></div>`;
+}
+drawDmPool();
+$('#dmDicePool').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b || b.disabled) return;
+  if (b.hasAttribute('data-dm-dclear')) { DICE.forEach((n) => { pool[n] = 0; }); $('#rollExpr').value = ''; modTail = ''; return drawDmPool(); }
+  const n = Number(b.dataset.dmDie);
+  if (!n) return;
+  // Keep a typed modifier such as +3 at the end of the box.
+  const m = $('#rollExpr').value.match(/([+-]\s*\d+)\s*$/);
+  if (m && !/d\d*$/i.test(m[1])) modTail = m[1].replace(/\s+/g, '');
+  pool[n] = Math.max(0, Math.min(MAX_DIE, pool[n] + Number(b.dataset.step)));
+  const ex = diceExpr();
+  $('#rollExpr').value = ex ? ex + modTail : '';
+  drawDmPool(Number(b.dataset.step) > 0 ? n : null);
+});

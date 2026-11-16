@@ -957,3 +957,9 @@ body[data-role] .dm-bar > :not(h2):not(.bar-min),
 body[data-role] .composer,
 body[data-role] .modes-card .modes,
 body[data-role] #wmPage { display: none !important; }
+
+/* DM Roll call and Roll dice cards (Nov 15): one drop-down per row; the phones' dice buttons, a little tighter. */
+.call-fld { margin: 4px 0; }
+.call-fld select { width: 100%; }
+.dm-dice .dice-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.dm-dice .die-step { min-height: 40px; }

@@ -30,8 +30,8 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 
 ### PR C: DM Rolls card
 `public/js/dm/rolls.js`, `public/dm.html`, `public/style.css` (reuse the phone dice pool from `public/js/play/`)
-- [ ] 7. The DM Roll dice window has the same die buttons (D4 to D20) as the phones.
-- [ ] 9. Each Roll call drop-down gets its own row, so its text is not cut off in the DM tools column.
+- [x] 7. The DM Roll dice window has the same die buttons (D4 to D20) as the phones.
+- [x] 9. Each Roll call drop-down gets its own row, so its text is not cut off in the DM tools column.
 
 ### PR D: DM tools column layout
 `public/dm.html`, `public/style.css`, `public/chronicle.css`, `public/js/dm/dock.js`, `public/js/dm/modes.js`
