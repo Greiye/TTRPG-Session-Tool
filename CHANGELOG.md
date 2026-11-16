@@ -4,6 +4,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Fixed
+- DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
+
 ### Changed
 - Combat screen, from Mike's Nov 16 feedback:
   - In combat the DM's 3D battle map fills the main column. **⛶ Fit** shows the whole field and a **Coverage** slider sets how much of it the view shows (mouse wheel zooms out further too).
