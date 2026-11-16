@@ -104,7 +104,7 @@ function startCombat() {
   const c = state.combat;
   const all = [...Object.values(state.players), ...c.enemies];
   c.order = all.map((x) => ({ id: x.id, init: sys().initiative(x) })).sort((a, b) => b.init - a.init);
-  Object.assign(c, { active: true, round: 1, turn: 0 });
+  Object.assign(c, { active: true, round: 1, turn: 0, acted: {} });
   require('./grid').resetMoves();
   // Bosses get their title card as the fight opens.
   const boss = c.enemies.find((e) => e.boss && e.title);

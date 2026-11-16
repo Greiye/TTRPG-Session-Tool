@@ -4,6 +4,16 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Changed
+- Combat screen, from Mike's Nov 16 feedback:
+  - In combat the DM's 3D battle map fills the main column. **⛶ Fit** shows the whole field and a **Coverage** slider sets how much of it the view shows (mouse wheel zooms out further too).
+  - **Roll initiative** is press and hold: the button fills over 3 seconds and rolls on release (an early release cancels). It fires an `inithold` DOM event (start, cancel, complete) for later TV hooks. The Encounter card then lists everyone, players and creatures, in initiative order, and the cards slide into their new places.
+  - The **End** button is red and centred under the encounter buttons.
+  - Each creature has one card with initiative, AC, feet of movement left, HP buttons, its attacks and, on its turn, its targets. Once it has attacked, its actions grey out with an **Acted** tag until its next round (`state.combat.acted`).
+  - Tokens not yet on the map wait in a tray on the 3D map, shown as their 2D sprite. Drag one onto a tile to place it; drag a token on the map to move it. The old Place token picker is hidden.
+  - The creature randomizer rolls a token accessory colour for one creature or all of them (`dm:creature:accent`, seed optional). New creatures get a random one.
+  - Modes, tabs and section parts in the tools column are one column.
+
 ### Fixed
 - World map page: places were hard to select. The board was redrawn on every state update, which dropped clicks; it now redraws only when it changes and never under a press, and each place has a larger hit area.
 

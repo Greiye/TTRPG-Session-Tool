@@ -328,18 +328,16 @@
 
     <!-- COMBAT -->
     <div class="card" data-tab="combat" data-panel="combat">
-      <h3>Encounter</h3>
-      <div class="row">
-        <button class="btn primary" data-act="combatStart">Roll initiative</button>
+      <h3>Encounter <span class="note" id="encRound"></span></h3>
+      <div class="enc-btns">
+        <button class="btn primary hold-btn" id="initHold" title="Press and hold, then release to roll initiative and sort everyone in turn order"><i class="hold-fill"></i><span>🎲 Hold to roll initiative</span></button>
         <button class="btn" data-act="combatNext">Next turn ▸</button>
-        <button class="btn danger" data-act="combatEnd">End</button>
+        <button class="btn danger enc-end" data-act="combatEnd">End</button>
       </div>
-      <div id="enemyTurn"></div>
-      <div id="bossBtns" class="row"></div>
-      <div id="enemies" class="list"></div>
+      <div id="initOrder" class="init-order" aria-live="polite"></div>
     </div>
     <div class="card" data-tab="combat" data-panel="combat">
-      <h3>Battle map <span class="note">click a tile to place or paint</span></h3>
+      <h3>Battle map <span class="note">drag tokens onto the 3D map</span></h3>
       <div class="row">
         <label class="btn small">⬆ Map image<input type="file" accept="image/*" id="mapFile" hidden></label>
         <input id="mapCols" type="number" min="4" max="60" value="20" style="width:64px" title="Columns">
@@ -351,7 +349,8 @@
         <button class="btn small" id="mapGen" title="Fill the map with hills, water, ruined walls, trees and rocks. Replaces the terrain.">⛰ Generate terrain</button>
         <span class="note tight" id="mapSeedNow"></span>
       </div>
-      <div class="row">
+      <p class="note">Drag tokens from the tray on the 3D map onto a tile. Drag a token on the map to move it.</p>
+      <div class="row" hidden>
         <select id="mapTool" style="width:auto"><option value="place">Place token</option><option value="difficult">Paint difficult</option><option value="wall">Paint wall</option><option value="clear">Clear tile</option></select>
         <select id="mapToken" class="grow"></select>
         <label class="note tight">Height <input id="mapZ" type="number" min="0" max="10" value="0" style="width:56px"></label>
@@ -370,6 +369,7 @@
         <button class="btn primary" id="rndRoll">Roll</button>
       </div>
       <div id="rndOut" class="list"></div>
+      <div class="row"><span class="note">Token accessory colour</span><select id="rndAccWho" class="grow" aria-label="Creature"></select><button class="btn small" id="rndAcc" title="Random accessory colour for the creature's 2D token">🎨 Randomize</button></div>
     </div>
     <div class="card" data-tab="combat" data-panel="combat">
       <h3>Creatures <span><button class="btn small" id="crNew">+ New</button> <button class="btn small" id="crImportBtn">Import</button></span></h3>

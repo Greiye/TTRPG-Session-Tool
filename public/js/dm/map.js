@@ -7,6 +7,7 @@ const { esc } = Stage;
 let mapKey = null;
 let selTok = null; // token picked on the map; arrow keys move it one tile
 let rndKey = null;
+let accKey = null;
 const TABLES = { patron: 'Tavern patron' };
 
 function selectToken(id) {
@@ -45,6 +46,17 @@ onState((s) => {
       : '<p class="note">Roll to get a creature.</p>';
     if (r && TABLES[r.table]) $('#rndTable').value = r.table;
   }
+  // Accessory colour for a creature's 2D token: one creature or all of them.
+  const ak = s.combat.enemies.map((e) => e.id + e.name).join();
+  if (ak !== accKey) {
+    accKey = ak;
+    const was = $('#rndAccWho').value;
+    $('#rndAccWho').innerHTML = s.combat.enemies.length
+      ? `<option value="all">All creatures</option>${s.combat.enemies.map((e) => `<option value="${esc(e.id)}">${esc(e.name)}</option>`).join('')}`
+      : '<option value="">No creatures yet</option>';
+    if ([...$('#rndAccWho').options].some((o) => o.value === was)) $('#rndAccWho').value = was;
+  }
+  $('#rndAcc').disabled = !s.combat.enemies.length;
   // Keep the selected token highlighted across re-renders.
   if (selTok) selectToken(selTok);
 });
@@ -124,6 +136,7 @@ document.addEventListener('keydown', (e) => {
 $('#mapFog').onchange = (e) => emit('dm:fog', { on: e.target.checked });
 $('#mapLight').onchange = (e) => { if (selTok) emit('dm:token:light', { id: selTok, light: e.target.value }); };
 
+$('#rndAcc').onclick = () => { const id = $('#rndAccWho').value; if (id) emit('dm:creature:accent', { id, seed: $('#rndSeed').value ? Number($('#rndSeed').value) : undefined }); };
 $('#rndRoll').onclick = () => emit('dm:roll:creature', { table: $('#rndTable').value, seed: $('#rndSeed').value ? Number($('#rndSeed').value) : undefined });
 $('#rndOut').addEventListener('click', (e) => {
   const b = e.target.closest('[data-reroll]');
