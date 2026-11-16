@@ -85,13 +85,14 @@ function viewOf(s, you) {
     if (!x || t.x >= m.cols || t.y >= m.rows) continue;
     const pc = !!s.players.find((p) => p.id === id);
     const speedTiles = Math.floor(speedOf(x) / STEP_FT);
-    const left = Math.max(0, Math.floor((speedOf(x) - (c.moved?.[id] || 0)) / STEP_FT));
+    // Movement left in tiles. Negative when the DM moved it past its speed (the Move button turns red).
+    const left = Math.floor((speedOf(x) - (c.moved?.[id] || 0)) / STEP_FT);
     const kind = kindOf(x);
     units[id] = {
       id, kind, name: x.name, x: t.x, y: t.y, z: t.z || 0, facing: t.facing ?? (pc ? 0 : 4),
       team: pc || x.side === 'ally' ? 'players' : x.side === 'neutral' ? 'neutral' : 'monsters',
       owner: pc ? id : null, hp: x.hp ?? 0, maxHp: x.maxHp || x.hp || 1, dead: (x.hp ?? 1) <= 0,
-      ap: id === turnId ? left : speedTiles, maxAp: speedTiles, defense: x.ac,
+      ap: c.active ? left : speedTiles, maxAp: speedTiles, defense: x.ac,
       abilities: pc ? ['attack'] : (x.attacks?.length ? x.attacks.map((_, i) => `${id}:${i}`) : ['attack']),
       palette: paletteOf(x, pc),
     };
@@ -99,7 +100,7 @@ function viewOf(s, you) {
   const order = c.order.map((o) => o.id);
   const visible = s.mapVision ? s.mapVision.map((k) => { const [x, y] = k.split(',').map(Number); return y * m.cols + x; }) : null;
   return {
-    meta: { w: m.cols, h: m.rows, round: c.round || 1, turn: Math.max(0, order.indexOf(turnId)), initiative: order, fog: !!m.fog, seed: m.seed || 0, active: turnId && units[turnId] ? turnId : null, players: [] },
+    meta: { w: m.cols, h: m.rows, round: c.round || 1, turn: Math.max(0, order.indexOf(turnId)), initiative: order, fog: !!m.fog, seed: m.seed || 0, active: turnId && units[turnId] ? turnId : null, players: [], freeMove: !c.active },
     tiles: tilesOf(m), units, visible, revealed: [],
     log: (s.log || []).filter((l) => l.kind === 'combat').slice(-30).map((l) => ({ seq: l.id, msg: l.text })),
     you,
@@ -183,7 +184,7 @@ function coverOf(v, a, b) {
  * role: 'dm' | 'player' | 'screen'. emit: DM socket emit (dm events). socket: the page socket.
  * when(state): extra condition for showing it. Returns { update(state) }: call it after each state render.
  */
-export function isoStage(root, { role, socket, emit = () => {}, charId = () => null, slotSel = '.stage-center', layerClass = '', when = null } = {}) {
+export function isoStage(root, { role, socket, emit = () => {}, charId = () => null, slotSel = '.stage-center', layerClass = '', when = null, onSelect = null } = {}) {
   let layer = null; let battle = null; let transport = null; let last = null; let ro = null;
 
   function place() {
@@ -211,7 +212,10 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       obstacleChoices: ['none', 'wall', 'rock', 'tree', 'crate'],
       // A creature the DM just added must be placed first: the next tile clicked puts it there.
       onTileClick: dm ? ({ x, y }) => { const pend = (last?.pendingPlace || [])[0]; if (!pend) return false; emit('dm:token', { id: pend, x, y }); return true; } : undefined,
-      moveLabel: (u) => `Move · ${u.ap * STEP_FT} ft left [M]`,
+      moveLabel: (u) => (u.ap < 0 ? `Move · ${-u.ap * STEP_FT} ft over [M]` : `Move · ${u.ap * STEP_FT} ft left [M]`),
+      // DM drags a token: a move that uses its movement (it may go past its speed). The Teleport tool stays free.
+      onUnitDrop: dm ? ({ unitId, x, y }) => { emit('dm:token:move', { id: unitId, x, y }); return true; } : undefined,
+      onUnitMenu: dm ? ({ unit, clientX, clientY }) => openMenu(unit.id, clientX, clientY) : undefined,
       formatCost: (tiles) => `${tiles * STEP_FT} ft`,
       showPips: false,
       showHp: dm, // health bars are for the DM only; the TV shows names (Mike, Nov 16)
@@ -220,9 +224,10 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       describeAttack: (u, ab, tgt) => { const cv = coverOf(battle.getView(), u, tgt); return `Attack ${tgt.name} · AC ${tgt.defense ?? '?'}${cv ? ` +${cv} ${cv === 5 ? 'three-quarters' : 'half'} cover` : ''}`; },
     });
     ro = new ResizeObserver(place); ro.observe(root);
+    if (onSelect) battle.on('select', (u) => onSelect(u?.id || null));
     if (dm) { dmChrome(); requestAnimationFrame(() => requestAnimationFrame(() => battle?.camera.fit())); }
   }
-  function unmount() { tray = cov = null; ro?.disconnect(); battle?.destroy(); layer?.remove(); layer = battle = transport = ro = null; }
+  function unmount() { closeMenu(); onSelect?.(null); tray = cov = null; ro?.disconnect(); battle?.destroy(); layer?.remove(); layer = battle = transport = ro = null; }
 
   // DM only: a coverage slider (how much of the field the view shows) and a tray of tokens not yet on the map.
   let tray = null; let cov = null; let trayKey = '';
@@ -281,6 +286,86 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
   }
 
+  // DM right-click menu on a unit. Picked for what a DM reaches for mid-fight: attack it with the creature whose turn
+  // it is, damage or heal, conditions, movement back, light, boss card, take it off the map, remove it.
+  let menu = null; let menuFor = null;
+  const MENU_CONDITIONS = ['Prone', 'Restrained', 'Grappled', 'Frightened', 'Poisoned', 'Invisible'];
+  const LIGHT_CHOICES = [['none', 'No light'], ['torch', 'Torch'], ['lantern', 'Lantern'], ['darkvision', 'Darkvision']];
+  function closeMenu() {
+    if (!menu) return;
+    const m = menu; menu = menuFor = null;
+    m.classList.add('closing');
+    setTimeout(() => m.remove(), 140);
+    window.removeEventListener('pointerdown', outside, true);
+    window.removeEventListener('keydown', escClose, true);
+  }
+  const outside = (e) => { if (menu && !menu.contains(e.target)) closeMenu(); };
+  const escClose = (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeMenu(); } };
+  function menuHtml(s, id) {
+    const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const c = s.combat;
+    const pc = s.players.find((p) => p.id === id);
+    const x = pc || c.enemies.find((e) => e.id === id);
+    if (!x) return '';
+    const moved = c.moved?.[id] || 0;
+    const left = speedOf(x) - moved;
+    const turnId = c.active ? c.order[c.turn]?.id : null;
+    const foe = c.enemies.find((e) => e.id === turnId);
+    const canHit = foe && foe.id !== id && foe.hp > 0 && x.hp > 0 && c.acted?.[foe.id] !== c.round;
+    const conds = x.conditions || [];
+    const light = s.tokens?.[id]?.light || 'none';
+    const b = (act, label, extra = '') => `<button type="button" role="menuitem" data-m="${act}" ${extra}>${label}</button>`;
+    return `<header><b>${esc(x.name)}</b><small>HP ${x.hp ?? 0}/${x.maxHp || x.hp || 0} · AC ${x.ac ?? '?'} · <span class="${left < 0 ? 'over' : ''}">${left < 0 ? `${-left} ft over` : `${left} ft left`}</span></small></header>
+      ${canHit ? `<section><h5>Attack with ${esc(foe.name)}</h5>${(foe.attacks || []).map((a, i) => b('atk', `⚔ ${esc(a.name)} ${a.atk >= 0 ? '+' : ''}${a.atk}`, `data-v="${i}"`)).join('') || b('atk', '⚔ Attack', 'data-v="0"')}</section>` : ''}
+      <section><h5>Hit points</h5><div class="iso-menu-row">${[-5, -1, 1, 5].map((d) => b('hp', `${d > 0 ? '+' : ''}${d}`, `data-v="${d}" class="${d < 0 ? 'neg' : 'pos'}"`)).join('')}</div></section>
+      <section><h5>Conditions</h5><div class="iso-menu-row wrap">${MENU_CONDITIONS.map((n) => b('cond', esc(n), `data-v="${n}" class="${conds.includes(n) ? 'on' : ''}" aria-pressed="${conds.includes(n)}"`)).join('')}</div></section>
+      <section><h5>Light</h5><div class="iso-menu-row wrap">${LIGHT_CHOICES.map(([v, n]) => b('light', n, `data-v="${v}" class="${light === v ? 'on' : ''}"`)).join('')}</div></section>
+      <section>${b('focus', '🎯 Centre camera')}${moved ? b('reset', `↺ Give back movement (${moved} ft used)`) : ''}${x.boss ? b('boss', '👑 Show boss card') : ''}${b('tray', '⇩ Take off the map')}${pc ? '' : b('rm', '✕ Remove creature', 'class="danger"')}</section>`;
+  }
+  function openMenu(id, cx, cy) {
+    closeMenu();
+    if (!last) return;
+    menu = document.createElement('div');
+    menu.className = 'iso-menu'; menu.setAttribute('role', 'menu');
+    menuFor = id;
+    menu.innerHTML = menuHtml(last, id);
+    document.body.append(menu);
+    const r = menu.getBoundingClientRect();
+    menu.style.left = `${Math.max(8, Math.min(cx, innerWidth - r.width - 8))}px`;
+    menu.style.top = `${Math.max(8, Math.min(cy, innerHeight - r.height - 8))}px`;
+    menu.addEventListener('click', (e) => {
+      const bt = e.target.closest('button[data-m]');
+      if (!bt) return;
+      const v = bt.dataset.v;
+      const s = last;
+      const x = [...s.players, ...s.combat.enemies].find((u) => u.id === id);
+      switch (bt.dataset.m) {
+        case 'atk': emit('dm:enemy:attack', { target: id, attack: Number(v) || 0 }); return closeMenu();
+        case 'hp': emit('dm:hp', { id, delta: Number(v) }); return; // stays open for repeated taps
+        case 'cond': emit('dm:condition', { id, name: v, on: !(x?.conditions || []).includes(v) }); return;
+        case 'light': emit('dm:token:light', { id, light: v }); return;
+        case 'focus': { const t = s.tokens?.[id]; if (t) battle?.camera.focus(t.x, t.y); return closeMenu(); }
+        case 'reset': emit('dm:move:reset', { id }); return closeMenu();
+        case 'boss': emit('dm:boss:card', { id }); return closeMenu();
+        case 'tray': emit('dm:token:remove', { id }); return closeMenu();
+        case 'rm':
+          // Two clicks: the first arms the button, the second removes.
+          if (!bt.classList.contains('armed')) { bt.classList.add('armed'); bt.textContent = '✕ Click again to remove'; return; }
+          emit('dm:enemy:remove', { id }); return closeMenu();
+      }
+    });
+    setTimeout(() => { window.addEventListener('pointerdown', outside, true); window.addEventListener('keydown', escClose, true); });
+  }
+  // Keep an open menu's numbers live (HP, conditions, light) as the state changes.
+  function refreshMenu(s) {
+    if (!menu || !menuFor) return;
+    if (!s.tokens?.[menuFor]) return closeMenu();
+    if (menu.querySelector('.armed')) return;
+    const html = menuHtml(s, menuFor);
+    if (!html) return closeMenu();
+    menu.innerHTML = html;
+  }
+
   return {
     update(s) {
       last = s;
@@ -294,6 +379,7 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       transport.push(s);
       battle.setGroundImage(s.map.image || null);
       renderTray(s);
+      refreshMenu(s);
     },
     get battle() { return battle; },
     fit: () => battle?.camera.fit(),

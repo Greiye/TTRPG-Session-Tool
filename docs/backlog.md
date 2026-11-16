@@ -85,12 +85,12 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR G: DM combat controls (movement, selection, tools)
 `lib/iso-battle/src/client/battle.js`, `lib/iso-battle/src/client/scene.js`, `public/js/dm/combat.js`, `public/js/dm/map.js`, `src/iso.js`, `src/grid.js`, `src/sockets/dm.js`, `public/dm.html`
-- [ ] Fix how enemies can move anywhere without using movement. DM's can move the creatures beyond the limit, past -5 movement ft or more. If they do, the movement count turns red.
-- [ ] DM can move creatures with keyboard arrow keys.
-- [ ] DM can right click enemies in the combat window and that will open up an options menu. LLM chooses what those options are.
-- [ ] DM's Combat DM Tools has sections. one for Unit actions and one for landscaping (raise/lower/paint/obstacle, etc.)
-- [ ] When DM clicks on a unit on the map, the right side bar changes dynamically so the DM can see the selection stats. [DM Screen right-hand sidebar]
-- [ ] When DM ends combat, clear the combat window so that the DM can do another combat another time.
+- [x] Fix how enemies can move anywhere without using movement. DM's can move the creatures beyond the limit, past -5 movement ft or more. If they do, the movement count turns red.
+- [x] DM can move creatures with keyboard arrow keys.
+- [x] DM can right click enemies in the combat window and that will open up an options menu. LLM chooses what those options are.
+- [x] DM's Combat DM Tools has sections. one for Unit actions and one for landscaping (raise/lower/paint/obstacle, etc.)
+- [x] When DM clicks on a unit on the map, the right side bar changes dynamically so the DM can see the selection stats. [DM Screen right-hand sidebar]
+- [x] When DM ends combat, clear the combat window so that the DM can do another combat another time.
 
 ### PR H: DM Screen tabs and layout
 `public/dm.html`, `public/style.css`, `public/theme.css`, `public/js/dm/fold.js`, `public/js/dm/dock.js`, `public/js/dm/modes.js`, `public/js/dm/header.js`, `public/js/dm/legends.js`, `public/js/dm/moments.js`

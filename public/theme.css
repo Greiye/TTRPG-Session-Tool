@@ -509,3 +509,45 @@ body.chron .btn.go:hover { background-color: #379a3b; }
 .invite-role h3 { align-self: stretch; }
 .invite-role > .btn { min-width: 50%; }
 .invite-role .codm-invite { align-self: stretch; }
+
+/* PR G (Nov 16): DM combat controls. */
+/* Movement past a creature's speed shows red, on the creature card, in the hero column and in the right-click menu. */
+.mv-left.over, .sel-facts b.over, .iso-menu .over { color: #ff6a5a; font-weight: 700; animation: mv-over .5s ease-out; }
+@keyframes mv-over { 0% { text-shadow: 0 0 10px #ff4a3a; } 100% { text-shadow: none; } }
+
+/* Right-click menu on a unit on the 3D battle map. */
+.iso-menu { position: fixed; z-index: 10000; min-width: 220px; max-width: 280px; padding: 6px; background: rgb(22 17 26 / .97); border: 1px solid #8a6a3a; border-radius: 8px; box-shadow: 0 10px 28px rgb(0 0 0 / .55); color: #f4ead5; font: 13px/1.3 var(--sans, system-ui); transform-origin: top left; animation: iso-menu-in .14s ease-out; }
+.iso-menu.closing { animation: iso-menu-out .14s ease-in forwards; }
+@keyframes iso-menu-in { from { opacity: 0; transform: scale(.92); } }
+@keyframes iso-menu-out { to { opacity: 0; transform: scale(.94); } }
+.iso-menu header { display: flex; flex-direction: column; gap: 2px; padding: 4px 6px 6px; border-bottom: 1px solid #3a2c20; margin-bottom: 4px; }
+.iso-menu header b { color: #f2c96e; font-size: 14px; }
+.iso-menu header small { color: #bfae8e; }
+.iso-menu section { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; border-bottom: 1px solid #2c2219; }
+.iso-menu section:last-child { border-bottom: 0; }
+.iso-menu h5 { margin: 0 6px 2px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #8f7e62; font-weight: 600; }
+.iso-menu button { display: block; width: 100%; text-align: left; padding: 5px 8px; background: transparent; border: 1px solid transparent; border-radius: 4px; color: inherit; font: inherit; cursor: pointer; transition: background .12s, border-color .12s; }
+.iso-menu button:hover, .iso-menu button:focus-visible { background: #2e2318; border-color: #8a6a3a; outline: none; }
+.iso-menu button.on { background: #4a3a1c; border-color: #e3b45a; color: #ffe7b0; }
+.iso-menu button.danger { color: #ff9a8a; }
+.iso-menu button.danger.armed { background: #6a1c16; border-color: #e0534a; color: #fff; }
+.iso-menu-row { display: flex; gap: 4px; padding: 0 2px; }
+.iso-menu-row.wrap { flex-wrap: wrap; }
+.iso-menu-row button { width: auto; flex: 1 1 auto; text-align: center; padding: 4px 6px; border-color: #3a2c20; }
+.iso-menu-row button.neg { color: #ff9a8a; }
+.iso-menu-row button.pos { color: #9ae0a0; }
+
+/* Hero column: the unit selected on the 3D battle map. */
+.sel-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; background: #2a1f16; border: 1px solid #8a6a3a; border-radius: 4px; color: #f2c96e; font-size: calc(12px * var(--ts, 1)); }
+.sel-bar b { color: #ffe7b0; }
+#hero.sel-in > * { animation: sel-slide .32s cubic-bezier(.2, .8, .2, 1) both; }
+#hero.sel-in > *:nth-child(2) { animation-delay: .05s; }
+@keyframes sel-slide { from { opacity: 0; transform: translateX(16px); } }
+.sel-foe .hero-art { background: radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--acc) 35%, #1a1010), #121212 70%); }
+.sel-foe .sel-sprite { width: 70%; height: auto; image-rendering: pixelated; font-size: 64px; }
+.sel-facts { margin-top: 6px; }
+.sel-conds { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.sel-cond { padding: 2px 8px; border: 1px solid #8a4a3a; border-radius: 999px; background: #3a1a14; color: #ffc4b8; font-size: calc(12px * var(--ts, 1)); }
+.sel-h { margin: 10px 0 2px; font-size: calc(11px * var(--ts, 1)); letter-spacing: .12em; text-transform: uppercase; color: var(--muted, #8f7e62); }
+.sel-traits p { margin: 4px 0; font-size: calc(13px * var(--ts, 1)); color: #c9c3b4; }
+@media (prefers-reduced-motion: reduce) { .iso-menu, .iso-menu.closing, #hero.sel-in > *, .mv-left.over, .sel-facts b.over { animation: none; } }
