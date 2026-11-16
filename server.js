@@ -41,5 +41,13 @@ const listening = () => {
   if (HTTPS) console.log(`  HTTPS       : on, port ${HTTPS_PORT}. Phones show a one-time certificate warning; see README.`);
   console.log('');
 };
+// A taken port (the game already open in another window) gets a plain message instead of a stack trace.
+const { portError } = require('./src/safety');
+servers.forEach((s, i) => s.once('error', (e) => {
+  const msg = portError(e, i ? HTTPS_PORT : PORT);
+  if (!msg) throw e;
+  console.error(msg);
+  process.exit(1);
+}));
 servers[0].listen(PORT, '0.0.0.0', listening);
 if (HTTPS) servers[1].listen(HTTPS_PORT, '0.0.0.0', listening);
