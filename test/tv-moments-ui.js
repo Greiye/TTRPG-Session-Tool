@@ -20,6 +20,7 @@ const SHOTS = process.env.SHOTS;
   const fail = (m) => { errors.push(m); if (process.env.DEBUG) console.log('FAIL', m); };
   const page = async (url, viewport) => {
     const p = await (await br.newContext({ viewport })).newPage();
+    await p.addInitScript(() => { try { localStorage.setItem('dmFoldOpen', '1'); } catch { /* ignore */ } }); // DM cards start open in tests
     p.on('pageerror', (e) => fail(`${url}: ${e.message}`));
     await p.goto(B + url);
     return p;

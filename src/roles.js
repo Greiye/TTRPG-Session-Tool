@@ -22,6 +22,7 @@ const BATTLE = [
 const SOCIAL = [
   'dm:npc', 'dm:emotion', 'dm:pc:emotion', 'dm:say', 'dm:caption', 'dm:choices', 'dm:gloss', 'dm:intro',
   'dm:cast:add', 'dm:cast:pick', 'dm:cast:remove', 'dm:sprite', 'dm:relation',
+  'dm:convo:start', 'dm:convo:end',
 ];
 
 const ROLES = {

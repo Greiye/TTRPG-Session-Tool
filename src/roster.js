@@ -33,7 +33,7 @@ function newCharacter({ name, cls, race, player }, systemId) {
   roster[id] = {
     id, system: sys.id, name: str(name, 24), player: str(player, 24), race: str(race, 24) || 'Human', cls, level: 1,
     ...sys.newStats(cls),
-    hue: crypto.randomInt(360), portrait: null, catchphrase: '', backstory: '', theme: null, secret: '', hooks: '',
+    hue: crypto.randomInt(360), portrait: null, catchphrase: '', pronoun: 'they', backstory: '', theme: null, secret: '', hooks: '',
   };
   ensureSheet(roster[id]);
   saveRoster();
@@ -47,6 +47,7 @@ function applyEdits(c, f, isDm) {
   if (f.hue !== undefined) c.hue = int(f.hue, 0, 359, c.hue);
   if (f.catchphrase !== undefined) c.catchphrase = str(f.catchphrase, 120);
   if (f.backstory !== undefined) c.backstory = str(f.backstory, 2000);
+  if (f.pronoun !== undefined) c.pronoun = ['he', 'she', 'they'].includes(f.pronoun) ? f.pronoun : 'they'; // speech log line (Nov 16)
   // Animation profile (0e): scales speed and size of this character's on-screen moments.
   if (f.anim && typeof f.anim === 'object') {
     const n = (v, lo, hi, d) => { const x = Number(v); return Number.isFinite(x) ? Math.max(lo, Math.min(hi, x)) : d; };

@@ -1,5 +1,5 @@
-// Phone Legends, a section of the Misc tab (phase J): the hall of fame, the trophy shelf, the house rules in force, and this
-// character's autopilot status. Also the "what you missed" card when a seat is claimed again.
+// Phone Legends, a section of the Misc tab (phase J): the hall of fame, the trophy shelf and this character's autopilot
+// status (the House rules section was removed, Mike Nov 16). Also the "what you missed" card when a seat is claimed again.
 import { socket, $, onState, state } from '../client.js';
 import { me } from './identity.js';
 import { addSection, onTab } from './tabs.js';
@@ -12,12 +12,8 @@ function render() {
   const S = state();
   if (!S || !S.legends || !root()) return;
   const mine = S.absent?.[me.charId];
-  const rules = (S.houseRuleList || []).filter((r) => r.on);
   root().innerHTML = `<div class="card"><h3>🏛 Hall of fame</h3>${hallHtml(S.legends)}</div>
     <div class="card"><h3>🏆 Trophy shelf</h3>${shelfHtml(S.legends)}</div>
-    <div class="card"><h3>📜 House rules</h3>${rules.length
-      ? `<ul class="rules">${rules.map((r) => `<li><b>${esc(r.label)}</b> <small class="muted">${esc(r.text)}</small></li>`).join('')}</ul>`
-      : '<p class="note">No house rules are in force.</p>'}</div>
     ${mine?.autopilot ? '<div class="card"><p class="note">Your character is on autopilot while you are away. It takes the Dodge action on its turns.</p></div>' : ''}`;
 }
 onState(render);
