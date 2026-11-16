@@ -9,7 +9,7 @@ const MIX_MAX = 6; // ambience layers that can play at once on the soundboard
 // Bundled sample backdrops (public/samples/), listed ahead of uploads. The first is the default
 // backdrop on a fresh table. They are not files in uploads/, so deleting one only hides it until restart.
 const SAMPLE_BACKDROPS = [
-  { id: 'sample-artheria-village', url: '/samples/artheria-village.jpg', video: false, audio: false, name: 'Tales of Artheria', sample: true },
+  { id: 'sample-artheria-village', url: '/samples/artheria-village.jpg', video: false, audio: false, name: 'Tales of Artheria', sample: true, opacity: 0.5 },
 ];
 const defaultBackdrop = (library) => library.find((b) => b.id === SAMPLE_BACKDROPS[0].id) || null;
 const LIB_EXT = [...new Set([...KINDS.backdrop.ext, ...KINDS.audio.ext])];

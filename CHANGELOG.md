@@ -39,6 +39,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- **New sample backdrop** (Mike, Nov 16): "Tales of Artheria" is now a medieval village with a stone church, shown at 50% opacity on the TV and DM preview. It fades in up to that level. Backdrops can carry their own `opacity` (only the sample sets one); the file path and id are unchanged, so saves keep it.
 - **DM tools** on the 3D battle map are in two sections, **Unit actions** (select, teleport) and **Landscaping** (raise, lower, paint, obstacle); the section of the active tool is highlighted.
 - **End combat** clears the combat window for the next fight: creatures, tokens, the battle map, initiative and movement go (the party and the creature library stay), and the Battle map card unfolds. Because it clears so much, End is now a red hold-for-2-seconds button.
 - Camp and rests (Mike's Nov 16 list, PR M):
