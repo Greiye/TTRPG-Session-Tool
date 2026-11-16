@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Lore tab** on the DM screen (Mike, Nov 16): tracks Locations, Dungeons, NPCs, Items, Books and Notes. Filter by category chip or search; each entry folds open to edit its name, category, what the party can learn, and a DM-only note. **From the table** adds the world map's places and dungeon entrances and the NPCs on the social scene that the lore does not have yet. **Share with phones** puts an entry (never the DM note) in a new Journal › Lore section on the phones; the TV shows no lore. Saved with the campaign.
 - **End Session** (Mike, Nov 16): a red button at the bottom of the DM tools sidebar. Hold it for 1 second to end the session: the TV fades to a big “End of Session” card, phones show “Thanks for playing.”, and the DM gets a window to make a save point (named after the session and date) and explore the logs (story and dice log together, searchable and filterable by type, plus the Markdown transcript). **Resume session** takes everyone back to the game; once ended, a click on the button reopens the window.
 - Phone pop-ups from the DM (Mike, Nov 16), one at a time and each staying up until answered:
   - **Messages**: a handout or a phrase from the Messages tab pops up on the phone with a **Continue** button at the bottom instead of landing in the Inbox. The DM's list shows "read 1/4" until everyone has pressed Continue (`player:handout:read`). Revealing a phrase pops it up again, now readable.
@@ -18,6 +19,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - DM screen text boxes and dropdowns are no longer cut off. A growing field in a narrow tools card keeps room for its whole value or placeholder and wraps onto its own line instead of being squeezed by the buttons beside it; text areas grow to fit their text. Road card auto-table entries wrap. A few fixed-width fields are wider and a few long placeholders are shorter (the full hint is on hover). `npm run test:ui` now checks every DM field in every mode, tab and part at 1280 and 1500 px.
 
 ### Changed
+- Combat on phones and the 3D battle map (Mike, Nov 16, backlog PR F):
+  - Phones no longer show the 3D battle map; players watch the TV. The TV still follows the latest action.
+  - Phones get a **combat pop-up** at the top of the Play tab, in the "Steel yourselves" card style: waiting for initiative, your turn (attack and actions), someone else's turn, or down. It pops in again each time it changes.
+  - The 3D map shows health bars only to the DM. The TV map shows names only (new `showHp` option in `lib/iso-battle`). Phones no longer show creature HP in the initiative strip or on attack buttons.
 - **Creature actions** on the DM combat cards and the 3D battle map's action bar are icon buttons with the name underneath (Mike, Nov 16, PR O). Hovering shows the details and the maths: to-hit as 1d20 + bonus vs AC, the damage dice with their average and type, and the key to press on the map. Move and End turn use the same style.
 - **Dramatic pause** on the TV drops the "Hold" label. The screen fades to partial black first and the text fades in half a second later (Mike, Nov 16, PR P).
 - TV moments and rolls, from Mike's Nov 16 notes:

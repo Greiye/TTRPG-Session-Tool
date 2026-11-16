@@ -78,9 +78,9 @@ Items are as Mike wrote them, regrouped by code area. Notes in brackets say whic
 
 ### PR F: Combat on phones and the 3D battle map
 `public/js/play/views/combat.js`, `public/js/play/combatmap.js`, `lib/iso-battle/src/client/` (`battle.js`, `scene.js`, `sprites.js`), `public/iso/`, `src/sockets/player.js`, `src/game.js`
-- [ ] Player Phones get a Combat Pop Up. This appears at the top of their windows list. It's the same one as the 'Steel Yourselves" Pop up.
-- [ ] Player Phones don't show the 3D combat window, they have to look at the TV Screen to see it.
-- [ ] 3D Iso window does not display health or health bar. Only DM can see that.
+- [x] Player Phones get a Combat Pop Up. This appears at the top of their windows list. It's the same one as the 'Steel Yourselves" Pop up.
+- [x] Player Phones don't show the 3D combat window, they have to look at the TV Screen to see it.
+- [x] 3D Iso window does not display health or health bar. Only DM can see that.
 - [ ] (Keep) Cool that the TV Screen automatically moves to the recent action.
 
 ### PR G: DM combat controls (movement, selection, tools)
