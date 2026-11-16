@@ -122,6 +122,13 @@ module.exports = function playerSockets(socket) {
     if (!p || !pop) return;
     pop.done = pop.done.filter((id) => id !== p.id);
     if (done !== false) pop.done.push(p.id);
+    // When every seated character has left the shop, the pop-up closes on the TV and every phone (Mike, Nov 15).
+    const seated = Object.values(state.players).filter((x) => !!x.socketId).map((x) => x.id);
+    if (seated.length && seated.every((id) => pop.done.includes(id))) {
+      const shop = state.shops.find((x) => x.id === pop.shopId);
+      state.shopPop = null;
+      log('shop', `Everyone is done shopping${shop ? ` at ${shop.name}` : ''}.`);
+    }
     broadcast();
   });
   // Phase 8: a character moves on its turn, within its speed (see src/grid.js).

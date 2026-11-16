@@ -44,10 +44,10 @@ Numbers are Mike's. Item 9 was cut off in his message after "from the DM's"; rea
 ### PR E: Shop pop-up, "Greer's Trinkets"
 `src/shops.js`, `src/sockets/player.js`, `src/sockets/dm.js`, `src/popups.js`, `src/visibility.js`, `public/stage.js`, `public/js/play/shops.js`, `public/js/dm/shops.js`
 Today: the DM opens a shop pop-up on the TV (`dm:shop:pop`), phones buy and sell, and `player:shop:done` toggles each player's done flag.
-- [ ] Seed one shop, "Greer's Trinkets".
-- [ ] TV pop-up: a centred banner image of the merchant's store at the top, then items in a 3-column grid of buttons (up to 60, rows wrap automatically). Each button shows "Item Name", then "Item description", then the price, as placeholders for now.
-- [ ] Items keep a category and other data, but only the name, description and price reach phones and the TV.
-- [ ] Phones get the same shop as a pop-up. A player can leave and come back in as they like. After leaving, the phone shows "Waiting for the others" with a "Shop again" button under it.
-- [ ] When every seated player has left the shop, the pop-up closes on the TV and on all phones.
-- [ ] The DM's Shops cards start minimized.
+- [x] Seed one shop, "Greer's Trinkets".
+- [x] TV pop-up: a centred banner image of the merchant's store at the top, then items in a 3-column grid of buttons (up to 60, rows wrap automatically). Each button shows "Item Name", then "Item description", then the price, as placeholders for now.
+- [x] Items keep a category and other data, but only the name, description and price reach phones and the TV.
+- [x] Phones get the same shop as a pop-up. A player can leave and come back in as they like. After leaving, the phone shows "Waiting for the others" with a "Shop again" button under it.
+- [x] When every seated player has left the shop, the pop-up closes on the TV and on all phones.
+- [x] The DM's Shops cards start minimized.
 

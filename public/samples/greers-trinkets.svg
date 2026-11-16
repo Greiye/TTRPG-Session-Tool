@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-label="Greer's Trinkets shopfront">
+  <!-- Placeholder banner for the sample shop (Mike, Nov 15): a timber shopfront with a hanging sign. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c2140"/><stop offset="1" stop-color="#6b4a3a"/></linearGradient>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9c39a"/><stop offset="1" stop-color="#b59a6c"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#d9832e"/></linearGradient>
+    <linearGradient id="awn" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7a1f2b"/><stop offset=".5" stop-color="#a8323f"/><stop offset="1" stop-color="#7a1f2b"/></linearGradient>
+  </defs>
+  <rect width="1200" height="360" fill="url(#sky)"/>
+  <circle cx="1060" cy="70" r="34" fill="#f6e7b8" opacity=".85"/>
+  <polygon points="230,120 600,20 970,120" fill="#4a2c22"/>
+  <rect x="250" y="120" width="700" height="240" fill="url(#wall)"/>
+  <g stroke="#4a2c22" stroke-width="12">
+    <line x1="250" y1="126" x2="950" y2="126"/><line x1="256" y1="120" x2="256" y2="360"/><line x1="944" y1="120" x2="944" y2="360"/>
+    <line x1="600" y1="126" x2="600" y2="360"/><line x1="256" y1="126" x2="420" y2="230"/><line x1="944" y1="126" x2="780" y2="230"/>
+  </g>
+  <path d="M240 190 L960 190 L940 230 L260 230 Z" fill="url(#awn)"/>
+  <g fill="#f3e2c0" opacity=".9"><path d="M300 190 L330 190 L320 230 L290 230Z"/><path d="M420 190 L450 190 L440 230 L410 230Z"/><path d="M540 190 L570 190 L560 230 L530 230Z"/><path d="M660 190 L690 190 L680 230 L650 230Z"/><path d="M780 190 L810 190 L800 230 L770 230Z"/><path d="M900 190 L930 190 L920 230 L890 230Z"/></g>
+  <rect x="300" y="250" width="250" height="90" rx="6" fill="url(#glass)" stroke="#4a2c22" stroke-width="8"/>
+  <rect x="650" y="250" width="250" height="90" rx="6" fill="url(#glass)" stroke="#4a2c22" stroke-width="8"/>
+  <g fill="#4a2c22"><circle cx="350" cy="320" r="12"/><rect x="390" y="300" width="18" height="32" rx="6"/><circle cx="460" cy="318" r="14"/><rect x="500" y="306" width="22" height="26"/>
+    <rect x="690" y="304" width="20" height="28" rx="8"/><circle cx="750" cy="318" r="13"/><rect x="790" y="296" width="14" height="36" rx="5"/><circle cx="850" cy="320" r="11"/></g>
+  <line x1="600" y1="50" x2="600" y2="80" stroke="#2a1a12" stroke-width="8"/>
+  <rect x="430" y="70" width="340" height="96" rx="14" fill="#5a3522" stroke="#c99a4a" stroke-width="8"/>
+  <text x="600" y="134" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="46" font-weight="700" fill="#f3d48a">Greer's Trinkets</text>
+</svg>

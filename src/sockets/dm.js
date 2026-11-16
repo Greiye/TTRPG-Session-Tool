@@ -238,6 +238,8 @@ module.exports = function dmSockets(socket) {
     if (s) s.faction = factions.find(state, faction) ? faction : null;
     broadcast();
   });
+  // A shop's banner picture (an uploaded image URL, or empty to show the shop's name instead).
+  dm('dm:shop:banner', ({ id, url }) => { const s = state.shops.find((x) => x.id === id); if (s) s.banner = typeof url === 'string' && /^\/(uploads|samples)\//.test(url) ? url.slice(0, 300) : null; });
   dm('dm:shop:open', ({ id, open }) => { const s = state.shops.find((x) => x.id === id); if (s) s.open = !!open; });
   dm('dm:shop:remove', ({ id }) => { state.shops = state.shops.filter((s) => s.id !== id); if (state.shopPop?.shopId === id) state.shopPop = null; });
   // Shop pop-up (Mike, Nov 14): the TV shows the shop and how many are still shopping; phones get a buy and

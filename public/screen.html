@@ -49,7 +49,7 @@
     let mapOn = null; let revealAt = 0;
     socket.on('state', (s) => {
       Settings.apply(s.settings.display);
-      const on = !!(s.worldMap?.onTv);
+      const on = !!(s.worldMap?.onTv && !s.shopPop); // a shop pop-up shows over the map; the map comes back when it closes
       if (on && mapOn === false) revealAt = Date.now();
       mapOn = on;
       if (on) WorldMap.tv(root, s, { revealAt }); else Stage.stage(root, s);

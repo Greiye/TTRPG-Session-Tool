@@ -28,23 +28,23 @@ const { ok, until } = h;
   const imp = await h.call(dm, 'dm:shop:import', { name: 'Mirela’s stall', npc: 'Mirela', text: 'Rope,1 gp,2,\nDagger,2 gp,,\n' });
   const sid = imp.id;
   dm.emit('dm:shop:open', { id: sid, open: false });
-  await until(() => a.last.shops.length === 0);
+  await until(() => !a.last.shops.some((x) => x.id === sid));
   dm.emit('dm:shop:pop', { id: sid });
   ok(await until(() => tv.last.shopPop?.shopId === sid && tv.last.legendsShow === null), 'the shop pops up on the TV and closes the hall of fame');
-  ok(await until(() => a.last.shopPop?.shopId === sid && a.last.shops.length === 1), 'phones get the pop-up and the shop opens for trade');
+  ok(await until(() => a.last.shopPop?.shopId === sid && a.last.shops.some((x) => x.id === sid)), 'phones get the pop-up and the shop opens for trade');
   ok(tv.last.shopPop.shopping === 2, 'the TV counts two players still shopping');
 
   // Buy, then sell back at half price; selling something the shop does not list is refused.
   dm.emit('dm:sheet', { id: a.me.id, gold: 10 });
   await until(() => a.last.players.find((p) => p.id === a.me.id).gold === 10);
-  const dagger = a.last.shops[0].items.find((i) => i.name === 'Dagger');
+  const dagger = a.last.shops.find((x) => x.id === sid).items.find((i) => i.name === 'Dagger');
   ok((await h.call(a, 'player:buy', { shopId: sid, itemId: dagger.id, qty: 2 })).ok, 'a phone buys two daggers');
   ok(await until(() => a.last.shopPop.sell.length === 1 && a.last.shopPop.sell[0].offer === 1), 'the sell list offers half the price for the daggers');
   const inv = a.last.shopPop.sell[0];
   const sold = await h.call(a, 'player:sell', { shopId: sid, invId: inv.id, qty: 1 });
   ok(sold.ok && sold.gold === 7, 'selling one dagger pays 1 gp');
   ok(b.last.shopPop.sell.length === 0, 'another phone has nothing to sell here');
-  const rope = a.last.shops[0].items.find((i) => i.name === 'Rope');
+  const rope = a.last.shops.find((x) => x.id === sid).items.find((i) => i.name === 'Rope');
   const S = require('../src/shops');
   const shop = { name: 'Stall', open: true, items: [{ id: 'r', name: 'Rope', price: 1, stock: 2 }] };
   const pc = { gold: 0, inventory: [{ id: 'l', name: 'Lute', qty: 1 }] };

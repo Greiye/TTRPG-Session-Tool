@@ -66,7 +66,7 @@ const priced = ({ skipped, ...shop }, base) => {
   const mult = L.priceMult(base, shop); // faction tier times town tier (src/living.js)
   const f = shop.faction && F.find(base, shop.faction);
   const blocked = L.canTrade(base, shop).error || null; // e.g. a hostile town, or shut for the night
-  return { ...shop, standing: f ? F.tierOf(f.rep).label : null, blocked, items: shop.items.map((i) => ({ ...i, price: require('./shops').unitCp(i, mult) / 100 })) };
+  return { ...shop, standing: f ? F.tierOf(f.rep).label : null, blocked, items: shop.items.map(({ category, ...i }) => ({ ...i, price: require('./shops').unitCp(i, mult) / 100 })) }; // category stays with the DM
 };
 
 const strip = (obj, kind, viewer) => {

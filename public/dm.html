@@ -186,13 +186,18 @@
       <div class="row"><select id="relNpc" class="grow"></select></div>
       <div id="relList" class="list"></div>
     </div>
-    <div class="card" data-tab="shops">
-      <h3>Shops <span class="note">merchants and price lists</span></h3>
+    <div class="card" data-tab="shops" data-fold="closed" data-fold-key="shop-new">
+      <h3>New shop <span class="note">import a price list</span></h3>
       <div class="row"><input id="shName" placeholder="Shop name" style="width:150px"><input id="shNpc" class="grow" placeholder="Merchant (NPC name)"><select id="shFaction" style="width:150px" title="Faction whose standing sets this shop's prices" aria-label="Shop faction"></select></div>
       <div class="row"><input id="shFile" type="file" accept=".csv,.tsv,.md,.txt" class="grow" aria-label="Price list file"></div>
-      <textarea id="shText" rows="4" placeholder="Name,Price,Stock,Note&#10;Rope (50 ft),1 gp,10,&#10;Healing potion,50 gp,3,&#10;&#10;Or a Markdown table: | Item | Price | Stock |"></textarea>
+      <textarea id="shText" rows="4" placeholder="Name,Price,Stock,Description,Category&#10;Rope (50 ft),1 gp,10,Hemp rope,Gear&#10;Healing potion,50 gp,3,Heals 2d4+2,Potion&#10;&#10;Or a Markdown table: | Item | Price | Stock |"></textarea>
       <div class="row"><button class="btn primary" id="shImport">Import shop</button><span id="shStatus" class="note"></span></div>
+    </div>
+    <div class="card" data-tab="shops" data-fold="closed" data-fold-key="shop-list">
+      <h3>Shops <span class="note">pop up, banner, open or close</span></h3>
       <div id="shList" class="list"></div>
+    </div>
+    <div class="card" data-tab="shops" data-fold="closed" data-fold-key="shop-gold">
       <h3>Party gold <span class="note">the DM sets it; phones spend it in shops</span></h3>
       <div id="goldList" class="list"></div>
     </div>

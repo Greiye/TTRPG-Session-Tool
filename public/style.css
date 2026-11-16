@@ -883,17 +883,17 @@ html[data-motion="reduce"] .die3d .cube { animation: none; }
 .narration li { font-style: italic; font-size: calc(1.3cqw * var(--ts)); line-height: 1.35; padding-left: 1cqw; border-left: .25cqw solid var(--gold); opacity: .92; }
 .narration li:last-child { opacity: 1; }
 .shop-tv { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgb(0 0 0 / .84); animation: fadein .4s; }
-.shop-box { width: min(64cqw, 960px); max-height: 86cqh; overflow: hidden; color: #f4ead5; text-align: center; padding: 2cqw 3cqw; }
-.shop-kicker { font-family: var(--display); letter-spacing: .25em; text-transform: uppercase; color: var(--gold); font-size: calc(1.2cqw * var(--ts)); }
-.shop-box h2 { font-family: var(--display); font-size: calc(3.6cqw * var(--ts)); margin: .2em 0 .5em; }
-.shop-wares { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .6cqw 2cqw; text-align: left; }
-.shop-wares li { display: flex; align-items: baseline; gap: .8cqw; font-size: calc(1.5cqw * var(--ts)); border-bottom: 1px dotted rgb(255 255 255 / .2); padding: .3cqw 0; }
-.shop-wares li span { flex: 1; }
-.shop-wares li b { color: var(--gold); }
-.shop-wares li small { color: #b9ad97; font-size: .75em; }
-.shop-wares li.out { opacity: .45; text-decoration: line-through; }
-.shop-more { color: #b9ad97; font-style: italic; font-size: calc(1.2cqw * var(--ts)); }
-.shop-left { margin: 1.2cqw 0 0; font-size: calc(1.8cqw * var(--ts)); }
+.shop-box { width: min(80cqw, 1400px); height: 92cqh; display: flex; flex-direction: column; color: #f4ead5; text-align: center; padding: 1.5cqw 2cqw; }
+.shop-box h2 { font-family: var(--display); font-size: calc(3.2cqw * var(--ts)); margin: 0 0 .4em; }
+/* Banner centred on top; the grid takes the rest: 3 columns, rows shrink to fit up to 60 items. */
+.shop-banner { display: block; margin: 0 auto 1cqw; max-width: 100%; max-height: 24cqh; object-fit: contain; border-radius: .6cqw; box-shadow: 0 .6cqw 2cqw rgb(0 0 0 / .6); }
+.shop-grid { flex: 1; min-height: 0; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(var(--rows, 4), minmax(0, 1fr)); gap: .6cqw; font-size: min(calc(1.3cqw * var(--ts)), calc(40cqh / var(--rows, 4))); max-height: calc(var(--rows, 4) * 9cqh); }
+.shop-ware { display: flex; flex-direction: column; justify-content: center; gap: .15em; min-height: 0; overflow: hidden; padding: .3em .7em; border-radius: .5em; text-align: center; background: linear-gradient(180deg, #5a3a26, #3a2418); border: .12em solid #c99a4a; box-shadow: inset 0 .1em 0 rgb(255 255 255 / .15), 0 .2em .5em rgb(0 0 0 / .5); }
+.shop-ware b { color: #f3d48a; font-family: var(--display); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shop-ware span { color: #e3d6bd; font-size: .8em; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shop-ware em { font-style: normal; color: #fff; font-weight: 700; font-size: .9em; }
+.shop-ware.out { opacity: .45; }
+.shop-left { margin: .8cqw 0 0; font-size: calc(1.8cqw * var(--ts)); }
 .shop-left b { color: var(--gold); font-size: 1.3em; }
 html[data-motion="reduce"] .shop-tv { animation-duration: .001ms; }
 /* Player screen tabs (Nov 14): sections inside Journal and Misc, dice pool, class features, inventory. */
@@ -972,3 +972,18 @@ body[data-role] #wmPage { display: none !important; }
 .call-fld select { width: 100%; }
 .dm-dice .dice-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .dm-dice .die-step { min-height: 40px; }
+/* Phone shop pop-up (Nov 15): banner, wares as buttons in 3 columns, pick then buy; a waiting screen after leaving. */
+.shop-sheet .shop-banner { display: block; width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+.shop-pgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.shop-sheet .shop-ware { font-size: calc(12px * var(--ts)); min-height: 64px; color: inherit; cursor: pointer; }
+.shop-sheet .shop-ware.on { outline: 3px solid var(--gold); outline-offset: 1px; }
+.shop-pickbar { margin-top: 8px; }
+.shop-wait { text-align: center; }
+.shop-wait-msg { font-family: var(--display); font-size: calc(20px * var(--ts)); margin: 12px 0 4px; }
+
+/* Folding cards (Nov 15): data-fold cards fold to their title; ▸ / ▾ shows which way. */
+.card[data-fold] > h3 { cursor: pointer; user-select: none; }
+.card[data-fold] > h3::after { content: '▾'; float: right; opacity: .6; transition: transform .2s; }
+.card[data-fold].folded > h3::after { transform: rotate(-90deg); }
+.card[data-fold].folded > :not(h3) { display: none !important; }
+.card[data-fold].folded > h3 { margin-bottom: 0; }

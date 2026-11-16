@@ -3,6 +3,7 @@ import { socket, $, emit, onState, state } from '../client.js';
 import { dmKey, masterRole } from './auth.js';
 import './header.js';
 import './modes.js';
+import './fold.js';
 import './exploration.js';
 import './dungeon.js';
 import './combat.js';
@@ -48,7 +49,7 @@ window.IsoDm = iso; // handle for debugging
 
 // The preview mirrors the TV: the world map (with the dungeon pop-up over it) while it is on the TV in exploration.
 onState((s) => {
-  if (s.worldMap?.onTv && window.WorldMap) WorldMap.tv($('#stage'), s, { dm: true });
+  if (s.worldMap?.onTv && !s.shopPop && window.WorldMap) WorldMap.tv($('#stage'), s, { dm: true });
   else Stage.stage($('#stage'), s);
   iso.update(s);
   renderAtmo(s);

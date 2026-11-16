@@ -34,12 +34,12 @@ ok(factions.clampRep(999) === 100 && factions.clampRep(-999) === -100 && faction
   ok(await until(() => a.last.players.find((p) => p.id === a.me.id).gold === 20), 'gold is set');
 
   // Neutral: list price.
-  ok(a.last.shops[0].items[0].price === 10 && a.last.shops[0].standing === 'Neutral', 'neutral standing charges the list price');
+  ok(a.last.shops.at(-1).items[0].price === 10 && a.last.shops.at(-1).standing === 'Neutral', 'neutral standing charges the list price');
 
   // Allied (+60): 15% off, mood follows once the NPC is linked.
   dm.emit('dm:npc', { faction: fid });
   dm.emit('dm:faction:shift', { id: fid, delta: 60 });
-  ok(await until(() => a.last.shops[0].items[0].price === 8.5 && a.last.shops[0].standing === 'Allied'), 'allied standing takes 15% off the phone price');
+  ok(await until(() => a.last.shops.at(-1).items[0].price === 8.5 && a.last.shops.at(-1).standing === 'Allied'), 'allied standing takes 15% off the phone price');
   ok(await until(() => dm.last.social.npc.emotion === 'happy'), 'an allied NPC is happy');
   const buy1 = await h.call(a, 'player:buy', { shopId: sid, itemId: `${sid}-1`, qty: 2 });
   ok(buy1.ok && buy1.gold === 3, 'buying two at the allied price costs 17 gp');
@@ -49,7 +49,7 @@ ok(factions.clampRep(999) === 100 && factions.clampRep(-999) === -100 && faction
   dm.emit('dm:faction:shift', { id: fid, delta: -100 });
   ok(await until(() => dm.last.factions[0].tier === 'hostile'), 'two steps down reach hostile');
   ok(await until(() => dm.last.social.npc.emotion === 'angry' && dm.last.social.line.emotion === 'angry'), 'a hostile faction makes its NPC angry, on the line too');
-  ok(await until(() => a.last.shops[0].items[0].price === 15), 'hostile standing charges 50% more');
+  ok(await until(() => a.last.shops.at(-1).items[0].price === 15), 'hostile standing charges 50% more');
   const buy2 = await h.call(a, 'player:buy', { shopId: sid, itemId: `${sid}-1`, qty: 1 });
   ok(buy2.error && /Not enough gold/.test(buy2.error), 'the buy price uses the same multiplier: 15 gp, only 3 gp left');
 
@@ -59,7 +59,7 @@ ok(factions.clampRep(999) === 100 && factions.clampRep(-999) === -100 && faction
   // Removing the faction clears the links and restores list prices.
   dm.emit('dm:faction:remove', { id: fid });
   ok(await until(() => a.last.factions.length === 0), 'the faction is removed');
-  ok(await until(() => a.last.shops[0].items[0].price === 10 && !a.last.shops[0].standing), 'shops without a faction charge list price');
+  ok(await until(() => a.last.shops.at(-1).items[0].price === 10 && !a.last.shops.at(-1).standing), 'shops without a faction charge list price');
   ok(await until(() => dm.last.social.npc.faction === null), 'the NPC loses its faction');
 
   // Persistence: factions survive a restart.
