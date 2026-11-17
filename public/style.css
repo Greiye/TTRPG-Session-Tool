@@ -1233,3 +1233,16 @@ body.dm .card > .btn, body.dm .card > button { display: block; margin-inline: au
 .ss-dm { border-top: 1px solid var(--line); margin-top: 10px; }
 .ss.ss-locked .ss-body, .ss.ss-locked [data-ss="stop"] { opacity: .45; pointer-events: none; }
 @media (max-width: 420px) { .ss-wheel { width: 200px; } .ss-mood { transform: rotate(var(--a)) translate(74px) rotate(calc(-1 * var(--a))); } .ss-mood.on { transform: rotate(var(--a)) translate(78px) rotate(calc(-1 * var(--a))) scale(1.12); } }
+
+/* Turn tracker on one row (Mike, Nov 17): five chips, the current one in the middle; numbers fade after the roll. */
+.init.one-row { flex-wrap: nowrap; overflow: hidden; }
+.init-win { display: flex; gap: .5cqw; align-items: center; min-width: 0; }
+.init-win.shift { animation: init-shift .45s cubic-bezier(.2,.8,.2,1) both; }
+.init-win span { white-space: nowrap; transition: opacity .3s; }
+.init-win span b { font-weight: inherit; }
+.init-win .past { opacity: .55; }
+.init-win .now { transform: scale(1.08); }
+.init-win .ini { font-style: normal; display: inline-block; overflow: hidden; max-width: 3em; margin-right: .35em; vertical-align: bottom; animation: ini-out .6s ease-in forwards; animation-play-state: running; }
+@keyframes ini-out { to { max-width: 0; margin-right: 0; opacity: 0; } }
+@keyframes init-shift { from { transform: translateX(12%); opacity: .4; } to { transform: none; opacity: 1; } }
+:root[data-motion="reduce"] .init-win.shift { animation: none; }

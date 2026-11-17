@@ -367,15 +367,43 @@
       <div class="grid" style="background-size:${100 / m.cols}% ${100 / m.rows}%"></div>${tiles}${fog}${toks}</div>`;
   }
 
+  // Turn tracker (Mike, Nov 17): one row of five, left to right the two turns before, the current turn and the
+  // next two. Initiative numbers show while the order is new, then fade to leave the names. The "Your move"
+  // banner is gone. Re-renders happen often, so animations carry a negative delay from when they began.
+  const INIT_SHOW_MS = 3000;
+  const initT = { key: '', start: 0, turn: null, turnAt: 0 };
+  function initWindow(n, i) {
+    const seen = new Set(), out = [];
+    const offs = n >= 5 ? [-2, -1, 0, 1, 2] : n === 4 ? [-1, 0, 1, 2] : n === 3 ? [-1, 0, 1] : n === 2 ? [0, 1] : [0];
+    for (const d of offs) { const k = (((i + d) % n) + n) % n; if (!seen.has(k)) { seen.add(k); out.push([k, d]); } }
+    return out;
+  }
+  function initStrip(c, byId, turn) {
+    const order = c.order.filter((o) => byId[o.id]);
+    if (!c.active || !order.length) return '<div class="init"><span class="round">Combat (not started)</span></div>';
+    const now = Date.now();
+    const key = order.map((o) => `${o.id}:${o.init}`).join('|');
+    if (key !== initT.key) { initT.key = key; initT.start = c.round === 1 && c.turn === 0 ? now : 0; }
+    if (turn !== initT.turn) { initT.turnAt = initT.turn == null ? 0 : now; initT.turn = turn; }
+    const shown = now - initT.start;
+    const moved = now - initT.turnAt;
+    const i = Math.max(0, order.findIndex((o) => o.id === turn));
+    const chips = initWindow(order.length, i).map(([k, d]) => {
+      const o = order[k], x = byId[o.id];
+      const num = shown < INIT_SHOW_MS + 600 ? `<i class="ini" style="animation-delay:${INIT_SHOW_MS - shown}ms">${o.init}</i>` : '';
+      return `<span class="${d === 0 ? 'now' : d < 0 ? 'past' : 'next'} ${x.enemy ? 'en' : 'al'} ${x.hp === 0 ? 'dead' : ''}" data-init-id="${esc(o.id)}">${x.side ? '' : avatar(x, 'av-chip')}${num}<b>${esc(x.name)}</b>${conds(x)}</span>`;
+    }).join('');
+    const slide = moved < 600 ? ` style="animation-delay:-${moved}ms"` : '';
+    return `<div class="init one-row"><span class="round">Round ${c.round}</span><div class="init-win ${slide ? 'shift' : ''}"${slide}>${chips}</div></div>`;
+  }
+
   function combat(s) {
     if (s.map) return `<div class="combat">${battleMap(s)}</div>`;
     const c = s.combat;
     const byId = Object.fromEntries([...s.players, ...c.enemies].map((x) => [x.id, x]));
     const turn = c.active ? c.order[c.turn]?.id : null;
     return `<div class="combat">
-      <div class="init">${c.active ? `<span class="round">Round ${c.round}</span>` : '<span class="round">Combat (not started)</span>'}
-        ${c.order.map((o) => byId[o.id] ? `<span class="${o.id === turn ? 'now' : ''} ${byId[o.id].enemy ? 'en' : 'al'} ${byId[o.id].hp === 0 ? 'dead' : ''}">${byId[o.id].side ? '' : avatar(byId[o.id], 'av-chip')}${o.init} ${esc(byId[o.id].name)}${conds(byId[o.id])}</span>` : '').join('')}</div>
-      ${byId[turn] && !byId[turn].enemy ? `<div class="turn-card" style="${accent(byId[turn])}">${avatar(byId[turn], 'av-turn')}<div><small>Your move</small><b>${esc(byId[turn].name)}</b>${byId[turn].catchphrase ? `<q>${esc(byId[turn].catchphrase)}</q>` : ''}</div></div>` : ''}
+      ${initStrip(c, byId, turn)}
       <div class="foes">${c.enemies.map((e) => `
         <div class="foe side-${e.side || 'enemy'} ${e.hp === 0 ? 'dead' : ''} ${turn === e.id ? 'turn' : ''}" data-fid="${esc(e.id)}">
           <div class="foe-icon">${e.hp === 0 ? '💀' : e.image ? Anim.media(e.image, 'foe-art') : SIDE_ICON[e.side] || '👹'}</div><b>${esc(e.name)}</b><small>AC ${e.ac}</small>${pips(e)}
