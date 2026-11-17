@@ -8,11 +8,27 @@ const { clampGold } = require('./shops');
 const { featureList } = require('./rests');
 
 // Fields only the owner and the DM see (other phones and the TV get the public card).
-const PRIVATE = ['abilities', 'saveProf', 'slots', 'hitDice', 'inventory', 'notes', 'spells', 'derived', 'gold', 'bond', 'uses', 'features'];
+const PRIVATE = ['abilities', 'saveProf', 'slots', 'hitDice', 'inventory', 'notes', 'spells', 'derived', 'gold', 'bond', 'uses', 'features', 'moves'];
 
 // Optional resource pools (phase 4). A pool with max 0 is not kept by the character and is hidden on phones.
 const RESOURCES = ['stamina', 'mana'];
 const pool = (r) => { const max = int(r?.max, 0, 999, 0); return { max, cur: int(r?.cur, 0, max, max) }; };
+
+// Special moves (Mike, Nov 17): chains a player lays out on the phone and picks in the strike pop-up
+// (public/js/play/strike.js). For show only; no names (players call their moves out at the table).
+// A step: k, and points in the silhouette's 200 x 300 box (x,y; slash and twin add x2,y2; twinslash x3..y4).
+const MOVE_STEPS = { hit: 1, pierce: 1, spell: 1, slash: 2, twin: 2, twinslash: 4 };
+const MAX_MOVES = 6, MAX_STEPS = 8, MIN_STEPS = 2;
+function cleanMoves(list) {
+  if (!Array.isArray(list)) return null;
+  return list.slice(0, MAX_MOVES).map((m) => ({
+    steps: (Array.isArray(m?.steps) ? m.steps : []).filter((s) => MOVE_STEPS[s?.k]).slice(0, MAX_STEPS).map((s) => {
+      const o = { k: s.k };
+      for (let i = 0; i < MOVE_STEPS[s.k]; i++) { const n = i ? i + 1 : ''; o[`x${n}`] = int(s[`x${n}`], 0, 200, 100); o[`y${n}`] = int(s[`y${n}`], 0, 300, 150); }
+      return o;
+    }),
+  })).filter((m) => m.steps.length >= MIN_STEPS);
+}
 
 // Bring any character (new, imported, or saved before sheets existed) up to the current shape.
 function ensureSheet(c) {
@@ -27,6 +43,7 @@ function ensureSheet(c) {
   c.conditions ??= [];
   for (const k of RESOURCES) c[k] = pool(c[k]);
   c.uses ??= {};
+  c.moves ??= [];
   c.features = featureList(c); // class features with their maximum, for the owner's sheet
   return c;
 }
@@ -53,6 +70,7 @@ function applySheet(c, f, isDm) {
   }
   if (f.hitDiceUsed !== undefined) c.hitDice.used = int(f.hitDiceUsed, 0, c.level, c.hitDice.used);
   if (f.notes !== undefined) c.notes = str(f.notes, 4000);
+  if (f.moves !== undefined) { const m = cleanMoves(f.moves); if (m) c.moves = m; }
   if (f.inv) {
     const { op, id } = f.inv;
     const item = c.inventory.find((x) => x.id === id);
@@ -90,4 +108,4 @@ function applySheet(c, f, isDm) {
   rules.get(c.system).editSheet(c, f);
 }
 
-module.exports = { PRIVATE, ensureSheet, derived, applySheet };
+module.exports = { PRIVATE, ensureSheet, derived, applySheet, cleanMoves };

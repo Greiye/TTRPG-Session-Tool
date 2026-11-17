@@ -30,7 +30,7 @@ Env: `PORT` (3000), `HTTPS_PORT` (3443), `HTTPS=0` (turn HTTPS off), `HTTPS_CERT
 3. Show the join QR (DM settings) and let everyone scan it.
 4. At the end, hold **End Session** and make a save point.
 
-Testing alone: **Add test party** (placeholder portraits included) and `npm run bots -- 4` for fake phones that answer rolls, votes and pop-ups. Placeholder art lives in `public/samples/placeholders/`.
+Testing alone: **Add test party** (placeholder portraits included) and `npm run bots -- 4` for fake phones that answer rolls, votes, pop-ups, shops, conversations, camp and their own combat turns. `npm run bots -- 4 --tour` also plays the DM through every pillar and prints a pass/fail report, then loads the save point it took first. Placeholder art lives in `public/samples/placeholders/`.
 
 Test tools: `npm run scenario` starts the game on a PLACEHOLDER table (party, town, dungeon, shop, combat ready) kept in `profiles/scenario/`, away from your real save. `npm run record` records a session to `recordings/`; `npm run replay -- <file> --boot` plays it back on a throwaway server to reproduce a bug (see the top of `tools/replay.js`).
 
