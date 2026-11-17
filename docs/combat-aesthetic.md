@@ -3,6 +3,16 @@
 Design notes for how fights look and feel on the TV, the DM laptop and the phones (Mike, Nov 16).
 **Docs only. Nothing here is built yet.** Every item is a possible feature with its open choices.
 
+## Mike's decisions (Nov 17)
+
+1. **Gestures are for show for now.** The dice decide every outcome. All gesture and effect code must
+   be built so it can be switched on or off (option A below).
+2. **Body parts change the rules, and players have them too** (feature 1).
+3. **Team casting**: when two player spellcasters are near each other, one can send the other a team
+   move request; a combined spell uses both their turns (feature 5).
+4. **No one but the DM sees damage numbers.** Players and the TV see health states (Healthy, Injured
+   and so on), never numbers (see "Health states, not numbers" below).
+
 ## The idea
 
 Combat should feel physical. A player does not just tap "Attack": they swipe, hold, draw, sing or mix
@@ -36,13 +46,24 @@ Every creature has health per body part (head, torso, arms, legs, or a creature'
 wings or tail). The parts add up to its total health, so the existing HP number, pips and bars keep
 working.
 
+**Decided (Mike, Nov 17): parts change the rules, and players have them too.**
+
+How it could work (a sketch, all numbers editable house rules, not 5e):
+- Each part has its own health and a **broken** effect when it reaches 0, for example: arm, drops what
+  it holds and cannot use two-handed weapons; leg, half speed; head, a save or be stunned; torso at 0
+  means the creature is down. Effects are editable per part set.
+- Healing goes to the most hurt part first unless the healer picks one.
+- Players and the TV see each part as a health state (Healthy, Bruised, Wounded, Broken), never a
+  number. The DM sees the numbers.
+- Body-part sets per creature kind (a wolf has no arms; a dragon has wings and a tail), edited in the
+  Creature Designer (backlog PR W). Characters get a humanoid set by default.
+
 Open choices:
-- Do parts matter to the rules (a broken arm drops a weapon, broken legs halve speed), or is it a
-  picture of where the damage landed?
-- Who picks the part hit: the player's gesture, a roll, or the DM?
-- Players too, or creatures only?
-- Body-part sets per creature kind, edited in the Creature Designer (backlog PR W).
-- Does the TV show part damage, or only the DM (enemy HP is pips on the TV today)?
+- Who picks the part hit: a roll (a hit location die), the attacker's called shot, or the DM? Since
+  gestures are for show, the gesture does not pick it.
+- How a part's health is set: a share of the total (head 15%, torso 40%, each arm and leg 11%) or
+  fixed numbers.
+- Which broken effects ship as defaults, and whether a broken part needs a rest or magic to mend.
 
 ### 2. Enemy silhouettes and strike gestures
 
@@ -60,12 +81,11 @@ Each weapon kind has its own gesture and its own haptic pattern:
 Open choices:
 - Weapon kind comes from the item or attack (an editable tag), not from a class.
 - Silhouette art: a generated outline from the creature's sprite or portrait, or uploaded per creature.
-- Where the gesture lands could pick the body part (feature 1).
 - Timeouts: how long a player has before it falls back to a plain roll.
 
 ### 3. Cosmetic or rules (TBA)
 
-Mike has not decided whether gestures affect the roll. Three ways it could work:
+**Decided (Mike, Nov 17): A, for show.** The other two stay here for later.
 
 - **A. Cosmetic.** The dice decide everything; the gesture is only the trigger and the feel.
 - **B. The gesture is the roll.** The swipe or press throws the dice. Then a short pause, and a white
@@ -74,7 +94,11 @@ Mike has not decided whether gestures affect the roll. Three ways it could work:
 - **C. Skill bonus.** A good gesture adds a small, DM-set bonus (for example +1). Risky for fairness at
   a friends table and harder for accessibility.
 
-Suggested start: B with the roll unchanged, so the gesture is the moment of rolling and stays fair.
+**Switching it on and off.** One table setting, **Combat gestures** (On / Off), set by the DM, and a
+per-phone override so a player can always use plain buttons. With it off, phones show today's buttons.
+The effects layer (feature 8) has its own **Combat effects** setting. Both follow Reduce motion. Each
+gesture is a small module behind one switch, so a single gesture (for example song casting) can be
+turned off without the others.
 
 ### 4. Spellcasting styles
 
@@ -94,15 +118,23 @@ Open choices:
   `src/tls.js`) and permission. A quiet table, or a fallback to humming or buttons.
 - Spell length or level could set the length of the sequence.
 
-### 5. Casting together
+### 5. Team casting
 
-Spellcasters who cast together get a multiplier to the effect, and each uses their combat turn.
+**Decided (Mike, Nov 17): a team move between two player spellcasters who are near each other.**
+
+How it could work:
+- On a caster's turn, if another player spellcaster is within range on the battle map (an editable
+  distance, for example 10 ft), the phone offers **Team move** with that player.
+- The second player gets a request on their phone (like the existing join and roll call pop-ups) and
+  accepts or declines. Both cast, using both their turns; the second player's next turn is spent.
+- The combined spell gets a multiplier to its effect. The DM confirms or changes it with one tap.
+- On the TV: the two casters' accent colours braid into one effect.
 
 Open choices:
-- How it is timed: casters hold their turn and release together, or the first caster opens a window
-  the others join before the next turn.
-- What the multiplier touches (damage, area, duration) and its size; an editable house rule.
-- On the TV: the casters' accent colours braid into one effect.
+- What the multiplier touches (damage, area, duration, or the DM picks) and its size; an editable house
+  rule.
+- Whether both must cast the same spell, or any two spells combine.
+- Whether more than two can join, and whether creatures can team cast.
 
 ### 6. Items by drag
 
@@ -128,9 +160,10 @@ Open choices:
 
 The look side that the gestures play into, and the natural first build:
 
-- **Hit, crit, miss, heal, down cues.** Floating numbers anchored to the target (party card, foe card,
-  flat map token), a bigger burst and a short screen shake on a crit, a grey "Miss" puff, a green rise
-  for healing, a "Down" stamp with a dark pulse.
+- **Hit, crit, miss, heal, down cues.** A slash or stab mark on the target (party card, foe card, flat
+  map token, 3D token), a bigger burst and a short screen shake on a crit, a grey "Miss" puff, a green
+  glow for healing, a "Down" stamp with a dark pulse. **No numbers** on the TV or phones; the DM page
+  may show them. A health state word (for example "Injured") can float instead when the state changes.
 - **Turn-change cue.** A sweep in the combatant's accent colour (players use their colour, creatures
   their accent), and a "Your turn" swoosh with a buzz on that player's phone.
 - **Phones see their own moments**: you hit, you missed, you were hit, your turn.
@@ -139,22 +172,36 @@ The look side that the gestures play into, and the natural first build:
   the DM page and phones. The 3D map keeps its own floating numbers; the cue adds the screen-level
   effect.
 
-Open choice: show damage numbers for creatures on the TV (the dealt amount is already in the public log,
-the remaining HP is not).
+### Health states, not numbers
+
+**Decided (Mike, Nov 17): only the DM sees damage and health numbers.** Players and the TV see health
+states such as Healthy, Injured, Badly hurt and Down.
+
+Today's tool still shows numbers in a few places. Changing them is part of building this, and each is
+listed so nothing is removed by surprise:
+- the TV party cards show `hp/maxHp` (`public/stage.js`);
+- the phone hero card shows a number unless the phone picks **HP display: Description**
+  (`public/settings.js`), so Description would become the only choice for players;
+- the 3D map floats `-N` over a hit token on every screen (`lib/iso-battle` `scene.attackFx`);
+- the public combat log says "HIT for N" and the player attack text includes damage (`src/game.js`).
+  These lines would keep the number for the DM only (the log already supports `vis: 'dm'`).
+
+Open choice: the state names and where the lines fall (for example Healthy above 75%, Injured, Badly
+hurt below 25%, Down at 0), as an editable list.
 
 ## Suggested order
 
-1. Impact cues on every screen (feature 8) behind the Combat effects setting.
-2. Strike gestures on silhouettes with option B (the gesture is the roll), with a button fallback.
+1. Health states instead of numbers on the TV and phones, and impact cues on every screen (feature 8)
+   behind the Combat effects setting.
+2. Strike gestures on silhouettes, for show, behind the Combat gestures setting.
 3. Items by drag (throwables and potions).
 4. Spellcasting styles, rhythm first (no microphone), then alchemy, then song.
-5. Casting together.
-6. Body-part health, once Mike decides whether parts matter to the rules.
+5. Team casting.
+6. Body-part health with rules, for creatures and players.
 7. Armour on and off.
 
-## Questions for Mike
+## Still open
 
-- Gestures: cosmetic (A), the roll itself (B) or a small bonus (C)?
-- Body parts: rules or picture? Players too?
-- Casting together: how is it timed, and what does the multiplier touch?
-- Damage numbers for creatures on the TV: show or hide?
+- Body parts: who picks the part hit, how part health is set, and the default broken effects.
+- Team casting: what the multiplier touches and its size, and whether any two spells combine.
+- Health state names and thresholds.
