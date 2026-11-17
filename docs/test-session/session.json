@@ -1,0 +1,231 @@
+{
+  "title": "PLACEHOLDER Test Session: The Princess and the Dragon",
+  "note": "Every name, line and number here is PLACEHOLDER content for the test session. See README.md.",
+  "party": [
+    {
+      "name": "PLACEHOLDER Barbarian",
+      "cls": "Barbarian",
+      "race": "Half-Orc",
+      "player": "PLACEHOLDER Player 1"
+    },
+    {
+      "name": "PLACEHOLDER Rogue",
+      "cls": "Rogue",
+      "race": "Halfling",
+      "player": "PLACEHOLDER Player 2"
+    },
+    {
+      "name": "PLACEHOLDER Archer",
+      "cls": "Ranger",
+      "race": "Wood Elf",
+      "player": "PLACEHOLDER Player 3"
+    },
+    {
+      "name": "PLACEHOLDER Wizard",
+      "cls": "Wizard",
+      "race": "Gnome",
+      "player": "PLACEHOLDER Player 4"
+    }
+  ],
+  "intro": {
+    "campaign": "PLACEHOLDER The Princess and the Dragon",
+    "session": 1,
+    "lines": [
+      "PLACEHOLDER A dragon has taken the princess to its tower.",
+      "PLACEHOLDER Four heroes set out to save her."
+    ]
+  },
+  "world": {
+    "legSeconds": 5,
+    "places": [
+      {
+        "key": "road",
+        "name": "PLACEHOLDER Burning Road",
+        "x": 0.15,
+        "y": 0.7,
+        "info": "PLACEHOLDER Where the villager runs from the dragon."
+      },
+      {
+        "key": "village",
+        "name": "PLACEHOLDER Emberford",
+        "x": 0.35,
+        "y": 0.55,
+        "info": "PLACEHOLDER A village with a town leader and Greer's.",
+        "settlement": true
+      },
+      {
+        "key": "dungeon",
+        "name": "PLACEHOLDER Dungeon of the Reptile",
+        "x": 0.6,
+        "y": 0.45,
+        "info": "PLACEHOLDER Wet stairs down. The only way to the lair.",
+        "dungeon": true
+      },
+      {
+        "key": "lair",
+        "name": "PLACEHOLDER Dragon's Lair",
+        "x": 0.85,
+        "y": 0.2,
+        "info": "PLACEHOLDER A tower on the ridge. The princess is inside."
+      }
+    ],
+    "roads": [
+      [
+        "road",
+        "village",
+        1
+      ],
+      [
+        "village",
+        "dungeon",
+        1
+      ],
+      [
+        "dungeon",
+        "lair",
+        1
+      ]
+    ]
+  },
+  "town": {
+    "places": [
+      {
+        "key": "gate",
+        "name": "PLACEHOLDER Village gate",
+        "kind": "entrance",
+        "x": 0.5,
+        "y": 0.86,
+        "time": 0,
+        "reveals": [
+          "hall",
+          "greer"
+        ]
+      },
+      {
+        "key": "hall",
+        "name": "PLACEHOLDER Leader's hall",
+        "kind": "house",
+        "x": 0.3,
+        "y": 0.5,
+        "time": 1,
+        "info": "PLACEHOLDER The town leader waits here."
+      },
+      {
+        "key": "greer",
+        "name": "PLACEHOLDER Greer's",
+        "kind": "market",
+        "x": 0.7,
+        "y": 0.5,
+        "time": 1,
+        "info": "PLACEHOLDER Greer's Trinkets.",
+        "shop": "greer"
+      }
+    ]
+  },
+  "townNpcs": [
+    "PLACEHOLDER Blacksmith",
+    "PLACEHOLDER Herbalist"
+  ],
+  "startingGold": 50,
+  "dungeon": {
+    "rooms": [
+      {
+        "key": "entrance",
+        "name": "PLACEHOLDER Wet Stairs",
+        "kind": "entrance",
+        "pill": "",
+        "note": "PLACEHOLDER The way in."
+      },
+      {
+        "key": "trap",
+        "name": "PLACEHOLDER Pressure Plate Hall",
+        "kind": "trap",
+        "parent": "entrance",
+        "pill": "DC 12",
+        "note": "PLACEHOLDER Dexterity save DC 12 or 1d4 damage."
+      },
+      {
+        "key": "nest",
+        "name": "PLACEHOLDER Snake Nest",
+        "kind": "monster",
+        "parent": "trap",
+        "pill": "CR 1",
+        "note": "PLACEHOLDER Sleeping snakes. Sneak past."
+      },
+      {
+        "key": "treasure",
+        "name": "PLACEHOLDER Shed Skin Cache",
+        "kind": "treasure",
+        "parent": "trap",
+        "pill": "",
+        "note": "PLACEHOLDER A potion in an old skin."
+      },
+      {
+        "key": "exit",
+        "name": "PLACEHOLDER Far Light",
+        "kind": "exit",
+        "parent": "nest",
+        "pill": "",
+        "note": "PLACEHOLDER Stairs up to the lair road."
+      }
+    ],
+    "links": [
+      [
+        "treasure",
+        "exit"
+      ]
+    ],
+    "path": [
+      "entrance",
+      "trap",
+      "nest",
+      "exit"
+    ],
+    "trapSave": {
+      "kind": "save",
+      "key": "dex",
+      "dc": 12
+    }
+  },
+  "boss": {
+    "name": "PLACEHOLDER Dragon",
+    "title": "PLACEHOLDER Wyrm of the Tower",
+    "hp": 30,
+    "ac": 13,
+    "cr": "2",
+    "side": "enemy",
+    "attacks": [
+      {
+        "name": "PLACEHOLDER Bite",
+        "atk": 4,
+        "dmg": "1d4"
+      }
+    ],
+    "boss": true
+  },
+  "winnings": {
+    "spoils": {
+      "title": "PLACEHOLDER Mission winnings",
+      "items": [
+        {
+          "name": "PLACEHOLDER Dragon scale",
+          "qty": 4
+        },
+        {
+          "name": "PLACEHOLDER Princess's thanks letter",
+          "qty": 1
+        }
+      ]
+    },
+    "goldEach": 200,
+    "trophy": {
+      "name": "PLACEHOLDER Princess's crown",
+      "story": "PLACEHOLDER Returned by the party after the dragon fell."
+    },
+    "legend": {
+      "cat": "kill",
+      "detail": "PLACEHOLDER Slew the dragon of the tower"
+    }
+  },
+  "ending": "PLACEHOLDER With the princess safe and their pockets full, the party sets off to find out why none of them can die."
+}
