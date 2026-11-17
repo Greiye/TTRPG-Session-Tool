@@ -103,7 +103,7 @@ const state = {
   shopPop: null, // { shopId, n, done: [charId] } shop pop-up on the TV and phones (transient, src/shops.js)
   legendsShow: null, // 'hall' | 'shelf' | null: legends card on the TV (transient)
   // lighting preset is kept on the scene (src/world.js)
-  settings: { display: { text: 'md', palette: 'default', motion: 'auto', dice: 'on', log: 'hide', showLog: [], hideJoin: true, quiet: 1 }, host: null }, // table-wide (TV display, QR host)
+  settings: { display: { text: 'md', palette: 'default', motion: 'auto', dice: 'on', log: 'hide', fx: 'on', numbers: 'dm', showLog: [], hideJoin: true, quiet: 1 }, host: null }, // table-wide (TV display, QR host)
   bulbsOn: false, // smart bulbs follow the lighting (item 10, src/bulbs.js); off by default, DM toggle only
   bulbsTargets: 0, // how many bulbs are configured (count only; addresses and keys stay on the server)
   templates: Object.fromEntries(Object.entries(require('./templates').TEMPLATES).map(([k, t]) => [k, t.name])),

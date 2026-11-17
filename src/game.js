@@ -6,6 +6,7 @@ const { BUILTIN_SFX } = require('./media');
 const absent = require('./absent');
 const timers = require('./timers');
 const iso = require('./iso');
+const fx = require('./combatfx');
 
 let spotlightTimer = null;
 function spotlight(id, kind) {
@@ -47,6 +48,7 @@ function stepTurn() {
   }
   const who = combatant(currentTurnId());
   if (who) log('combat', `${who.name}'s turn.`);
+  if (who) fx.emit('turn', { target: who });
   if (who && !who.enemy) playTheme(who);
   require('./grid').resetMoves();
 }
@@ -68,7 +70,7 @@ function applyDamage(target, amount) {
   target.hp = Math.max(0, Math.min(target.maxHp, target.hp - amount));
   timers.onDamage(target, dealt);
   if (was === 0 || amount <= 0) return;
-  if (target.hp === 0) log('combat', `${target.name} is down!`, { tone: 'bad' });
+  if (target.hp === 0) { log('combat', `${target.name} is down!`, { tone: 'bad' }); fx.emit('down', { target }); }
   if (state.combat.active && foes().length && foes().every((e) => e.hp === 0)) {
     log('combat', 'All enemies defeated. Victory!', { tone: 'good' });
   }
@@ -89,13 +91,18 @@ function attack(attacker, target, opts) {
   const r = sys().attack(attacker, sc.cover ? { ...target, ac: target.ac + sc.cover } : target, opts);
   if (sc.cover) r.text += ` (${sc.cover === 5 ? 'three-quarters' : 'half'} cover +${sc.cover})`;
   if (attacker.attackName) r.text = r.text.replace(' attacks ', ` attacks (${attacker.attackName}) `);
-  if (state.combat.enemies.includes(attacker)) {
-    // Creature bonuses and damage dice are DM-only (see FIELD_RULES in visibility.js). Phones and the TV
+  const foe = state.combat.enemies.includes(attacker);
+  const tone = r.hit === foe ? 'bad' : 'good';
+  if (foe || !fx.numbersForAll()) {
+    // Creature bonuses and damage dice are DM-only (see FIELD_RULES in visibility.js), and damage numbers are
+    // for the DM only unless the table setting "Health numbers" is Everyone (Mike, Nov 17). Phones and the TV
     // get the outcome; the DM keeps the full breakdown.
-    const outcome = r.hit ? `${r.crit ? 'CRIT' : 'HIT'} for ${r.damage}` : 'MISS';
-    log('combat', `${attacker.name} attacks ${target.name}: ${outcome}.`, { tone: r.hit ? 'bad' : 'good', roll: r.natural });
-    log('combat', r.text, { tone: r.hit ? 'bad' : 'good', roll: r.natural, vis: 'dm' });
-  } else log('combat', r.text, { tone: r.hit ? 'good' : 'bad', roll: r.natural });
+    const amount = fx.numbersForAll() ? ` for ${r.damage}` : '';
+    const outcome = r.hit ? `${r.crit ? 'CRIT' : 'HIT'}${amount}` : 'MISS';
+    log('combat', `${attacker.name} attacks ${target.name}: ${outcome}.`, { tone, roll: r.natural });
+    log('combat', r.text, { tone, roll: r.natural, vis: 'dm' });
+  } else log('combat', r.text, { tone, roll: r.natural });
+  fx.emit(r.hit ? (r.crit ? 'crit' : 'hit') : 'miss', { target, by: attacker, amount: r.hit ? r.damage : 0 });
   if (r.crit && !attacker.enemy) spotlight(attacker.id, 'nat20');
   if (r.hit) applyDamage(target, r.damage);
   return r;
@@ -115,6 +122,7 @@ function startCombat() {
   log('combat', `Roll initiative! ${c.order.map((o) => `${combatant(o.id).name} ${o.init}`).join(', ')}`, { tone: 'call' });
   const who = combatant(currentTurnId());
   if (who) log('combat', `${who.name}'s turn.`);
+  if (who) fx.emit('turn', { target: who });
   if (who && !who.enemy) playTheme(who);
   settleAutopilot();
 }

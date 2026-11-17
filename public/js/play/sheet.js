@@ -71,7 +71,7 @@ function render() {
   const open = new Set([...root().querySelectorAll('details[open]')].map((x) => x.dataset.k));
   root().innerHTML = `
     <div class="card"><h3>Hit points</h3>
-      <div class="hp-ctl"><button class="btn" data-hp="-5">−5</button><button class="btn" data-hp="-1">−1</button><b>${c.hp}<small> / ${c.maxHp}</small></b><button class="btn" data-hp="1">+1</button><button class="btn" data-hp="5">+5</button></div>
+      <div class="hp-ctl"><button class="btn" data-hp="-5">−5</button><button class="btn" data-hp="-1">−1</button>${Stage.numbersHidden(S) ? `<b class="hp-word">${esc(Stage.hpWord(c.hp, c.maxHp))}</b>` : `<b>${c.hp}<small> / ${c.maxHp}</small></b>`}<button class="btn" data-hp="1">+1</button><button class="btn" data-hp="5">+5</button></div>
       <div class="row"><span class="muted">Temporary HP</span><button class="btn small" data-temp="-1">−</button><b>${c.tempHp || 0}</b><button class="btn small" data-temp="1">+</button><button class="btn small" data-temp="5">+5</button></div>
       <div class="chips">${chip(esc(R.defenseLabel), c.ac)}${chip('Speed', `${c.speed ?? 30} ft`)}${d.prof ? chip('Proficiency', fmt(d.prof)) : ''}${chip('Initiative', fmt(c.init))}${chip('Passive 👁', d.passive.Perception ?? d.passive.Instinct ?? 10)}</div>
     </div>

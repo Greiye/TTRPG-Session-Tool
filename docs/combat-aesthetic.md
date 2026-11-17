@@ -1,7 +1,29 @@
 # Combat aesthetic
 
 Design notes for how fights look and feel on the TV, the DM laptop and the phones (Mike, Nov 16).
-**Docs only. Nothing here is built yet.** Every item is a possible feature with its open choices.
+Every item is a possible feature with its open choices. **Built so far: the first slice** (below).
+
+## Built: first slice (Nov 17)
+
+- **Combat cues.** The server sends one cue per hit, crit, miss, heal, down and turn (`src/combatfx.js`,
+  hooked into `src/game.js` attacks, damage and turns, the DM's HP buttons and potions).
+  `public/combatfx.js` and `public/combatfx.css` play them, all PLACEHOLDER looks:
+  - TV and DM page: a slash on the target (an X and a burst with "Critical!" and a short stage shake on
+    a crit), a white glancing slash with "Miss", a green glow for healing, a "Down" stamp, a party hit
+    flushes the TV edges red, and a sweep in the combatant's colour for each turn.
+  - Phones: only your own moments, as one line ("You hit Goblin", "Goblin hits you", "Your turn") with a
+    buzz where the phone supports it.
+- **Health numbers are the DM's.** Cues carry the amount only to the DM's screens. The TV party cards,
+  the phone hero card, the phone sheet and the 3D map's floating text show the health word instead
+  (Fine, Injured, Badly hurt, Near death, Down: the existing phone "Description" words, PLACEHOLDER
+  until Mike picks his own). Public log lines say HIT, CRIT or MISS; the full roll and damage are DM-only.
+  The numbers are still in the data phones receive, so this hides them on screen rather than securing them.
+- **Toggles.** Display settings: **Combat effects** (On / Off) per device, and for the TV under the
+  table settings; **Health numbers** (DM only / Everyone) for the whole table, set by the DM. Reduce
+  motion turns every cue into a short fade.
+- Tests: `test/combatfx.js`, `test/combatfx-ui.js`, `test/log-redaction.js`.
+- Not in this slice: the 3D map cues are screen-centred (the map keeps its own lunge and floating word),
+  and the open values below (weapon speeds, health state names, who picks the body part) are not set.
 
 ## Mike's decisions (Nov 17)
 

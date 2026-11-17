@@ -74,10 +74,20 @@
     const n = 5; const filled = c.hp <= 0 ? 0 : Math.max(1, Math.ceil((n * c.hp) / c.maxHp));
     return `<div class="pips-hp" aria-label="${c.hp <= 0 ? 'down' : `${filled} of ${n} health`}">${Array.from({ length: n }, (_, i) => `<i class="${i < filled ? 'on' : ''}"></i>`).join('')}</div>`;
   }
-  function hpBar(c) {
+  // HP as a word (phone setting "Description", Mike Nov 16; and every player screen and the TV when health
+  // numbers are for the DM only, Mike Nov 17). PLACEHOLDER names and thresholds until Mike picks his own.
+  function hpWord(hp, max) {
+    if (hp <= 0) return 'Down';
+    const k = max > 0 ? hp / max : 1;
+    return k > 0.75 ? 'Fine' : k > 0.5 ? 'Injured' : k > 0.25 ? 'Badly hurt' : 'Near death';
+  }
+  // True when this table keeps health and damage numbers for the DM (the default; table setting "Health numbers").
+  const numbersHidden = (s) => s?.settings?.display?.numbers !== 'all';
+  // words: show the health state instead of hp/maxHp (the bar keeps its length and colour).
+  function hpBar(c, { words = false } = {}) {
     const pct = Math.round((100 * c.hp) / c.maxHp);
     const tone = pct > 50 ? 'ok' : pct > 20 ? 'warn' : 'crit';
-    return `<div class="hp ${tone}"><i style="width:${pct}%"></i><span>${c.hp}/${c.maxHp}</span></div>`;
+    return `<div class="hp ${tone}"><i style="width:${pct}%"></i><span>${words ? esc(hpWord(c.hp, c.maxHp)) : `${c.hp}/${c.maxHp}`}</span></div>`;
   }
 
   // Layered sprites (src/layered.js): stacked PNG layers from a character manifest, with state overrides.
@@ -255,7 +265,7 @@
     return `<div class="party">${s.players.map((p) => `
       <div class="pc ${p.hp === 0 ? 'down' : ''} ${turn === p.id ? 'turn' : ''} ${p.online ? '' : 'offline'} ${showing.has(p.id) ? 'hp-show' : ''}" data-pid="${esc(p.id)}" style="${accent(p)}">
         ${avatar(p, 'av-pc')}
-        <div class="pc-info"><b>${esc(p.name)}</b><small>${esc([p.race, p.cls].filter(Boolean).join(' '))} ${p.level > 1 ? `${p.level}` : ''} · AC ${p.ac}${p.player ? ` · ${esc(p.player)}` : ''}</small>${hpBar(p)}</div>
+        <div class="pc-info"><b>${esc(p.name)}</b><small>${esc([p.race, p.cls].filter(Boolean).join(' '))} ${p.level > 1 ? `${p.level}` : ''} · AC ${p.ac}${p.player ? ` · ${esc(p.player)}` : ''}</small>${hpBar(p, { words: numbersHidden(s) })}</div>
       </div>`).join('')}</div>`;
   }
 
@@ -367,7 +377,7 @@
         ${c.order.map((o) => byId[o.id] ? `<span class="${o.id === turn ? 'now' : ''} ${byId[o.id].enemy ? 'en' : 'al'} ${byId[o.id].hp === 0 ? 'dead' : ''}">${byId[o.id].side ? '' : avatar(byId[o.id], 'av-chip')}${o.init} ${esc(byId[o.id].name)}${conds(byId[o.id])}</span>` : '').join('')}</div>
       ${byId[turn] && !byId[turn].enemy ? `<div class="turn-card" style="${accent(byId[turn])}">${avatar(byId[turn], 'av-turn')}<div><small>Your move</small><b>${esc(byId[turn].name)}</b>${byId[turn].catchphrase ? `<q>${esc(byId[turn].catchphrase)}</q>` : ''}</div></div>` : ''}
       <div class="foes">${c.enemies.map((e) => `
-        <div class="foe side-${e.side || 'enemy'} ${e.hp === 0 ? 'dead' : ''} ${turn === e.id ? 'turn' : ''}">
+        <div class="foe side-${e.side || 'enemy'} ${e.hp === 0 ? 'dead' : ''} ${turn === e.id ? 'turn' : ''}" data-fid="${esc(e.id)}">
           <div class="foe-icon">${e.hp === 0 ? '💀' : e.image ? Anim.media(e.image, 'foe-art') : SIDE_ICON[e.side] || '👹'}</div><b>${esc(e.name)}</b><small>AC ${e.ac}</small>${pips(e)}
         </div>`).join('') || '<p class="muted">No enemies yet.</p>'}</div>
     </div>`;
@@ -748,7 +758,7 @@
       <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Relations web">${lines}${dots}</svg></div>`;
   }
 
-  window.Stage = { stage, vn, pie, portrait, avatar, layeredSprite, refillLayered, hpBar, logFeed, checkBanner, hallHtml, shelfHtml, esc, EMO };
+  window.Stage = { stage, vn, pie, portrait, avatar, layeredSprite, refillLayered, hpBar, hpWord, numbersHidden, logFeed, checkBanner, hallHtml, shelfHtml, esc, EMO };
 })();
 
 // Press and hold a portrait for a moment to see it full screen; Back returns. Works on the TV and the phone.

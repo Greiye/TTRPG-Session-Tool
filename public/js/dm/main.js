@@ -51,6 +51,7 @@ window.dmEmit = emit; // used by the live voice panel in stt.js (classic script)
 Settings.mount({ table: { get: () => state()?.settings.display || {}, set: (display) => emit('dm:settings', { display }) } });
 // The laptop is the speaker only when no /screen tab is open (e.g. TV mirroring the laptop), unless the DM picks
 // TV or Laptop under Soundscape › Output. Never a helper's phone.
+CombatFx.listen(socket, { role: 'dm' }); // combat effects on the DM page; the DM's cues carry the numbers (public/combatfx.js)
 AudioOut.init(socket, { isOutput: (s) => !masterRole() && (!s || !s.screens), device: 'laptop', eligible: () => !masterRole() });
 const renderAtmo = Atmo.mount($('#atmo'), { emit, key: dmKey });
 const renderSound = Soundscape.mount($('#soundscape'), { emit, role: masterRole }); // DM and Music Co-DM

@@ -9,6 +9,7 @@ const { LIGHTS } = require('../vision');
 const cast = require('../cast');
 const sprites = require('../sprites');
 const game = require('../game');
+const combatfx = require('../combatfx');
 const entities = require('../entities');
 const { release, newRoomCode } = require('../session');
 const net = require('../net');
@@ -455,7 +456,11 @@ module.exports = function dmSockets(socket) {
   });
   dm('dm:hp', ({ id, delta }) => {
     const t = game.combatant(id);
-    if (t) game.applyDamage(t, -Number(delta) || 0);
+    if (!t) return;
+    const was = t.hp;
+    game.applyDamage(t, -Number(delta) || 0);
+    // A combat cue for the change (src/combatfx.js); a fall to 0 already sent its "down" cue.
+    if (state.combat.active && t.hp !== was && t.hp > 0) combatfx.emit(t.hp > was ? 'heal' : 'hit', { target: t, amount: Math.abs(t.hp - was) });
   });
 
   // ----- social -----
@@ -596,7 +601,7 @@ module.exports = function dmSockets(socket) {
   dm('dm:memorial:clear', () => legacy.clearMemorial());
 
   // Table-wide display settings, used by the TV (phones and the DM laptop keep their own).
-  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'], log: ['show', 'hide'], sprite: ['auto', 'webm', 'sheet'], anim: ['on', 'off'], dice: ['on', 'off'] };
+  const DISPLAY = { text: ['md', 'lg', 'xl'], palette: ['default', 'cb', 'hc'], motion: ['auto', 'reduce', 'full'], log: ['show', 'hide'], sprite: ['auto', 'webm', 'sheet'], anim: ['on', 'off'], dice: ['on', 'off'], fx: ['on', 'off'], numbers: ['dm', 'all'] };
   dm('dm:settings', ({ display }) => {
     if (!display) return;
     const cur = state.settings.display || {};

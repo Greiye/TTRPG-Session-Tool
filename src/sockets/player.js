@@ -5,6 +5,7 @@ const { roster, newCharacter, applyEdits } = require('../roster');
 const { rollDice } = require('../dice');
 const { str } = require('../util');
 const game = require('../game');
+const combatfx = require('../combatfx');
 const session = require('../session');
 const rolls = require('../rolls');
 const shops = require('../shops');
@@ -256,7 +257,12 @@ module.exports = function playerSockets(socket) {
       houserules.markPotion(state, p);
       const h = rollDice([2, 4, 2]);
       p.hp = Math.min(p.maxHp, p.hp + h.total);
-      log('combat', `${p.name} drinks a potion and heals ${h.total}.`, { tone: 'good' });
+      if (combatfx.numbersForAll()) log('combat', `${p.name} drinks a potion and heals ${h.total}.`, { tone: 'good' });
+      else {
+        log('combat', `${p.name} drinks a potion.`, { tone: 'good' });
+        log('combat', `${p.name} heals ${h.total}.`, { tone: 'good', vis: 'dm' }); // numbers are for the DM (Mike, Nov 17)
+      }
+      combatfx.emit('heal', { target: p, amount: h.total });
     } else return;
     game.advanceTurn();
     broadcast();
