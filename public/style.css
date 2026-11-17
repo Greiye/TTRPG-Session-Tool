@@ -1246,3 +1246,32 @@ body.dm .card > .btn, body.dm .card > button { display: block; margin-inline: au
 @keyframes ini-out { to { max-width: 0; margin-right: 0; opacity: 0; } }
 @keyframes init-shift { from { transform: translateX(12%); opacity: .4; } to { transform: none; opacity: 1; } }
 :root[data-motion="reduce"] .init-win.shift { animation: none; }
+
+/* Strike pop-up on phones (public/js/play/strike.js; Mike, Nov 17). Silhouette and effects are PLACEHOLDER. */
+.strike-pop { position: fixed; inset: 0; z-index: 8500; display: grid; place-items: center; padding: 12px; background: rgb(0 0 0 / .72); animation: fadein .2s; touch-action: none; }
+.strike-pop.closing { animation: cfx-fadeout .25s forwards; }
+.strike-card { width: min(420px, 100%); display: grid; gap: 10px; padding: 12px; border-radius: 14px; background: rgb(20 14 10 / .95); border: 1px solid var(--gold); color: #f4ead5; animation: strike-in .35s cubic-bezier(.2,.9,.3,1.3) both; }
+@keyframes strike-in { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
+.strike-card header { display: flex; justify-content: space-between; align-items: center; font-family: var(--display); font-size: 20px; }
+.strike-field { position: relative; height: min(52vh, 420px); border-radius: 10px; background: radial-gradient(ellipse at 50% 60%, rgb(120 30 20 / .35), rgb(0 0 0 / .4)); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+.strike-sil { position: absolute; inset: 6% 12%; width: 76%; height: 88%; fill: rgb(8 6 6 / .92); stroke: rgb(0 0 0 / .9); filter: drop-shadow(0 0 10px rgb(255 120 80 / .35)); pointer-events: none; }
+.strike-sil .sil-eye { fill: hsl(0 80% 55%); }
+.strike-ink { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.strike-ink polyline { fill: none; stroke: #fff; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 14px hsl(42 90% 60%)); }
+.struck.st-slash .strike-ink polyline { animation: cfx-fade .5s ease-in .35s forwards; }
+.strike-ring { position: absolute; width: 180px; height: 180px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 14px hsl(42 90% 60%); transform: translate(-50%, -50%); pointer-events: none; }
+.strike-ring.go { animation: strike-close linear forwards; }
+@keyframes strike-close { from { width: 180px; height: 180px; opacity: .5; } to { width: 18px; height: 18px; opacity: 1; } }
+.strike-stab { position: absolute; width: 18px; height: 18px; border-radius: 50%; transform: translate(-50%, -50%); background: radial-gradient(circle, #fff 0 35%, hsl(42 90% 60%) 60%, transparent 72%); animation: strike-stab .35s ease-out forwards; pointer-events: none; }
+@keyframes strike-stab { to { width: 120px; height: 120px; opacity: .2; } }
+.strike-result { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); font: 700 40px/1 var(--display); color: #fff; text-shadow: 0 0 12px #000; animation: cfx-pop .4s cubic-bezier(.2,.9,.3,1.3) both; }
+.strike-field.res-hit .strike-sil, .strike-field.res-crit .strike-sil { animation: strike-hurt .5s ease-out; }
+.strike-field.res-crit .strike-result { color: hsl(42 95% 62%); }
+.strike-field.res-miss .strike-result { color: #ddd; }
+@keyframes strike-hurt { 0%, 100% { transform: none; fill: rgb(8 6 6 / .92); } 20% { transform: translateX(-8px); fill: hsl(0 70% 40%); } 50% { transform: translateX(6px); } }
+.strike-hint { margin: 0; text-align: center; color: var(--muted); min-height: 1.3em; }
+.strike-time { height: 4px; border-radius: 2px; background: rgb(255 255 255 / .12); overflow: hidden; }
+.strike-time i { display: block; height: 100%; background: var(--gold); transform-origin: left; animation: strike-time linear forwards; }
+.struck .strike-time i { animation-play-state: paused; opacity: .3; }
+@keyframes strike-time { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.struck .strike-tap { visibility: hidden; }

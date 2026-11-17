@@ -114,6 +114,7 @@
     const byColor = colorOf(c.by || c.target);
     const text = phoneText(c, me);
     if (!text) return false;
+    if (c.by?.id === me && document.getElementById('strike')) return false; // the strike pop-up shows its own result
     spawn(`cfx-phone k-${c.kind}`, `<span>${esc(text)}</span>${amountTag(c)}`, { color: c.kind === 'turn' ? tColor : byColor, ms: 1600 });
     if (c.kind === 'turn') navigator.vibrate?.([40, 60, 40]);
     else if (c.target?.id === me && (c.kind === 'hit' || c.kind === 'crit')) navigator.vibrate?.(c.kind === 'crit' ? [120, 40, 120] : [70]);
@@ -135,7 +136,7 @@
         spawn('cfx-turn', `<span>${esc(c.target.name)}'s turn</span>`, { color: tColor, ms: 1500 });
         break;
       case 'hit':
-        if (at) { spawn('cfx-slash', `<i></i>${amountTag(c)}`, on2({ color: byColor, ms: 900, size })); shake(where.el); }
+        if (at) { spawn(c.style === 'pierce' ? 'cfx-stab' : 'cfx-slash', `<i></i>${amountTag(c)}`, on2({ color: byColor, ms: 900, size })); shake(where.el); }
         if (c.target.side === 'party' && role === 'tv') spawn('cfx-edge', '', { color: 'hsl(0 80% 45%)', ms: 700 });
         break;
       case 'crit':
@@ -149,7 +150,7 @@
       case 'miss':
         // Mike's idea: a white slash that glances off for a miss.
         if (!at) return false;
-        spawn('cfx-slash cfx-glance', '<i></i><b class="cfx-word">Miss</b>', on2({ color: 'hsl(0 0% 92%)', ms: 1000, size }));
+        spawn(c.style === 'pierce' ? 'cfx-stab cfx-glance' : 'cfx-slash cfx-glance', '<i></i><b class="cfx-word">Miss</b>', on2({ color: 'hsl(0 0% 92%)', ms: 1000, size }));
         break;
       case 'heal':
         if (!at) return false;

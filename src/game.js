@@ -85,7 +85,7 @@ function sightAndCover(attacker, target) {
   state.tokens[attacker.id].facing = iso.facing([a.x, a.y], [t.x, t.y]);
   return { cover: iso.cover(state.map, a, t) };
 }
-function attack(attacker, target, opts) {
+function attack(attacker, target, opts = {}) {
   const sc = sightAndCover(attacker, target);
   if (sc.blocked) return { blocked: sc.blocked };
   const r = sys().attack(attacker, sc.cover ? { ...target, ac: target.ac + sc.cover } : target, opts);
@@ -102,7 +102,7 @@ function attack(attacker, target, opts) {
     log('combat', `${attacker.name} attacks ${target.name}: ${outcome}.`, { tone, roll: r.natural });
     log('combat', r.text, { tone, roll: r.natural, vis: 'dm' });
   } else log('combat', r.text, { tone, roll: r.natural });
-  fx.emit(r.hit ? (r.crit ? 'crit' : 'hit') : 'miss', { target, by: attacker, amount: r.hit ? r.damage : 0 });
+  fx.emit(r.hit ? (r.crit ? 'crit' : 'hit') : 'miss', { target, by: attacker, amount: r.hit ? r.damage : 0, style: opts.style });
   if (r.crit && !attacker.enemy) spotlight(attacker.id, 'nat20');
   if (r.hit) applyDamage(target, r.damage);
   return r;

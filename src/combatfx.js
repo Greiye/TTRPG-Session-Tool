@@ -24,10 +24,12 @@ function who(c) {
 }
 
 // Builds one cue. Returns null for an unknown kind or a missing target.
-function cue(kind, { target, by, amount } = {}) {
+const STYLES = ['slash', 'pierce', 'tap'];
+function cue(kind, { target, by, amount, style } = {}) {
   if (!KINDS.includes(kind) || !target) return null;
   const c = { n: ++seq, kind, target: who(target) };
   if (by && by !== target) c.by = who(by);
+  if (STYLES.includes(style) && ['hit', 'crit', 'miss'].includes(kind)) c.style = style; // the strike gesture, so the TV draws a slash or a stab
   if (Number.isFinite(amount) && amount > 0 && ['hit', 'crit', 'heal'].includes(kind)) c.amount = Math.round(amount);
   return c;
 }
