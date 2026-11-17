@@ -6,11 +6,13 @@
 //   data-dice     on | off              (3D dice tray on the TV; TV setting only)
 //   hp            num | desc            (phone hero card: 28/28, or a word such as Injured; phones only)
 //   data-fx       on | off              (combat effects: hit, crit, miss, heal, down and turn cues; public/combatfx.js)
+//   gestures      on | off              (strike gestures on phones: drag to slash, hold to pierce; whole table, DM sets it)
+//   onetap        off | on              (this phone strikes with one tap instead of a gesture; phones only)
 //   numbers       dm | all              (health and damage numbers: DM only, or everyone; whole table, DM sets it)
 // Phones and the DM laptop keep their own choice in localStorage. The TV uses the table setting the DM picks.
 (() => {
   const KEY = 'tavernSettings';
-  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto', log: 'hide', sprite: 'auto', anim: 'on', dice: 'on', hp: 'num', fx: 'on', numbers: 'dm' };
+  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto', log: 'hide', sprite: 'auto', anim: 'on', dice: 'on', hp: 'num', fx: 'on', numbers: 'dm', gestures: 'on', onetap: 'off' };
   const OPTIONS = {
     text: [['md', 'Normal'], ['lg', 'Large'], ['xl', 'Extra large']],
     palette: [['default', 'Default'], ['cb', 'Color-blind safe'], ['hc', 'High contrast']],
@@ -22,11 +24,13 @@
     hp: [['num', 'Number'], ['desc', 'Description']],
     fx: [['on', 'On'], ['off', 'Off']],
     numbers: [['dm', 'DM only'], ['all', 'Everyone']],
+    gestures: [['on', 'On'], ['off', 'Off']],
+    onetap: [['off', 'Off'], ['on', 'On']],
   };
-  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion', log: 'Show logs', sprite: 'Sprite playback', anim: 'Sprite animation', dice: '3D dice tray', hp: 'HP display', fx: 'Combat effects', numbers: 'Health numbers' };
+  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion', log: 'Show logs', sprite: 'Sprite playback', anim: 'Sprite animation', dice: '3D dice tray', hp: 'HP display', fx: 'Combat effects', numbers: 'Health numbers', gestures: 'Strike gestures', onetap: 'One-tap attacks' };
   const TV_ONLY = ['dice']; // the dice tray is drawn on the TV, so phones and the DM laptop don't offer it
-  const PHONE_ONLY = ['hp']; // the hero card's HP reads as a number or a word on phones only
-  const TABLE_ONLY = ['numbers']; // who sees health numbers is one choice for the whole table, made by the DM (Mike, Nov 17)
+  const PHONE_ONLY = ['hp', 'onetap']; // the hero card's HP reads as a number or a word on phones only
+  const TABLE_ONLY = ['numbers', 'gestures']; // who sees health numbers is one choice for the whole table, made by the DM (Mike, Nov 17)
   const forMe = (k) => !TV_ONLY.includes(k) && !TABLE_ONLY.includes(k) && (!PHONE_ONLY.includes(k) || document.body.classList.contains('phone'));
   const clean = (o = {}) => Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, OPTIONS[k].some(([v]) => v === o[k]) ? o[k] : DEFAULTS[k]]));
 

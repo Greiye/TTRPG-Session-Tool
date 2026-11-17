@@ -8,6 +8,7 @@ import exploreView from './views/explore.js';
 import socialView from './views/social.js';
 import combatView from './views/combat.js';
 import * as Fx from './fx.js';
+import { openStrike, wantGesture } from './strike.js';
 
 const { esc } = Stage;
 const VIEWS = { exploration: exploreView, social: socialView, combat: combatView };
@@ -73,7 +74,12 @@ $('#gameView').addEventListener('click', (e) => {
   if (d.skill) socket.emit('player:check', { skill: d.skill });
   else if (d.do) socket.emit('player:action', { text: d.do });
   else if (d.choice) socket.emit('player:choice', { index: Number(d.choice) });
-  else if (d.attack) socket.emit('player:combat', { act: 'attack', target: d.attack });
+  else if (d.attack) {
+    // Strike gestures (Mike, Nov 17): the enemy's silhouette pops up to slash or pierce, unless switched off.
+    const foe = state()?.combat.enemies.find((e) => e.id === d.attack);
+    if (foe && wantGesture(state())) openStrike(foe);
+    else socket.emit('player:combat', { act: 'attack', target: d.attack, style: 'tap' });
+  }
   else if (d.act) socket.emit('player:combat', { act: d.act });
   else return;
   navigator.vibrate?.(30);

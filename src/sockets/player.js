@@ -240,14 +240,14 @@ module.exports = function playerSockets(socket) {
     broadcast();
   });
 
-  socket.on('player:combat', ({ act, target } = {}) => {
+  socket.on('player:combat', ({ act, target, style } = {}) => {
     const p = me();
     if (!p || game.currentTurnId() !== p.id || p.hp <= 0) return;
     T.bump(p.id, 'acts');
     if (act === 'attack') {
       const t = state.combat.enemies.find((e) => e.id === target && e.hp > 0 && e.side !== 'ally');
       if (!t) return;
-      const r = game.attack(p, t);
+      const r = game.attack(p, t, { style }); // style: the phone's strike gesture (slash, pierce, tap), for the effects only
       if (r.blocked) { log('combat', r.blocked, { tone: 'bad', vis: { to: [p.id] } }); broadcast(); return; } // no roll, the turn goes on
     } else if (['dodge', 'dash', 'help', 'hide'].includes(act)) {
       log('combat', `${p.name} takes the ${act[0].toUpperCase() + act.slice(1)} action.`);

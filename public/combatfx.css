@@ -15,6 +15,16 @@
 .cfx-glance i { height: 3%; opacity: .8; animation: cfx-slash .25s ease-out forwards, cfx-glance .5s ease-in .25s forwards; }
 .cfx-glance .cfx-word { position: absolute; left: 50%; top: 80%; transform: translateX(-50%); font-size: clamp(16px, 2.4vw, 40px); animation: cfx-rise 1s ease-out forwards; }
 
+/* Stab: a piercing strike (the phone's press-hold). A ring closes in, then a bright point (PLACEHOLDER). */
+.cfx-stab { width: var(--cfx-size, clamp(80px, 12vw, 220px)); aspect-ratio: 1; }
+.cfx-stab i { position: absolute; left: 50%; top: 50%; width: 70%; aspect-ratio: 1; border-radius: 50%; border: .25em solid var(--cfx-c); transform: translate(-50%, -50%);
+  box-shadow: 0 0 1em var(--cfx-c); animation: cfx-close .3s ease-in forwards, cfx-fade .4s ease-in .5s forwards; }
+.cfx-stab i::after { content: ''; position: absolute; left: 50%; top: 50%; width: 30%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%) scale(0);
+  background: radial-gradient(circle, #fff 0 30%, var(--cfx-c) 60%, transparent 72%); animation: cfx-point .3s ease-out .28s forwards; }
+.cfx-stab.cfx-glance i { border-color: hsl(0 0% 92%); }
+@keyframes cfx-close { to { width: 8%; } }
+@keyframes cfx-point { to { transform: translate(-50%, -50%) scale(5); opacity: .9; } }
+
 /* Crit burst and banner (PLACEHOLDER). */
 .cfx-burst { width: calc(var(--cfx-size, clamp(100px, 14vw, 260px)) * 1.4); aspect-ratio: 1; border-radius: 50%;
   background: radial-gradient(circle, #fff 0 8%, var(--cfx-c) 20%, transparent 62%); animation: cfx-burst .8s ease-out forwards; }

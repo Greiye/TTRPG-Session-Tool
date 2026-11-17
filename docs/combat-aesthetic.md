@@ -28,6 +28,21 @@ Every item is a possible feature with its open choices. **Built so far: the firs
 - Not in this slice: the 3D map has no slash on its tokens yet (the map keeps its own lunge and floating word),
   and the open values below (weapon speeds, health state names, who picks the body part) are not set.
 
+## Built: strike gestures (Nov 17)
+
+- After a player picks an enemy, the phone pops up its silhouette (humanoid, beast, blob or winged, picked
+  from the creature's kind and name; PLACEHOLDER shapes). **Press and drag across it** to slash (a white
+  streak follows the finger and must cross half the silhouette). **Press and hold** for a piercing strike:
+  a ring closes in on the finger and the strike lands when it meets it (1 s, PLACEHOLDER until weapon speeds
+  are set). Then a short pause, the attack is rolled on the server as before, and Hit!, Critical! or Miss
+  plays on the silhouette with a buzz. The gesture never changes the roll.
+- Until weapons carry a damage type, the gesture picks the strike: drag is a slash, hold is a pierce.
+- The TV draws the matching mark on the target: a slash, or a closing ring and a bright point for a pierce.
+- Fast turns: a 5 second bar; when it runs out the strike goes as a plain attack. **⚡ Quick strike** is the
+  one-tap option.
+- Switches: **Strike gestures** (whole table, DM) and **One-tap attacks** (each phone).
+- Code: `public/js/play/strike.js`; test `test/strike-ui.js`.
+
 ## Mike's decisions (Nov 17)
 
 1. **Gestures are for show for now.** The dice decide every outcome. All gesture and effect code must

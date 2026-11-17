@@ -60,7 +60,7 @@ function spawn(block, { id, name, hp } = {}) {
   const first = block.attacks[0];
   const max = hp ?? block.hp;
   return {
-    id, ref: block.id, name: name || block.name, side: block.side, enemy: block.side === 'enemy',
+    id, ref: block.id, name: name || block.name, side: block.side, enemy: block.side === 'enemy', kind: block.kind, // kind picks the strike silhouette
     hp: max, maxHp: max, ac: block.ac, init: block.init, speed: block.speed,
     atk: first.atk, dmg: dmgTriple(first.dmg), attacks: block.attacks, traits: block.traits,
     notes: block.notes, image: block.image, boss: block.boss, title: block.title, cr: block.cr, conditions: [], traits: block.traits,
