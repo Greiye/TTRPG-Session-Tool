@@ -33,7 +33,10 @@ function setMood(mode, trackId) {
   state.moodMap ??= {};
   if (trackId) state.moodMap[mode] = trackId; else delete state.moodMap[mode];
 }
-function applyMood(mode) {
+// Combat music waits for initiative (Mike, Nov 17): pressing Combat only opens the prep; src/game.js startCombat
+// calls this again with { rolled: true } once initiative is rolled.
+function applyMood(mode, { rolled = false } = {}) {
+  if (mode === 'combat' && !rolled && !state.combat?.active) return;
   const id = state.moodMap?.[mode];
   const t = id && state.audio.library.find((x) => x.id === id);
   if (t) { state.audio.music = t; state.audio.playing = true; }

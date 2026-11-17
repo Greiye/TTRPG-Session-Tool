@@ -98,4 +98,47 @@ const resetMoves = () => { state.combat.moved = {}; };
 // The DM gives one creature its movement back (right-click menu).
 const resetMove = (id) => { if (state.combat.moved) delete state.combat.moved[id]; };
 
-module.exports = { TILE_FT, WALL, DIFFICULT, setMap, paint, place, cost, move, resetMoves, resetMove, speedOf };
+
+// Once the grid is set, the party stands on it towards the left in a loose random group (Mike, Nov 17): the first
+// member lands in the left few columns, and each next one 1 to 3 tiles from the others (within 3 of all of them
+// when the ground allows). Members who
+// already have a tile stay put. Open tiles only: no wall, no prop, no other token.
+function placeParty(rand = Math.random) {
+  if (!state.map) return [];
+  const m = state.map;
+  const taken = new Set(Object.values(state.tokens || {}).map((t) => `${t.x},${t.y}`));
+  const open = (x, y) => inside(x, y) && !taken.has(`${x},${y}`) && !m.terrain?.[`${x},${y}`] && !m.props?.[`${x},${y}`];
+  const left = Math.max(2, Math.min(4, Math.floor(m.cols / 4))); // the party keeps to the left quarter, at most 4 columns
+  const todo = Object.keys(state.players || {}).filter((id) => !state.tokens?.[id]);
+  const group = Object.keys(state.players || {}).filter((id) => state.tokens?.[id]).map((id) => state.tokens[id]);
+  const placed = [];
+  const pick = (list) => list[Math.floor(rand() * list.length)];
+  for (const id of todo) {
+    let spots = [];
+    if (group.length) {
+      // Tiles 1 to 3 from someone in the group; the ones within 3 of everyone come first, so the group stays tight.
+      const near = new Map();
+      for (const g of group) for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) {
+        const x = g.x + dx; const y = g.y + dy;
+        if ((dx || dy) && x < left + 2 && open(x, y)) near.set(`${x},${y}`, [x, y]);
+      }
+      const all = [...near.values()];
+      const tight = all.filter(([x, y]) => group.every((g) => Math.max(Math.abs(g.x - x), Math.abs(g.y - y)) <= 3));
+      spots = tight.length ? tight : all;
+    }
+    if (!spots.length) {
+      const mid = Math.floor(m.rows / 2);
+      for (let y = 0; y < m.rows; y++) for (let x = 0; x < left; x++) if (open(x, y) && Math.abs(y - mid) <= Math.max(2, Math.floor(m.rows / 4))) spots.push([x, y]);
+    }
+    if (!spots.length) for (let y = 0; y < m.rows; y++) for (let x = 0; x < m.cols; x++) if (open(x, y)) spots.push([x, y]);
+    if (!spots.length) break;
+    const [x, y] = pick(spots);
+    state.tokens[id] = { x, y, z: 0 };
+    taken.add(`${x},${y}`);
+    group.push(state.tokens[id]);
+    placed.push(id);
+  }
+  return placed;
+}
+
+module.exports = { TILE_FT, WALL, DIFFICULT, setMap, paint, place, cost, move, resetMoves, resetMove, speedOf, placeParty };
