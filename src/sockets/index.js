@@ -3,6 +3,7 @@ const { DM_KEY, CODM_KEY, BATTLE_KEY, SOCIAL_KEY, MUSIC_KEY } = require('../conf
 const { isLocalAddr } = require('../net');
 const { stateFor, broadcast } = require('../state');
 const worldSockets = require('./worldmap');
+const recorder = require('../recorder');
 
 // Hardening (audit): a malformed event from any phone must not take the table down.
 // - A null payload counts as "no payload", so `({ id } = {})` defaults apply.
@@ -11,14 +12,19 @@ function guard(socket) {
   const on = socket.on.bind(socket);
   socket.on = (event, fn) => on(event, (...args) => {
     if (args[0] === null) args[0] = undefined;
-    try { return fn(...args); } catch (e) { console.warn(`  Event "${event}" failed and was ignored: ${e.message}`); }
+    try { return fn(...args); } catch (e) {
+      console.warn(`  Event "${event}" failed and was ignored: ${e.message}`);
+      recorder.failed(socket, event, e.message); // session recorder (tools/replay.js); a no-op unless recording
+    }
   });
   return socket;
 }
 
 module.exports = function sockets(io) {
+  recorder.start(require('../state').state); // only with --record or RECORD set (src/recorder.js)
   io.on('connection', (socket) => {
     guard(socket);
+    recorder.attach(socket);
     socket.emit('state', stateFor(socket));
 
     // TV pages announce themselves so the DM laptop knows whether it should output audio.
