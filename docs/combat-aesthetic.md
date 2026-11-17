@@ -110,10 +110,11 @@ PR Y). Possible styles:
   pitch with the microphone.
 - **Alchemy (wizards).** Pull ingredients out of the bag and drag them into a mixing vessel on the
   phone, in the right order.
-- More later: drawn runes, a gesture shape, a held focus.
+- **Runes.** Draw a rune shape on the phone (like a brush stroke spell).
+- **Channel.** Hold a finger on a focus while it charges; letting go early ends the spell.
 
 Open choices:
-- Does a good performance change the effect (feature 3 again) or only the feel?
+- A good performance changes only the feel (for show, Mike's decision 1).
 - Song needs the microphone, which needs HTTPS on phones (the tool already has a TLS option,
   `src/tls.js`) and permission. A quiet table, or a fallback to humming or buttons.
 - Spell length or level could set the length of the sequence.
@@ -128,9 +129,12 @@ How it could work:
 - The second player gets a request on their phone (like the existing join and roll call pop-ups) and
   accepts or declines. Both cast, using both their turns; the second player's next turn is spent.
 - The combined spell gets a multiplier to its effect. The DM confirms or changes it with one tap.
-- On the TV: the two casters' accent colours braid into one effect.
+- On the TV: a full-screen team move cut-in, styled like the Persona 3 team attacks (both characters'
+  portraits slash across the screen in their accent colours, then the effect). Placeholder art first.
 
 Open choices:
+- **Naming (Mike, Nov 17):** the players name their team move themselves, out loud. No code for
+  naming or remembering moves.
 - What the multiplier touches (damage, area, duration, or the DM picks) and its size; an editable house
   rule.
 - Whether both must cast the same spell, or any two spells combine.
@@ -189,19 +193,47 @@ listed so nothing is removed by surprise:
 Open choice: the state names and where the lines fall (for example Healthy above 75%, Injured, Badly
 hurt below 25%, Down at 0), as an editable list.
 
+### 9. More ideas (Mike, Nov 17)
+
+Agreed on Nov 17. **Every one is a toggle**, off by default until it has been tried at the table.
+
+- **Echo the gesture on the TV** (toggle). The player's swipe trail, bow draw or rune draws over the
+  target on the big screen, so a phone moment becomes a table moment.
+- **Defence gestures** (toggle). When a creature attacks a player, that phone gets a short brace or
+  parry gesture. For show, like the strikes.
+- **Called shots** (toggle). Tap a body part on the silhouette to aim at it (like Fallout's VATS).
+  Broken parts show cracks on the silhouette. Ties into body-part rules (feature 1); whether aiming
+  costs anything is a rules choice for later.
+- **Signature moves: no code.** Players describe their own moves and name them; the tool does not
+  track them (Mike).
+- **Weapon feel as data.** Each weapon kind is an editable profile: gesture, haptic pattern, sound,
+  TV trail and **speed**. The pressable node moves at the weapon's speed, so a dagger's node is quick
+  and darts about while a mace's node is slow and heavy, and the player feels the difference in the
+  movement. Homebrew weapons pick a profile or get their own.
+- **Keep turns fast.** A gesture window of about 5 seconds with a soft countdown; when it runs out the
+  attack rolls as normal. The phone plays the gesture locally and sends only "done" to the server, so
+  network lag never shows.
+- **Watching phones** (toggle). Other phones show a small line such as "Kara is drawing her bow" with a
+  live meter while it happens.
+- **One-tap option.** Every gesture has a one-tap version (accessibility, or a player who just wants
+  to roll). A per-phone setting can make one tap the default.
+
 ## Suggested order
 
 1. Health states instead of numbers on the TV and phones, and impact cues on every screen (feature 8)
    behind the Combat effects setting.
-2. Strike gestures on silhouettes, for show, behind the Combat gestures setting.
-3. Items by drag (throwables and potions).
-4. Spellcasting styles, rhythm first (no microphone), then alchemy, then song.
-5. Team casting.
-6. Body-part health with rules, for creatures and players.
-7. Armour on and off.
+2. Strike gestures on silhouettes, for show, behind the Combat gestures setting, with weapon feel
+   profiles (speed), the 5 second window and the one-tap option from the start.
+3. TV echo, watching phones and defence gestures (each a toggle).
+4. Items by drag (throwables and potions).
+5. Spellcasting styles, rhythm first (no microphone), then alchemy, runes, channel, then song.
+6. Team casting with the cut-in.
+7. Body-part health with rules, for creatures and players, then called shots.
+8. Armour on and off.
 
 ## Still open
 
 - Body parts: who picks the part hit, how part health is set, and the default broken effects.
 - Team casting: what the multiplier touches and its size, and whether any two spells combine.
 - Health state names and thresholds.
+- Weapon speed values per weapon kind (how fast a dagger's node moves compared with a mace's).
