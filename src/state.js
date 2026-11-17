@@ -140,6 +140,8 @@ state.camp ??= camp.fresh();
 // The House rules section left the DM screen and phones (Mike, Nov 16), so no rule is enforced unseen: a save that
 // had one on loads with them all off. dm:houserule still works for a later UI.
 state.houseRules = {};
+// Player choices left the DM's Social window (Mike, Nov 17): a save with choices up would leave them stuck on phones.
+state.social.choices = [];
 state.absent ??= {};
 state.worldMap ??= worldmap.fresh();
 state.worldMap.roads ??= []; // roads and fog came after Phase G: older saves have neither

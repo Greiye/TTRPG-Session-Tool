@@ -25,6 +25,16 @@
 @keyframes cfx-close { to { width: 8%; } }
 @keyframes cfx-point { to { transform: translate(-50%, -50%) scale(5); opacity: .9; } }
 
+/* Combo: a node strike (martial artists, unique weapons). Three quick blows land around the target (PLACEHOLDER). */
+.cfx-combo { width: var(--cfx-size, clamp(80px, 12vw, 220px)); aspect-ratio: 1; }
+.cfx-combo i { position: absolute; width: 34%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%) scale(0);
+  background: radial-gradient(circle, #fff 0 18%, var(--cfx-c) 40%, transparent 70%); box-shadow: 0 0 .8em var(--cfx-c); animation: cfx-blow .22s ease-out forwards, cfx-fade .3s ease-in .5s forwards; }
+.cfx-combo i:nth-child(1) { left: 34%; top: 30%; }
+.cfx-combo i:nth-child(2) { left: 66%; top: 48%; animation-delay: .12s, .62s; }
+.cfx-combo i:nth-child(3) { left: 42%; top: 70%; animation-delay: .24s, .74s; }
+.cfx-combo.cfx-glance i { background: radial-gradient(circle, hsl(0 0% 92%) 0 14%, transparent 60%); box-shadow: none; opacity: .7; }
+@keyframes cfx-blow { 60% { transform: translate(-50%, -50%) scale(1.25); } to { transform: translate(-50%, -50%) scale(1); } }
+
 /* Crit burst and banner (PLACEHOLDER). */
 .cfx-burst { width: calc(var(--cfx-size, clamp(100px, 14vw, 260px)) * 1.4); aspect-ratio: 1; border-radius: 50%;
   background: radial-gradient(circle, #fff 0 8%, var(--cfx-c) 20%, transparent 62%); animation: cfx-burst .8s ease-out forwards; }

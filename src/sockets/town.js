@@ -29,6 +29,7 @@ function enter() {
   if (state.dungeon?.on) return { error: 'The party is in the dungeon.' };
   const r = town.enter(T(), state.worldMap);
   if (r.error) return r;
+  T().share = null; // a visit replaces a shared town map
   log('narrate', `The party enters ${r.town.name}.`);
   trail.add(state, 'enter', r.town.name);
   state.worldMap.onTv = true;
@@ -110,6 +111,13 @@ module.exports = function townSockets(socket) {
     return { ok: true };
   });
   dm('dm:town:show', ({ on }) => (on ? enter() : leave(true)));
+  // Share a town map on the TV without a visit (Mike, Nov 17): it shows over the world map, discovered places only.
+  dm('dm:town:share', ({ at, on }) => {
+    if (on && !mapOf(at)) return { error: 'Pick a town on the world map.' };
+    T().share = on ? at : null;
+    if (on) state.worldMap.onTv = true;
+    return { ok: true };
+  });
   // Offer Enter Town on the phones again where the party stands (the gate stays shut after leaving, and at the start).
   dm('dm:town:gate', () => { T().skipAt = null; T().ready = []; return town.settlementHere(state.worldMap) ? { ok: true } : { error: 'The party is not on a town.' }; });
   dm('dm:town:here', ({ id, spend }) => {

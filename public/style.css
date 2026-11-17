@@ -1001,6 +1001,7 @@ html[data-log="hide"] #tabLogs .logs-off { display: block; }
 body[data-role] .dm-bar > :not(h2):not(.bar-min),
 body[data-role] .composer,
 body[data-role] .modes-card,
+body[data-role] .tab-toggle,
 body[data-role] .party-side,
 body[data-role] #wmPage { display: none !important; }
 /* Battle Master outside combat: one message instead of the table. */
@@ -1275,3 +1276,24 @@ body.dm .card > .btn, body.dm .card > button { display: block; margin-inline: au
 .struck .strike-time i { animation-play-state: paused; opacity: .3; }
 @keyframes strike-time { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 .struck .strike-tap { visibility: hidden; }
+/* Settings: a Back button at the top (Mike, Nov 17). Sticky so it stays in reach on a long list. */
+.settings-dlg .settings-back { position: sticky; top: 0; z-index: 1; display: inline-flex; align-items: center; gap: 4px; margin: 0 0 6px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); font: inherit; cursor: pointer; }
+.settings-dlg .settings-back:hover { border-color: var(--gold); color: var(--gold); }
+/* Re-orderable sidebar windows (public/js/dm/reorder.js). */
+.reorder-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 2px 0 6px; }
+.reorder-bar .btn.on { border-color: var(--gold); color: var(--gold); }
+body[data-role] .reorder-bar { display: none; }
+body.reorder-on #toolsCol > .card[data-tab]:not([hidden]) { outline: 1px dashed rgb(227 180 90 / .6); outline-offset: 2px; }
+body.reorder-on #toolsCol > .card[data-tab] > h3:first-of-type { cursor: grab; }
+body.reorder-on #toolsCol > .card[data-tab] > h3:first-of-type::before { content: '⠿ '; color: var(--gold); }
+#toolsCol > .card.reorder-drag { opacity: .45; }
+.dc-ladder-row { margin-bottom: 6px; }
+/* Node strikes: numbered nodes to drag through in order (PLACEHOLDER look; the pulse speed will follow the weapon). */
+.strike-node { position: absolute; width: 44px; height: 44px; border-radius: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; pointer-events: none;
+  font: 700 20px/1 var(--display); color: #fff; background: rgb(30 20 14 / .85); border: 3px solid hsl(42 85% 60%); box-shadow: 0 0 10px hsl(42 85% 60% / .6);
+  animation: strike-node ease-in-out infinite; }
+.strike-node.on { background: hsl(42 90% 58%); color: #1a120c; border-color: #fff; box-shadow: 0 0 18px #fff; animation: strike-node-hit .25s ease-out forwards; }
+.strike-node.burst { animation: strike-node-burst .4s ease-out forwards; }
+@keyframes strike-node { 50% { transform: translate(-50%, -50%) scale(1.12); box-shadow: 0 0 18px hsl(42 85% 60%); } }
+@keyframes strike-node-hit { 50% { transform: translate(-50%, -50%) scale(1.35); } to { transform: translate(-50%, -50%) scale(1); } }
+@keyframes strike-node-burst { to { transform: translate(-50%, -50%) scale(2); opacity: 0; } }

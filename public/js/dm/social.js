@@ -1,4 +1,5 @@
-// Social / visual novel: NPC name and color, emotion buttons (keys 1-8), dialogue, choices.
+// Social / visual novel: emotion buttons (keys 1-8), dialogue with a language drop-down, the NPC and the cast.
+// Rows top to bottom (Mike, Nov 17): Emotions, Dialogue, NPC, Live voice. Player choices, faction and speech style left.
 import { $, $$, emit, call, onState, onClick, state } from '../client.js';
 import { holdButton } from './hold.js';
 import { masterRole } from './auth.js';
@@ -71,10 +72,8 @@ onState((s) => {
   if (!filled) {
     filled = true;
     $('#npcName').value = s.social.npc.name;
-    $('#npcHue').value = s.social.npc.hue;
-    s.social.choices.forEach((c, i) => { $$('.choice')[i].value = c; });
-    drawStyle(s);
   }
+  drawLangs(s);
   drawGloss(s);
   $$('[data-emo]').forEach((b) => b.classList.toggle('on', b.dataset.emo === s.social.npc.emotion));
   drawCast(s);
@@ -109,10 +108,18 @@ function drawGloss(s) {
     ? `<button class="btn small ${g.includes('*') ? 'on' : ''}" data-gloss="*">Gloss for everyone</button>` + s.players.map((p) => `<button class="btn small ${g.includes(p.id) ? 'on' : ''}" data-gloss="${esc(p.id)}">Gloss for ${esc(p.name)}</button>`).join('')
     : '<span class="note">Give a line a tongue to scramble it for everyone but those who know it.</span>';
 }
-function drawStyle(s) {
-  const st = s.social.npc.style || { font: 'serif', color: 'ivory' };
-  $('#npcFont').value = st.font;
-  $('#npcColor').value = st.color;
+// Dialogue languages are a drop-down (Mike, Nov 17): Common, the usual tongues, and any the party knows.
+const TONGUES = ['Dwarvish', 'Elvish', 'Giant', 'Gnomish', 'Goblin', 'Halfling', 'Orc', 'Abyssal', 'Celestial', 'Draconic', 'Deep Speech', 'Infernal', 'Primordial', 'Sylvan', 'Undercommon'];
+function drawLangs(s) {
+  const sel = $('#lineLang');
+  const known = (s.players || []).flatMap((p) => p.languages || []);
+  const list = [...new Set([...TONGUES, ...known])].filter((l) => l && l.toLowerCase() !== 'common');
+  const key = list.join('|');
+  if (sel.dataset.key === key) return;
+  const cur = sel.value;
+  sel.dataset.key = key;
+  sel.innerHTML = '<option value="">Common</option>' + list.map((l) => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+  sel.value = list.includes(cur) ? cur : '';
 }
 
 const say = () => { emit('dm:say', { text: $('#line').value, lang: $('#lineLang').value }); $('#line').value = ''; };
@@ -147,8 +154,6 @@ const actions = {
   castAdd,
   spriteSet,
   spriteClear,
-  choices: () => emit('dm:choices', { choices: $$('.choice').map((i) => i.value) }),
-  choicesClear: () => { $$('.choice').forEach((i) => (i.value = '')); emit('dm:choices', { choices: [] }); },
 };
 onClick('act', (act) => actions[act]?.());
 onClick('emo', (emotion) => {
@@ -158,10 +163,6 @@ onClick('emo', (emotion) => {
 });
 $('#line').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); say(); } });
 $('#npcName').addEventListener('change', (e) => emit('dm:npc', { name: e.target.value }));
-$('#npcHue').addEventListener('input', (e) => emit('dm:npc', { hue: Number(e.target.value) }));
-const styleChanged = () => emit('dm:npc', { style: { font: $('#npcFont').value, color: $('#npcColor').value } });
-$('#npcFont').addEventListener('change', styleChanged);
-$('#npcColor').addEventListener('change', styleChanged);
 $('#glossBtns').addEventListener('click', (e) => {
   const b = e.target.closest('[data-gloss]');
   if (!b) return;

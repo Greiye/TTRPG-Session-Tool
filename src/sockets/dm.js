@@ -126,7 +126,8 @@ module.exports = function dmSockets(socket) {
     log('system', `Rules system: ${rules.get(id).name}.`);
   });
   // ----- Phase 8: map, tokens, randomizer -----
-  dm('dm:map', (f) => { grid.setMap(f); });
+  // Setting the grid puts the party on it, towards the left (src/grid.js placeParty, Mike Nov 17).
+  dm('dm:map', (f) => { grid.setMap(f); grid.placeParty(); });
   // A newly added creature must be placed on the map before anything else (terrain, other tokens, next turn).
   const mustPlaceFirst = () => (state.pendingPlace || []).length > 0;
   const queueForMap = (ids) => { if (state.map) state.pendingPlace = [...(state.pendingPlace || []), ...ids]; };

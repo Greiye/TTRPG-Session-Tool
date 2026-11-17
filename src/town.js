@@ -30,7 +30,7 @@ const starter = () => ({
 const blankMap = () => ({ image: '', seq: 1, nodes: [{ id: 't1', name: 'Settlement entrance', kind: 'entrance', x: 0.5, y: 0.86, info: '', time: 0, reveals: [], shop: '', seen: false, visited: false }] });
 
 // state.town: the maps by world place id, and the visit in progress.
-const fresh = () => ({ maps: {}, on: false, at: null, here: null, ready: [], readyAt: null, skipAt: null, picks: {}, n: 0 });
+const fresh = () => ({ maps: {}, share: null, on: false, at: null, here: null, ready: [], readyAt: null, skipAt: null, picks: {}, n: 0 });
 // A new table: Millbrook (w1 in the example world) has the starter town (Mike, Nov 16). The party wakes there
 // with the gate shut, so phones are not greeted by a pop-up on joining; arriving by road, or the DM's Open the
 // gate, offers Enter Town.
@@ -199,6 +199,23 @@ function contents(T, wid, dm) {
   const list = m.nodes.filter((n) => dm || n.seen).map((n) => ({ name: n.name, kind: n.kind, seen: !!n.seen }));
   return { places: list, hidden: dm ? 0 : m.nodes.length - list.length };
 }
+// Paths between places (Mike, Nov 17: drawn as footprints): one per `reveals` link, both ends visible to the viewer.
+function links(m, dm) {
+  const vis = new Set((m?.nodes || []).filter((n) => dm || n.seen).map((n) => n.id));
+  const out = [];
+  const seen = new Set();
+  for (const n of m?.nodes || []) for (const r of n.reveals || []) {
+    const k = [n.id, r].sort().join('|');
+    if (vis.has(n.id) && vis.has(r) && !seen.has(k)) { seen.add(k); out.push([n.id, r]); }
+  }
+  return out;
+}
+// A town map the DM shares on the TV without a visit (Mike, Nov 17): discovered places only, unless it is the DM.
+function sharedView(T, wm, dm) {
+  const m = !T.on && T.share && T.maps[T.share];
+  if (!m) return null;
+  return { at: T.share, name: worldNode(wm, T.share)?.name || 'Town', image: m.image || '', nodes: m.nodes.filter((n) => dm || n.seen).map((n) => nodeView(n, dm)), links: links(m, dm) };
+}
 function viewFor(T, wm, viewer, players = []) {
   const dm = viewer.role === 'dm';
   const m = current(T);
@@ -211,6 +228,8 @@ function viewFor(T, wm, viewer, players = []) {
     n: T.n,
     image: m?.image || '',
     nodes: m ? m.nodes.filter((n) => dm || n.seen).map((n) => nodeView(n, dm)) : [],
+    links: links(m, dm),
+    share: sharedView(T, wm, dm),
     canLeave: T.on && canLeave(T),
     tally: tal ? { total: tal.total, confirmed: tal.confirmed, counts: tal.counts } : null,
     mine: viewer.role === 'player' && T.on ? T.picks[viewer.charId] || null : null,
@@ -225,4 +244,4 @@ function viewFor(T, wm, viewer, players = []) {
   return out;
 }
 
-module.exports = { KINDS, ICON, MAX_NODES, MAX_TIME, fresh, withStarter, ensure, starter, blankMap, mapFor, byId, entrance, current, settlementHere, save, remove, arrive, enter, canLeave, leave, moveTo, gate, setReady, allReady, pick, unpick, tally, resolve, contents, viewFor };
+module.exports = { KINDS, ICON, MAX_NODES, MAX_TIME, fresh, withStarter, ensure, starter, blankMap, mapFor, byId, entrance, current, settlementHere, save, remove, arrive, enter, canLeave, leave, moveTo, gate, setReady, allReady, pick, unpick, tally, resolve, contents, links, viewFor };
