@@ -22,8 +22,12 @@ const SHOTS = process.env.SHOTS;
   const [bandit, wolf] = dm.last.combat.enemies.map((e) => e.id);
   dm.emit('dm:combat:start');
   await until(() => dm.last.combat.active);
+  const at = () => `${dm.last.combat.round}:${dm.last.combat.turn}`;
+  const nextTurn = async () => { const was = at(); dm.emit('dm:combat:next'); await until(() => at() !== was, 3000); };
   const turnOf = async (who) => {
-    for (let i = 0; i < 8 && dm.last.combat.order[dm.last.combat.turn]?.id !== who.me.id; i++) { dm.emit('dm:combat:next'); await h.wait(120); }
+    // Wait for each step to reach the DM's state before deciding to step again: a fixed pause could send an
+    // extra "next" on a slow machine and skip past the turn we want (CI flake, Nov 17).
+    for (let i = 0; i < 8 && dm.last.combat.order[dm.last.combat.turn]?.id !== who.me.id; i++) await nextTurn();
     return dm.last.combat.order[dm.last.combat.turn]?.id === who.me.id;
   };
   const myTurn = () => turnOf(a);
@@ -59,7 +63,7 @@ const SHOTS = process.env.SHOTS;
   ok(await ph.waitForSelector('#strike', { state: 'detached', timeout: 3000 }).then(() => true, () => false), 'the pop-up closes after the result');
 
   // A short drag is not a slash.
-  dm.emit('dm:combat:next'); dm.emit('dm:combat:next');
+  await nextTurn(); await nextTurn();
   ok(await myTurn(), 'Mira\'s turn again');
   await ph.click(`[data-attack="${wolf}"]`);
   await ph.waitForSelector('#strike .strike-sil');
@@ -116,7 +120,7 @@ const SHOTS = process.env.SHOTS;
   // Gestures off: a tap attacks at once.
   dm.emit('dm:settings', { display: { gestures: 'off' } });
   await until(() => dm.last.settings.display.gestures === 'off');
-  dm.emit('dm:combat:next'); dm.emit('dm:combat:next');
+  await nextTurn(); await nextTurn();
   ok(await myTurn(), 'Mira\'s turn a third time');
   await h.wait(200);
   const n2 = attacks();
