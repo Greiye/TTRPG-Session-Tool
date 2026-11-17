@@ -28,6 +28,8 @@ ok(shops.create({ text: 'nothing here' }, 's1').error, 'an empty list is refused
   // Greer's Trinkets (Mike, Nov 15): every table starts with it; categories stay with the DM.
   ok(await until(() => dm.last.shops?.some((x) => x.name === "Greer's Trinkets")), "Greer's Trinkets is there from the start");
   const greer = dm.last.shops.find((x) => x.name === "Greer's Trinkets");
+  const outf = dm.last.shops.find((x) => x.id === 'outfitters');
+  ok(outf && outf.name.includes('Placeholder') && ['Weapon', 'Armor', 'Potion', 'Gear'].every((c) => outf.items.some((i) => i.category === c)) && outf.items.some((i) => i.name === 'Longsword'), 'the placeholder outfitters sell weapons, armour, potions and gear');
   ok(greer.items.length >= 12 && greer.items[0].name === 'Item Name' && greer.items[0].note === 'Item description' && greer.items[0].category && greer.banner, 'placeholder wares with a description, price, category and banner');
   ok(await until(() => a.last.shops?.some((x) => x.id === greer.id)) && a.last.shops.find((x) => x.id === greer.id).items.every((i) => !('category' in i)), 'phones never get the item categories');
   ok(shops.parseList('Name,Price,Stock,Description,Category\nRope,1,,Hemp,Gear').items[0].category === 'Gear', 'a Category column is read');
@@ -79,6 +81,6 @@ ok(shops.create({ text: 'nothing here' }, 's1').error, 'an empty list is refused
   // Persistence: shops survive a restart (campaign.json).
   await h.wait(500);
   const saved = JSON.parse(fs.readFileSync(path.join(h.TMP, 'data', 'campaign.json'), 'utf8'));
-  { const sv = saved.shops?.find((x) => x.id === sid); ok(sv?.items?.length === 3 && sv.open === false && saved.shopSeed === 1, 'shops are saved with the campaign'); }
+  { const sv = saved.shops?.find((x) => x.id === sid); ok(sv?.items?.length === 3 && sv.open === false && saved.shopSeed === 2, 'shops are saved with the campaign'); }
   await h.done(srv);
 })().catch((e) => { console.error(e); process.exit(1); });

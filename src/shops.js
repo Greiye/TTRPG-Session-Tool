@@ -144,4 +144,12 @@ function greer(id) {
   };
 }
 
-module.exports = { greer, money, clampGold, parseList, create, buy, sell, offers, unitCp, MAX_SHOPS, SELL_SHARE };
+// "[Placeholder] Outfitters" (Mike, Nov 17): a second sample shop with placeholder weapons, armour, potions and
+// gear, read from public/samples/placeholders/placeholder-items.csv (the same CSV a DM would import).
+function outfitters(id) {
+  const file = require('path').join(__dirname, '..', 'public', 'samples', 'placeholders', 'placeholder-items.csv');
+  const { shop } = create({ npc: 'Placeholder', name: '[Placeholder] Outfitters', text: require('fs').readFileSync(file, 'utf8') }, id);
+  return shop;
+}
+
+module.exports = { greer, outfitters, money, clampGold, parseList, create, buy, sell, offers, unitCp, MAX_SHOPS, SELL_SHARE };
