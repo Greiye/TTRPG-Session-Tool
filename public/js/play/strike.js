@@ -18,6 +18,7 @@ import { socket } from '../client.js';
 import { me } from './identity.js';
 
 const WINDOW_MS = 5000; // the gesture window (Mike, Nov 17: "keep turns fast")
+const windowMs = () => window.Strike?.windowMs || WINDOW_MS; // tests on slow machines may lengthen it
 const SLASH_SPAN = 0.5; // a free slash must cross half the silhouette
 const PAUSE_MS = 350; // the beat between the strike and the roll
 const NODE_R = 30; // how close (px) the finger must pass to a node
@@ -170,7 +171,7 @@ export function openStrike(foe, hero) {
         <b class="strike-result" hidden></b>
       </div>
       <p class="strike-hint"></p>
-      <div class="strike-time" aria-hidden="true"><i style="animation-duration:${WINDOW_MS}ms"></i></div>
+      <div class="strike-time" aria-hidden="true"><i style="animation-duration:${windowMs()}ms"></i></div>
       <button type="button" class="btn strike-tap">⚡ Quick strike</button>
     </div>`;
   document.body.append(el);
@@ -425,7 +426,7 @@ export function openStrike(foe, hero) {
   });
   $('.strike-tap').onclick = () => strike('tap');
   $('.strike-x').onclick = () => { if (!struck) close(); };
-  later(() => strike('tap'), WINDOW_MS); // the window ran out: an ordinary strike
+  later(() => strike('tap'), windowMs()); // the window ran out: an ordinary strike
 
   // Client coordinates of every step's points, for tests.
   const points = () => { const r = field.getBoundingClientRect(), s = r.width / (field.offsetWidth || r.width) || 1; return live.map((n) => n.p.map((q) => ({ x: r.left + q.x * s, y: r.top + q.y * s }))); };

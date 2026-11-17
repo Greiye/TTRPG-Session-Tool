@@ -150,6 +150,7 @@ const SHOTS = process.env.SHOTS;
   ok(await turnOf(k), 'Kai\'s turn again');
   await h.wait(200);
   const k1 = kaiAttacks(), c1 = cues.length;
+  await kp.evaluate(() => { Strike.windowMs = 20000; }); // no auto-strike while a slow runner works through the chain
   await kp.click(`[data-attack="${wolf}"]`);
   await kp.waitForSelector('#strike [data-move="1"]');
   await kp.click('#strike [data-move="1"]');
@@ -160,20 +161,22 @@ const SHOTS = process.env.SHOTS;
     const f = document.querySelector('#strike .strike-field');
     const fire = (t, id, p) => f.dispatchEvent(new PointerEvent(t, { pointerId: id, clientX: p.x, clientY: p.y, bubbles: true, isPrimary: id === 1, pointerType: 'touch' }));
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    // Waits until step i is lit and its pulse is over (slow machines take longer than any fixed wait).
+    const lit = async (i) => { for (let t = 0; t < 300; t++) { const d = f.querySelector(`.strike-node[data-step="${i}"]`); if (d?.classList.contains('on') && !f.querySelector('.strike-node.pulse')) return wait(40); await wait(20); } };
     let here = null;
     const go = async (b, n = 5) => { const a = here; for (let i = 1; i <= n; i++) { fire('pointermove', 1, { x: a.x + ((b.x - a.x) * i) / n, y: a.y + ((b.y - a.y) * i) / n }); await wait(12); } here = b; };
     const P = Strike.chainPoints();
-    here = P[0][0]; fire('pointerdown', 1, here); await wait(240); // hit
-    await go(P[1][0]); await go(P[1][1]); await wait(240); // slash
-    await go(P[2][0]); await wait(750); // pierce: hold through the ring
-    await go(P[3][0]); fire('pointerdown', 2, P[3][1]); await wait(30); fire('pointerup', 2, P[3][1]); await wait(240); // two-press
+    here = P[0][0]; fire('pointerdown', 1, here); await lit(1); // hit
+    await go(P[1][0]); await go(P[1][1]); await lit(2); // slash
+    await go(P[2][0]); await lit(3); // pierce: hold through the ring
+    await go(P[3][0]); fire('pointerdown', 2, P[3][1]); await wait(30); fire('pointerup', 2, P[3][1]); await lit(4); // two-press
     await go(P[4][0]); fire('pointerdown', 2, P[4][2]); // two-slash: both fingers at once
     for (let i = 1; i <= 6; i++) {
       fire('pointermove', 1, { x: P[4][0].x + ((P[4][1].x - P[4][0].x) * i) / 6, y: P[4][0].y });
       fire('pointermove', 2, { x: P[4][2].x + ((P[4][3].x - P[4][2].x) * i) / 6, y: P[4][2].y });
       await wait(12);
     }
-    here = P[4][1]; fire('pointerup', 2, P[4][3]); await wait(240);
+    here = P[4][1]; fire('pointerup', 2, P[4][3]); await lit(5);
     await go(P[5][0]); // spell: circle the rune
     const c = P[5][0];
     for (let i = 0; i <= 26; i++) { const t = (i / 24) * 2 * Math.PI; fire('pointermove', 1, { x: c.x + 26 * Math.cos(t), y: c.y + 26 * Math.sin(t) }); await wait(10); }
