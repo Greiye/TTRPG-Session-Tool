@@ -14,6 +14,7 @@ host.innerHTML = `<h3>🏘 <span id="tnTitle">Town</span> <span class="note">tow
   <div class="row wrap tn-tools">
     <span class="wm-chip tn-chip" id="tnNew" title="Drag onto the town map to add a place (tap, then tap the map, on touch screens)">🏠 Place</span>
     <span class="wm-trash" id="tnTrash" title="Drag a place here to remove it">🗑</span>
+    <button class="btn small" data-tn="share" id="tnShare" aria-pressed="false" title="Show this town map on the TV (discovered places only), without a visit">📺 Show on TV</button>
     <button class="btn small" data-tn="revealAll">👁 Reveal all</button>
     <button class="btn small" data-tn="hideAll">☁ Hide all</button>
     <label class="btn small">🖼 Picture<input type="file" accept="image/*" id="tnPic" hidden></label>
@@ -110,6 +111,12 @@ function draw(S) {
   if (!$('#tnEdit').contains(document.activeElement) || !n) once('#tnEdit', ek, n ? editHtml(S, at, n) : '');
   $('#tnHint').textContent = placing ? 'Tap the town map to place it there.' : 'Tap a place to edit it, drag it to move it or into the bin.';
   $('#tnNew').classList.toggle('on', placing);
+  const shared = S.town.share?.at === at.id;
+  const sb = $('#tnShare');
+  sb.classList.toggle('on', shared);
+  sb.setAttribute('aria-pressed', String(shared));
+  sb.textContent = shared ? '📺 Hide from TV' : '📺 Show on TV';
+  sb.disabled = !!S.town.on; // a visit already puts its town on the TV
 }
 onState((S) => { last = S; draw(S); });
 document.addEventListener('wm:sel', () => { if (last) draw(last); });
@@ -130,6 +137,7 @@ host.addEventListener('click', async (e) => {
   else if (k === 'leave') act('dm:town:show', { on: false });
   else if (k === 'resolve') act('dm:town:resolve');
   else if (k === 'gate') act('dm:town:gate');
+  else if (k === 'share') act('dm:town:share', { on: last?.town?.share?.at !== at() });
   else if (k === 'clearpicks') act('dm:town:clearpicks');
   else if (k === 'revealAll') act('dm:town:reveal', { id: '*', on: true });
   else if (k === 'hideAll') act('dm:town:reveal', { id: '*', on: false });

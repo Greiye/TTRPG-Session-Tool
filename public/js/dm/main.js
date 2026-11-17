@@ -43,6 +43,7 @@ import './endsession.js';
 import './lore.js';
 import './designer.js'; // Creature Designer and lore wiki (PR W)
 import './menus.js';
+import './reorder.js'; // re-orderable sidebar windows (Mike, Nov 17)
 import './undo.js';
 import { isoStage } from '../iso3d.js';
 

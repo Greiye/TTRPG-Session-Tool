@@ -84,7 +84,8 @@
         const [{ version }, d] = await Promise.all([fetch('/api/version').then(r => r.json()), fetch('/devstats.json').then(r => r.json())]);
         document.getElementById('tvVer').textContent = 'v' + version;
         const v = d.versions[version] || {};
-        const val = v.hours != null && d.rateUsd != null ? Math.round(v.hours * d.rateUsd) : null;
+        const st = v.studio || {};
+        const val = st.hours != null && d.rateUsd != null ? Math.round(st.hours * d.rateUsd) : null;
         const est = (flag) => (flag ? ' <span class="est">(estimate)</span>' : '');
         const todo = (note) => `<span class="est">${note || 'not measured'}</span>`;
         const lines = v.linesAdded != null ? `+${fmt(v.linesAdded)} / -${fmt(v.linesRemoved)}` : 'not measured';
@@ -99,9 +100,10 @@
             <tr><td>Work threads</td><td>${fmt(v.threads)}</td></tr>
             <tr><td>Token usage</td><td>${v.tokens != null ? fmt(v.tokens) + est(v.tokensEstimate) : todo(v.tokensNote)}</td></tr>
             <tr><td>Money spent</td><td>${v.spendUsd != null ? '$' + fmt(v.spendUsd) : todo(v.spendNote)}</td></tr>
-            <tr><td>Development value</td><td>${val == null ? todo(d.rateUsdNote) : '$' + val.toLocaleString() + ' at $' + d.rateUsd + '/h' + est(v.hoursEstimate)}</td></tr>
+            <tr><td>Studio without AI</td><td>${st.hours != null ? `${fmt(st.hours)} hours, about ${st.people} people for ${st.months} months${est(st.estimate)}` : 'not measured'}</td></tr>
+            <tr><td>Studio cost without AI</td><td>${val == null ? todo(d.rateUsdNote) : '$' + val.toLocaleString() + ' at $' + d.rateUsd + '/h' + est(st.estimate)}</td></tr>
           </table>
-          <p class="est">${v.notes || ''}</p>
+          <p class="est">${v.notes || ''} ${st.method || ''} Rate: ${d.rateUsdNote || ''} Tokens: ${v.tokensNote || ''} Spend: ${v.spendNote || ''}</p>
           <p class="est">Click anywhere to close.</p>`;
         return true;
       } catch (e) { document.getElementById('tvVer').textContent = 'v?'; return false; }
