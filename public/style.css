@@ -1288,11 +1288,27 @@ body.reorder-on #toolsCol > .card[data-tab] > h3:first-of-type { cursor: grab; }
 body.reorder-on #toolsCol > .card[data-tab] > h3:first-of-type::before { content: '⠿ '; color: var(--gold); }
 #toolsCol > .card.reorder-drag { opacity: .45; }
 .dc-ladder-row { margin-bottom: 6px; }
-/* Node strikes: numbered nodes to drag through in order (PLACEHOLDER look; the pulse speed will follow the weapon). */
+/* Node strikes and special move chains: numbered steps to follow in order (PLACEHOLDER look). After a step the node
+   pulses for the weapon's weight (--pulse: a dagger lightly, a mace for a second). */
 .strike-node { position: absolute; width: 44px; height: 44px; border-radius: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; pointer-events: none;
   font: 700 20px/1 var(--display); color: #fff; background: rgb(30 20 14 / .85); border: 3px solid hsl(42 85% 60%); box-shadow: 0 0 10px hsl(42 85% 60% / .6);
-  animation: strike-node ease-in-out infinite; }
+  animation: strike-node 1.2s ease-in-out infinite; }
+.strike-node small { position: absolute; right: -6px; top: -8px; font: 700 14px/1 system-ui, sans-serif; color: hsl(42 90% 70%); text-shadow: 0 0 4px #000; }
+.strike-node.k-pierce { border-style: double; border-width: 5px; }
+.strike-node.k-spell { border-color: hsl(270 80% 72%); box-shadow: 0 0 12px hsl(270 80% 60% / .7), inset 0 0 0 calc(var(--turn, 0) * 22px) hsl(270 80% 60% / .55); }
+.strike-node.k-twin, .strike-node.k-twinslash { border-color: hsl(190 80% 62%); box-shadow: 0 0 12px hsl(190 80% 55% / .7); }
+.strike-node.armed { border-color: #fff; box-shadow: 0 0 16px #fff; }
+.strike-node.strike-start { width: 22px; height: 22px; border-style: dashed; animation: none; }
+.strike-seg { position: absolute; height: 0; border-top: 4px dashed hsl(42 85% 60% / .8); transform-origin: 0 50%; pointer-events: none; }
+.strike-seg.on { border-top-style: solid; border-top-color: #fff; filter: drop-shadow(0 0 6px #fff); }
+.strike-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.strike-chips .chip { cursor: pointer; font: inherit; color: inherit; flex-direction: row; }
+.strike-chips .chip.on { background: var(--gold); color: #1a120c; }
+.strike-field.build { cursor: crosshair; }
+.move-row { gap: 8px; margin-bottom: 6px; }
 .strike-node.on { background: hsl(42 90% 58%); color: #1a120c; border-color: #fff; box-shadow: 0 0 18px #fff; animation: strike-node-hit .25s ease-out forwards; }
+.strike-node.on.pulse { animation: strike-node-pulse var(--pulse, .5s) ease-out; }
+@keyframes strike-node-pulse { 0% { transform: translate(-50%, -50%) scale(1.5); box-shadow: 0 0 30px #fff; } 100% { transform: translate(-50%, -50%) scale(1); } }
 .strike-node.burst { animation: strike-node-burst .4s ease-out forwards; }
 @keyframes strike-node { 50% { transform: translate(-50%, -50%) scale(1.12); box-shadow: 0 0 18px hsl(42 85% 60%); } }
 @keyframes strike-node-hit { 50% { transform: translate(-50%, -50%) scale(1.35); } to { transform: translate(-50%, -50%) scale(1); } }

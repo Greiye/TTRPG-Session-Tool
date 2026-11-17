@@ -4,10 +4,12 @@ import { socket, $, onState, state, library } from '../client.js';
 import { me } from './identity.js';
 import { addTab, tab, onTab } from './tabs.js';
 import { fmt } from './views/common.js';
+import { openMoveBuilder } from './strike.js';
 
 const { esc } = Stage;
 const spells = library('spells');
 const send = (patch) => socket.emit('player:sheet', patch);
+const MOVE_WORD = { hit: 'hit', slash: 'slash', pierce: 'pierce', spell: 'spell', twin: 'two-press', twinslash: 'two-slash' };
 const root = () => $('#tabSheet');
 addTab('sheet', '📜 Sheet');
 
@@ -87,6 +89,10 @@ function render() {
     </div>` : ''}
     ${(c.conditions || []).length ? `<div class="card"><h3>Conditions</h3><div class="chips">${c.conditions.map(condChip).join('')}</div><p class="note">The DM sets these. Press and hold one for what it does.</p><p class="cond-info" id="condInfo" aria-live="polite"></p></div>` : ''}
     ${['stamina', 'mana'].filter((k) => c[k]?.max > 0).map((k) => `<div class="card"><h3>${k === 'stamina' ? 'Stamina' : 'Mana'}</h3><div class="hp-ctl"><button class="btn" data-res="${k}" data-d="-1">−1</button><b>${c[k].cur}<small> / ${c[k].max}</small></b><button class="btn" data-res="${k}" data-d="1">+1</button></div></div>`).join('')}
+    <div class="card moves"><h3>Special moves <span class="note">chains for the strike pop-up</span></h3>
+      ${(c.moves || []).map((m, i) => `<div class="row move-row"><b>Move ${i + 1}</b><span class="muted grow">${m.steps.map((s) => MOVE_WORD[s.k] || s.k).join(', ')}</span><button class="btn small" data-move-edit="${i}">Edit</button><button class="btn small danger" data-move-del="${i}" aria-label="Delete move ${i + 1}">✕</button></div>`).join('') || '<p class="note">No moves yet. Lay out a chain of hits, slashes, pierces, spell runes and two-finger steps, then pick it when you strike. Name it out loud at the table.</p>'}
+      ${(c.moves || []).length < 6 ? '<button class="btn small" data-move-new="1">＋ New move</button>' : ''}
+    </div>
     <div class="card"><h3>Languages</h3><div class="chips">${(c.languages || []).map((l) => `<span class="chip"><b>${esc(l)}</b></span>`).join('') || '<span class="note">None</span>'}</div><p class="note">The DM sets the languages you know.</p></div>
     <div class="card"><h3>Notes</h3><textarea id="sheetNotes" rows="4" maxlength="4000" placeholder="Private notes. Only you and the DM can read these.">${esc(c.notes || '')}</textarea></div>`;
 }
@@ -107,6 +113,9 @@ root().addEventListener('click', (e) => {
   else if (d.skill) socket.emit('player:check', { skill: d.skill }); // answers the DM's call if it matches, else a free roll
   else if (d.feat) { openFeat = openFeat === d.feat ? null : d.feat; featNote = ''; render(); }
   else if (d.spellDel) send({ spells: c.spells.filter((x) => x !== d.spellDel) });
+  else if (d.moveNew) openMoveBuilder(c);
+  else if (d.moveEdit) openMoveBuilder(c, Number(d.moveEdit));
+  else if (d.moveDel) send({ moves: c.moves.filter((_, i) => i !== Number(d.moveDel)) });
   else if (d.res) send({ [d.res]: { cur: Math.max(0, Math.min(c[d.res].max, c[d.res].cur + Number(d.d))) } });
   else return;
   navigator.vibrate?.(20);
