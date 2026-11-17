@@ -6,6 +6,10 @@
 // Switches: the table's "Strike gestures" setting (DM) and this phone's "One-tap attacks" setting. Every pop-up
 // also has a Quick strike button, and after WINDOW_MS the strike goes by itself so turns stay fast.
 // Silhouettes, ring speed and effects are PLACEHOLDER; weapon speeds and the body part hit are still open.
+//
+// Node strikes (Mike, Nov 17): martial artists and unique weapons drag through numbered nodes on the silhouette
+// instead, 1 then 2 then 3..., each node a kick or a punch. Finishing the chain makes the attack (style 'combo').
+// Who gets nodes, how many, and how fast they pulse are PLACEHOLDER until Mike sets them.
 import { socket } from '../client.js';
 import { me } from './identity.js';
 
@@ -13,8 +17,21 @@ const HOLD_MS = 1000; // PLACEHOLDER ring time until weapon speeds are set
 const WINDOW_MS = 5000; // the gesture window (Mike, Nov 17: "keep turns fast")
 const SLASH_SPAN = 0.5; // a slash must cross half the silhouette
 const PAUSE_MS = 350; // the beat between the strike and the roll
+const NODE_COUNT = 4; // PLACEHOLDER: nodes in a chain
+const NODE_R = 30; // how close (px) the finger must pass to a node
+const NODE_PULSE_MS = 900; // PLACEHOLDER: node pulse speed until weapon speeds are set (dagger fast, mace slow)
+// PLACEHOLDER: who strikes with nodes. Classes that fight unarmed, and items that read as unique weapons.
+const NODE_CLASSES = /monk|martial|brawl|pugil|unarmed|fist|boxer|wrestl/i;
+const NODE_WEAPONS = /nunchaku|gauntlet|knuckle|cestus|claw|tonfa|kusari|chakram|whip|sai\b|bo staff/i;
 
 const esc = (s) => Stage.esc(s);
+// 'nodes' for martial artists and unique weapons, otherwise 'free' (slash or pierce).
+export function strikeMode(hero) {
+  if (!hero) return 'free';
+  if (NODE_CLASSES.test(hero.cls || '')) return 'nodes';
+  if ((hero.inventory || []).some((i) => i.qty !== 0 && NODE_WEAPONS.test(i.name || ''))) return 'nodes';
+  return 'free';
+}
 export const wantGesture = (S) => S?.settings?.display?.gestures !== 'off' && Settings.get().onetap !== 'on';
 
 // Silhouette by creature kind and name (PLACEHOLDER shapes, viewBox 0 0 200 300).
@@ -32,24 +49,42 @@ export function shapeOf(foe) {
   return 'humanoid';
 }
 
+// Where nodes can sit on each silhouette, in its viewBox (head, chest, arms, belly, legs...). PLACEHOLDER.
+const SPOTS = {
+  humanoid: [[100, 42], [100, 105], [50, 130], [150, 130], [100, 155], [83, 235], [117, 235]],
+  beast: [[168, 122], [60, 155], [110, 150], [150, 165], [45, 225], [155, 225], [20, 120]],
+  blob: [[84, 160], [122, 160], [60, 220], [140, 220], [100, 120], [100, 205]],
+  winged: [[100, 88], [100, 150], [40, 120], [160, 120], [100, 195], [89, 245], [111, 245]],
+};
+// A random chain of distinct spots, so every strike is a little different.
+export function pickChain(shape, n = NODE_COUNT, rnd = Math.random) {
+  const pool = [...(SPOTS[shape] || SPOTS.humanoid)];
+  const out = [];
+  while (out.length < n && pool.length) out.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0]);
+  return out;
+}
+
 let open = null;
 export const isOpen = () => !!open;
 
-// Opens the pop-up for `foe`. Resolves when it closes.
-export function openStrike(foe) {
+// Opens the pop-up for `foe`; `hero` is this phone's character (it picks node strikes). Resolves when it closes.
+export function openStrike(foe, hero) {
   if (open) return open.done;
+  const nodes = strikeMode(hero) === 'nodes';
+  const shape = shapeOf(foe);
   const el = document.createElement('div');
   el.id = 'strike';
   el.className = 'strike-pop';
+  if (nodes) el.dataset.mode = 'nodes';
   el.innerHTML = `<div class="strike-card" role="dialog" aria-label="Strike ${esc(foe.name)}">
       <header><b>Strike ${esc(foe.name)}</b><button type="button" class="icon-btn strike-x" aria-label="Cancel">✕</button></header>
       <div class="strike-field">
-        <svg class="strike-sil" viewBox="0 0 200 300" aria-hidden="true"><g>${SHAPES[shapeOf(foe)]}</g></svg>
+        <svg class="strike-sil" viewBox="0 0 200 300" aria-hidden="true"><g>${SHAPES[shape]}</g></svg>
         <svg class="strike-ink" aria-hidden="true"><polyline points=""/></svg>
         <i class="strike-ring" hidden></i>
         <b class="strike-result" hidden></b>
       </div>
-      <p class="strike-hint">Drag across to slash · Hold to pierce</p>
+      <p class="strike-hint">${nodes ? `Drag through the nodes, 1 to ${NODE_COUNT}` : 'Drag across to slash · Hold to pierce'}</p>
       <div class="strike-time" aria-hidden="true"><i style="animation-duration:${WINDOW_MS}ms"></i></div>
       <button type="button" class="btn strike-tap">⚡ Quick strike</button>
     </div>`;
@@ -96,13 +131,76 @@ export function openStrike(foe) {
       p.style.left = `${at.x}px`; p.style.top = `${at.y}px`;
       field.append(p);
     }
-    navigator.vibrate?.(style === 'pierce' ? [10, 30, 60] : [45]);
+    if (style === 'combo') dots.forEach((d, i) => { d.style.animationDelay = `${i * 70}ms`; d.classList.add('burst'); });
+    navigator.vibrate?.(style === 'pierce' ? [10, 30, 60] : style === 'combo' ? [] : [45]);
     later(() => socket.emit('player:combat', { act: 'attack', target: foe.id, style }), PAUSE_MS);
     later(close, 4000); // no answer (no line of sight, turn moved on): close anyway
   }
 
-  const local = (e) => { const r = field.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
-  field.addEventListener('pointerdown', (e) => {
+  // Layout pixels inside the field, even while the card is still scaling in.
+  const local = (e) => { const r = field.getBoundingClientRect(), s = r.width / (field.offsetWidth || r.width) || 1; return { x: (e.clientX - r.left) / s, y: (e.clientY - r.top) / s }; };
+  // Node strikes: numbered nodes on the silhouette, reached in order with one finger.
+  const chain = nodes ? pickChain(shape) : [];
+  const dots = chain.map((_, i) => {
+    const d = document.createElement('i');
+    d.className = 'strike-node';
+    d.textContent = i + 1;
+    d.style.animationDuration = `${NODE_PULSE_MS}ms`;
+    d.style.animationDelay = `${-i * 120}ms`;
+    field.append(d);
+    return d;
+  });
+  let reached = 0;
+  const nodeAt = () => {
+    // In layout pixels (the card scales in as it opens). The silhouette's box is inset 6% 12% (style.css) and
+    // keeps its aspect ratio inside it (xMidYMid meet), like the SVG does.
+    const W = field.clientWidth, H = field.clientHeight, sw = W * 0.76, sh = H * 0.88;
+    const k = Math.min(sw / 200, sh / 300);
+    const ox = W * 0.12 + (sw - 200 * k) / 2, oy = H * 0.06 + (sh - 300 * k) / 2;
+    return chain.map(([x, y]) => ({ x: ox + x * k, y: oy + y * k }));
+  };
+  let spots = [];
+  const placeNodes = () => { spots = nodeAt(); spots.forEach((p, i) => { dots[i].style.left = `${p.x}px`; dots[i].style.top = `${p.y}px`; }); };
+  if (nodes) requestAnimationFrame(placeNodes);
+  const resetChain = (msg) => {
+    reached = 0;
+    dots.forEach((d) => d.classList.remove('on'));
+    ink.setAttribute('points', '');
+    if (msg) hint.textContent = msg;
+  };
+  // Lights the next node when the finger passes over it. Returns true when the chain is done.
+  const touchNode = (p) => {
+    const t = spots[reached];
+    if (!t || Math.hypot(p.x - t.x, p.y - t.y) > NODE_R) return false;
+    dots[reached].classList.add('on');
+    reached++;
+    navigator.vibrate?.(reached === chain.length ? [30, 20, 50] : [25]);
+    ink.setAttribute('points', spots.slice(0, reached).map((q) => `${Math.round(q.x)},${Math.round(q.y)}`).join(' '));
+    if (reached === chain.length) { strike('combo', p); return true; }
+    hint.textContent = `${reached} of ${chain.length}`;
+    return false;
+  };
+  if (nodes) {
+    field.addEventListener('pointerdown', (e) => {
+      if (struck) return;
+      e.preventDefault();
+      field.setPointerCapture?.(e.pointerId);
+      placeNodes();
+      resetChain();
+      press = { nodes: true };
+      if (!touchNode(local(e)) && !reached) hint.textContent = 'Start on node 1';
+    });
+    field.addEventListener('pointermove', (e) => { if (press?.nodes && !struck && reached) touchNode(local(e)); });
+    const lift = () => {
+      if (!press || struck) return;
+      press = null;
+      if (reached) resetChain(`Keep your finger down from 1 to ${chain.length}`);
+    };
+    field.addEventListener('pointerup', lift);
+    field.addEventListener('pointercancel', lift);
+  }
+
+  if (!nodes) field.addEventListener('pointerdown', (e) => {
     if (struck) return;
     e.preventDefault();
     field.setPointerCapture?.(e.pointerId);
@@ -117,7 +215,7 @@ export function openStrike(foe) {
     buzz = setInterval(() => navigator.vibrate?.(8), 160);
     holdTimer = setTimeout(() => strike('pierce', p), HOLD_MS);
   });
-  field.addEventListener('pointermove', (e) => {
+  if (!nodes) field.addEventListener('pointermove', (e) => {
     if (!press || struck) return;
     const p = local(e);
     press.pts.push(p);
@@ -144,8 +242,7 @@ export function openStrike(foe) {
     } else hint.textContent = 'Hold until the ring closes to pierce';
     ink.setAttribute('points', '');
   };
-  field.addEventListener('pointerup', up);
-  field.addEventListener('pointercancel', up);
+  if (!nodes) { field.addEventListener('pointerup', up); field.addEventListener('pointercancel', up); }
   $('.strike-tap').onclick = () => strike('tap');
   $('.strike-x').onclick = () => { if (!struck) close(); };
   later(() => strike('tap'), WINDOW_MS); // the window ran out: an ordinary strike
@@ -155,4 +252,4 @@ export function openStrike(foe) {
 }
 
 // For tests and the TV echo later: what the pop-up would do with a foe.
-window.Strike = { shapeOf, wantGesture, openStrike, isOpen };
+window.Strike = { shapeOf, wantGesture, strikeMode, pickChain, openStrike, isOpen };

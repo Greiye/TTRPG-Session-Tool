@@ -77,7 +77,7 @@ $('#gameView').addEventListener('click', (e) => {
   else if (d.attack) {
     // Strike gestures (Mike, Nov 17): the enemy's silhouette pops up to slash or pierce, unless switched off.
     const foe = state()?.combat.enemies.find((e) => e.id === d.attack);
-    if (foe && wantGesture(state())) openStrike(foe);
+    if (foe && wantGesture(state())) openStrike(foe, state().players.find((p) => p.id === id.charId));
     else socket.emit('player:combat', { act: 'attack', target: d.attack, style: 'tap' });
   }
   else if (d.act) socket.emit('player:combat', { act: d.act });
