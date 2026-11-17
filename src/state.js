@@ -18,6 +18,7 @@ const cast = require('./cast');
 const legends = require('./legends');
 const houserules = require('./houserules');
 const absent = require('./absent');
+const recorder = require('./recorder'); // session recorder (test tool, off by default)
 const tableState = require('./table-state'); // Phase I table tools: defaults for their fields
 const worldmap = require('./worldmap');
 const living = require('./living');
@@ -182,6 +183,7 @@ function log(kind, text, extra = {}) {
   state.log.push(entry);
   if (state.log.length > 80) state.log.shift();
   absent.note(state, entry); // empty chairs keep what they missed (src/absent.js)
+  recorder.logLine(entry); // session recorder; a no-op unless recording
 }
 
 // Full snapshot. Never sent as-is: stateFor() filters it per viewer (see visibility.js).
