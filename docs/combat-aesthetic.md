@@ -43,6 +43,20 @@ Every item is a possible feature with its open choices. **Built so far: the firs
 - Switches: **Strike gestures** (whole table, DM) and **One-tap attacks** (each phone).
 - Code: `public/js/play/strike.js`; test `test/strike-ui.js`.
 
+## Built: node strikes (Nov 17)
+
+- Mike: "For martial artists or other unique weapons, attacks have to be node based. Players have to click
+  and drag across numbered nodes to kick/punch/etc."
+- Martial artists and unique weapons get numbered nodes (1 to 4) on the enemy's silhouette instead of slash
+  and pierce. Put a finger on 1 and drag through each node in order; each node lights up with a buzz (a kick
+  or a punch). Lifting the finger early resets the chain. The last node lands the strike, then the attack is
+  rolled as before. The chain is picked at random from spots on the silhouette (head, chest, arms, legs).
+- The TV draws a flurry of three quick blows on the target (white and faint for a miss).
+- Same switches, 5 second bar and Quick strike as the other gestures. Cue style `combo`.
+- PLACEHOLDER until Mike sets them: who strikes with nodes (classes such as Monk, Brawler, Pugilist, and
+  items such as gauntlets, knuckles, claws, nunchaku, tonfa, whips), the number of nodes, and how fast the
+  nodes pulse (to follow weapon speeds: dagger fast, mace slow).
+
 ## Mike's decisions (Nov 17)
 
 1. **Gestures are for show for now.** The dice decide every outcome. All gesture and effect code must
@@ -277,3 +291,4 @@ Agreed on Nov 17. **Every one is a toggle**, off by default until it has been tr
 - Team casting: what the multiplier touches and its size, and whether any two spells combine.
 - Health state names and thresholds.
 - Weapon speed values per weapon kind (how fast a dagger's node moves compared with a mace's).
+- Node strikes: which classes and weapons use them, how many nodes, and whether nodes move or only pulse.
