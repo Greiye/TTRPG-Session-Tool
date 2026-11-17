@@ -81,12 +81,8 @@
     return null;
   }
 
-  // HP as a word (phone setting "Description", Mike Nov 16): share of HP left.
-  function hpWord(hp, max) {
-    if (hp <= 0) return 'Down';
-    const k = max > 0 ? hp / max : 1;
-    return k > 0.75 ? 'Fine' : k > 0.5 ? 'Injured' : k > 0.25 ? 'Badly hurt' : 'Near death';
-  }
+  // HP as a word: one list for every screen, in public/stage.js.
+  const hpWord = (hp, max) => Stage.hpWord(hp, max);
   // Hit dice and spell slots as gems, one per die or slot: lit while available, black once used.
   function gems(c) {
     const rows = [];

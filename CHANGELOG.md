@@ -5,6 +5,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **One-row turn tracker on the TV** (Mike, Nov 17). The initiative strip shows five combatants on one row: the two turns before, the current turn in the middle and the next two, sliding along as turns pass. The initiative numbers show just after the roll, then fade to leave the names.
+- **Combat effects, first slice** (Mike, Nov 17, `docs/combat-aesthetic.md`). Hits, crits, misses, healing, a creature or hero going down, and each new turn now play a short effect on the TV and the DM page: a slash on the target, an X with a burst and "Critical!" on a crit, a white glancing slash for a miss, a green glow, a "Down" stamp, and a sweep in the combatant's colour with whose turn it is. Phones show only their own moments ("You hit Goblin", "Your turn") with a buzz. All looks are placeholders. Switch them with the new **Combat effects** display setting (per device, and for the TV); reduce motion turns them into short fades.
+- **Health numbers for the DM only** (Mike, Nov 17). A new table setting, **Health numbers: DM only / Everyone**, defaults to DM only: the TV party cards, the phone hero card and sheet, and the 3D map show health words (Fine, Injured, Badly hurt, Near death, Down) instead of numbers, and public log lines say HIT, CRIT or MISS without damage. The DM keeps every number. Choose Everyone to bring the numbers back.
 - **Soundscape per scene** (Mike, Nov 17, backlog PR X). **🎬** on a Soundscape favourite links it to the scene now showing (one favourite per scene; tap again to unlink). When the DM moves to that scene (scene title, case ignored, or a quick-start template), its favourite starts, and the banner offers **↶ Put back what was playing**, which restores the whole previous soundscape.
 
 - **More combat aesthetic ideas** (Mike, Nov 17, docs only): `docs/combat-aesthetic.md` adds TV gesture echo, defence gestures, called shots and watching phones (each a toggle), weapon feel profiles where a dagger's node moves fast and a mace's slow, a 5 second gesture window, a one-tap option, rune and channel casting, and a Persona-style team move cut-in. Players name team moves and signature moves themselves (no code). Nothing built yet.
@@ -247,6 +250,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Code cleanup (Nov 16): the front end's twelve copied HTML escapers now call the one in `public/stage.js`, and the three copies of `slug()` (saves, spells, SRD import) are one in `src/util.js`. No change on screen.
 
 ### Removed
+- The large **Your move** banner on the TV in combat (Mike, Nov 17); the turn tracker and the turn sweep show whose turn it is.
 - The archived DM modules in `archive/` (session plans, intro card, epilogue controls), on Mike's decision after the studio review (Nov 16). Their server side stays.
 - `docs/termux.md` (Termux is off for now).
 - `public/voice.js`: the DM live voice panel moved into `public/stt.js`, next to the speech engines it uses. Nothing changes on the DM page.

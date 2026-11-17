@@ -124,7 +124,10 @@ class TableTransport {
     this.moveN = lm?.n;
     if (this.view) for (const u of Object.values(next.units)) {
       const was = this.view.units[u.id];
-      if (was && was.hp !== u.hp) events.push({ type: 'attack', unitId: next.meta.active !== u.id ? next.meta.active : null, targetId: u.id, hit: true, amount: was.hp - u.hp });
+      if (!was || was.hp === u.hp) continue;
+      // Numbers are the DM's unless the table shares them (Mike, Nov 17): other screens float the health word.
+      const label = this.role !== 'dm' && Stage.numbersHidden(s) ? Stage.hpWord(u.hp, u.maxHp) : undefined;
+      events.push({ type: 'attack', unitId: next.meta.active !== u.id ? next.meta.active : null, targetId: u.id, hit: true, amount: was.hp - u.hp, ...(label !== undefined ? { label } : {}) });
     }
     if (!this.view || rkey !== this.rulesKey) {
       this.rulesKey = rkey;

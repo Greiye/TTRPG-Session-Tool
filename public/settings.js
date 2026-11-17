@@ -5,10 +5,12 @@
 //   data-log      show | hide           (the logs on this screen; hidden by default, Mike Nov 15)
 //   data-dice     on | off              (3D dice tray on the TV; TV setting only)
 //   hp            num | desc            (phone hero card: 28/28, or a word such as Injured; phones only)
+//   data-fx       on | off              (combat effects: hit, crit, miss, heal, down and turn cues; public/combatfx.js)
+//   numbers       dm | all              (health and damage numbers: DM only, or everyone; whole table, DM sets it)
 // Phones and the DM laptop keep their own choice in localStorage. The TV uses the table setting the DM picks.
 (() => {
   const KEY = 'tavernSettings';
-  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto', log: 'hide', sprite: 'auto', anim: 'on', dice: 'on', hp: 'num' };
+  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto', log: 'hide', sprite: 'auto', anim: 'on', dice: 'on', hp: 'num', fx: 'on', numbers: 'dm' };
   const OPTIONS = {
     text: [['md', 'Normal'], ['lg', 'Large'], ['xl', 'Extra large']],
     palette: [['default', 'Default'], ['cb', 'Color-blind safe'], ['hc', 'High contrast']],
@@ -18,11 +20,14 @@
     anim: [['on', 'Animated'], ['off', 'Static']],
     dice: [['on', 'On'], ['off', 'Off']],
     hp: [['num', 'Number'], ['desc', 'Description']],
+    fx: [['on', 'On'], ['off', 'Off']],
+    numbers: [['dm', 'DM only'], ['all', 'Everyone']],
   };
-  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion', log: 'Show logs', sprite: 'Sprite playback', anim: 'Sprite animation', dice: '3D dice tray', hp: 'HP display' };
+  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion', log: 'Show logs', sprite: 'Sprite playback', anim: 'Sprite animation', dice: '3D dice tray', hp: 'HP display', fx: 'Combat effects', numbers: 'Health numbers' };
   const TV_ONLY = ['dice']; // the dice tray is drawn on the TV, so phones and the DM laptop don't offer it
   const PHONE_ONLY = ['hp']; // the hero card's HP reads as a number or a word on phones only
-  const forMe = (k) => !TV_ONLY.includes(k) && (!PHONE_ONLY.includes(k) || document.body.classList.contains('phone'));
+  const TABLE_ONLY = ['numbers']; // who sees health numbers is one choice for the whole table, made by the DM (Mike, Nov 17)
+  const forMe = (k) => !TV_ONLY.includes(k) && !TABLE_ONLY.includes(k) && (!PHONE_ONLY.includes(k) || document.body.classList.contains('phone'));
   const clean = (o = {}) => Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, OPTIONS[k].some(([v]) => v === o[k]) ? o[k] : DEFAULTS[k]]));
 
   let local = DEFAULTS;
@@ -43,6 +48,7 @@
     h.dataset.log = current.log;
     h.dataset.anim = current.anim;
     h.dataset.dice = current.dice;
+    h.dataset.fx = current.fx;
   }
   apply(local);
 
@@ -76,7 +82,7 @@
       dlg.innerHTML = `<form method="dialog"><h3>Display settings</h3>
         <p class="muted" style="margin-top:0">This device</p>
         ${Object.keys(OPTIONS).filter(forMe).map((k) => group(k, 'me-', local)).join('')}
-        ${table ? `<p class="muted">TV (everyone at the table)</p>${Object.keys(OPTIONS).filter((k) => !PHONE_ONLY.includes(k)).map((k) => group(k, 'tv-', clean(table.get()))).join('')}` : ''}
+        ${table ? `<p class="muted">TV and the whole table</p>${Object.keys(OPTIONS).filter((k) => !PHONE_ONLY.includes(k)).map((k) => group(k, 'tv-', clean(table.get()))).join('')}` : ''}
         <button class="bigbtn" value="close">Done</button></form>`;
       dlg.showModal();
     };

@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/town.css">
   <link rel="stylesheet" href="/worldmap.css">
   <link rel="stylesheet" href="/moments.css">
+  <link rel="stylesheet" href="/combatfx.css">
   <script src="/settings.js"></script>
   <style>
     .tv-ver { position: fixed; right: 12px; bottom: 8px; font: 13px/1 system-ui, sans-serif; color: #8a8478; background: none; border: 0; cursor: pointer; z-index: 50; }
@@ -38,6 +39,7 @@
   <script src="/moments.js"></script>
   <script src="/audio.js"></script>
   <script src="/rollpop.js"></script>
+  <script src="/combatfx.js"></script>
   <script src="/dice3d.js"></script>
   <script src="/weather.js"></script>
   <script type="module">
@@ -70,6 +72,7 @@
       Town.tvGate(s); // the Enter Town count (PR V)
     });
     AudioOut.init(socket); // the TV is the speaker
+    CombatFx.listen(socket, { role: 'tv' }); // hit, crit, miss, heal, down and turn effects (public/combatfx.js)
     // Roll results: the 3D dice tray when it is on (Phase B), otherwise the roll popup (item 5).
     socket.on('rollpop', (p) => (Settings.get().dice !== 'off' && p.dice?.length ? Dice3D.show(p) : RollPop.show(p)));
     socket.on('rollpop:skip', () => { RollPop.hide(); Dice3D.hide(); });

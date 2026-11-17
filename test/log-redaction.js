@@ -27,7 +27,18 @@ const viewDm = viewState(base, { role: 'dm' });
 
 assert(!/d20\(|\+4|1d6\+2|\(\d+d\d+/.test(publicText(viewPlayer)), 'phone log has no creature roll or damage breakdown');
 assert(!/d20\(|\+4|1d6\+2/.test(publicText(viewTv)), 'TV log has no creature roll or damage breakdown');
-assert(/Goblin attacks Mira: (HIT|CRIT) for \d+\.|Goblin attacks Mira: MISS\./.test(publicText(viewPlayer)), 'phone log still shows each attack outcome');
+assert(/Goblin attacks Mira: (HIT|CRIT)\.|Goblin attacks Mira: MISS\./.test(publicText(viewPlayer)), 'phone log still shows each attack outcome');
+// Health numbers are for the DM only by default (Mike, Nov 17): no "for N" on phones or the TV.
+assert(!/ for \d+/.test(publicText(viewPlayer)) && !/ for \d+/.test(publicText(viewTv)), 'phone and TV logs carry no damage numbers');
+// Mira strikes back: a player's attack is redacted the same way, with the full line for the DM.
+for (let i = 0; i < 10; i++) { goblin.hp = 7; game.attack(mira, goblin, {}); }
+const v2 = viewState({ ...base, log: live.log }, { role: 'player', charId: 'p1' });
+assert(/Mira attacks Goblin: (HIT|CRIT|MISS)\./.test(publicText(v2)) && !/ for \d+|d20\(/.test(publicText(v2)), 'a player attack shows the outcome without numbers');
+assert(/Mira attacks Goblin: d20\(/.test(publicText(viewState({ ...base, log: live.log }, { role: 'dm' }))), 'the DM sees the player attack in full');
+// The table setting "Health numbers: Everyone" brings the numbers back.
+live.settings.display.numbers = 'all';
+for (let i = 0; i < 20; i++) game.attack(goblin, mira, {});
+assert(/Goblin attacks Mira: (HIT|CRIT) for \d+\./.test(publicText(viewState({ ...base, log: live.log }, { role: 'player', charId: 'p1' }))), 'with numbers for everyone the phone log shows damage');
 assert(/d20\(/.test(publicText(viewDm)), 'DM log keeps the full breakdown');
 console.log('log redaction: all passed');
 // Library files flush on a short timer; let them land before the temp dir goes.

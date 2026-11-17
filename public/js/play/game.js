@@ -32,7 +32,7 @@ function render() {
   lastMode = S.mode;
   // Hero card (public/chronicle.js): portrait and bars only. Stats live on the Sheet tab, the bio in the profile.
   // Phone hero (Nov 16): 🏅 is Inspiration, HP reads as a number or a word (⚙ setting), dice and slots are gems.
-  $('#me').innerHTML = Chronicle.hero(c, S, { view: 'none', editAttr: 'data-prof', compact: true, seg: false, insp: true, hp: Settings.get().hp, gems: true });
+  $('#me').innerHTML = Chronicle.hero(c, S, { view: 'none', editAttr: 'data-prof', compact: true, seg: false, insp: true, hp: Stage.numbersHidden(S) ? 'desc' : Settings.get().hp, gems: true }); // numbers are the DM's unless the table shares them (Mike, Nov 17)
   Anim.hydrate($('#me'));
   // The day / time / place / quest / coins bar is gone from every screen (Mike, Nov 15).
   $('#me [data-prof]').onclick = openProfile;

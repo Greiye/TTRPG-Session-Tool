@@ -27,5 +27,8 @@ import './table.js';
 import './spotlight.js';
 import './ended.js';
 
+import { socket } from '../client.js';
+import { me } from './identity.js';
 
 Settings.mount();
+CombatFx.listen(socket, { role: 'phone', me: () => me.charId }); // your own combat moments (public/combatfx.js)

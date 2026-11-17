@@ -1,0 +1,60 @@
+/* Combat effects (public/combatfx.js). Every look here is a PLACEHOLDER: CSS shapes and text until real art.
+   --cfx-c is the colour of whoever acted (a player's hue, a creature's accent). */
+#cfx { position: fixed; inset: 0; pointer-events: none; z-index: 9000; overflow: hidden; }
+.cfx { position: absolute; transform: translate(-50%, -50%); --cfx-c: hsl(42 85% 60%); }
+.cfx-word { font: 700 clamp(18px, 3.2vw, 56px)/1 'Cinzel Decorative', Georgia, serif; color: var(--cfx-c); text-shadow: 0 0 .3em rgb(0 0 0 / .9), 0 .06em 0 rgb(0 0 0 / .8); }
+.cfx-amt { position: absolute; left: 60%; top: -10%; font: 800 clamp(16px, 2.2vw, 40px)/1 system-ui, sans-serif; color: #fff; text-shadow: 0 0 .25em rgb(0 0 0 / .9); animation: cfx-rise 1s ease-out forwards; }
+
+/* Slash: a bright streak across the target (PLACEHOLDER). Crit adds a second streak for an X. */
+.cfx-slash { width: var(--cfx-size, clamp(80px, 12vw, 220px)); height: var(--cfx-size, clamp(80px, 12vw, 220px)); }
+.cfx-slash i { position: absolute; left: -10%; top: 50%; width: 120%; height: 6%; border-radius: 50%;
+  background: linear-gradient(90deg, transparent, var(--cfx-c) 30%, #fff 50%, var(--cfx-c) 70%, transparent);
+  box-shadow: 0 0 1.2em var(--cfx-c); transform: rotate(-32deg) scaleX(0); transform-origin: left center;
+  animation: cfx-slash .32s cubic-bezier(.2,.8,.2,1) forwards, cfx-fade .5s ease-in .45s forwards; }
+.cfx-x i:nth-child(2) { transform: rotate(32deg) scaleX(0); transform-origin: right center; left: -10%; animation-delay: .12s, .55s; animation-name: cfx-slash2, cfx-fade; }
+.cfx-glance i { height: 3%; opacity: .8; animation: cfx-slash .25s ease-out forwards, cfx-glance .5s ease-in .25s forwards; }
+.cfx-glance .cfx-word { position: absolute; left: 50%; top: 80%; transform: translateX(-50%); font-size: clamp(16px, 2.4vw, 40px); animation: cfx-rise 1s ease-out forwards; }
+
+/* Crit burst and banner (PLACEHOLDER). */
+.cfx-burst { width: calc(var(--cfx-size, clamp(100px, 14vw, 260px)) * 1.4); aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 8%, var(--cfx-c) 20%, transparent 62%); animation: cfx-burst .8s ease-out forwards; }
+.cfx-banner { left: 50%; top: 18%; animation: cfx-pop .5s cubic-bezier(.2,.9,.3,1.3) both, cfx-fade .4s ease-in 1s forwards; }
+.cfx-banner span { font: 700 clamp(28px, 6vw, 110px)/1 'Cinzel Decorative', Georgia, serif; color: var(--cfx-c); text-shadow: 0 0 .25em #000, 0 0 .6em var(--cfx-c); letter-spacing: .04em; }
+
+/* A hit on a party member: the edges of the TV flush red for a moment. */
+.cfx-edge { inset: 0; transform: none; box-shadow: inset 0 0 12vw var(--cfx-c); animation: cfx-fadeout .7s ease-out forwards; }
+
+.cfx-heal { width: var(--cfx-size, clamp(80px, 10vw, 180px)); aspect-ratio: 1; border-radius: 50%; box-shadow: 0 0 2em .6em var(--cfx-c), inset 0 0 1.5em var(--cfx-c); animation: cfx-glow 1s ease-out forwards; }
+.cfx-heal .cfx-amt { color: var(--cfx-c); left: 50%; top: 0; transform: translateX(-50%); }
+.cfx-down { animation: cfx-stamp .45s cubic-bezier(.2,.9,.3,1.2) both, cfx-fade .4s ease-in 1.15s forwards; }
+.cfx-down .cfx-word { display: inline-block; padding: .15em .4em; border: .12em solid currentColor; border-radius: .2em; transform: rotate(-10deg); background: rgb(0 0 0 / .55); color: hsl(0 70% 62%); }
+
+/* Turn: a sweep in the combatant's colour along the top (PLACEHOLDER). */
+.cfx-turn { left: 0; top: 9%; transform: none; width: 100%; height: clamp(36px, 6vw, 90px); display: grid; place-items: center;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--cfx-c) 80%, transparent) 20% 80%, transparent);
+  animation: cfx-sweep 1.5s cubic-bezier(.2,.8,.2,1) forwards; }
+.cfx-turn span { font: 700 clamp(18px, 3vw, 52px)/1 'Cinzel Decorative', Georgia, serif; color: #fff; text-shadow: 0 .06em .2em rgb(0 0 0 / .8); }
+
+/* Phones: one line across the top, only for this player's own moments. */
+.cfx-phone { left: 50%; top: 14%; max-width: 92vw; padding: .5em 1em; border-radius: 999px; display: flex; gap: .6em; align-items: center;
+  background: rgb(14 10 8 / .88); border: 2px solid var(--cfx-c); color: #fff; font: 700 18px/1.2 system-ui, sans-serif; box-shadow: 0 0 1.2em var(--cfx-c);
+  animation: cfx-pop .4s cubic-bezier(.2,.9,.3,1.3) both, cfx-fade .35s ease-in 1.2s forwards; }
+.cfx-phone .cfx-amt { position: static; animation: none; font-size: 18px; }
+.cfx-phone.k-turn { font-size: 22px; }
+
+/* Reduce motion: every cue is a short fade in place. */
+.cfx-reduced, .cfx-reduced * { animation: cfx-fadeout .7s ease-out forwards !important; }
+.cfx-reduced.cfx-slash i { transform: rotate(-32deg) scaleX(1); }
+.cfx-reduced.cfx-x i:nth-child(2) { transform: rotate(32deg) scaleX(1); }
+
+@keyframes cfx-slash { to { transform: rotate(-32deg) scaleX(1); } }
+@keyframes cfx-slash2 { to { transform: rotate(32deg) scaleX(1); } }
+@keyframes cfx-glance { to { transform: rotate(-32deg) scaleX(1) translate(30%, -40%); opacity: 0; } }
+@keyframes cfx-fade { to { opacity: 0; } }
+@keyframes cfx-fadeout { from { opacity: 1; } to { opacity: 0; } }
+@keyframes cfx-rise { from { opacity: 0; transform: translateY(20%); } 20% { opacity: 1; } to { opacity: 0; transform: translateY(-120%); } }
+@keyframes cfx-burst { from { transform: translate(-50%, -50%) scale(.2); opacity: 1; } to { transform: translate(-50%, -50%) scale(1.4); opacity: 0; } }
+@keyframes cfx-pop { from { transform: translate(-50%, -50%) scale(.6); opacity: 0; } 60% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+@keyframes cfx-stamp { from { transform: translate(-50%, -50%) scale(2.2); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+@keyframes cfx-glow { from { transform: translate(-50%, -50%) scale(.5); opacity: 0; } 30% { opacity: 1; } to { transform: translate(-50%, -50%) scale(1.3); opacity: 0; } }
+@keyframes cfx-sweep { from { clip-path: inset(0 100% 0 0); opacity: 1; } 25% { clip-path: inset(0 0 0 0); } 75% { clip-path: inset(0 0 0 0); opacity: 1; } to { clip-path: inset(0 0 0 100%); opacity: 0; } }
