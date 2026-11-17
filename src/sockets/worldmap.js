@@ -37,20 +37,40 @@ function openSession() {
 openSession();
 
 // Travel and card timers run on the server, so they keep going with no phone open.
-setInterval(() => { if (wm.tick(state.worldMap, ctx())) broadcast(); }, 500).unref?.();
+// While the party travels between places the TV is forced to the world map (Mike, Nov 17). After arriving it
+// lingers 3 s, then the TV goes back to what it showed before. Only a trip that took the TV over hands it back,
+// and the DM's own Show on TV during the trip cancels the hand-back.
+const LINGER_MS = 3000;
+let wasTravelling = !!state.worldMap.travel;
+function travelTv(W, now) {
+  const started = !!W.travel && !wasTravelling; // only a trip setting off takes the TV, not a later mode change mid-trip
+  wasTravelling = !!W.travel;
+  if (started && !W.tvTakeover && !W.onTv) { W.tvTakeover = { until: 0 }; W.onTv = true; return true; }
+  if (W.travel && W.tvTakeover?.until) { W.tvTakeover.until = 0; return false; } // set off again before the linger ended
+  if (!W.travel && W.tvTakeover) {
+    if (!W.tvTakeover.until) { W.tvTakeover.until = now + LINGER_MS; return false; }
+    if (now >= W.tvTakeover.until) { if (!W.tvTakeover.kept) W.onTv = false; W.tvTakeover = null; return true; }
+  }
+  return false;
+}
+setInterval(() => {
+  const changed = wm.tick(state.worldMap, ctx());
+  if (travelTv(state.worldMap, Date.now()) || changed) broadcast();
+}, 500).unref?.();
 
 module.exports = function worldSockets(socket) {
   // DM events: payload defaults to {}, and an ack gets the result when there is one.
   const dm = (event, fn) => socket.on(event, (payload = {}, ack) => {
     if (socket.data.role !== 'dm') return ack?.({ error: 'DM only' });
     const out = fn(payload || {}) ?? {};
+    travelTv(W(), Date.now()); // a trip that just set off takes the TV at once
     broadcast();
     ack?.(out);
   });
   const W = () => state.worldMap;
 
   dm('dm:worldmap:image', ({ image }) => wm.setImage(W(), image));
-  dm('dm:worldmap:show', ({ on }) => { W().onTv = !!on; });
+  dm('dm:worldmap:show', ({ on }) => { W().onTv = !!on; if (W().tvTakeover) W().tvTakeover.kept = true; });
   dm('dm:worldmap:opensession', ({ on }) => { W().openOnSession = !!on; });
   dm('dm:worldmap:timing', (f) => wm.setTiming(W(), f));
   dm('dm:worldmap:node', (f) => {
@@ -99,6 +119,7 @@ module.exports = function worldSockets(socket) {
   socket.on('player:worldmap:vote', ({ node } = {}) => {
     const p = control.actorOf(state, socket);
     if (!p || state.dungeon?.on || !wm.castVote(W(), p.id, node, ctx())) return;
+    travelTv(W(), Date.now()); // the vote may have sent the party off
     broadcast();
   });
   socket.on('player:worldmap:comment', ({ card, text } = {}, ack) => {
@@ -111,3 +132,4 @@ module.exports = function worldSockets(socket) {
 };
 
 module.exports.openSession = openSession;
+module.exports.travelTv = travelTv;

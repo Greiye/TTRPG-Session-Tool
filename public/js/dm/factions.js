@@ -23,16 +23,12 @@ $('#facList').addEventListener('click', (e) => {
   else if (b.dataset.facDel && confirm('Remove this faction? Its shops and NPC lose the link.')) emit('dm:faction:remove', { id: b.dataset.facDel });
 });
 
-$('#npcFaction').addEventListener('change', (e) => emit('dm:npc', { faction: e.target.value || null }));
 
 onState((s) => {
   const facs = s.factions || [];
   const opts = `<option value="">No faction</option>${facs.map((f) => `<option value="${esc(f.id)}">${esc(f.name)}</option>`).join('')}`;
-  const npcSel = $('#npcFaction');
   const shSel = $('#shFaction');
-  const want = s.social.npc.faction || '';
-  if (npcSel.dataset.key !== String(facs.length)) { npcSel.innerHTML = opts; shSel.innerHTML = opts; npcSel.dataset.key = facs.length; }
-  npcSel.value = want;
+  if (shSel.dataset.key !== String(facs.length)) { shSel.innerHTML = opts; shSel.dataset.key = facs.length; }
 
   const key = facs.map((f) => `${f.id}:${f.rep}:${f.tier}`).join() + '|' + (s.shops || []).map((x) => `${x.id}:${x.faction}`).join();
   if (key === linkKey) return;

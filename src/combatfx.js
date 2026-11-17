@@ -24,7 +24,7 @@ function who(c) {
 }
 
 // Builds one cue. Returns null for an unknown kind or a missing target.
-const STYLES = ['slash', 'pierce', 'tap'];
+const STYLES = ['slash', 'pierce', 'tap', 'combo']; // combo: a node strike (martial artists, unique weapons)
 function cue(kind, { target, by, amount, style } = {}) {
   if (!KINDS.includes(kind) || !target) return null;
   const c = { n: ++seq, kind, target: who(target) };
