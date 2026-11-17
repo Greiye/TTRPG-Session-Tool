@@ -9,10 +9,11 @@
 //   gestures      on | off              (strike gestures on phones: drag to slash, hold to pierce; whole table, DM sets it)
 //   onetap        off | on              (this phone strikes with one tap instead of a gesture; phones only)
 //   numbers       dm | all              (health and damage numbers: DM only, or everyone; whole table, DM sets it)
+//   reorder       off | on              (DM sidebar windows can be dragged into a new order; DM laptop only, public/js/dm/reorder.js)
 // Phones and the DM laptop keep their own choice in localStorage. The TV uses the table setting the DM picks.
 (() => {
   const KEY = 'tavernSettings';
-  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto', log: 'hide', sprite: 'auto', anim: 'on', dice: 'on', hp: 'num', fx: 'on', numbers: 'dm', gestures: 'on', onetap: 'off' };
+  const DEFAULTS = { text: 'md', palette: 'default', motion: 'auto', log: 'hide', sprite: 'auto', anim: 'on', dice: 'on', hp: 'num', fx: 'on', numbers: 'dm', gestures: 'on', onetap: 'off', reorder: 'off' };
   const OPTIONS = {
     text: [['md', 'Normal'], ['lg', 'Large'], ['xl', 'Extra large']],
     palette: [['default', 'Default'], ['cb', 'Color-blind safe'], ['hc', 'High contrast']],
@@ -26,12 +27,14 @@
     numbers: [['dm', 'DM only'], ['all', 'Everyone']],
     gestures: [['on', 'On'], ['off', 'Off']],
     onetap: [['off', 'Off'], ['on', 'On']],
+    reorder: [['off', 'Locked'], ['on', 'Unlocked']],
   };
-  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion', log: 'Show logs', sprite: 'Sprite playback', anim: 'Sprite animation', dice: '3D dice tray', hp: 'HP display', fx: 'Combat effects', numbers: 'Health numbers', gestures: 'Strike gestures', onetap: 'One-tap attacks' };
+  const LABELS = { text: 'Text size', palette: 'Colors', motion: 'Motion', log: 'Show logs', sprite: 'Sprite playback', anim: 'Sprite animation', dice: '3D dice tray', hp: 'HP display', fx: 'Combat effects', numbers: 'Health numbers', gestures: 'Strike gestures', onetap: 'One-tap attacks', reorder: 'Window order' };
   const TV_ONLY = ['dice']; // the dice tray is drawn on the TV, so phones and the DM laptop don't offer it
   const PHONE_ONLY = ['hp', 'onetap']; // the hero card's HP reads as a number or a word on phones only
   const TABLE_ONLY = ['numbers', 'gestures']; // who sees health numbers is one choice for the whole table, made by the DM (Mike, Nov 17)
-  const forMe = (k) => !TV_ONLY.includes(k) && !TABLE_ONLY.includes(k) && (!PHONE_ONLY.includes(k) || document.body.classList.contains('phone'));
+  const DM_ONLY = ['reorder']; // the DM's sidebar windows (Mike, Nov 17)
+  const forMe = (k) => !TV_ONLY.includes(k) && !TABLE_ONLY.includes(k) && (!PHONE_ONLY.includes(k) || document.body.classList.contains('phone')) && (!DM_ONLY.includes(k) || document.body.classList.contains('dm'));
   const clean = (o = {}) => Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, OPTIONS[k].some(([v]) => v === o[k]) ? o[k] : DEFAULTS[k]]));
 
   let local = DEFAULTS;
@@ -83,10 +86,11 @@
     dlg.className = 'settings-dlg';
     document.body.append(btn, dlg);
     btn.onclick = () => {
-      dlg.innerHTML = `<form method="dialog"><h3>Display settings</h3>
+      // A Back button at the top closes the settings (Mike, Nov 17), as well as Done at the bottom.
+      dlg.innerHTML = `<form method="dialog"><button class="settings-back" value="close" aria-label="Back">← Back</button><h3>Display settings</h3>
         <p class="muted" style="margin-top:0">This device</p>
         ${Object.keys(OPTIONS).filter(forMe).map((k) => group(k, 'me-', local)).join('')}
-        ${table ? `<p class="muted">TV and the whole table</p>${Object.keys(OPTIONS).filter((k) => !PHONE_ONLY.includes(k)).map((k) => group(k, 'tv-', clean(table.get()))).join('')}` : ''}
+        ${table ? `<p class="muted">TV and the whole table</p>${Object.keys(OPTIONS).filter((k) => !PHONE_ONLY.includes(k) && !DM_ONLY.includes(k)).map((k) => group(k, 'tv-', clean(table.get()))).join('')}` : ''}
         <button class="bigbtn" value="close">Done</button></form>`;
       dlg.showModal();
     };

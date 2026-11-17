@@ -367,6 +367,8 @@ body.bar-min #pills { display: none; }
 .modes-alt { grid-template-columns: 1fr 1fr; margin-top: 6px; }
 body.chron .modes-alt .btn { font-size: calc(13px * var(--ts)); padding: 7px 6px; }
 .modes-alt .btn.on { box-shadow: 0 0 0 2px #f2c96e inset, 0 0 10px rgb(240 190 90 / .45); }
+/* Planning and Map sit in the tab row with Rolls, Messages and Logs (Mike, Nov 17); they are page switches, so they glow when on. */
+.tab-list .tab-toggle.on { background: rgb(240 190 90 / .22); border-color: #f2c96e; box-shadow: 0 0 0 1px #f2c96e inset, 0 0 10px rgb(240 190 90 / .45); color: #3a1f06; font-weight: 600; }
 .tab-list { display: block; margin-top: 12px; }
 .tab-list .tab-group { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; padding: 6px 0; border-top: 1px solid rgb(122 70 16 / .35); }
 .tab-list .tab-group[hidden], .tab-list button[hidden] { display: none; }
@@ -553,6 +555,9 @@ body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / 
 .convo-bar #convoEnd { padding: 9px 16px; }
 .social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; align-items: start; }
 .social-grid > .card { margin: 0; }
+/* Rows, not columns (Mike, Nov 17): Emotions, Dialogue, NPC, Live voice stacked top to bottom. */
+.social-grid.social-rows { grid-template-columns: 1fr; }
+.social-rows .social-emo .emotions { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); }
 
 /* TV: waiting for the DM to start, the social narration box, emotion badges and the end card. */
 .convo-wait { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1cqw; text-align: center; }

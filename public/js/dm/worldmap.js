@@ -1,4 +1,4 @@
-// DM: the world map. It is a page, not a sidebar card (Mike, Nov 14): the Modes card's World map button swaps
+// DM: the world map. It is a page, not a sidebar card (Mike, Nov 14): the Map button in the tab row swaps
 // the DM's main column for it. Place towns and sites on the picture (tap to edit, drag to move), run votes
 // and travel (with an override), and veto or reveal road cards as they come up. Road cards draw on their own
 // while the party travels; the deck, the auto table and how often a card shows are edited under

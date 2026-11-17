@@ -5,6 +5,12 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Party on the grid** (Mike, Nov 17). Pressing **Set grid** puts every party member on the battle map towards the left, in a random group where each one stands 1 to 3 tiles from the others. Members already on the map stay put.
+- **Travel takes over the TV** (Mike, Nov 17). When the party sets off for another place, the TV switches to the world map for the trip, lingers 3 seconds after arriving, then goes back to what it showed before. The DM's own Show on TV during the trip wins.
+- **Town map on the TV** (Mike, Nov 17). **📺 Show on TV** on a town map shows it over the world map on the TV without a visit (discovered places only).
+- **Footprint paths in towns** (Mike, Nov 17). Paths between town places (each place's *Visiting it reveals* links) are drawn as footprints; the table sees a path once both ends are discovered.
+- **Re-orderable windows** (Mike, Nov 17). **🔒 Windows locked** under the tab row (also Settings › **Window order**) unlocks the DM's sidebar windows; drag a window by its title to move it within its tab. The order is saved on the laptop.
+- **Back button in Settings** (Mike, Nov 17): **← Back** at the top of the settings dialog.
 - **Strike gestures on phones** (Mike, Nov 17). Picking an enemy to attack opens its silhouette: drag across it to slash, or press and hold while a ring closes in to pierce. After a short pause the attack is rolled as before and Hit!, Critical! or Miss plays on the silhouette with a buzz; the TV draws a slash or a stab on the target. A 5 second bar keeps turns moving, and **⚡ Quick strike** attacks with one tap. The DM can switch **Strike gestures** off for the table, and each phone can choose **One-tap attacks**. Silhouettes and timings are placeholders.
 - **One-row turn tracker on the TV** (Mike, Nov 17). The initiative strip shows five combatants on one row: the two turns before, the current turn in the middle and the next two, sliding along as turns pass. The initiative numbers show just after the roll, then fade to leave the names.
 - **Combat effects, first slice** (Mike, Nov 17, `docs/combat-aesthetic.md`). Hits, crits, misses, healing, a creature or hero going down, and each new turn now play a short effect on the TV and the DM page: a slash on the target, an X with a burst and "Critical!" on a crit, a white glancing slash for a miss, a green glow, a "Down" stamp, and a sweep in the combatant's colour with whose turn it is. Phones show only their own moments ("You hit Goblin", "Your turn") with a buzz. All looks are placeholders. Switch them with the new **Combat effects** display setting (per device, and for the TV); reduce motion turns them into short fades.
@@ -141,6 +147,11 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Timers (`src/timers.js`): a condition can run for a set number of rounds and ends by itself. Concentration starts from the DM's Conditions panel; damage to the caster asks their phone for a DC 10 (or half the damage) Constitution save. The DM drops concentration.
 
 ### Changed
+- **DM Social window in rows** (Mike, Nov 17). The live conversation controls are stacked rows instead of columns, top to bottom: Emotions, Dialogue, NPC, Live voice. The dialogue language is a drop-down (Common, the usual tongues, and any language a party character knows).
+- **Planning and Map in the tab row** (Mike, Nov 17). The Planning and World map buttons moved out of the Modes card into the tab row beside Rolls, Messages and Logs; World map is now **Map**.
+- **Combat music waits for initiative** (Mike, Nov 17). Pressing Combat no longer changes the music; the combat mood (or a track mapped to combat) starts when initiative is rolled.
+- **Red roads** (Mike, Nov 17). World map roads are red; the road being travelled is brighter.
+- **DC ladder first** (Mike, Nov 17). The DC ladder is the top row of the Roll call window.
 - The **Music Co-DM** may now move the Soundscape **weather** slider (Mike, Nov 17). It still writes the one shared weather, so the TV, travel and sight follow.
 - Combat keeps shifting the mood to **Epic** (confirmed by Mike, Nov 17). The combat banner's undo now restores the whole soundscape as it was, not only the mood.
 - A failed **concentration save** now ends the spell on its own (Mike, Nov 16): the caster's concentration timer is dropped and the log says they stop concentrating. A passed save keeps it. The DM's **Drop** button still ends concentration by hand at any time.
@@ -251,6 +262,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Code cleanup (Nov 16): the front end's twelve copied HTML escapers now call the one in `public/stage.js`, and the three copies of `slug()` (saves, spells, SRD import) are one in `src/util.js`. No change on screen.
 
 ### Removed
+- **From the DM Social window** (Mike, Nov 17): the NPC's Faction, speech Font and speech Colour pickers, and the Player choices card. Choices still up on phones from an older save are cleared on load. The server events stay for a later UI.
 - The large **Your move** banner on the TV in combat (Mike, Nov 17); the turn tracker and the turn sweep show whose turn it is.
 - The archived DM modules in `archive/` (session plans, intro card, epilogue controls), on Mike's decision after the studio review (Nov 16). Their server side stays.
 - `docs/termux.md` (Termux is off for now).
