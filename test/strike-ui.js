@@ -14,6 +14,9 @@ const SHOTS = process.env.SHOTS;
   const a = await h.player(room, 'Mira', 'Fighter');
   const k = await h.player(room, 'Kai', 'Monk');
   await until(() => dm.last?.players.length === 2);
+  dm.emit('dm:sheet', { id: a.me.id, inv: { op: 'add', name: 'Longsword', qty: 1, note: '[1d8 slashing]' } });
+  dm.emit('dm:sheet', { id: a.me.id, inv: { op: 'add', name: 'Dagger', qty: 1 } });
+  await h.wait(200);
   const cues = [];
   dm.on('cfx', (c) => cues.push(c));
   dm.emit('dm:enemy:add', { name: 'Bandit', hp: 200, ac: 1, atk: 0, dmg: 1 });
@@ -40,8 +43,11 @@ const SHOTS = process.env.SHOTS;
   ph.on('pageerror', (e) => errors.push(e.message));
   await ph.goto(`${h.URL}/play?takeover=${a.me.id}&key=dmkey`);
   await ph.waitForFunction(() => window.Strike);
-  ok(await ph.evaluate(() => [Strike.strikeMode({ cls: 'Fighter' }), Strike.strikeMode({ cls: 'Monk' }), Strike.strikeMode({ cls: 'Fighter', inventory: [{ name: 'Iron gauntlets', qty: 1 }] })].join()) === 'free,nodes,nodes', 'martial artists and unique weapons strike with nodes');
-  ok(await ph.evaluate(() => { const c = Strike.pickChain('humanoid'); return c.length === 4 && new Set(c.map(String)).size === 4; }), 'a node chain has 4 different spots');
+  const prof = (item) => ph.evaluate((i) => { const w = Strike.weaponOf(i); return w ? `${w.style}/${w.weight}` : 'none'; }, item);
+  ok(await prof({ name: 'Dagger', qty: 1 }) === 'pierce/light' && await prof({ name: 'Mace', qty: 1 }) === 'nodes/heavy' && await prof({ name: 'Longsword', qty: 1 }) === 'slash/medium' && await prof({ name: 'Iron gauntlets', qty: 1 }) === 'nodes/light', 'the weapon decides the strike: dagger pierces lightly, mace nodes heavily, longsword slashes, gauntlets nodes');
+  ok(await prof({ name: 'Odd thing', qty: 1, note: 'Strange. [1d6 bludgeoning; heavy]' }) === 'nodes/heavy' && await prof({ name: 'Rope (50 ft)', qty: 1 }) === 'none', 'an unknown weapon is read from its note; gear is not a weapon');
+  ok(await ph.evaluate(() => Strike.weaponsOf({ cls: 'Monk', inventory: [] }).map((w) => w.name).join()) === 'Unarmed', 'with no weapon the class does not matter: unarmed nodes');
+  ok(await ph.evaluate(() => { const c = Strike.pickChain('humanoid', 4); return c.length === 4 && new Set(c.map(String)).size === 4; }), 'a node chain has different spots');
   ok(await ph.evaluate(() => [Strike.shapeOf({ name: 'Bandit' }), Strike.shapeOf({ name: 'Wolf' }), Strike.shapeOf({ kind: 'Large ooze' }), Strike.shapeOf({ name: 'Young dragon' })].join()) === 'humanoid,beast,blob,winged', 'the silhouette follows the creature: humanoid, beast, blob, winged');
 
   // Slash: drag across the silhouette.
@@ -75,9 +81,11 @@ const SHOTS = process.env.SHOTS;
   await h.wait(500);
   ok(attacks() === n1 && /slash/.test(await ph.locator('#strike .strike-hint').textContent()), 'a short drag does not strike and says how to slash');
 
-  // Pierce: hold until the ring closes.
+  // Pierce: switch to the dagger and hold until the ring closes.
+  await ph.click('#strike [data-weapon="1"]');
+  ok(/hold/i.test(await ph.locator('#strike .strike-hint').textContent()), 'picking the dagger switches to a piercing hold');
   await ph.mouse.move(g.x + g.width / 2, g.y + g.height / 2); await ph.mouse.down();
-  await h.wait(450);
+  await h.wait(200);
   ok(await ph.locator('#strike .strike-ring:not([hidden])').count() === 1, 'holding shows the closing ring');
   if (SHOTS) await ph.screenshot({ path: `${SHOTS}/strike-hold.png` });
   await h.wait(800);
@@ -85,7 +93,7 @@ const SHOTS = process.env.SHOTS;
   ok(await until(() => attacks() === n1 + 1, 3000), 'holding until the ring closes makes a piercing attack');
   await ph.waitForSelector('#strike', { state: 'detached', timeout: 4000 });
 
-  // Node strike: the monk drags through numbered nodes in order.
+  // Node strike: Kai has no weapon, so the strike is unarmed: drag through numbered nodes in order.
   const kp = await ctx.newPage();
   kp.on('pageerror', (e) => errors.push(e.message));
   await kp.goto(`${h.URL}/play?takeover=${k.me.id}&key=dmkey`);
@@ -94,10 +102,10 @@ const SHOTS = process.env.SHOTS;
   ok(await turnOf(k), 'it is Kai\'s turn');
   await h.wait(200);
   await kp.click(`[data-attack="${bandit}"]`);
-  ok(await kp.waitForSelector('#strike[data-mode="nodes"] .strike-node', { timeout: 2000 }).then(() => true, () => false), 'a monk gets numbered nodes on the silhouette');
+  ok(await kp.waitForSelector('#strike[data-mode="nodes"] .strike-node', { timeout: 2000 }).then(() => true, () => false), 'unarmed gets numbered nodes on the silhouette');
   await h.wait(350);
   const nodes = await kp.$$eval('#strike .strike-node', (ns) => ns.map((n) => { const r = n.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, t: n.textContent }; }));
-  ok(nodes.map((n) => n.t).join() === '1,2,3,4', 'the nodes are numbered 1 to 4');
+  ok(nodes.map((n) => n.t).join() === '1,2,3', 'the nodes are numbered 1 to 3');
   if (SHOTS) await kp.screenshot({ path: `${SHOTS}/strike-nodes.png` });
   const k0 = kaiAttacks();
   // Starting on node 2 does nothing.
@@ -105,16 +113,80 @@ const SHOTS = process.env.SHOTS;
   ok(/node 1/.test(await kp.locator('#strike .strike-hint').textContent()), 'starting on the wrong node says to start on 1');
   // Lifting halfway resets the chain.
   await kp.mouse.move(nodes[0].x, nodes[0].y); await kp.mouse.down();
+  await h.wait(260);
   await kp.mouse.move(nodes[1].x, nodes[1].y, { steps: 6 }); await kp.mouse.up();
   ok(await kp.locator('#strike .strike-node.on').count() === 0 && kaiAttacks() === k0, 'lifting the finger halfway resets the chain');
-  // The whole chain.
+  // The whole chain, waiting out each node's pulse (light: unarmed).
   await kp.mouse.move(nodes[0].x, nodes[0].y); await kp.mouse.down();
-  for (let i = 1; i < 3; i++) await kp.mouse.move(nodes[i].x, nodes[i].y, { steps: 6 });
+  await kp.waitForSelector('#strike .strike-node.pulse', { timeout: 500 }).catch(() => {});
+  ok(await kp.locator('#strike .strike-node.pulse').count() === 1, 'a node pulses after it is struck');
+  await h.wait(260);
+  await kp.mouse.move(nodes[1].x, nodes[1].y, { steps: 6 });
   if (SHOTS) await kp.screenshot({ path: `${SHOTS}/strike-nodes-chain.png` });
-  await kp.mouse.move(nodes[3].x, nodes[3].y, { steps: 6 }); await kp.mouse.up();
+  await h.wait(260);
+  await kp.mouse.move(nodes[2].x, nodes[2].y, { steps: 6 }); await kp.mouse.up();
   ok(await until(() => kaiAttacks() === k0 + 1, 3000), 'dragging through every node in order makes the attack');
   ok(await until(() => cues.some((c) => c.by?.id === k.me.id && c.style === 'combo'), 3000), 'the cue tells the screens it was a combo');
   if (SHOTS) { await kp.waitForSelector('#strike .strike-result:not([hidden])', { timeout: 3000 }).catch(() => {}); await kp.screenshot({ path: `${SHOTS}/strike-nodes-result.png` }); }
+  await kp.waitForSelector('#strike', { state: 'detached', timeout: 4000 });
+
+  // Special moves: the builder lays out a chain by tapping the body and saves it on the character.
+  await kp.evaluate(() => Strike.openMoveBuilder({ moves: [] }));
+  await kp.waitForSelector('#moveBuild .strike-field'); await h.wait(350);
+  const bf = await kp.locator('#moveBuild .strike-field').boundingBox();
+  const tapAt = (fx, fy) => kp.mouse.click(bf.x + bf.width * fx, bf.y + bf.height * fy);
+  await tapAt(0.5, 0.4);
+  await kp.click('#moveBuild [data-kind="twin"]'); await tapAt(0.42, 0.8); await tapAt(0.58, 0.8);
+  await kp.click('#moveBuild [data-kind="spell"]'); await tapAt(0.5, 0.17);
+  if (SHOTS) await kp.screenshot({ path: `${SHOTS}/move-builder.png` });
+  await kp.click('#moveBuild [data-b="save"]');
+  const kaiMoves = () => dm.last.players.find((p) => p.id === k.me.id)?.moves || [];
+  ok(await until(() => kaiMoves()[0]?.steps.map((s) => s.k).join() === 'hit,twin,spell', 3000), 'a built move is saved on the character');
+
+  // A mixed chain with every kind of step, two fingers included.
+  dm.emit('dm:sheet', { id: k.me.id, moves: [kaiMoves()[0], { steps: [
+    { k: 'hit', x: 100, y: 105 }, { k: 'slash', x: 45, y: 140, x2: 155, y2: 140 }, { k: 'pierce', x: 100, y: 160 },
+    { k: 'twin', x: 83, y: 235, x2: 117, y2: 235 }, { k: 'twinslash', x: 30, y: 60, x2: 75, y2: 60, x3: 125, y3: 60, x4: 170, y4: 60 }, { k: 'spell', x: 100, y: 42 },
+    { k: 'bogus', x: 1, y: 1 },
+  ] }] });
+  ok(await until(() => kaiMoves()[1]?.steps.length === 6, 3000), 'the server keeps the valid steps of a move');
+  await nextTurn();
+  ok(await turnOf(k), 'Kai\'s turn again');
+  await h.wait(200);
+  const k1 = kaiAttacks(), c1 = cues.length;
+  await kp.evaluate(() => { Strike.windowMs = 20000; }); // no auto-strike while a slow runner works through the chain
+  await kp.click(`[data-attack="${wolf}"]`);
+  await kp.waitForSelector('#strike [data-move="1"]');
+  await kp.click('#strike [data-move="1"]');
+  await h.wait(100);
+  ok(/hit, slash, pierce, two-press, two-slash, spell/.test(await kp.locator('#strike .strike-hint').textContent()), 'picking a move lays out its chain and names the steps');
+  if (SHOTS) await kp.screenshot({ path: `${SHOTS}/move-chain.png` });
+  await kp.evaluate(async () => {
+    const f = document.querySelector('#strike .strike-field');
+    const fire = (t, id, p) => f.dispatchEvent(new PointerEvent(t, { pointerId: id, clientX: p.x, clientY: p.y, bubbles: true, isPrimary: id === 1, pointerType: 'touch' }));
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    // Waits until step i is lit and its pulse is over (slow machines take longer than any fixed wait).
+    const lit = async (i) => { for (let t = 0; t < 300; t++) { const d = f.querySelector(`.strike-node[data-step="${i}"]`); if (d?.classList.contains('on') && !f.querySelector('.strike-node.pulse')) return wait(40); await wait(20); } };
+    let here = null;
+    const go = async (b, n = 5) => { const a = here; for (let i = 1; i <= n; i++) { fire('pointermove', 1, { x: a.x + ((b.x - a.x) * i) / n, y: a.y + ((b.y - a.y) * i) / n }); await wait(12); } here = b; };
+    const P = Strike.chainPoints();
+    here = P[0][0]; fire('pointerdown', 1, here); await lit(1); // hit
+    await go(P[1][0]); await go(P[1][1]); await lit(2); // slash
+    await go(P[2][0]); await lit(3); // pierce: hold through the ring
+    await go(P[3][0]); fire('pointerdown', 2, P[3][1]); await wait(30); fire('pointerup', 2, P[3][1]); await lit(4); // two-press
+    await go(P[4][0]); fire('pointerdown', 2, P[4][2]); // two-slash: both fingers at once
+    for (let i = 1; i <= 6; i++) {
+      fire('pointermove', 1, { x: P[4][0].x + ((P[4][1].x - P[4][0].x) * i) / 6, y: P[4][0].y });
+      fire('pointermove', 2, { x: P[4][2].x + ((P[4][3].x - P[4][2].x) * i) / 6, y: P[4][2].y });
+      await wait(12);
+    }
+    here = P[4][1]; fire('pointerup', 2, P[4][3]); await lit(5);
+    await go(P[5][0]); // spell: circle the rune
+    const c = P[5][0];
+    for (let i = 0; i <= 26; i++) { const t = (i / 24) * 2 * Math.PI; fire('pointermove', 1, { x: c.x + 26 * Math.cos(t), y: c.y + 26 * Math.sin(t) }); await wait(10); }
+    fire('pointerup', 1, c);
+  });
+  ok(await until(() => kaiAttacks() === k1 + 1, 3000) && await until(() => cues.slice(c1).some((c) => c.by?.id === k.me.id && c.style === 'combo'), 3000), 'a mixed chain with two-finger steps lands as a combo');
   await kp.waitForSelector('#strike', { state: 'detached', timeout: 4000 });
 
   // Gestures off: a tap attacks at once.
