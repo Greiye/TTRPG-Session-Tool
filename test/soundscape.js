@@ -122,8 +122,11 @@ const { ok, until, call } = h;
 
   // Automation: combat shifts the mood to Epic, with a one-tap override, and shifts it back afterwards.
   dm.emit('dm:mode', { mode: 'combat' });
+  await wait(150);
+  ok(S().mood === 'calm' && !S().auto, 'pressing Combat alone leaves the music alone (it waits for initiative)');
+  dm.emit('dm:combat:start');
   await until(() => A().music?.id === 'mood-epic');
-  ok(S().auto?.reason === 'Combat started' && S().auto.from === 'calm', 'combat shifts the mood to Epic and says why');
+  ok(S().auto?.reason === 'Combat started' && S().auto.from === 'calm', 'rolling initiative shifts the mood to Epic and says why');
   dm.emit('sound:auto:undo');
   await until(() => A().music?.id === 'mood-calm');
   ok(!S().auto && S().mood === 'calm', 'one tap keeps the old mood');
@@ -143,6 +146,7 @@ const { ok, until, call } = h;
   await wait(100);
   ok(S().autoCombat === false, 'the Music Co-DM cannot switch it back on');
   dm.emit('dm:mode', { mode: 'exploration' });
+  dm.emit('dm:combat:end');
 
   // DM output controls and the lock.
   music.emit('sound:master', { value: 0.2 });

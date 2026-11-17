@@ -79,3 +79,12 @@
 
 @media (prefers-reduced-motion: reduce) { .tn-node, .tn-node.tn-new, .tn-count, .tn-token span, .tn-node.pick i, .tnp-here { animation: none; transition: none; } }
 [data-motion="reduce"] .tn-node, [data-motion="reduce"] .tn-node.tn-new, [data-motion="reduce"] .tn-token span, [data-motion="reduce"] .tnp-here { animation: none; transition: none; }
+/* Footprints between places (Mike, Nov 17): small prints alternating left and right, pointing along the path. */
+.tn-path { position: absolute; inset: 0; pointer-events: none; }
+.tn-step { position: absolute; width: 9px; height: 5px; border-radius: 60% 40% 40% 60%; background: #3a2414; opacity: .8; box-shadow: 0 0 2px #f4ead5aa;
+  transform: translate(-50%, -50%) rotate(var(--a, 0deg)) translateY(var(--side, 3px)); animation: tn-step-in .4s ease-out both; animation-delay: calc(var(--i, 0) * 40ms); }
+.tn-step.l { --side: -3px; }
+.tn-step.r { --side: 3px; }
+@keyframes tn-step-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .tn-step { animation: none; } }
+html[data-motion="reduce"] .tn-step { animation: none; }

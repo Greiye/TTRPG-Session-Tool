@@ -21,9 +21,51 @@
         ${c ? `<b class="tn-count" title="Confirmed">${c}</b>` : ''}
       </div>`;
     }).join('');
+    const steps = footprints(t);
     const token = here ? `<div class="tn-token" data-tn-token="${esc(opts.key || 'board')}" style="left:${pct(here.x)};top:${pct(here.y)}"><span>⚑</span></div>` : '';
     const pic = t.image ? `<img src="${esc(t.image)}" alt="">` : '<div class="tn-blank" aria-hidden="true"></div>';
-    return `<div class="tn-board ${opts.dm ? 'dm' : ''}"><div class="tn-pic">${pic}<div class="tn-layer">${nodes}${token}</div></div></div>`;
+    return `<div class="tn-board ${opts.dm ? 'dm' : ''}"><div class="tn-pic">${pic}<div class="tn-layer">${steps}${nodes}${token}</div></div></div>`;
+  }
+
+  // Paths between places are footprints (Mike, Nov 17). One path per link: the server's `links` for the table,
+  // or each node's `reveals` on a DM map. Prints alternate left and right along the path and point the way;
+  // hydrate() re-aims them once the picture's real shape is known.
+  const ASPECT = 1.6; // the blank town is 16:10
+  function linksOf(t) {
+    if (Array.isArray(t.links)) return t.links;
+    const ids = new Set(t.nodes.map((n) => n.id));
+    const out = []; const seen = new Set();
+    for (const n of t.nodes) for (const r of n.reveals || []) {
+      const k = [n.id, r].sort().join('|');
+      if (ids.has(r) && !seen.has(k)) { seen.add(k); out.push([n.id, r]); }
+    }
+    return out;
+  }
+  function footprints(t) {
+    const at = Object.fromEntries(t.nodes.map((n) => [n.id, n]));
+    return linksOf(t).map(([a, b]) => {
+      const A = at[a]; const B = at[b];
+      if (!A || !B) return '';
+      const dx = B.x - A.x; const dy = B.y - A.y;
+      const len = Math.hypot(dx * ASPECT, dy);
+      const n = Math.max(2, Math.round(len * 22));
+      const deg = (Math.atan2(dy, dx * ASPECT) * 180) / Math.PI;
+      let out = '';
+      for (let i = 1; i <= n; i++) {
+        const f = 0.1 + (0.8 * i) / (n + 1);
+        out += `<i class="tn-step ${i % 2 ? 'l' : 'r'}" data-dx="${dx}" data-dy="${dy}" style="left:${pct(A.x + dx * f)};top:${pct(A.y + dy * f)};--a:${deg.toFixed(1)}deg;--i:${i}"></i>`;
+      }
+      return `<span class="tn-path" data-path="${esc(a)}|${esc(b)}">${out}</span>`;
+    }).join('');
+  }
+  function aim(root) {
+    const pic = root.querySelector('.tn-pic');
+    const r = pic?.getBoundingClientRect();
+    if (!r || !r.width || !r.height) return;
+    root.querySelectorAll('.tn-step').forEach((el) => {
+      const deg = (Math.atan2(Number(el.dataset.dy) * r.height, Number(el.dataset.dx) * r.width) * 180) / Math.PI;
+      el.style.setProperty('--a', `${deg.toFixed(1)}deg`);
+    });
   }
 
   // After drawing: the party token glides from where it was last drawn (per board key), and new places pop in.
@@ -44,6 +86,9 @@
         tok.animate([{ transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))` }, { transform: 'translate(-50%, -50%)' }], { duration: 1400, easing: 'cubic-bezier(.45,.05,.3,1)' });
       }
     }
+    aim(root);
+    const img = root.querySelector('.tn-pic > img');
+    if (img && !img.complete) img.addEventListener('load', () => aim(root), { once: true });
     const ids = [...root.querySelectorAll('[data-tn]')].map((el) => el.dataset.tn);
     const seen = lastSeen[key];
     if (seen) root.querySelectorAll('[data-tn]').forEach((el) => { if (!seen.has(el.dataset.tn)) el.classList.add('tn-new'); });
@@ -61,6 +106,7 @@
   // The town pop-up over the world map on the TV (and the DM preview): the town, where the party is, and how
   // many players have chosen where to go next.
   function pop(s, opts = {}) {
+    if (!s.town?.on && s.town?.share) return sharePop(s.town.share, opts);
     const t = s.town;
     if (!t?.on) return '';
     const here = t.nodes.find((n) => n.id === t.here);
@@ -69,6 +115,14 @@
     return `<div class="wm-dg-pop tn-pop"><div class="wm-dg-box tn-box">
       <header class="wm-dg-head"><b>🏘 ${esc(t.name || 'Town')}</b><small class="tn-here">${here ? `${ICON[here.kind] || '📍'} ${esc(here.name)}` : ''}</small><small class="tn-line">${esc(line)}</small></header>
       ${board(t, { dm: !!opts.dm, key: opts.dm ? 'dm-pop' : 'tv' })}
+    </div></div>`;
+  }
+
+  // A town map the DM shared on the TV without a visit (Mike, Nov 17): no party token, no tally.
+  function sharePop(sh, opts = {}) {
+    return `<div class="wm-dg-pop tn-pop tn-shared"><div class="wm-dg-box tn-box">
+      <header class="wm-dg-head"><b>🏘 ${esc(sh.name || 'Town')}</b><small class="tn-line">Town map</small></header>
+      ${board({ nodes: sh.nodes, links: sh.links, image: sh.image, here: null }, { dm: !!opts.dm, key: opts.dm ? 'dm-share' : 'tv-share' })}
     </div></div>`;
   }
 
