@@ -1,7 +1,7 @@
 {
-  "_about": "Project stats for the TV pop-up (version label, top corner). Edit per version. Null means not measured or waiting on Mike. Estimates carry estimate: true. Development value = hours x rateUsd, shown only once rateUsd is set.",
-  "rateUsd": null,
-  "rateUsdNote": "PLACEHOLDER: Mike to set an hourly rate (USD). No rate is assumed.",
+  "_about": "Project stats for the TV pop-up (version label, top corner). Edit per version. Null means not measured. Estimates carry estimate: true. Studio cost = studio.hours x rateUsd.",
+  "rateUsd": 96,
+  "rateUsdNote": "Game developer pay: GDC 2024 State of the Industry salary survey average $142,000/yr = $68.27/h over 2,080 h, x1.4 for a studio's employer costs (benefits, payroll tax, equipment, office) = $95.58/h, rounded to $96.",
   "versions": {
     "1.1.0": {
       "asOf": "2026-11-17",
@@ -18,11 +18,19 @@
       "linesRemoved": 5570,
       "files": 379,
       "threads": 90,
-      "tokens": null,
-      "tokensNote": "PLACEHOLDER: needs Mike's current usage page. Last reading was 250.9M on 2026-11-12.",
-      "spendUsd": null,
-      "spendNote": "PLACEHOLDER: Mike to enter actual money spent (subscription, API usage, art, assets).",
-      "notes": "Sources, all from main at 4a6c66c unless noted. Commits (378: 177 changes + 201 merges), merged PRs (116 unique 'Merge pull request #' commits), lines (+50,055 / -5,570, non-merge commits), files tracked (379) and contributors (Mike and Claude): git history. Hours (37.3, estimate): commit timestamps grouped into sessions where a gap over 2 hours starts a new one (15 sessions, 29.8 h between first and last commit of each) plus 30 min per session for work before the first commit. Active days (8) and start date (2026-10-27): project thread timestamps, 2026-10-27 to 2026-11-17. Threads (90): project thread list. Hours count only time that produced commits; planning, review and playtesting are not included, so the real figure is higher."
+      "tokens": 1200000000,
+      "tokensNote": "Mike's usage page, 2026-11-17 (was 250.9M on 2026-11-12).",
+      "spendUsd": 40,
+      "spendNote": "Mike: $40 for two months of Claude, the only money spent.",
+      "notes": "Sources, all from main at 4a6c66c unless noted. Commits (378: 177 changes + 201 merges), merged PRs (116 unique 'Merge pull request #' commits), lines (+50,055 / -5,570, non-merge commits), files tracked (379) and contributors (Mike and Claude): git history. Hours (37.3, estimate): commit timestamps grouped into sessions where a gap over 2 hours starts a new one (15 sessions, 29.8 h between first and last commit of each) plus 30 min per session for work before the first commit. Active days (8) and start date (2026-10-27): project thread timestamps, 2026-10-27 to 2026-11-17. Threads (90): project thread list. Hours count only time that produced commits; planning, review and playtesting are not included, so the real figure is higher.",
+      "tokensEstimate": false,
+      "studio": {
+        "hours": 10035,
+        "months": 12.3,
+        "people": 5.4,
+        "estimate": true,
+        "method": "Non-AI era estimate with Basic COCOMO (Boehm 1981, organic mode) on 23,492 lines of product code (JS, HTML, CSS; no blank or comment lines, no tests, no built files): effort = 2.4 x 23.492^1.05 = 66.0 person-months, schedule = 2.5 x 66.0^0.38 = 12.3 months, team = 5.4 people, 152 working hours per person-month = 10,035 h. Tests (5,289 more lines) are left out, so this is on the low side."
+      }
     }
   }
 }
