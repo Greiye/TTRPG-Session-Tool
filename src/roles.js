@@ -3,8 +3,8 @@
 //   codm     atmosphere: backdrops, overlays, music, SFX (src/sockets/atmo.js checks any role)
 //   battle   Battle Master: runs combat, edits the battle map, controls the DM's creatures
 //   social   Social Master: runs NPC dialogue (the visual novel box), emotions, cast and player choices
-//   music    Music Co-DM: runs the soundscape (mood wheel, environment, layers, favourites); not the master
-//            volume, the output, the weather or the DM lock (src/sockets/sound.js)
+//   music    Music Co-DM: runs the soundscape (mood wheel, environment, layers, weather, favourites); not the
+//            master volume, the output or the DM lock (src/sockets/sound.js)
 // Battle and Social Masters use the DM page (/dm?key=...) with every other card hidden; the server
 // refuses any DM event not listed here, so hiding a card is never the only guard.
 
@@ -27,11 +27,11 @@ const SOCIAL = [
   'dm:convo:start', 'dm:convo:end',
 ];
 
-// Soundscape events (src/sockets/sound.js). Left out on purpose: sound:master, sound:output, sound:weather
-// (the weather is the world's: travel and sight read it), sound:lock and sound:autocombat.
+// Soundscape events (src/sockets/sound.js). Left out on purpose: sound:master, sound:output, sound:lock and
+// sound:autocombat. The weather slider is theirs too (Mike, Nov 17), though travel and sight read the weather.
 const MUSIC = [
   'sound:mood', 'sound:env', 'sound:layer:add', 'sound:layer:remove', 'sound:layer:volume', 'sound:density',
-  'sound:stop', 'sound:fav:save', 'sound:fav:load', 'sound:fav:delete', 'sound:auto:undo',
+  'sound:stop', 'sound:fav:save', 'sound:fav:load', 'sound:fav:delete', 'sound:fav:scene', 'sound:auto:undo', 'sound:weather',
 ];
 
 const ROLES = {
