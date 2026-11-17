@@ -130,13 +130,15 @@
     const size = where ? Math.max(where.r.width, where.r.height) : 0;
     const on2 = (o) => (at ? { ...at, ...o } : null);
 
+    // The strike gesture's look: a stab for pierce, a flurry of blows for a node combo, else a slash.
+    const fxOf = (st) => (st === 'pierce' ? 'cfx-stab' : st === 'combo' ? 'cfx-combo' : 'cfx-slash');
     switch (c.kind) {
       case 'turn':
         // A sweep in the combatant's colour with their name (PLACEHOLDER bar).
         spawn('cfx-turn', `<span>${esc(c.target.name)}'s turn</span>`, { color: tColor, ms: 1500 });
         break;
       case 'hit':
-        if (at) { spawn(c.style === 'pierce' ? 'cfx-stab' : 'cfx-slash', `<i></i>${amountTag(c)}`, on2({ color: byColor, ms: 900, size })); shake(where.el); }
+        if (at) { spawn(fxOf(c.style), c.style === 'combo' ? `<i></i><i></i><i></i>${amountTag(c)}` : `<i></i>${amountTag(c)}`, on2({ color: byColor, ms: 900, size })); shake(where.el); }
         if (c.target.side === 'party' && role === 'tv') spawn('cfx-edge', '', { color: 'hsl(0 80% 45%)', ms: 700 });
         break;
       case 'crit':
@@ -150,7 +152,7 @@
       case 'miss':
         // Mike's idea: a white slash that glances off for a miss.
         if (!at) return false;
-        spawn(c.style === 'pierce' ? 'cfx-stab cfx-glance' : 'cfx-slash cfx-glance', '<i></i><b class="cfx-word">Miss</b>', on2({ color: 'hsl(0 0% 92%)', ms: 1000, size }));
+        spawn(`${fxOf(c.style)} cfx-glance`, c.style === 'combo' ? '<i></i><i></i><i></i><b class="cfx-word">Miss</b>' : '<i></i><b class="cfx-word">Miss</b>', on2({ color: 'hsl(0 0% 92%)', ms: 1000, size }));
         break;
       case 'heal':
         if (!at) return false;
