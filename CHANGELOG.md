@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Combat aesthetic decisions** (Mike, Nov 17, docs only): `docs/combat-aesthetic.md` records Mike's answers. Gestures are for show and can be switched on or off, body parts change the rules for creatures and players, two nearby player spellcasters can make a team move that uses both turns, and only the DM sees damage and health numbers (players and the TV see health states). Lists the places that show numbers today. Nothing built yet.
 - **Combat aesthetic design** (Mike, Nov 16, docs only): `docs/combat-aesthetic.md` collects Mike's combat feel ideas as possible features: body-part health, strike gestures on enemy silhouettes with weapon haptics, bows press and hold, fist combos through nodes, cosmetic or rules, spellcasting styles (rhythm, song, alchemy), casting together, throwables and potions by drag, putting armour on and off, and impact cues on every screen. Nothing built yet.
 - **Drawing pad plan** (Mike, Nov 16, docs only): backlog PR Z in `docs/backlog.md`, a pressure-sensitive drawing pad for the DM that saves to the scene, a portrait, a handout or the journal, and a sketch pad for players on phones and tablets. Nothing built yet.
 - **Soundscape for the DM and a Music Co-DM** (Mike, Nov 16). A new card under Scene › **🎧 Soundscape** builds the table's sound as a scene, on top of the existing soundboard and music decks (no second audio system):
