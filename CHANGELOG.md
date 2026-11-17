@@ -142,6 +142,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Timers (`src/timers.js`): a condition can run for a set number of rounds and ends by itself. Concentration starts from the DM's Conditions panel; damage to the caster asks their phone for a DC 10 (or half the damage) Constitution save. The DM drops concentration.
 
 ### Changed
+- **TV project stats** (Mike, Nov 17). The pop-up behind the TV version label now shows the whole project from git history: 37.3 hours (estimate), 8 active days since 27 Oct, 378 commits, 116 merged pull requests, +50,055 / -5,570 lines, 379 files and 90 work threads. Token usage, money spent and an hourly rate are labelled placeholders for Mike to fill in `public/devstats.json`; the old $85/h rate was an assumption and is removed.
 - The **Music Co-DM** may now move the Soundscape **weather** slider (Mike, Nov 17). It still writes the one shared weather, so the TV, travel and sight follow.
 - Combat keeps shifting the mood to **Epic** (confirmed by Mike, Nov 17). The combat banner's undo now restores the whole soundscape as it was, not only the mood.
 - A failed **concentration save** now ends the spell on its own (Mike, Nov 16): the caster's concentration timer is dropped and the log says they stop concentrating. A passed save keeps it. The DM's **Drop** button still ends concentration by hand at any time.
