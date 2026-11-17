@@ -112,6 +112,7 @@ module.exports = function dmSockets(socket) {
     state.scene.revealed = (state.scene.revealed || []).filter((p) => state.scene.poi.includes(p));
     if (state.scene.title !== before) {
       const { chapter } = moments.onNewScene(state);
+      require('../soundscape').onScene(state); // a favourite linked to this scene starts (Mike, Nov 17)
       if (chapter) log('narrate', moments.chapterLine(chapter), { tone: 'chapter' });
       state.narration = []; // a new place starts a clean narration list
       state.scene.revealed = [];
