@@ -72,7 +72,6 @@ onState((s) => {
   if (!filled) {
     filled = true;
     $('#npcName').value = s.social.npc.name;
-    $('#npcHue').value = s.social.npc.hue;
   }
   drawLangs(s);
   drawGloss(s);
@@ -164,7 +163,6 @@ onClick('emo', (emotion) => {
 });
 $('#line').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); say(); } });
 $('#npcName').addEventListener('change', (e) => emit('dm:npc', { name: e.target.value }));
-$('#npcHue').addEventListener('input', (e) => emit('dm:npc', { hue: Number(e.target.value) }));
 $('#glossBtns').addEventListener('click', (e) => {
   const b = e.target.closest('[data-gloss]');
   if (!b) return;
