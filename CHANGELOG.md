@@ -265,7 +265,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Code cleanup (Nov 16): the front end's twelve copied HTML escapers now call the one in `public/stage.js`, and the three copies of `slug()` (saves, spells, SRD import) are one in `src/util.js`. No change on screen.
 
 ### Removed
-- **From the DM Social window** (Mike, Nov 17): the NPC's Faction, speech Font and speech Colour pickers, and the Player choices card. Choices still up on phones from an older save are cleared on load. The server events stay for a later UI.
+- **From the DM Social window** (Mike, Nov 17): the NPC's Faction, speech Font and speech Colour pickers, the NPC colour (palette) slider, and the Player choices card. New NPCs still get a random colour. Choices still up on phones from an older save are cleared on load. The server events stay for a later UI.
 - The large **Your move** banner on the TV in combat (Mike, Nov 17); the turn tracker and the turn sweep show whose turn it is.
 - The archived DM modules in `archive/` (session plans, intro card, epilogue controls), on Mike's decision after the studio review (Nov 16). Their server side stays.
 - `docs/termux.md` (Termux is off for now).
