@@ -1,0 +1,27 @@
+# PLACEHOLDER items, test wares for the "[Placeholder] Outfitters" sample shop. Prices follow the 5e SRD.
+# Notes give 5e numbers in brackets, so another system can ignore them. Rename, reprice or replace freely.
+Name,Price,Stock,Note,Category
+Dagger,2 gp,,Light blade. Thrown 20/60 ft. [1d4 piercing; finesse],Weapon
+Shortsword,10 gp,,Short blade. [1d6 piercing; finesse],Weapon
+Longsword,15 gp,,Straight blade. [1d8 slashing; versatile 1d10],Weapon
+Greatsword,50 gp,2,Two-handed blade. [2d6 slashing; heavy],Weapon
+Battleaxe,10 gp,,War axe. [1d8 slashing; versatile 1d10],Weapon
+Mace,5 gp,,Flanged club. [1d6 bludgeoning],Weapon
+Spear,1 gp,,Thrown 20/60 ft. [1d6 piercing; versatile 1d8],Weapon
+Shortbow,25 gp,,Range 80/320 ft. [1d6 piercing; two-handed],Weapon
+Arrows (20),1 gp,,A bundle of twenty arrows,Ammunition
+Leather armor,10 gp,,Light armor. [AC 11 + Dex],Armor
+Studded leather,45 gp,,Light armor. [AC 12 + Dex],Armor
+Chain shirt,50 gp,,Medium armor. [AC 13 + Dex max 2],Armor
+Scale mail,50 gp,2,Medium armor. [AC 14 + Dex max 2; stealth disadvantage],Armor
+Chain mail,75 gp,1,Heavy armor. [AC 16; Str 13; stealth disadvantage],Armor
+Shield,10 gp,,Wooden shield. [+2 AC],Armor
+Potion of healing,50 gp,6,Red and shimmering. [Regain 2d4 + 2 HP],Potion
+Potion of greater healing,150 gp,2,Deep red. [Regain 4d4 + 4 HP],Potion
+Antitoxin,50 gp,3,Bitter draught. [Advantage on saves against poison for 1 hour],Potion
+Rope (50 ft),1 gp,,Hempen rope,Gear
+Torch,1 cp,,Burns for 1 hour. Bright light 20 ft,Gear
+Rations (1 day),5 sp,,Dried food for one day,Gear
+Healer's kit,5 gp,,Ten uses. Stabilise a dying creature,Gear
+Thieves' tools,25 gp,1,Picks and a small file,Tool
+Bedroll,1 gp,,For sleeping rough,Gear

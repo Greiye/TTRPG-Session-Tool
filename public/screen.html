@@ -84,13 +84,22 @@
         const [{ version }, d] = await Promise.all([fetch('/api/version').then(r => r.json()), fetch('/devstats.json').then(r => r.json())]);
         document.getElementById('tvVer').textContent = 'v' + version;
         const v = d.versions[version] || {};
-        const val = v.hours != null ? Math.round(v.hours * d.rateUsd) : null;
+        const val = v.hours != null && d.rateUsd != null ? Math.round(v.hours * d.rateUsd) : null;
         const est = (flag) => (flag ? ' <span class="est">(estimate)</span>' : '');
+        const todo = (note) => `<span class="est">${note || 'not measured'}</span>`;
+        const lines = v.linesAdded != null ? `+${fmt(v.linesAdded)} / -${fmt(v.linesRemoved)}` : 'not measured';
         document.getElementById('tvStatsBox').innerHTML = `<h2>Project stats · v${version}</h2>
           <table>
             <tr><td>Time spent</td><td>${fmt(v.hours)} hours${est(v.hoursEstimate)}</td></tr>
-            <tr><td>Development value</td><td>${val == null ? 'not measured' : '$' + val.toLocaleString() + ' at $' + d.rateUsd + '/h'}${est(v.hoursEstimate)}</td></tr>
-            <tr><td>Token usage</td><td>${fmt(v.tokens)}${v.tokens != null ? est(v.tokensEstimate) : ''}</td></tr>
+            <tr><td>Active days</td><td>${fmt(v.activeDays)}${v.started ? ' since ' + v.started : ''}</td></tr>
+            <tr><td>Commits</td><td>${fmt(v.commits)}${v.commitsByMike != null ? ` (Mike ${fmt(v.commitsByMike)}, Claude ${fmt(v.commitsByClaude)})` : ''}</td></tr>
+            <tr><td>Merged pull requests</td><td>${fmt(v.mergedPrs)}</td></tr>
+            <tr><td>Lines changed</td><td>${lines}</td></tr>
+            <tr><td>Files</td><td>${fmt(v.files)}</td></tr>
+            <tr><td>Work threads</td><td>${fmt(v.threads)}</td></tr>
+            <tr><td>Token usage</td><td>${v.tokens != null ? fmt(v.tokens) + est(v.tokensEstimate) : todo(v.tokensNote)}</td></tr>
+            <tr><td>Money spent</td><td>${v.spendUsd != null ? '$' + fmt(v.spendUsd) : todo(v.spendNote)}</td></tr>
+            <tr><td>Development value</td><td>${val == null ? todo(d.rateUsdNote) : '$' + val.toLocaleString() + ' at $' + d.rateUsd + '/h' + est(v.hoursEstimate)}</td></tr>
           </table>
           <p class="est">${v.notes || ''}</p>
           <p class="est">Click anywhere to close.</p>`;
