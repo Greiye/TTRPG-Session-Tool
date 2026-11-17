@@ -53,6 +53,7 @@ Every item is a possible feature with its open choices. **Built so far: the firs
   rolled as before. The chain is picked at random from spots on the silhouette (head, chest, arms, legs).
 - The TV draws a flurry of three quick blows on the target (white and faint for a miss).
 - Same switches, 5 second bar and Quick strike as the other gestures. Cue style `combo`.
+- Superseded the same night by weapon strikes and special moves (below): classes no longer matter.
 - PLACEHOLDER until Mike sets them: who strikes with nodes (classes such as Monk, Brawler, Pugilist, and
   items such as gauntlets, knuckles, claws, nunchaku, tonfa, whips), the number of nodes, and how fast the
   nodes pulse (to follow weapon speeds: dagger fast, mace slow).
@@ -285,10 +286,35 @@ Agreed on Nov 17. **Every one is a toggle**, off by default until it has been tr
 7. Body-part health with rules, for creatures and players, then called shots.
 8. Armour on and off.
 
+## Built: weapon strikes and special move chains (Nov 17)
+
+- Mike: "Weapon and attack decides the strike style. Classes don't matter in this regard. Chains change depending
+  on the special move the player wants to pull off. Sometimes chains include pierces, slashes, spell casting and
+  attack nodes. The heavier a weapon's weight, the more the node pulses. A dagger would pulse lightly. A mace
+  would pulse for a second." Then: "Chains can also have 2 simultaneous button presses and drags." He chose
+  that players build and save their own chains.
+- **Strike** uses the weapon's gesture. Weapons come from the inventory: a PLACEHOLDER table by name (blades
+  slash; daggers, rapiers, spears, bows pierce; maces, hammers, staves, fists, gauntlets, whips use nodes), else
+  the damage type in the item's note (`[1d8 slashing]`), with heavy, light or finesse for the weight. No weapon
+  is Unarmed (nodes, light). Several weapons: chips in the pop-up, the last pick remembered on the phone.
+- **Weight**: after each step the node pulses (PLACEHOLDER light 0.2 s, medium 0.5 s, heavy 1 s) and the next
+  step waits for it. The pierce ring is quicker for light weapons (0.45, 0.7, 1 s, PLACEHOLDER).
+- **Special moves**: the Sheet has a Special moves card. **＋ New move** opens a builder: pick a step (Hit,
+  Slash, Pierce, Spell, Two-press, Two-slash) and tap the body to place it (a slash takes two taps, a two-press
+  two, a two-slash four). 2 to 8 steps, up to 6 moves, saved on the character as `moves` (private, like the
+  sheet). No names: players call their moves out at the table. In the strike pop-up, Move chips sit next to
+  Strike.
+- **Running a chain**: one finger stays down from step 1 to the end (lifting resets). Hit: pass over the node.
+  Slash: from the node along the dashed line to its end. Pierce: hold on it until the ring closes. Spell: circle
+  the rune once. Two-press: a second finger presses the other node at the same time. Two-slash: two fingers
+  slash both lines at once. The last step lands the strike as a `combo` cue.
+- Chains are laid out on the humanoid silhouette and drawn at the same spots on any creature (PLACEHOLDER).
+
 ## Still open
 
 - Body parts: who picks the part hit, how part health is set, and the default broken effects.
 - Team casting: what the multiplier touches and its size, and whether any two spells combine.
 - Health state names and thresholds.
 - Weapon speed values per weapon kind (how fast a dagger's node moves compared with a mace's).
-- Node strikes: which classes and weapons use them, how many nodes, and whether nodes move or only pulse.
+- Weapon profiles and weights per weapon, pulse and ring times, and nodes in a plain strike (3).
+- Whether chains should follow each creature's shape instead of the humanoid layout.
