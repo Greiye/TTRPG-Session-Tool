@@ -22,7 +22,10 @@ Every item is a possible feature with its open choices. **Built so far: the firs
   table settings; **Health numbers** (DM only / Everyone) for the whole table, set by the DM. Reduce
   motion turns every cue into a short fade.
 - Tests: `test/combatfx.js`, `test/combatfx-ui.js`, `test/log-redaction.js`.
-- Not in this slice: the 3D map cues are screen-centred (the map keeps its own lunge and floating word),
+- **Effects land on the target** (Mike, Nov 17: a slash floating in empty space is not immersive). A hit
+  on a hidden party card waits for the card to slide up, then lands on it; with no target in view (the 3D
+  map) only the screen-wide parts play (Critical! banner, red edges, turn sweep).
+- Not in this slice: the 3D map has no slash on its tokens yet (the map keeps its own lunge and floating word),
   and the open values below (weapon speeds, health state names, who picks the body part) are not set.
 
 ## Mike's decisions (Nov 17)
