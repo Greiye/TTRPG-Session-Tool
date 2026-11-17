@@ -49,6 +49,7 @@ function applyTemplate(key) {
   if (!t) return null;
   const { effects, ...scene } = t.scene;
   Object.assign(state.scene, { ...scene, revealed: [] });
+  require('./soundscape').onScene(state);
   state.scene.secrets = [];
   state.clocks = t.clocks.map((c) => ({ id: 'k' + nextId(), name: c.name, segments: c.segments, filled: 0, vis: 'all' }));
   state.backdrop.effects = effects || [];

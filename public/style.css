@@ -1222,6 +1222,8 @@ body.dm .card > .btn, body.dm .card > button { display: block; margin-inline: au
 .ss-chip.weather { border-style: dashed; padding-right: 10px; }
 .ss-chip.enter { animation: ss-chip-in .35s ease-out; }
 @keyframes ss-chip-in { from { transform: scale(.6); opacity: 0; } }
+.ss-scene { background: none; border: 0; color: inherit; cursor: pointer; padding: 2px 4px; font: inherit; opacity: .55; transition: opacity .2s, color .2s; }
+.ss-scene.on { opacity: 1; color: var(--gold); }
 .ss-x, .ss-fav { background: none; border: 0; color: inherit; cursor: pointer; padding: 2px 4px; font: inherit; }
 .ss-x { opacity: .7; } .ss-x:hover { opacity: 1; color: var(--gold); }
 .ss-auto { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: space-between; padding: 6px 10px; margin: 6px 0;

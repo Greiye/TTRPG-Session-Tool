@@ -38,7 +38,7 @@
       <h4>Layers <span class="note" data-el="layerCount"></span></h4>
       <div class="ss-chips" data-el="layers"></div>
       <div class="row"><select data-el="addSel" class="grow" aria-label="Sound to add"></select><button class="btn" data-ss="add">+ Layer</button></div>
-      <h4>Favourites</h4>
+      <h4>Favourites <span class="note">🎬 links one to the current scene, so it starts with that scene</span></h4>
       <div class="ss-chips" data-el="favs"></div>
       <div class="row"><input data-el="favName" class="grow" maxlength="40" placeholder="Name this soundscape (optional)"><button class="btn" data-ss="fav">☆ Save</button></div>
     </div>
@@ -74,6 +74,7 @@
         else if (d.rm) emit('sound:layer:remove', { id: d.rm });
         else if (d.favLoad) emit('sound:fav:load', { id: d.favLoad });
         else if (d.favDel) emit('sound:fav:delete', { id: d.favDel });
+        else if (d.favScene) emit('sound:fav:scene', d.linked === '1' ? { id: d.favScene, scene: '' } : { id: d.favScene });
         else if (d.ss === 'stop') emit('sound:stop');
         else if (d.ss === 'undoAuto') emit('sound:auto:undo');
         else if (d.ss === 'add' && el('addSel').value) emit('sound:layer:add', { id: el('addSel').value });
@@ -132,13 +133,11 @@
           b.setAttribute('aria-pressed', String(on));
         });
 
-        // Weather is the world's (travel and sight read it), so only the DM moves it.
+        // The weather is shared: the TV, travel and sight follow this slider too.
         const w = step(s.weather);
         const wIn = el('weather');
-        wIn.disabled = helper;
-        wIn.title = helper ? 'The DM sets the weather' : '';
         if (w >= 0) setVal(wIn, w);
-        el('weatherName').textContent = w >= 0 ? WEATHER[w] : `${s.weather.kind} (set by the DM)`;
+        el('weatherName').textContent = w >= 0 ? WEATHER[w] : `${s.weather.kind} (from the weather buttons)`;
         setVal(el('density'), ss.density);
         el('densityName').textContent = ss.density < 0.34 ? 'Sparse' : ss.density < 0.67 ? 'Medium' : 'Dense';
 
@@ -165,11 +164,14 @@
         el('layerCount').textContent = `${ss.layers.length} of ${LAYER_MAX}`;
         el('addSel').disabled = ss.layers.length >= LAYER_MAX;
 
-        const fk = ss.favs.map((f) => `${f.id}:${f.name}`).join();
+        const here = (s.scene?.title || '').trim();
+        const fk = `${here}|${ss.favs.map((f) => `${f.id}:${f.name}:${f.scene || ''}`).join()}`;
         if (fk !== favKey) {
           favKey = fk;
           el('favs').innerHTML = ss.favs.map((f) => `<span class="ss-chip fav enter">
               <button class="ss-fav" data-fav-load="${esc(f.id)}" title="Play this soundscape">${f.mood ? MOOD[f.mood]?.icon || '' : '🎧'} ${esc(f.name)}</button>
+              <button class="ss-scene ${f.scene ? 'on' : ''}" data-fav-scene="${esc(f.id)}" data-linked="${f.scene && f.scene.toLowerCase() === here.toLowerCase() ? 1 : 0}"
+                title="${f.scene ? `Starts with the scene ${esc(f.scene)}. Tap to ${f.scene.toLowerCase() === here.toLowerCase() ? 'unlink' : `link to ${esc(here || 'this scene')} instead`}` : `Start this whenever the scene ${esc(here || 'this scene')} begins`}">🎬${f.scene ? ` ${esc(f.scene)}` : ''}</button>
               <button class="ss-x" data-fav-del="${esc(f.id)}" title="Forget this favourite" aria-label="Forget ${esc(f.name)}">✕</button>
             </span>`).join('') || '<p class="note">Save the scene you hear to call it back in one tap.</p>';
         }
@@ -179,7 +181,7 @@
         el('auto').hidden = !a;
         if (a) {
           const nm = (m) => (m ? MOOD[m]?.name : 'no mood');
-          el('auto').innerHTML = `<span>⚡ ${esc(a.reason)}: mood ${esc(nm(a.from))} → ${esc(nm(a.to))}</span><button class="btn small" data-ss="undoAuto">↶ Keep ${esc(nm(a.from))}</button>`;
+          el('auto').innerHTML = `<span>⚡ ${esc(a.reason)}: ${a.reason.startsWith('Scene') ? 'its soundscape started' : `mood ${esc(nm(a.from))} → ${esc(nm(a.to))}`}</span><button class="btn small" data-ss="undoAuto">↶ ${a.prev && a.reason.startsWith('Scene') ? 'Put back what was playing' : `Keep ${esc(nm(a.from))}`}</button>`;
         }
 
         // DM output controls.

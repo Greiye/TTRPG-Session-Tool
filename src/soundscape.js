@@ -5,7 +5,8 @@
 //   intensity    sparse to dense: one gain over every soundscape layer
 //   weather      sun to storm: writes the one shared weather (state.weather, src/living.js) and adds rain/storm layers
 //   favourites   save the whole scene and recall it in one tap
-//   auto         combat start shifts the mood to Epic and combat's end shifts it back; each shift has a one-tap undo
+//   auto         combat start shifts the mood to Epic and combat's end shifts it back, and a favourite linked to a
+//                scene starts when the DM moves to that scene; each automatic change has a one-tap undo
 // It drives the existing audio state (state.audio.mix and state.audio.music), so the TV plays it through the same
 // soundboard and music decks. Its mix entries carry ss: true, so manual soundboard layers still play beside them.
 // Every sound here is a PLACEHOLDER (src/placeholder-sounds.js) until real files are uploaded.
@@ -165,29 +166,59 @@ function deleteFav(state, id, role) {
   if (s.favs.length !== n) s.by = by(role);
 }
 
+// What an automatic change replaced, so its one-tap undo can put all of it back.
+const snap = (s) => ({ on: s.on, env: s.env, mood: s.mood, density: s.density, layers: s.layers.map((l) => ({ ...l })) });
+const sceneKey = (t) => String(t || '').trim().toLowerCase();
+
+// Link a favourite to a scene (by its title), or unlink it with an empty scene. One favourite per scene.
+function linkFav(state, id, scene, role) {
+  const s = state.soundscape;
+  const f = s.favs.find((x) => x.id === id);
+  if (!f) return false;
+  const k = sceneKey(scene).slice(0, 80);
+  for (const o of s.favs) if (k && o !== f && sceneKey(o.scene) === k) o.scene = null;
+  f.scene = k ? String(scene).trim().slice(0, 80) : null;
+  s.by = by(role);
+  return true;
+}
+// The scene changed (dm:scene title, quick-start templates): its linked favourite starts, with a one-tap undo.
+function onScene(state) {
+  const s = state.soundscape;
+  const k = sceneKey(state.scene?.title);
+  const f = k && s?.favs.find((x) => sceneKey(x.scene) === k);
+  if (!f) return false;
+  const prev = snap(s);
+  loadFav(state, f.id, 'dm');
+  s.auto = { from: prev.on ? prev.mood : null, to: f.mood, reason: `Scene: ${state.scene.title}`, prev, at: Date.now() };
+  return true;
+}
+
 // Automation: the mode changed (src/world.js applyMood). Combat shifts a playing soundscape to Epic; leaving
 // combat shifts it back. Skipped when the DM switched it off, or mapped a track to the mode (moodMap wins).
 function onMode(state, mode) {
   const s = state.soundscape;
   if (!s?.on || !s.autoCombat || state.moodMap?.[mode]) return;
   if (mode === 'combat' && s.mood !== COMBAT_MOOD && s.auto?.reason !== 'Combat started') {
-    s.auto = { from: s.mood, to: COMBAT_MOOD, reason: 'Combat started', at: Date.now() };
+    s.auto = { from: s.mood, to: COMBAT_MOOD, reason: 'Combat started', prev: snap(s), at: Date.now() };
     setMood(state, COMBAT_MOOD, 'dm', { auto: true });
   } else if (mode !== 'combat' && s.auto?.reason === 'Combat started' && s.mood === s.auto.to) {
     const back = s.auto.from;
-    s.auto = { from: s.mood, to: back, reason: 'Combat ended', at: Date.now() };
+    s.auto = { from: s.mood, to: back, reason: 'Combat ended', prev: snap(s), at: Date.now() };
     setMood(state, back, 'dm', { auto: true });
   }
 }
-// One-tap override: put the mood back to what it was before the automatic shift.
+// One-tap override: put the soundscape back to what it was before the automatic change.
 function undoAuto(state, role) {
-  const a = state.soundscape.auto;
+  const s = state.soundscape;
+  const a = s.auto;
   if (!a) return false;
-  setMood(state, a.from, role); // a hand-picked mood clears the auto note
+  if (a.prev) Object.assign(s, { ...a.prev, layers: a.prev.layers.map((l) => ({ ...l })) });
+  if (s.on) setMood(state, a.prev ? a.prev.mood : a.from, role); // a hand-picked mood clears the auto note
+  else { stop(state, role); s.auto = null; }
   return true;
 }
 
 module.exports = {
   MOODS, ENVS, WEATHER_STEPS, LAYER_MAX, FAV_MAX, COMBAT_MOOD, fresh, ensure, sync, weatherStep, weatherLayers,
-  setMood, setEnv, addLayer, removeLayer, layerVolume, setDensity, stop, saveFav, loadFav, deleteFav, onMode, undoAuto,
+  setMood, setEnv, addLayer, removeLayer, layerVolume, setDensity, stop, saveFav, loadFav, deleteFav, linkFav, onScene, onMode, undoAuto,
 };

@@ -19,7 +19,8 @@ const { ok, until, call } = h;
   ok(loopItems().every((t) => t.placeholder && /placeholder/i.test(t.name)), 'built-in loops are marked placeholder');
   ok(ss.weatherStep({ kind: 'none' }) === 0 && ss.weatherStep({ kind: 'rain', intensity: 3 }) === 3 && ss.weatherStep({ kind: 'storm', intensity: 1 }) === 4 && ss.weatherStep({ kind: 'fog' }) === -1, 'weather maps onto the sun to storm slider');
   ok(roles.can('music', 'sound:mood') && roles.can('music', 'sound:env') && roles.can('music', 'sound:layer:add') && roles.can('music', 'sound:fav:load'), 'the Music Co-DM runs mood, environment, layers and favourites');
-  ok(!roles.can('music', 'sound:master') && !roles.can('music', 'sound:output') && !roles.can('music', 'sound:weather') && !roles.can('music', 'sound:lock'), 'the Music Co-DM cannot touch master volume, output, weather or the lock');
+  ok(!roles.can('music', 'sound:master') && !roles.can('music', 'sound:output') && !roles.can('music', 'sound:lock') && !roles.can('music', 'sound:autocombat'), 'the Music Co-DM cannot touch master volume, output, the lock or the combat shift');
+  ok(roles.can('music', 'sound:weather') && roles.can('music', 'sound:fav:scene'), 'the Music Co-DM moves the weather and links favourites to scenes (Mike, Nov 17)');
   ok(!roles.can('music', 'dm:say') && !roles.can('music', 'dm:enemy:add') && !roles.can('social', 'sound:mood'), 'roles stay in their lanes');
   ok(roles.canUpload('music', 'audio') && !roles.canUpload('music', 'backdrop'), 'the Music Co-DM may upload audio only');
 }
@@ -73,12 +74,10 @@ const { ok, until, call } = h;
   await until(() => !A().mix.some((m) => m.id === 'loop-creek'));
   ok(true, 'the Music Co-DM removes a layer');
 
-  // Weather: DM only; it writes the shared weather and adds rain layers.
+  // Weather: it writes the shared weather and adds rain layers.
   music.emit('sound:weather', { step: 4 });
-  await wait(150);
-  ok(dm.last.weather.kind === 'none', 'the Music Co-DM cannot change the weather');
-  dm.emit('sound:weather', { step: 4 });
   await until(() => dm.last.weather.kind === 'storm');
+  ok(dm.last.weather.kind === 'storm', 'the Music Co-DM moves the weather to Storm');
   ok(A().mix.some((m) => m.id === 'loop-rain' && m.ss) && A().mix.some((m) => m.id === 'loop-storm' && m.ss), 'Storm adds rain and storm layers');
   dm.emit('dm:weather', { kind: 'clear' });
   await until(() => !A().mix.some((m) => m.id === 'loop-storm'));
@@ -95,6 +94,31 @@ const { ok, until, call } = h;
   music.emit('sound:fav:load', { id: fav.id });
   await until(() => A().music?.id === 'mood-calm');
   ok(S().env === 'forest' && S().layers.some((l) => l.id === 'loop-fire'), 'one tap brings the favourite back');
+
+  // Scene link: a favourite linked to a scene starts when the DM moves to that scene, with a one-tap undo.
+  dm.emit('sound:mood', { mood: 'happy' });
+  await until(() => S().mood === 'happy');
+  dm.emit('dm:scene', { title: 'The Old Mill' });
+  await until(() => dm.last.scene.title === 'The Old Mill');
+  music.emit('sound:fav:scene', { id: fav.id }); // links to the scene now showing
+  await until(() => S().favs[0].scene === 'The Old Mill');
+  ok(true, 'a favourite links to the current scene');
+  dm.emit('dm:scene', { title: 'Market Square' });
+  await wait(150);
+  ok(S().mood === 'happy', 'another scene leaves the soundscape alone');
+  dm.emit('sound:env', { env: 'town' });
+  await until(() => S().env === 'town');
+  dm.emit('dm:scene', { title: 'the old mill' });
+  await until(() => S().mood === 'calm' && S().env === 'forest');
+  ok(S().auto?.reason === 'Scene: the old mill', 'going back to the scene starts its favourite and says why');
+  dm.emit('sound:auto:undo');
+  await until(() => S().env === 'town' && S().mood === 'happy');
+  ok(!S().auto, 'one tap puts back what was playing');
+  music.emit('sound:fav:scene', { id: fav.id, scene: '' });
+  await until(() => !S().favs[0].scene);
+  ok(true, 'a favourite can be unlinked');
+  dm.emit('sound:fav:load', { id: fav.id });
+  await until(() => S().mood === 'calm');
 
   // Automation: combat shifts the mood to Epic, with a one-tap override, and shifts it back afterwards.
   dm.emit('dm:mode', { mode: 'combat' });
