@@ -4,6 +4,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-18
+
+First tagged release (`v1.2.0`): everything built since 1.1.0. Play game nights from a tag; update the laptop between sessions.
+
 ### Changed
 - **Browser tests wait for what they need, not for a fixed time** (Mike, Nov 18). The UI tests had 79 fixed pauses (18 left); the ones that waited for a page or state change now wait for that change (`settled()` for entrance animations and `poll()` in `test/helpers.js`). What is left are press durations, screenshot pauses and "nothing should happen" checks, each marked. Root cause of the `strike-ui` mixed-chain failure: node positions were read while the strike card was still animating in.
 - **Tests never touch the real `data/` and `uploads/`** (Nov 18). `npm test` and `npm run test:ui` now run through `test/run.js`, which gives every script its own temp folders, runs them all even after a failure, and prints a summary with the command to re-run only the failed ones. `src/config.js` also gives any script under `test/` a temp folder when it is run alone. Before, some tests created files and startup backups in the repo's `data/`.
