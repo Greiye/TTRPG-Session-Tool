@@ -88,3 +88,5 @@
 @keyframes tn-step-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .tn-step { animation: none; } }
 html[data-motion="reduce"] .tn-step { animation: none; }
+/* Redraws of a town or dungeon map that is already up do not fade or step in again (Nov 18). */
+.wm-still, .wm-still .tn-step, .tn-board.tn-still .tn-step { animation: none !important; }

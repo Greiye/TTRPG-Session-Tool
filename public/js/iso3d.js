@@ -322,7 +322,7 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
         { items: [
           { label: '🎯 Centre camera', run: () => { const t = last?.tokens?.[id]; if (t) battle?.camera.focus(t.x, t.y); } },
           moved && { label: `↺ Give back movement (${moved} ft used)`, run: () => emit('dm:move:reset', { id }) },
-          x.boss && { label: '👑 Show boss card', run: () => emit('dm:boss:card', { id }) },
+          x.boss && (last?.bossCard?.id === id ? { label: '👑 Hide boss card', run: () => emit('dm:boss:clear') } : { label: '👑 Show boss card', run: () => emit('dm:boss:card', { id }) }),
           { label: '⇩ Take off the map', run: () => emit('dm:token:remove', { id }) },
           !pc && { label: '✕ Remove creature', danger: true, arm: '✕ Click again to remove', run: () => emit('dm:enemy:remove', { id }) },
         ] },

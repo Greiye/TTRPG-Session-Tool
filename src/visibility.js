@@ -87,7 +87,7 @@ function viewState(base, viewer) {
   out.objectives = filterList(base.objectives, viewer); // secret objectives: the owner's phone and the DM until revealed (src/objectives.js)
   out.suggestions = filterList(base.suggestions, viewer); // spectator suggestions: DM and players only (src/spectate.js)
   out.handouts = filterList(base.handouts, viewer).map((h) => (h.kind === 'spoil' ? spoilFor(h, viewer) : h.kind === 'phrase' ? phraseFor(h, viewer, base) : h)).map((h) => require('./messages').readFor(h, viewer));
-  if (base.vote) out.vote = viewer.role === 'dm' ? { ...base.vote, counts: require('./messages').tally(base.vote) } : { ...base.vote, votes: undefined, counts: require('./messages').tally(base.vote), mine: viewer.role === 'player' ? base.vote.votes[viewer.charId] ?? null : null };
+  out.mapVote = require('./mapview').viewFor(require('./state').state, viewer); // Group Map View count (src/mapview.js)
   // Fog of war (src/vision.js): every viewer gets the tiles the party can see. Phones and the TV never get
   // enemy tokens standing in the dark; the DM sees everything, with the fog drawn dimmer.
   out.mapVision = null;

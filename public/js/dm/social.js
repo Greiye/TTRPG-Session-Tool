@@ -3,6 +3,7 @@
 import { $, $$, emit, call, onState, onClick, state } from '../client.js';
 import { holdButton } from './hold.js';
 import { masterRole } from './auth.js';
+import { wheelHtml, wireWheel, markWheel } from '../wheel.js';
 
 const { EMO, esc } = Stage;
 let filled = false;
@@ -66,7 +67,15 @@ holdButton($('#convoStart'), {
 });
 $('#convoEnd').addEventListener('click', () => emit('dm:convo:end'));
 
-$('#emotions').innerHTML = Object.entries(EMO).map(([k, e], i) => `<button class="btn" data-emo="${k}" title="${i + 1}"><span>${e.icon}</span>${e.label}</button>`).join('');
+// NPC emotion wheel (Mike, Nov 18: NPCs get the same emotion circle as the players). Tap a segment to set the
+// emotion (keys 1-8 still work), press Speak in the middle to say the typed line, or drag a segment onto Speak.
+$('#emotions').innerHTML = wheelHtml('neutral', { label: 'Speak', attrs: 'data-act="say" title="Speak the typed line as the NPC"', keys: true });
+$('#emotions').classList.add('dm-wheel');
+const emoTo = (emotion) => { const target = $('#emoTarget')?.value; if (target) emit('dm:pc:emotion', { id: target, emotion }); else emit('dm:emotion', { emotion }); };
+wireWheel($('#emotions .convo-wheel'), {
+  onPick: (k) => markWheel($('#emotions'), k), // the click that follows sends it (onClick 'emo' below)
+  onSend: () => { const k = $('#emotions .wheel-emo.on')?.dataset.emo; if (k) emoTo(k); say(); },
+});
 
 onState((s) => {
   if (!filled) {
@@ -75,7 +84,7 @@ onState((s) => {
   }
   drawLangs(s);
   drawGloss(s);
-  $$('[data-emo]').forEach((b) => b.classList.toggle('on', b.dataset.emo === s.social.npc.emotion));
+  markWheel($('#emotions'), s.social.npc.emotion);
   drawCast(s);
   sprites(s);
   drawWindow(s);
@@ -156,11 +165,7 @@ const actions = {
   spriteClear,
 };
 onClick('act', (act) => actions[act]?.());
-onClick('emo', (emotion) => {
-  const target = $('#emoTarget')?.value;
-  if (target) emit('dm:pc:emotion', { id: target, emotion });
-  else emit('dm:emotion', { emotion });
-});
+onClick('emo', (emotion) => emoTo(emotion));
 $('#line').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); say(); } });
 $('#npcName').addEventListener('change', (e) => emit('dm:npc', { name: e.target.value }));
 $('#glossBtns').addEventListener('click', (e) => {

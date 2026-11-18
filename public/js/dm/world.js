@@ -1,4 +1,4 @@
-// Phase 2 to 7 DM controls: messages (handouts, phrases, vote, spoils), mood music, lights,
+// Phase 2 to 7 DM controls: messages (handouts, phrases, spoils), mood music, lights,
 // templates, NPC relations.
 import { socket, $, emit, onState, onClick, state } from '../client.js';
 
@@ -42,27 +42,6 @@ onState((s) => {
     const shared = h.vis?.screen ? 'on' : '';
     return `<div class="item"><span>📜 <b>${esc(h.title)}</b> <small class="muted">${esc(who)} · ${readNote(s, h)}</small></span><span class="row"><button class="btn small ${shared}" data-share="${esc(h.id)}" title="Show on the TV">📺</button><button class="btn small danger" data-msg-del="${esc(h.id)}">✕</button></span></div>`;
   }).join('') || '<p class="note">Handouts, phrases and spoils appear here.</p>';
-  const v = s.vote;
-  // Party vote card: one bar per option, and who has not voted yet.
-  const total = v ? (v.counts || []).reduce((a, b) => a + b, 0) : 0;
-  $('#voteState').textContent = v ? (v.open ? `open · ${total} of ${s.players.length} voted` : `closed · ${total} vote(s)`) : 'pops up on every phone';
-  const waiting = v?.open ? s.players.filter((p) => v.votes?.[p.id] === undefined).map((p) => p.name) : [];
-  // Rows are kept between updates so the bars slide to their new widths.
-  const vk = v ? v.id + v.options.join('|') : '';
-  if ($('#voteTally').dataset.k !== vk) {
-    $('#voteTally').dataset.k = vk;
-    $('#voteTally').innerHTML = v ? v.options.map((o, i) => `<div class="vt-row"><span class="vt-lbl">${esc(o)}</span><span class="vt-bar"><i data-vt="${i}" style="width:0"></i></span><b class="vt-n" data-vtn="${i}">0</b></div>`).join('') + '<p class="note" id="voteWait"></p>'
-      : '<p class="note">No vote running. Blank options mean Yes, No, Unsure.</p>';
-  }
-  if (v) {
-    requestAnimationFrame(() => v.options.forEach((_, i) => {
-      const n = v.counts?.[i] ?? 0;
-      const bar = $(`#voteTally [data-vt="${i}"]`); const num = $(`#voteTally [data-vtn="${i}"]`);
-      if (bar) bar.style.width = `${total ? Math.round((100 * n) / total) : 0}%`;
-      if (num) num.textContent = n;
-    }));
-    $('#voteWait').textContent = waiting.length ? `Waiting on ${waiting.join(', ')}` : '';
-  }
   // NPC relations
   const npcs = s.entities?.filter((x) => x.type === 'npc') || [];
   const nk = npcs.map((n) => n.id + n.name).join();
@@ -98,9 +77,6 @@ onClick('act', (a) => {
   if (a === 'handout') { const title = $('#hoTitle').value.trim(); const text = $('#hoText').value.trim(); if (title || text) { const to = $('#hoTo').value; emit('dm:handout', { title, text, to: to === 'all' ? 'all' : [to] }); $('#hoTitle').value = ''; $('#hoText').value = ''; } }
   if (a === 'objective') { const charId = $('#objWho').value; const title = $('#objTitle').value.trim(); if (charId && title) { emit('dm:objective', { charId, title, text: $('#objText').value.trim() }); $('#objTitle').value = ''; $('#objText').value = ''; } }
   if (a === 'phrase') { const text = $('#phText').value.trim(); const lang = $('#phLang').value.trim(); if (text && lang) { emit('dm:phrase', { lang, text }); $('#phText').value = ''; } }
-  if (a === 'voteStart') emit('dm:vote:start', { options: $('#voteOpts').value.split(',').map((x) => x.trim()).filter(Boolean) });
-  if (a === 'voteClose') emit('dm:vote:close', {});
-  if (a === 'voteClear') emit('dm:vote:clear', {});
   if (a === 'spoil') { const items = $('#spItems').value.split(',').map((x) => x.trim()).filter(Boolean).map((x) => { const m = x.match(/^(.*?)\s+(\d+)$/); return m ? { name: m[1], qty: Number(m[2]) } : { name: x, qty: 1 }; }); if (items.length) emit('dm:spoil', { title: $('#spTitle').value.trim() || 'Spoils', items }); }
   if (a === 'tpl') emit('dm:template', { key: $('#tplSel').value });
 });

@@ -324,12 +324,7 @@ module.exports = function dmSockets(socket) {
     const h = state.handouts.find((x) => x.id === id);
     if (h && typeof h.vis === 'object') h.vis = { ...h.vis, screen: !!on };
   });
-  dm('dm:vote:start', ({ options }) => {
-    state.vote = messages.vote(options, 'v' + nextId());
-    log('system', 'The party votes on the next line.', { tone: 'call' });
-  });
-  dm('dm:vote:close', () => { if (state.vote) state.vote.open = false; });
-  dm('dm:vote:clear', () => { state.vote = null; });
+  // The party vote was removed (Mike, Nov 18: "they can just vote with their words").
 
   // ----- Phase 3: fog of war (7c) and boss title cards (7b) -----
   // Points of interest start hidden on the TV and phones; the DM uncovers them one at a time.
@@ -522,7 +517,7 @@ module.exports = function dmSockets(socket) {
     if (!text) return;
     const { npc } = state.social;
     const tongue = str(lang, 30);
-    const line = { speaker: npc.name, text, emotion: npc.emotion, style: npc.style || null };
+    const line = { n: nextId(), speaker: npc.name, text, emotion: npc.emotion, style: npc.style || null }; // n: phones notify once per line
     if (tongue) Object.assign(line, { lang: tongue, gloss: [] }); // in a tongue: scrambled until glossed
     state.social.line = line;
     state.social.caption = '';

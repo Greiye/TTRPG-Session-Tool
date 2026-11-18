@@ -14,8 +14,7 @@ card.innerHTML = `
     <button class="btn small" data-act="trans">Play</button></div>
   <div class="row"><b>Dramatic pause</b>
     <input id="moPause" placeholder="The line to hold on the TV">
-    <button class="btn small" data-act="pause">Dim the TV</button>
-    <button class="btn small" data-act="unpause" id="moRelease" hidden>Release</button></div>
+    <button class="btn small" data-act="pause" id="moPauseBtn" aria-pressed="false">Dim the TV</button></div>
   <div class="row"><b>Chapter card</b>
     <input id="moChTitle" placeholder="Title (optional)" title="A new scene title also shows one">
     <input id="moChSub" placeholder="Subtitle">
@@ -34,8 +33,7 @@ card.innerHTML = `
     <input id="moRelName" placeholder="Name">
     <input id="moRelIcon" placeholder="Icon" value="✨" maxlength="4" style="width:4em">
     <input id="moRelLore" placeholder="Lore card text">
-    <button class="btn small" data-act="relic">Add</button>
-    <button class="btn small" data-act="relicclose">Close relic card</button></div>
+    <button class="btn small" data-act="relic">Add</button></div>
   <div id="moRelics" class="list"></div>
   <div class="row"><b>Journal book</b>
     <button class="btn small" data-act="book" id="moBook">Open on the TV</button></div>
@@ -70,7 +68,12 @@ const clear = (...ids) => ids.forEach((id) => { $(`#${id}`).value = ''; });
 onState((s) => {
   tv = s.tv || {};
   story = s.story;
-  $('#moRelease').hidden = !tv.pause;
+  // One toggle each (Mike, Nov 18): Dim the TV flips to Release; a relic's Show card flips to Hide card.
+  const pb = $('#moPauseBtn');
+  pb.textContent = tv.pause ? 'Release the TV' : 'Dim the TV';
+  pb.dataset.act = tv.pause ? 'unpause' : 'pause';
+  pb.classList.toggle('on', !!tv.pause);
+  pb.setAttribute('aria-pressed', String(!!tv.pause));
   $('#moBook').textContent = tv.book?.open ? 'Close the book' : 'Open on the TV';
   $('#moBook').dataset.act = tv.book?.open ? 'bookclose' : 'book';
   $('#moClock').textContent = story ? story.label : '';
@@ -84,7 +87,7 @@ onState((s) => {
     <span class="row"><button class="btn small" data-act="echofire" data-id="${esc(e.id)}">Fire now</button>
     <button class="btn small danger" data-act="echocancel" data-id="${esc(e.id)}">✕</button></span></div>`).join('') || '';
   $('#moRelics').innerHTML = (tv.relics || []).map((r) => `<div class="item"><span>${esc(r.icon)} <b>${esc(r.name)}</b> ${r.revealed ? '<small class="muted">revealed</small>' : ''}</span>
-    <span class="row"><button class="btn small" data-act="relicreveal" data-id="${esc(r.id)}">Reveal</button>
+    <span class="row">${tv.relic?.id === r.id ? `<button class="btn small on" data-act="relicclose" aria-pressed="true">Hide card</button>` : `<button class="btn small" data-act="relicreveal" data-id="${esc(r.id)}" aria-pressed="false">${r.revealed ? 'Show card' : 'Reveal'}</button>`}
     <button class="btn small danger" data-act="relicremove" data-id="${esc(r.id)}">✕</button></span></div>`).join('') || '';
 });
 

@@ -201,6 +201,7 @@
     const latest = wm.cards.find((c) => !c.vetoed);
     const showCard = latest && (wm.travel || Date.now() - latest.at < 15000);
     root.className = 'stage wm-stage';
+    const keepImgs = window.Town?.keepImages ? Town.keepImages(root) : null; // pictures already loaded are reused, no flash
     const reveal = since < REVEAL_MS ? ` wm-revealing" style="--wm-t:${-since}ms` : '';
     root.innerHTML = `<div class="wm-tv${reveal}">
       <header class="wm-head"><div class="wm-title">🧭 ${esc(title)}</div>${wm.vote ? `<div class="wm-vote-line">${voteLine(wm)}</div>` : ''}</header>
@@ -211,13 +212,17 @@
     </div>`;
     if (reveal) root.querySelectorAll('.wm-node').forEach((el, i) => el.style.setProperty('--i', i));
     if (showCard && window.Anim) Anim.once(root.querySelector('.wm-card-tv'), `wm:${latest.id}`, 'unfold');
+    keepImgs?.();
     const pop = root.querySelector('.wm-dg-pop');
+    // A pop-up that was already up stays put: no fade-in again on each redraw (the town map glitch, Nov 18).
+    if (pop && root.dataset.dgPop === '1') pop.classList.add('wm-still');
     if (pop) {
       if (root.dataset.dgPop !== '1' && window.Anim) Anim.play(pop.firstElementChild, 'unfold', null);
       window.Dungeon?.hydrate(pop, s.dungeon);
     }
     root.dataset.dgPop = pop ? '1' : '';
     const tp = root.querySelector('.tn-pop');
+    if (tp && root.dataset.tnPop === '1') tp.classList.add('wm-still');
     if (tp) {
       if (root.dataset.tnPop !== '1' && window.Anim) Anim.play(tp.firstElementChild, 'unfold', null);
       Town.hydrate(tp, { key: opts.dm ? 'dm-pop' : 'tv' });

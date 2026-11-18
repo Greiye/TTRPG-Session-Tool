@@ -23,6 +23,28 @@ const PRESETS = {
   daggerheart: { name: 'Daggerheart', stats: ['Agility', 'Strength', 'Finesse', 'Instinct', 'Presence', 'Knowledge'], vitals: ['HP', 'Stress', 'Evasion', 'Armor', 'Thresholds', 'Difficulty'] },
   dnd5e: { name: 'D&D 5e', stats: ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'], vitals: ['HP', 'AC', 'Speed', 'CR'] },
 };
+// Dropdowns (Mike, Nov 18): Size, and the name and value of each stat and skill, are picked from a list. The
+// lists cover the presets, the usual skills and whatever your own designs already use; "✎ Other…" turns the
+// dropdown back into a text box, so any system (or your own) still fits.
+const SIZES = ['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'];
+const SKILLS = ['Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine', 'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion', 'Sleight of Hand', 'Stealth', 'Survival'];
+const signed = (n) => (n > 0 ? `+${n}` : String(n));
+const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+const MODS = range(-5, 15).map(signed);
+const SCORES = range(1, 30).map(String);
+const OTHER = '__other__';
+// A <select> for a row field. groups: [[label, values]] (label '' = no optgroup). A value not in the lists is kept.
+function pickHtml(k, value, groups, cls, blank) {
+  const all = groups.flatMap(([, v]) => v);
+  const extra = value && !all.includes(value) ? `<option value="${esc(value)}" selected>${esc(value)}</option>` : '';
+  const opts = (vals) => vals.map((v) => `<option value="${esc(v)}" ${v === value ? 'selected' : ''}>${esc(v)}</option>`).join('');
+  const body = groups.map(([label, vals]) => (label ? `<optgroup label="${esc(label)}">${opts(vals)}</optgroup>` : opts(vals))).join('');
+  return `<select data-k="${k}" class="${cls} cd-pick" aria-label="${esc(blank)}"><option value="" ${value ? '' : 'selected'}>${esc(blank)}</option>${extra}${body}<option value="${OTHER}">✎ Other…</option></select>`;
+}
+// Names your designs already use, so a homebrew stat or skill shows up in every dropdown once made.
+const used = (key) => [...new Set((lib?.items || []).flatMap((d) => (d[key] || []).map((r) => r.name)).filter(Boolean))];
+const statNames = () => [...new Set([...PRESETS.daggerheart.stats, ...PRESETS.dnd5e.stats, ...used('stats')])];
+const skillNames = () => [...new Set([...SKILLS, ...used('skills')])].sort();
 const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
 const keep = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
 
@@ -114,12 +136,37 @@ const blank = (kind = load('cdKind', 'people')) => ({
 
 // ----- rows -----
 const ROW = {
-  details: (r) => `<input data-k="name" value="${esc(r.name)}" placeholder="Detail" class="cd-k"><input data-k="value" value="${esc(r.value)}" placeholder="…" class="grow">`,
-  stats: (r) => `<input data-k="name" value="${esc(r.name)}" placeholder="Stat" class="cd-k"><input data-k="value" value="${esc(r.value)}" placeholder="+0" class="cd-v">`,
+  details: (r) => `<input data-k="name" value="${esc(r.name)}" placeholder="Detail" class="cd-k">${r.name.trim().toLowerCase() === 'size' ? pickHtml('value', r.value, [['', SIZES]], 'grow', 'Size…') : `<input data-k="value" value="${esc(r.value)}" placeholder="…" class="grow">`}`,
+  stats: (r) => `${pickHtml('name', r.name, [['', statNames()]], 'cd-k', 'Stat…')}${pickHtml('value', r.value, [['Modifier', MODS], ['Score', SCORES]], 'cd-v', '±')}`,
+  skills: (r) => `${pickHtml('name', r.name, [['', skillNames()]], 'cd-k', 'Skill…')}${pickHtml('value', r.value, [['', MODS]], 'cd-v', '±')}`,
+  vitals: (r) => `<input data-k="name" value="${esc(r.name)}" placeholder="Stat" class="cd-k"><input data-k="value" value="${esc(r.value)}" placeholder="+0" class="cd-v">`,
   abilities: (r) => `<div class="cd-ab"><div class="row"><input data-k="name" value="${esc(r.name)}" placeholder="Ability" class="grow cd-abn"><input data-k="cost" value="${esc(r.cost)}" placeholder="Cost / uses" class="cd-cost"><input data-k="roll" value="${esc(r.roll)}" placeholder="Roll" class="cd-roll"></div><textarea data-k="text" rows="2" placeholder="What it does">${esc(r.text)}</textarea></div>`,
   inventory: (r) => `<input data-k="qty" type="number" min="1" value="${r.qty || 1}" class="cd-qty" aria-label="How many"><input data-k="name" value="${esc(r.name)}" placeholder="Item" class="grow"><input data-k="note" value="${esc(r.note)}" placeholder="Note" class="grow">`,
 };
-ROW.vitals = ROW.stats; ROW.skills = ROW.stats;
+// "✎ Other…" swaps a dropdown for a text box in place; a Detail renamed to Size gets the size dropdown.
+dlg.addEventListener('change', (e) => {
+  const sel = e.target.closest('select.cd-pick');
+  if (sel && sel.value === OTHER) {
+    const box = document.createElement('input');
+    box.dataset.k = sel.dataset.k;
+    box.className = sel.className.replace('cd-pick', '').trim();
+    box.placeholder = sel.dataset.k === 'name' ? 'Name' : 'Value';
+    sel.replaceWith(box);
+    box.focus();
+    return;
+  }
+  const name = e.target.closest('[data-rows="details"] input[data-k="name"]');
+  if (name) {
+    const row = name.closest('.cd-row');
+    const val = row.querySelector('[data-k="value"]');
+    const wantsPick = name.value.trim().toLowerCase() === 'size';
+    if (wantsPick !== (val.tagName === 'SELECT')) {
+      const t = document.createElement('template');
+      t.innerHTML = wantsPick ? pickHtml('value', val.value, [['', SIZES]], 'grow', 'Size…') : `<input data-k="value" value="${esc(val.value === OTHER ? '' : val.value)}" placeholder="…" class="grow">`;
+      val.replaceWith(t.content.firstElementChild);
+    }
+  }
+});
 const NEW = { details: { name: '', value: '' }, stats: { name: '', value: '' }, vitals: { name: '', value: '' }, skills: { name: '', value: '' }, abilities: { name: '', cost: '', roll: '', text: '' }, inventory: { name: '', qty: 1, note: '' } };
 
 function drawRows(key, fresh = -1) {
@@ -129,7 +176,7 @@ function drawRows(key, fresh = -1) {
 function readRows(key) {
   cur[key] = [...dlg.querySelectorAll(`[data-rows="${key}"] .cd-row`)].map((row) => {
     const o = { ...NEW[key] };
-    row.querySelectorAll('[data-k]').forEach((el) => { o[el.dataset.k] = el.type === 'number' ? Number(el.value) || 1 : el.value; });
+    row.querySelectorAll('[data-k]').forEach((el) => { o[el.dataset.k] = el.type === 'number' ? Number(el.value) || 1 : el.value === OTHER ? '' : el.value; });
     return o;
   });
 }

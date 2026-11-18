@@ -36,12 +36,24 @@ const SHOTS = process.env.SHOTS;
   const myTurn = () => turnOf(a);
   const attacks = () => dm.last.log.filter((l) => /^Mira attacks /.test(l.text) && !l.vis).length;
 
+  // The phone has to show the attack button before the test taps it. On a slow CI runner a phone could sit on an
+  // old screen for the whole 30 s click timeout (Nov 17/18 flake at "Mira's turn a third time"): wait for the
+  // button, and if it does not come, reload that phone once (the takeover link seats it again) and wait again.
+  const attackBtn = async (page, url, foe) => {
+    const sel = `[data-attack="${foe}"]`;
+    if (await page.waitForSelector(sel, { timeout: 8000 }).then(() => true, () => false)) return sel;
+    console.log(`  note phone showed: ${(await page.locator('#combatPop').textContent().catch(() => '?')).trim().slice(0, 120)}; reloading it`);
+    await page.goto(url);
+    await page.waitForSelector(sel, { timeout: 15000 });
+    return sel;
+  };
   const b = await chromium.launch();
   const errors = [];
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const ph = await ctx.newPage();
   ph.on('pageerror', (e) => errors.push(e.message));
-  await ph.goto(`${h.URL}/play?takeover=${a.me.id}&key=dmkey`);
+  const phUrl = `${h.URL}/play?takeover=${a.me.id}&key=dmkey`;
+  await ph.goto(phUrl);
   await ph.waitForFunction(() => window.Strike);
   const prof = (item) => ph.evaluate((i) => { const w = Strike.weaponOf(i); return w ? `${w.style}/${w.weight}` : 'none'; }, item);
   ok(await prof({ name: 'Dagger', qty: 1 }) === 'pierce/light' && await prof({ name: 'Mace', qty: 1 }) === 'nodes/heavy' && await prof({ name: 'Longsword', qty: 1 }) === 'slash/medium' && await prof({ name: 'Iron gauntlets', qty: 1 }) === 'nodes/light', 'the weapon decides the strike: dagger pierces lightly, mace nodes heavily, longsword slashes, gauntlets nodes');
@@ -52,7 +64,7 @@ const SHOTS = process.env.SHOTS;
 
   // Slash: drag across the silhouette.
   ok(await myTurn(), 'it is Mira\'s turn');
-  await ph.click(`[data-attack="${bandit}"]`);
+  await ph.click(await attackBtn(ph, phUrl, bandit));
   ok(await ph.waitForSelector('#strike .strike-sil', { timeout: 2000 }).then(() => true, () => false), 'picking an enemy opens its silhouette');
   if (SHOTS) await ph.screenshot({ path: `${SHOTS}/strike-open.png` });
   const before = attacks();
@@ -71,7 +83,7 @@ const SHOTS = process.env.SHOTS;
   // A short drag is not a slash.
   await nextTurn(); await nextTurn();
   ok(await myTurn(), 'Mira\'s turn again');
-  await ph.click(`[data-attack="${wolf}"]`);
+  await ph.click(await attackBtn(ph, phUrl, wolf));
   await ph.waitForSelector('#strike .strike-sil');
   await h.wait(300);
   const g = await ph.locator('#strike .strike-field').boundingBox();
@@ -96,12 +108,13 @@ const SHOTS = process.env.SHOTS;
   // Node strike: Kai has no weapon, so the strike is unarmed: drag through numbered nodes in order.
   const kp = await ctx.newPage();
   kp.on('pageerror', (e) => errors.push(e.message));
-  await kp.goto(`${h.URL}/play?takeover=${k.me.id}&key=dmkey`);
+  const kpUrl = `${h.URL}/play?takeover=${k.me.id}&key=dmkey`;
+  await kp.goto(kpUrl);
   await kp.waitForFunction(() => window.Strike);
   const kaiAttacks = () => dm.last.log.filter((l) => /^Kai attacks /.test(l.text) && !l.vis).length;
   ok(await turnOf(k), 'it is Kai\'s turn');
   await h.wait(200);
-  await kp.click(`[data-attack="${bandit}"]`);
+  await kp.click(await attackBtn(kp, kpUrl, bandit));
   ok(await kp.waitForSelector('#strike[data-mode="nodes"] .strike-node', { timeout: 2000 }).then(() => true, () => false), 'unarmed gets numbered nodes on the silhouette');
   await h.wait(350);
   const nodes = await kp.$$eval('#strike .strike-node', (ns) => ns.map((n) => { const r = n.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, t: n.textContent }; }));
@@ -154,8 +167,9 @@ const SHOTS = process.env.SHOTS;
   ok(await turnOf(k), 'Kai\'s turn again');
   await h.wait(200);
   const k1 = kaiAttacks(), c1 = cues.length;
+  const wolfBtn = await attackBtn(kp, kpUrl, wolf);
   await kp.evaluate(() => { Strike.windowMs = 20000; }); // no auto-strike while a slow runner works through the chain
-  await kp.click(`[data-attack="${wolf}"]`);
+  await kp.click(wolfBtn);
   await kp.waitForSelector('#strike [data-move="1"]');
   await kp.click('#strike [data-move="1"]');
   await h.wait(100);
@@ -196,7 +210,7 @@ const SHOTS = process.env.SHOTS;
   ok(await myTurn(), 'Mira\'s turn a third time');
   await h.wait(200);
   const n2 = attacks();
-  await ph.click(`[data-attack="${bandit}"]`);
+  await ph.click(await attackBtn(ph, phUrl, bandit));
   ok(await until(() => attacks() === n2 + 1, 3000) && await ph.locator('#strike').count() === 0, 'with strike gestures off the button attacks at once');
 
   ok(!errors.length, `no page errors${errors.length ? `: ${errors.join(' | ')}` : ''}`);

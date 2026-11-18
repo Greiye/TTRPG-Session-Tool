@@ -95,3 +95,6 @@
   .cd-kind { padding: 6px 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .cd-dlg *, .cd-dlg, .cd-dlg::backdrop { animation: none !important; transition: none !important; } }
+/* Dropdowns for size, stats and skills (Nov 18). */
+.cd-pick { cursor: pointer; }
+.cd-row select.cd-k { min-width: 0; }

@@ -60,7 +60,6 @@ const state = {
   log: [],
   rolls: [], // dice log (src/rolls.js)
   handouts: [], // handouts, spoils and dialogue votes (src/messages.js)
-  vote: null, // the active dialogue vote (item 12)
   clocks: [], // segment clocks (item 17), src/tracker.js
   relations: {}, // NPC id -> character id -> stance (item 19, DM only)
   moodMap: {}, // mode -> music track id (item 21)
@@ -111,7 +110,7 @@ const state = {
 };
 
 // Durable campaign keys saved with the table (src/store.js); one list, each key once.
-store.EXTRA.push('rolls', 'checkLib', 'handouts', 'vote', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story', 'narration', 'cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'worldMap');
+store.EXTRA.push('rolls', 'checkLib', 'handouts', 'clocks', 'relations', 'moodMap', 'map', 'tokens', 'roll', 'rndArt', 'suggestions', 'shops', 'quiz', 'plans', 'objectives', 'downtime', 'factions', 'journal', 'camp', 'pendingPlace', 'tv', 'story', 'narration', 'cues', 'nudges', 'balance', 'tension', 'foreshadow', 'framing', 'canon', 'montage', 'stageLayout', 'sessionNo', 'worldMap');
 store.EXTRA.push('living', 'weather'); // phase K living world and the shared weather
 store.EXTRA.push('houseRules', 'absent'); // phase J house rules and empty chairs
 store.EXTRA.push('intro', 'timers'); // phase D intro card text and timers
@@ -199,7 +198,7 @@ function fullState() {
   const spectators = [...io.sockets.sockets.values()].filter((x) => x.data.spectator).length;
   const bulbsTargets = require('./bulbs').targets().length;
   const legendsView = legends.view(); // hall of fame and trophy shelf: public, kept across campaigns
-  return { ...state, bulbsTargets, legends: legendsView, houseRuleList: houserules.list(state), plans: plan.withDanger(state.plans, state), players, roster: cards, screens, codms, masters, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
+  return { ...state, lobbyStarter: state.lobby ? require('./lobby').starter() : null, bulbsTargets, legends: legendsView, houseRuleList: houserules.list(state), plans: plan.withDanger(state.plans, state), players, roster: cards, screens, codms, masters, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
 }
 const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
 

@@ -1,4 +1,4 @@
-// Phase 4: handouts, whisper reveal to the TV, spoils, dialogue vote.
+// Phase 4: handouts, whisper reveal to the TV, spoils (the dialogue vote was removed, Nov 18).
 const { harness } = require('./helpers');
 
 const h = harness('messages');
@@ -56,22 +56,10 @@ const { ok, until } = h;
   dm.emit('dm:spoil:award', { id: sp.id, charId: a.me.id });
   ok(await until(() => dm.last.handouts.find((x) => x.id === sp.id).awarded === a.me.id), 'DM awards spoils to a character');
 
-  // Dialogue vote (12): everyone votes once, the DM sees counts, phones see their own pick.
-  dm.emit('dm:vote:start', { options: ['Accept the deal', 'Walk away', 'Bluff', 'Say nothing'] });
-  await until(() => a.last.vote?.options?.length === 4);
+  // The party vote is gone (Mike, Nov 18): the old events do nothing.
+  dm.emit('dm:vote:start', { options: ['Accept the deal', 'Walk away'] });
   a.emit('player:vote', { index: 0 });
-  b.emit('player:vote', { index: 2 });
-  await until(() => dm.last.vote?.counts?.[0] === 1 && dm.last.vote?.counts?.[2] === 1);
-  ok(dm.last.vote.counts.reduce((x, y) => x + y, 0) === 2, 'DM sees the tally');
-  ok(a.last.vote.mine === 0, 'a phone sees its own vote');
-  ok(a.last.vote.votes === undefined, 'phones do not see who voted for what');
-  a.emit('player:vote', { index: 1 });
-  await until(() => dm.last.vote.counts[1] === 1);
-  ok(dm.last.vote.counts[0] === 0 && dm.last.vote.counts[1] === 1, 'changing a vote moves it (one vote each)');
-  dm.emit('dm:vote:close', {});
-  await until(() => a.last.vote && !a.last.vote.open);
-  a.emit('player:vote', { index: 3 });
-  await h.wait(120);
-  ok(dm.last.vote.counts[3] === 0, 'votes are closed after close');
+  await h.wait(150);
+  ok(dm.last.vote === undefined && a.last.vote === undefined, 'there is no party vote any more');
   await h.done(srv);
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -20,7 +20,7 @@ function harness(name) {
     PORT, URL, TMP, wait,
     ok(cond, msg) { console.log(`${cond ? '  ok  ' : '  FAIL'} ${msg}`); if (!cond) failures++; },
     boot(env = {}) {
-      const p = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, PORT, DATA_DIR: path.join(TMP, 'data'), UPLOAD_DIR: path.join(TMP, 'uploads'), DM_KEY: 'dmkey', CODM_KEY: 'codmkey', HTTPS: '0', ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
+      const p = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: { ...process.env, LOBBY: '0', PORT, DATA_DIR: path.join(TMP, 'data'), UPLOAD_DIR: path.join(TMP, 'uploads'), DM_KEY: 'dmkey', CODM_KEY: 'codmkey', HTTPS: '0', ...env }, stdio: ['ignore', 'pipe', 'pipe'] });
       p.stderr.on('data', (d) => process.stderr.write(d));
       return new Promise((res) => p.stdout.on('data', (d) => { if (/running/.test(d)) res(p); }));
     },

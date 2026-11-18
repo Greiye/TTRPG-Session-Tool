@@ -15,7 +15,7 @@ const ok = (c, m) => { console.log(`${c ? '  ok  ' : '  FAIL'} ${m}`); if (!c) f
 
 let srv;
 (async () => {
-  srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, HTTPS: '0', DATA_DIR: TMP + '/data', UPLOAD_DIR: TMP + '/up' }, stdio: ['ignore', 'pipe', 'inherit'] });
+  srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, LOBBY: '0', PORT, HTTPS: '0', DATA_DIR: TMP + '/data', UPLOAD_DIR: TMP + '/up' }, stdio: ['ignore', 'pipe', 'inherit'] });
   await new Promise((r) => srv.stdout.on('data', (d) => /running/.test(d) && r()));
   const br = await chromium.launch();
   const errors = [];
@@ -41,7 +41,17 @@ let srv;
   await p.fill('[data-rows="details"] .cd-row:nth-child(2) [data-k="value"]', 'About 25 years');
   await p.click('[data-preset="daggerheart"]');
   ok(await p.locator('[data-rows="stats"] .cd-row').count() === 6 && await p.locator('[data-rows="vitals"] .cd-row').count() === 6, 'the Daggerheart preset fills six stats and six vitals');
-  await p.fill('[data-rows="stats"] .cd-row:nth-child(1) [data-k="value"]', '+2');
+  // Size, stats and skills are dropdowns (Mike, Nov 18).
+  ok(await p.locator('[data-rows="details"] .cd-row:nth-child(1) select[data-k="value"]').count() === 1, 'Size is a dropdown');
+  await p.selectOption('[data-rows="details"] .cd-row:nth-child(1) [data-k="value"]', 'Small');
+  ok(await p.locator('[data-rows="stats"] .cd-row:nth-child(1) select[data-k="name"]').count() === 1, 'a stat name is a dropdown');
+  await p.selectOption('[data-rows="stats"] .cd-row:nth-child(1) [data-k="value"]', '+2');
+  await p.click('[data-add="skills"]');
+  await p.selectOption('[data-rows="skills"] .cd-row:last-child [data-k="name"]', 'Stealth');
+  await p.selectOption('[data-rows="skills"] .cd-row:last-child [data-k="value"]', '+4');
+  await p.selectOption('[data-rows="skills"] .cd-row:last-child [data-k="name"]', '__other__');
+  ok(await p.locator('[data-rows="skills"] .cd-row:last-child input[data-k="name"]').count() === 1, 'Other… turns the skill dropdown into a text box');
+  await p.fill('[data-rows="skills"] .cd-row:last-child input[data-k="name"]', 'Scavenging');
   await p.fill('[data-rows="vitals"] .cd-row:nth-child(1) [data-k="value"]', '7');
   await p.fill('[data-rows="vitals"] .cd-row:nth-child(3) [data-k="value"]', '13');
   await p.click('[data-add="abilities"]');
@@ -69,6 +79,7 @@ let srv;
   const file = await (await dl).path();
   const md = fs.readFileSync(file, 'utf8');
   ok(md.includes('# Grey Goblin') && md.includes('- **Agility:** +2'), 'the .md download is the wiki page');
+  ok(md.includes('- **Scavenging:** +4') && md.includes('Small'), 'the dropdown picks reach the page');
   ok(await p.isDisabled('#cdPush'), 'push waits until the wiki is connected');
 
   // A person of that people: the race field appears and "From race" copies stats.

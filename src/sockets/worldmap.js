@@ -53,8 +53,9 @@ function travelTv(W, now) {
   }
   return false;
 }
+const mapview = require('../mapview');
 setInterval(() => {
-  const changed = wm.tick(state.worldMap, ctx());
+  const changed = wm.tick(state.worldMap, ctx()) | mapview.settle(state);
   if (travelTv(state.worldMap, Date.now()) || changed) broadcast();
 }, 500).unref?.();
 
@@ -121,6 +122,14 @@ module.exports = function worldSockets(socket) {
     if (!p || state.dungeon?.on || !wm.castVote(W(), p.id, node, ctx())) return;
     travelTv(W(), Date.now()); // the vote may have sent the party off
     broadcast();
+  });
+  // Group Map View (Mike, Nov 18): every seated phone presses it to open the map on the TV, or to close it.
+  socket.on('player:mapview', ({ on = true } = {}, ack) => {
+    const p = control.actorOf(state, socket);
+    if (!p) return ack?.({ error: 'Take a seat first.' });
+    const r = mapview.press(state, p.id, !!on);
+    if (r.ok) broadcast();
+    ack?.(r);
   });
   socket.on('player:worldmap:comment', ({ card, text } = {}, ack) => {
     const p = control.actorOf(state, socket);

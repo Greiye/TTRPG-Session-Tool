@@ -33,7 +33,20 @@ onState((s) => {
   draw();
 });
 
+// Gold (Nov 18): the Party gold window is gone (Mike: players tell each other); the DM sets one character's
+// gold here, next to their pack.
+function drawGold() {
+  const p = party().find((x) => x.id === who());
+  $('#itGold').hidden = !p;
+  if (p && document.activeElement !== $('#itGoldIn')) $('#itGoldIn').value = Number(p.gold || 0);
+}
+$('#itGoldSet').addEventListener('click', () => {
+  const v = Number($('#itGoldIn').value);
+  if (Number.isFinite(v) && who() !== ALL) emit('dm:sheet', { id: who(), gold: v });
+});
+
 function draw() {
+  drawGold();
   const id = who();
   const list = $('#itList');
   if (!list) return;

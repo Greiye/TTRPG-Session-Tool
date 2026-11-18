@@ -74,14 +74,6 @@ module.exports = function playerSockets(socket) {
     ack?.({ ok });
   });
 
-  // Phase 4: a character votes on the dialogue wheel (one vote each; changing it is allowed while open).
-  socket.on('player:vote', ({ index } = {}) => {
-    const p = me();
-    const v = state.vote;
-    if (!p || !v || !v.open || !v.options[index]) return;
-    v.votes[p.id] = Number(index);
-    broadcast();
-  });
   // Handout and phrase pop-ups: the player pressed Continue. The DM sees who has read it.
   socket.on('player:handout:read', ({ id } = {}) => {
     const p = me();

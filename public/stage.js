@@ -627,13 +627,12 @@
   // Conditions (16): small chips under a combatant's name.
   const conds = (x) => (x?.conditions?.length ? `<em class="conds" data-k="${esc(`${x.id}:${x.conditions.join(',')}`)}">${x.conditions.map((c) => esc(c)).join(', ')}</em>` : '');
 
-  // Shared handouts (Phase 4) and the open vote on the TV. Only items the group shared reach here.
+  // Shared handouts (Phase 4) on the TV. Only items the group shared reach here.
   function shared(s) {
     const items = (s.handouts || []).filter((h) => h.kind === 'handout' && h.vis?.screen).slice(-2);
     const objs = (s.objectives || []).filter((o) => o.revealed && o.vis?.screen).slice(-2); // secret objectives the DM revealed (item 9)
-    const v = s.vote;
-    if (!items.length && !objs.length && !(v && v.options)) return '';
-    return `<div class="shared">${objs.map((o) => `<div class="hand objective-tv"><b>🎯 ${esc(o.name)}: ${esc(o.title)}</b>${o.text ? `<p>${esc(o.text)}</p>` : ''}</div>`).join('')}${items.map((h) => `<div class="hand" data-hid="${esc(h.id)}"><b>${esc(h.title)}</b>${h.text ? `<p>${esc(h.text)}</p>` : ''}</div>`).join('')}${v && v.open ? `<div class="hand vote-tv"><b>The party votes</b>${v.options.map((o, i) => `<span>${esc(o)} <em>${v.counts?.[i] ?? 0}</em></span>`).join('')}</div>` : ''}</div>`;
+    if (!items.length && !objs.length) return '';
+    return `<div class="shared">${objs.map((o) => `<div class="hand objective-tv"><b>🎯 ${esc(o.name)}: ${esc(o.title)}</b>${o.text ? `<p>${esc(o.text)}</p>` : ''}</div>`).join('')}${items.map((h) => `<div class="hand" data-hid="${esc(h.id)}"><b>${esc(h.title)}</b>${h.text ? `<p>${esc(h.text)}</p>` : ''}</div>`).join('')}</div>`;
   }
 
   // Camp (src/camp.js): an image over the stage while the DM has camp open, with the vote count so far.

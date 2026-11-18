@@ -163,5 +163,19 @@
     if (before !== null && before !== g.ready.length) gateEl.querySelector('.dg-gate-count b')?.classList.add('bump');
   }
 
-  window.Town = { ICON, KINDS, board, hydrate, contents, pop, tvGate, segs };
+  // Redraws keep the pictures (Nov 18): call before replacing root's HTML, then call the function it returns
+  // after. Each new <img> whose src matches one that was already loaded is swapped for the old element, so the
+  // browser does not decode and paint it again (that flash read as the town map fading out).
+  function keepImages(root) {
+    const old = new Map();
+    root.querySelectorAll('.tn-pic > img, .wm-board img').forEach((img) => { if (img.complete && img.naturalWidth) old.set(img.getAttribute('src'), img); });
+    return () => {
+      if (!old.size) return;
+      root.querySelectorAll('.tn-pic > img, .wm-board img').forEach((img) => {
+        const was = old.get(img.getAttribute('src'));
+        if (was && was !== img) { img.replaceWith(was); old.delete(img.getAttribute('src')); }
+      });
+    };
+  }
+  window.Town = { ICON, KINDS, board, hydrate, contents, pop, tvGate, segs, keepImages };
 })();

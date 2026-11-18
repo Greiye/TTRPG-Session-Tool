@@ -21,10 +21,11 @@
       <h2>🐉 DM Screen</h2>
       <button class="bar-min" id="barMin" title="Minimize the top bar" aria-label="Minimize the top bar" aria-expanded="true" aria-controls="dmBar">▴</button>
       <a href="/screen" target="_blank">Open TV screen ↗</a>
+      <button class="btn small primary" id="lobbyStart" hidden title="The TV shows the landing page until the game starts. It needs one joined player.">▶ Start game</button>
       <span class="note">Drag that window to the TV, double-click for fullscreen.</span>
       <span class="note tight">Room <b id="roomCode"></b> <button class="btn small" id="roomNew" title="New phones need the new QR; seated phones stay">New code</button></span>
       <label class="note tight">Join address <select id="hostSel"></select></label>
-      <label class="note tight"><input type="checkbox" id="showJoin"> Show “Join the party” QR on TV</label>
+      <label class="note tight"><input type="checkbox" id="showJoin" data-show="📺 Show join QR on TV" data-hide="📺 Hide join QR from TV"> Show “Join the party” QR on TV</label>
     </div>
     <div class="battle-wait" id="battleWait" hidden><p>⚔️ Waiting for the DM to activate combat.</p></div>
     <div class="dm-scroll" id="tablePage">
@@ -79,7 +80,7 @@
           <p class="note">Records your mic and transcribes live. Browser engine needs Chrome or Edge. Local model works offline: put a Vosk model archive (<code>.tar.gz</code>, as vosk-browser loads it) in the laptop's <code>models/</code> folder (or <code>MODEL_DIR</code>) as <code>vosk-small-en.tar.gz</code>.</p>
           <div class="row"><label class="note tight">Engine <select id="sttEngine" style="width:auto"><option value="chrome">Browser (Chrome)</option><option value="vosk">Local model (Vosk)</option></select></label><input id="sttModel" value="/models/vosk-small-en.tar.gz" class="grow" title="Vosk model URL"></div>
           <div id="voiceBox" class="voice-box"><span class="interim">Press Record and speak in character…</span></div>
-          <label class="chk"><input type="checkbox" id="liveCaption" checked> Show live caption on TV</label>
+          <label class="chk"><input type="checkbox" id="liveCaption" checked data-show="Show live caption on TV" data-hide="Hide live caption from TV"> Show live caption on TV</label>
           <label class="chk"><input type="checkbox" id="autoSay"> Auto-speak each finished sentence as the NPC</label>
           <div class="row">
             <button class="btn primary" id="recBtn">● Record</button>
@@ -120,11 +121,11 @@
       </div>
     </div>
     <div class="card tab-card">
-      <nav class="tab-list" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Rolls"><i>🎲</i><span>Rolls</span></button><button role="tab" data-stab="combat" title="Combat" aria-label="Combat"><i>⚔️</i><span>Combat</span></button><button role="tab" data-stab="inspiration" title="Inspiration points" aria-label="Inspiration"><i>✨</i><span>Inspiration</span></button><button role="tab" data-stab="items" title="Items: give, count and take back each character's items" aria-label="Items"><i>🎒</i><span>Items</span></button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages"><i>✉</i><span>Messages</span></button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs"><i>📜</i><span>Logs</span></button><button class="tab-toggle" id="planToggle" aria-pressed="false" title="Planning: prep between sessions (shops, creatures, choice echoes). The table does not see it." aria-label="Planning"><i>📝</i><span>Planning</span></button><button class="tab-toggle" id="mapToggle" aria-pressed="false" title="Map: turn your main page into the world map" aria-label="Map"><i>🗺</i><span>Map</span></button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene, points of interest, stage and music, soundscape, clocks, TV moments and puzzles" aria-label="Scene"><i>🎬</i><span>Scene</span></button><button role="tab" data-stab="lore" title="Lore: locations, dungeons, NPCs, items, books and notes" aria-label="Lore"><i>📚</i><span>Lore</span></button><button role="tab" data-stab="misc" title="NPCs, legends, lights, table tools, quiz, relations, journal, camp, road cards, rules system, co-DM and campaign data" aria-label="Miscellaneous"><i>🧰</i><span>Miscellaneous</span></button></div><div class="tab-group" data-group="plan" data-plan aria-label="Planning"><button role="tab" data-stab="shops" data-live title="Shops and party gold: pop a shop up during play or from Planning Mode" aria-label="Shops"><i>🛒</i><span>Shops</span></button><button role="tab" data-stab="designer" title="Creature Designer: peoples, beasts, monsters and named persons, synced with the lore wiki" aria-label="Creatures"><i>🐉</i><span>Creatures</span></button><button role="tab" data-stab="echo" title="Choice echoes: plant a consequence now, it fires after N scenes" aria-label="Choice echo"><i>🔁</i><span>Choice echo</span></button></div></nav>
+      <nav class="tab-list" id="sideTabs" role="tablist" aria-label="Sidebar sections"><div class="tab-group" data-group="play" aria-label="Play"><button role="tab" data-stab="rolls" title="Roll calls" aria-label="Rolls"><i>🎲</i><span>Rolls</span></button><button role="tab" data-stab="combat" title="Battle Window: battle map, encounter and creatures" aria-label="Battle Window"><i>⚔️</i><span>Battle Window</span></button><button role="tab" data-stab="inspiration" title="Inspiration points" aria-label="Inspiration"><i>✨</i><span>Inspiration</span></button><button role="tab" data-stab="items" title="Items: give, count and take back each character's items" aria-label="Items"><i>🎒</i><span>Items</span></button><button role="tab" data-stab="messages" title="Messages" aria-label="Messages"><i>✉</i><span>Messages</span></button><button role="tab" data-stab="logs" title="Logs" aria-label="Logs"><i>📜</i><span>Logs</span></button><button class="tab-toggle" id="planToggle" aria-pressed="false" title="Planning: prep between sessions (shops, creatures, choice echoes). The table does not see it." aria-label="Planning"><i>📝</i><span>Planning</span></button><button class="tab-toggle" id="mapToggle" aria-pressed="false" title="Map: turn your main page into the world map" aria-label="Map"><i>🗺</i><span>Map</span></button></div><div class="tab-group" data-group="scene" aria-label="Scene"><button role="tab" data-stab="scene" title="Scene, points of interest, stage and music, soundscape, clocks, TV moments and puzzles" aria-label="Scene"><i>🎬</i><span>Scene</span></button><button role="tab" data-stab="lore" title="Lore: locations, dungeons, NPCs, items, books and notes" aria-label="Lore"><i>📚</i><span>Lore</span></button><button role="tab" data-stab="misc" title="NPCs, legends, lights, table tools, quiz, relations, journal, camp, road cards, rules system, co-DM and campaign data" aria-label="Miscellaneous"><i>🧰</i><span>Miscellaneous</span></button></div><div class="tab-group" data-group="plan" data-plan aria-label="Planning"><button role="tab" data-stab="shops" data-live title="Shops: pop a shop up during play or from Planning Mode" aria-label="Shops"><i>🛒</i><span>Shops</span></button><button role="tab" data-stab="designer" title="Creature Designer: peoples, beasts, monsters and named persons, synced with the lore wiki" aria-label="Creatures"><i>🐉</i><span>Creatures</span></button><button role="tab" data-stab="echo" title="Choice echoes: plant a consequence now, it fires after N scenes" aria-label="Choice echo"><i>🔁</i><span>Choice echo</span></button></div></nav>
     </div>
 
     <p class="side-title" id="sideTitle"></p>
-    <div class="reorder-bar"><button class="btn small" id="reorderBtn" aria-pressed="false" title="Unlock to drag this tab's windows into a new order (also in Settings › Window order)">🔒 Windows locked</button><span class="note" id="reorderHint" hidden>Drag a window by its title to move it. Lock again when done.</span></div>
+    <div class="reorder-bar"><button class="btn small" id="reorderBtn" aria-pressed="false" title="Unlock to drag the tabs and this tab's windows into a new order (also in Settings › Window order)">🔒 Windows locked</button><span class="note" id="reorderHint" hidden>Drag a tab, or a window by its title, to move it. Lock again when done.</span></div>
     <div class="sub-tabs" id="subTabs" role="tablist" aria-label="Section parts"></div>
 
 <div class="card" data-tab="misc" data-sub="codm">
@@ -169,13 +170,13 @@
       <div class="row"><input id="legDetail" class="grow" maxlength="200" placeholder="The ogre, in one blow"><button class="btn" id="legAward">Award</button></div>
       <div id="legStatus" class="note" role="status"></div>
       <div id="legAwards" class="list"></div>
-      <div class="row"><button class="btn small" id="legShowHall">Show hall on TV</button><button class="btn small" id="legShowShelf">Show shelf on TV</button><button class="btn small" id="legHide">Hide</button></div>
+      <div class="row"><button class="btn small" id="legShowHall" aria-pressed="false">Show hall on TV</button><button class="btn small" id="legShowShelf" aria-pressed="false">Show shelf on TV</button></div>
       <h3>Trophy shelf <span class="note">how the group won each one</span></h3>
       <div class="row"><input id="trName" class="grow" maxlength="60" placeholder="Crown of the Drowned King"><button class="btn" id="trAdd">Add</button></div>
       <textarea id="trStory" rows="2" maxlength="800" placeholder="How we won it: we bargained with the eel…" style="width:100%"></textarea>
       <div id="trStatus" class="note" role="status"></div>
       <div id="trList" class="list"></div>
-      <div class="row"><button class="btn small" id="trClose">Close story on TV</button></div>
+      <div class="row"></div>
       <h3>Empty chairs <span class="note">a character whose phone is gone</span></h3>
       <div id="chairList" class="list"></div>
       <div id="chairStatus" class="note" role="status"></div>
@@ -216,7 +217,7 @@
       <div class="row"><select id="webKind"><option value="npc">NPC</option><option value="faction">Faction</option><option value="place">Place</option></select><input id="webName" class="grow" maxlength="60" placeholder="Name"><select id="webRef" class="grow" hidden></select><button class="btn small" id="webAddNode">Add</button></div>
       <div class="row"><select id="webFrom" class="grow"></select><span class="note">feels about</span><select id="webTo" class="grow"></select></div>
       <div class="row"><input id="webLabel" class="grow" maxlength="40" placeholder="Label, e.g. owes a debt"><input id="webValue" type="number" min="-100" max="100" value="0" style="width:80px" title="-100 hostile to +100 allied"><button class="btn small" id="webAddEdge">Link</button></div>
-      <label class="chk"><input type="checkbox" id="webShow"> Show revealed parts on the TV</label>
+      <label class="chk"><input type="checkbox" id="webShow" data-show="📺 Show revealed parts on TV" data-hide="📺 Hide revealed parts from TV"> Show revealed parts on the TV</label>
       <p class="note" id="webMsg"></p>
       <div id="webNodes" class="list"></div>
       <div id="webEdges" class="list"></div>
@@ -244,12 +245,6 @@
       <div class="row"><input id="spTitle" placeholder="Spoils title" style="width:140px"><input id="spItems" class="grow" placeholder="Gold 40, Dagger 1"><button class="btn" data-act="spoil">Drop spoils</button></div>
       <div id="msgList" class="list"></div>
     </div>
-    <div class="card vote-card" data-tab="messages" data-panel="exploration social combat">
-      <h3>Party vote <span class="note" id="voteState">pops up on every phone</span></h3>
-      <input id="voteOpts" placeholder="Options, comma separated" title="Options, comma separated (blank = Yes, No, Unsure)">
-      <div class="row"><span class="grow"></span><button class="btn primary" data-act="voteStart">Start vote</button><button class="btn" data-act="voteClose">Close</button><button class="btn" data-act="voteClear">Clear</button></div>
-      <div id="voteTally" class="vote-tally"></div>
-    </div>
     <div class="card" data-tab="misc" data-sub="lights" data-panel="exploration social combat">
       <h3>Mood, light, templates</h3>
       <div class="row"><span class="note">Music per mode</span></div>
@@ -266,7 +261,7 @@
     </div>
     <div class="card" data-tab="shops" data-dm-only id="shopPopCard">
       <h3>Shop pop-up <span class="note" id="shPopStatus"></span></h3>
-      <div class="row"><select id="shPopPick" class="grow" aria-label="Shop to open"></select><button class="btn primary" id="shPopOpen">Pop up</button><button class="btn" id="shPopClose">Close</button></div>
+      <div class="row"><select id="shPopPick" class="grow" aria-label="Shop to open"></select><button class="btn primary" id="shPopOpen" aria-pressed="false">Pop up</button></div>
       <p class="note">The TV shows the shop and how many are still shopping; phones get a buy and sell list. Works in play and in Planning Mode.</p>
     </div>
     <div class="card" data-tab="shops" data-fold="closed" data-fold-key="shop-new">
@@ -279,10 +274,6 @@
     <div class="card" data-tab="shops" data-fold="closed" data-fold-key="shop-list">
       <h3>Shops <span class="note">pop up, banner, open or close</span></h3>
       <div id="shList" class="list"></div>
-    </div>
-    <div class="card" data-tab="shops" data-fold="closed" data-fold-key="shop-gold">
-      <h3>Party gold <span class="note">the DM sets it; phones spend it in shops</span></h3>
-      <div id="goldList" class="list"></div>
     </div>
     <div class="card" data-tab="misc" data-sub="journal" data-panel="exploration social">
       <h3>Faction reputation <span class="note">DM only · phones see the standing, prices and moods follow</span></h3>
@@ -339,7 +330,7 @@
     </div>
     <div class="card" data-tab="items">
       <h3>Items <span class="note">players can't add items; you give them</span></h3>
-      <div class="row"><select id="itWho" class="grow" aria-label="Character"></select></div>
+      <div class="row"><select id="itWho" class="grow" aria-label="Character"></select><span id="itGold" class="row it-gold" hidden><span aria-hidden="true">🪙</span><input id="itGoldIn" type="number" min="0" step="0.01" style="width:90px" aria-label="Gold"><button class="btn small" id="itGoldSet" title="Set this character's gold (phones spend it in shops)">Set gold</button></span></div>
       <div class="row"><input id="itName" class="grow" maxlength="60" list="itNames" placeholder="Item name" autocomplete="off" aria-label="Item name"><input id="itQty" type="number" min="1" max="9999" value="1" style="width:64px" aria-label="Quantity"></div>
       <div class="row"><input id="itNote" class="grow" maxlength="200" placeholder="Description (shown on the phone)" aria-label="Description"><button class="btn primary" id="itGive">Give</button></div>
       <datalist id="itNames"></datalist>

@@ -1,5 +1,5 @@
 // Top bar: rules system picker, room code, and which network address the join QR uses.
-import { $, emit, onState, state } from '../client.js';
+import { $, emit, call, onState, state } from '../client.js';
 
 const { esc } = Stage;
 let rulesKey = null;
@@ -28,6 +28,14 @@ $('#hostSel').onchange = (e) => emit('dm:host', { host: e.target.value });
 // The join QR is hidden on the TV by default (Mike, Nov 15): tick to show it.
 $('#showJoin').onchange = (e) => emit('dm:settings', { display: { hideJoin: !e.target.checked } });
 onState((s) => { $('#showJoin').checked = s.settings?.display?.hideJoin === false; });
+// TV landing page (src/lobby.js, Nov 18): the DM can also press Start game, once one player has joined.
+onState((s) => {
+  const b = $('#lobbyStart');
+  if (!b) return;
+  b.hidden = !s.lobby;
+  b.disabled = !(s.players || []).some((p) => p.online);
+});
+$('#lobbyStart')?.addEventListener('click', () => call('lobby:start', {}));
 
 // Top bar minimize (Mike, Nov 14): ▴ folds the bar to its title line; ▾ brings it back. Saved on this laptop.
 const BAR_KEY = 'dmBarMin';
