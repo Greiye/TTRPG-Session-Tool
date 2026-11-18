@@ -30,7 +30,6 @@ const SHOTS = process.env.SHOTS;
   await tv.waitForFunction(() => window.tvLast);
   await tv.evaluate(() => { document.getElementById('tvStats').hidden = true; });
   const emit = (ev, data) => dm.evaluate(([e, d]) => socket.emit(e, d), [ev, data]);
-  const nextState = () => dm.evaluate(() => new Promise((r) => socket.once('state', r)));
   const shot = (p, n) => SHOTS && p.screenshot({ path: `${SHOTS}/${n}.png` });
   const centre = (p, sel) => p.$eval(sel, (el) => { const r = el.getBoundingClientRect(); return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 }; });
 
@@ -89,9 +88,14 @@ const SHOTS = process.env.SHOTS;
   if ((await tv.$$('.mode-title')).length !== 1) fail('mode titles overlap');
 
   // Chapter card: fades out (opacity drops) before it hides; the log keeps it.
-  const logged = nextState();
+  // Wait for the state that carries the line: another update (a ticker) can arrive first.
+  const logged = dm.evaluate(() => new Promise((r) => {
+    const on = (s) => { if (s.log.some((l) => l.text === 'Chapter: The long night (Act two)')) { socket.off('state', on); r(true); } };
+    socket.on('state', on);
+    setTimeout(() => { socket.off('state', on); r(false); }, 4000);
+  }));
   await emit('dm:tv:chapter', { title: 'The long night', sub: 'Act two' });
-  if (!(await logged).log.some((l) => l.text === 'Chapter: The long night (Act two)')) fail('chapter card should be in the log');
+  if (!(await logged)) fail('chapter card should be in the log');
   await tv.waitForSelector('.mo-chapter:not([hidden])');
   await shot(tv, 'tv-chapter');
   await tv.waitForTimeout(4500); // past the entrance, which also starts from opacity 0
@@ -99,7 +103,7 @@ const SHOTS = process.env.SHOTS;
   await tv.waitForSelector('.mo-chapter', { state: 'hidden', timeout: 2000 }).catch(() => fail('chapter card hides after fading'));
 
   // Clocks: wedges from the centre on the TV and in the DM's clock list.
-  const added = nextState();
+  const added = dm.evaluate(() => new Promise((r) => { const on = (s) => { if (s.clocks?.[0]) { socket.off('state', on); r(s); } }; socket.on('state', on); }));
   await emit('dm:clock:add', { name: 'Ritual', segments: 6 });
   const id = (await added).clocks[0].id;
   await tv.waitForSelector('.clock svg.pie');
