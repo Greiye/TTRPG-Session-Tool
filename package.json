@@ -1,6 +1,6 @@
 {
   "name": "tavern-screen",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Jackbox-style D&D party game: laptop on TV hosts, phones join via QR",
   "main": "server.js",
   "scripts": {

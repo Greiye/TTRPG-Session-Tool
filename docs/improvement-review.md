@@ -12,6 +12,9 @@ scripts (7,400 lines). `npm test` passes and takes 2 m 50 s. 420 commits, all in
 that features are being added faster than they are played. Slow down, play, and fix what the table
 finds.
 
+**Status, 18 Nov evening (Mike):** #1 declined (keep building). Done in PR #145: #3 backup, #5 flaky
+browser tests, #6 tests off real data, #7 test runner, #8 `CLAUDE.md`. #2 done: tagged `v1.2.0`.
+
 Effort: **S** under an hour of Claude time, **M** one PR, **L** several PRs.
 
 ## Top 10, in order
