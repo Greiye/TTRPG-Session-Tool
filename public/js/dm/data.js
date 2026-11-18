@@ -3,6 +3,7 @@ import { $ } from '../client.js';
 import { dmKey } from './auth.js';
 
 const qs = dmKey() ? `?key=${encodeURIComponent(dmKey())}` : '';
+$('#backupBtn').href = `/api/backup${qs}`;
 $('#exportBtn').href = `/api/export${qs}`;
 $('#transcriptBtn').href = `/api/transcript.md${qs}`;
 $('#scriptBtn').href = `/api/script.md${qs}`;

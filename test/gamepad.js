@@ -85,7 +85,7 @@ function fakePads() {
   const logLen = (await S()).log.length;
   await hold(5); await frames(30);
   ok((await S()).mode === 'exploration', 'held RB changes mode once');
-  await dm.waitForTimeout(200);
+  await dm.waitForTimeout(200); /* nothing should happen: give a wrong event time to arrive */
   ok((await S()).log.length <= logLen + 1, 'held RB sends one event'); // quick mode switches replace one mode line, so at most +1
   await release(5);
   await tap(4); await mode('social');
@@ -99,14 +99,14 @@ function fakePads() {
   ok(await until(() => window.__state().social.line.text === 'Well met, travellers.'), 'Start speaks the dialogue line');
   ok((await dm.inputValue('#line')) === '', 'Start clears the dialogue box');
   const n = (await S()).log.length;
-  await tap(9); await dm.waitForTimeout(200);
+  await tap(9); await dm.waitForTimeout(200); /* nothing should happen: give a wrong event time to arrive */
   ok((await S()).log.length === n, 'Start with an empty box does nothing');
 
   // Combat: A advances the turn.
   await dm.evaluate(() => { socket.emit('dm:enemy:add', { name: 'Goblin', hp: 7, ac: 12 }); socket.emit('dm:enemy:add', { name: 'Wolf', hp: 9, ac: 12 }); });
   await tap(5); await mode('exploration'); await tap(5); await mode('combat');
   const before = (await S()).log.length;
-  await tap(0); await dm.waitForTimeout(200);
+  await tap(0); await dm.waitForTimeout(200); /* nothing should happen: give a wrong event time to arrive */
   ok(errors.length === 0 && (await S()).log.length === before, 'A before combat starts does nothing');
   await dm.evaluate(() => socket.emit('dm:combat:start', {}));
   ok(await until(() => window.__state().combat.active && window.__state().combat.order.length >= 2), 'combat started with two creatures');
@@ -114,7 +114,7 @@ function fakePads() {
   await tap(0);
   ok(await until((t) => window.__state().combat.turn !== t, t0), 'A advances the turn in combat');
   const emo = (await S()).social.npc.emotion;
-  await tap(1); await tap(12); await dm.waitForTimeout(200);
+  await tap(1); await tap(12); await dm.waitForTimeout(200); /* nothing should happen: give a wrong event time to arrive */
   ok((await S()).social.npc.emotion === emo, 'emotion buttons are ignored outside social');
 
   // Unplug and replug.
@@ -123,7 +123,7 @@ function fakePads() {
   // A pad plugged in with a button already held must not fire on connect.
   const m0 = (await S()).mode;
   await dm.evaluate(() => window.__plug(0, undefined, 'standard', [5]));
-  await frames(10); await dm.waitForTimeout(200);
+  await frames(10); await dm.waitForTimeout(200); /* nothing should happen: give a wrong event time to arrive */
   ok((await S()).mode === m0, 'a button held while plugging in does not fire');
   await release(5);
   await tap(5); ok(await mode('social'), 'pad works again after replug');
@@ -134,7 +134,7 @@ function fakePads() {
   ok(await until(() => /Xbox/.test(document.querySelector('#padStatus').textContent)), 'status names the standard pad, not the joystick');
   await tap(5, 1); ok(await mode('exploration'), 'standard pad in slot 1 drives the page');
   const m1 = (await S()).mode;
-  await tap(5, 0); await dm.waitForTimeout(200);
+  await tap(5, 0); await dm.waitForTimeout(200); /* nothing should happen: give a wrong event time to arrive */
   ok((await S()).mode === m1, 'non-standard device is ignored');
 
   await dm.evaluate(() => window.__unplug(1));

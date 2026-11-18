@@ -8,6 +8,21 @@ const { io } = require('socket.io-client');
 const ROOT = path.join(__dirname, '..');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Wait for an element's entrance animations to finish (instead of a fixed pause). Loops and long timers
+// (over 1.5 s, e.g. a strike's time bar) are ignored, so this never waits on them.
+async function settled(page, sel, ms = 5000) {
+  await page.waitForFunction((s) => {
+    const el = document.querySelector(s);
+    if (!el) return false;
+    return el.getAnimations({ subtree: true }).every((a) => {
+      const t = a.effect?.getComputedTiming?.() || {};
+      return a.playState !== 'running' || t.iterations === Infinity || (t.activeDuration || 0) > 1500;
+    });
+  }, sel, { timeout: ms });
+}
+// Wait until fn() (run in the page) is truthy; true, or false on timeout. Use it instead of a fixed pause.
+const poll = (page, fn, arg, ms = 3000) => page.waitForFunction(fn, arg, { timeout: ms }).then(() => true, () => false);
+
 function harness(name) {
   // fetch() refuses 5060 and 5061 (SIP, on the WHATWG bad-port list), so the harness never picks them.
   let PORT;
@@ -38,6 +53,7 @@ function harness(name) {
     async player(room, name, cls = 'Fighter') { const s = await h.client(); s.me = await h.call(s, 'join', { name, cls, room }); return s; },
     // Wait until fn() is truthy (state updates are async); returns the value or false on timeout.
     async until(fn, ms = 2000) { const end = Date.now() + ms; for (;;) { let v; try { v = fn(); } catch { v = false; } if (v) return v; if (Date.now() > end) return false; await wait(25); } },
+    settled, poll,
     async done(srv) {
       for (const s of sockets) s.close();
       if (srv) await h.stop(srv);
@@ -48,4 +64,4 @@ function harness(name) {
   };
   return h;
 }
-module.exports = { harness, wait, ROOT };
+module.exports = { harness, wait, ROOT, settled, poll };

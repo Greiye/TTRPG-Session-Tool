@@ -28,7 +28,7 @@ const SHOTS = process.env.SHOTS;
   const tv = await open('/screen', { width: 1280, height: 720 });
   const d = await open('/dm?key=dmkey', { width: 1500, height: 950 });
   await tv.waitForFunction(() => window.tvLast && window.CombatFx);
-  await d.waitForTimeout(800);
+  await d.waitForFunction(() => window.CombatFx); await d.waitForLoadState('networkidle');
 
   dm.emit('dm:combat:start');
   ok(await tv.waitForSelector('#cfx .cfx-turn', { timeout: 3000 }).then(() => true, () => false), 'the TV sweeps in the turn');
@@ -42,7 +42,7 @@ const SHOTS = process.env.SHOTS;
   if (SHOTS) await tv.screenshot({ path: `${SHOTS}/tv-hit.png` });
 
   dm.emit('dm:hp', { id: a.me.id, delta: -4 });
-  await tv.waitForTimeout(150);
+  await tv.waitForFunction((id) => !/\d/.test(document.querySelector(`.pc[data-pid="${id}"] .hp span`)?.textContent || '1'), a.me.id, { timeout: 3000 }).catch(() => {});
   const card = await tv.locator(`.pc[data-pid="${a.me.id}"] .hp span`).textContent();
   ok(!/\d/.test(card) && card.trim().length > 0, `the TV party card shows a health word, not a number ("${card.trim()}")`);
   dm.emit('dm:hp', { id: a.me.id, delta: 2 });
@@ -55,15 +55,15 @@ const SHOTS = process.env.SHOTS;
   // Everyone sees numbers when the DM shares them.
   dm.emit('dm:settings', { display: { numbers: 'all' } });
   await until(() => dm.last.settings.display.numbers === 'all');
-  await tv.waitForTimeout(150);
+  await tv.waitForFunction((id) => /\d+\/\d+/.test(document.querySelector(`.pc[data-pid="${id}"] .hp span`)?.textContent), a.me.id, { timeout: 3000 }).catch(() => {});
   ok(/\d+\/\d+/.test(await tv.locator(`.pc[data-pid="${a.me.id}"] .hp span`).textContent()), 'with numbers for everyone the TV card shows hp/max again');
 
   // Off: the TV plays nothing.
   dm.emit('dm:settings', { display: { fx: 'off' } });
   await tv.waitForFunction(() => document.documentElement.dataset.fx === 'off');
-  await tv.waitForTimeout(1700); // let earlier effects finish
+  await tv.waitForFunction(() => !document.querySelector('#cfx .cfx'), null, { timeout: 5000 }).catch(() => {}); // earlier effects have finished
   dm.emit('dm:hp', { id: a.me.id, delta: -1 });
-  await tv.waitForTimeout(400);
+  await tv.waitForTimeout(400); // nothing should happen: give a wrong effect time to show up
   ok(await tv.locator('#cfx .cfx').count() === 0, 'with combat effects off the TV plays nothing');
 
   ok(!errors.length, `no page errors${errors.length ? `: ${errors.join(' | ')}` : ''}`);

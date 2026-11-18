@@ -44,7 +44,7 @@ const ok = (c, m) => { console.log(`${c ? '  ok  ' : '  FAIL'} ${m}`); if (!c) f
     await ph.waitForSelector('.phone-pop[data-kind="msg"] .pp-continue', { timeout: 5000 });
     ok((await ph.textContent('.phone-pop')).includes('Reward: 50 gp'), 'message pops up on the phone');
     if (SHOTS) await ph.screenshot({ path: `${SHOTS}/phone-message.png` });
-    await ph.waitForTimeout(400);
+    await ph.waitForTimeout(400); // nothing should happen: the message must not close by itself
     ok(await ph.isVisible('.phone-pop'), 'message stays up until Continue');
     ok(!(await ph.$eval('#tabInbox', (e) => e.textContent)).includes('Wanted poster'), 'message is not in the inbox');
     await ph.click('.phone-pop .pp-continue');

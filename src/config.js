@@ -4,6 +4,14 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
+// A test script run on its own (node test/x.js) without DATA_DIR gets a throwaway folder, never the real
+// data/ and uploads/ (they are the campaign on the game-night laptop). test/run.js sets both already.
+const underTest = !process.env.DATA_DIR && require.main?.filename?.startsWith(path.join(ROOT, 'test') + path.sep);
+if (underTest) {
+  const tmp = fs.mkdtempSync(path.join(require('os').tmpdir(), 'tavern-test-'));
+  process.env.DATA_DIR = path.join(tmp, 'data');
+  process.env.UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(tmp, 'uploads');
+}
 const config = {
   ROOT,
   PORT: Number(process.env.PORT) || 3000,

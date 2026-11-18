@@ -6,6 +6,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { chromium } = require('playwright');
+const { settled } = require('./helpers');
 
 const PORT = 3700 + Math.floor(Math.random() * 100);
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'tavern-fields-'));
@@ -25,7 +26,7 @@ const SKIP = ['checkbox', 'radio', 'range', 'color', 'file', 'hidden'];
     if ((await p.getAttribute('#planToggle', 'aria-pressed')) !== 'true') await p.click('#planToggle');
     for (const mode of ['exploration', 'social', 'combat']) {
       await p.click(`[data-mode="${mode}"]`);
-      await p.waitForTimeout(300);
+      await settled(p, 'body');
       for (const tab of await p.$$eval('[data-stab]:not([hidden])', (b) => b.map((x) => x.dataset.stab))) {
         await p.click(`[data-stab="${tab}"]`);
         const subs = await p.$$eval('[data-sub-pick]', (b) => b.map((x) => x.dataset.subPick));
@@ -33,7 +34,7 @@ const SKIP = ['checkbox', 'radio', 'range', 'color', 'file', 'hidden'];
           if (sub) await p.click(`[data-sub-pick="${sub}"]`);
           // Cards start folded (Mike, Nov 16): open them all so every field is measured.
           await p.evaluate(() => document.querySelectorAll('.card.folded').forEach((c) => c.classList.remove('folded')));
-          await p.waitForTimeout(100);
+          await settled(p, 'body');
           const found = await p.evaluate((skip) => {
             const ctx = document.createElement('canvas').getContext('2d');
             const out = [];

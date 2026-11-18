@@ -2,7 +2,7 @@
 // TV roll call banner and results, VN choices, initiative-strip conditions, DM dialogs and page swaps.
 // Usage: node test/anim-audit-ui.js (needs Playwright).
 const { chromium, devices } = require('playwright');
-const { harness } = require('./helpers');
+const { harness, settled } = require('./helpers');
 
 const h = harness('anim-audit-ui');
 const { ok } = h;
@@ -29,18 +29,18 @@ const { ok } = h;
 
     dm.emit('dm:mode', { mode: 'exploration' });
     dm.emit('dm:worldmap:show', { on: false }); // a session opens on the world map; this test needs the stage
-    await tv.waitForTimeout(1500);
+    await h.until(() => dm.last.mode === 'exploration'); await settled(tv, 'body');
     // Roll call: the banner slides in once; a result pops when it lands; re-renders replay nothing.
     dm.emit('dm:call', { kind: 'skill', key: 'Perception', dc: 12 });
     await tv.waitForSelector('.check-banner');
     ok((await anims(tv, '.check-banner'))?.length > 0, 'TV: a new roll call banner animates in');
-    await tv.waitForTimeout(700);
+    await settled(tv, '.check-banner');
     pl.emit('player:answer', {});
     await tv.waitForSelector('.check-res [data-rid]');
     ok((await anims(tv, '.check-res [data-rid]'))?.length > 0, 'TV: a roll call result pops in');
-    await tv.waitForTimeout(700);
+    await settled(tv, '.check-res');
     dm.emit('dm:scene', { title: 'Old mill', text: 'Wind.', theme: 'default', poi: [] }); // any change re-renders the TV
-    await tv.waitForTimeout(300);
+    await tv.waitForFunction(() => document.body.textContent.includes('Old mill'), null, { timeout: 3000 }).catch(() => {});
     ok((await anims(tv, '.check-banner'))?.length === 0 && (await anims(tv, '.check-res [data-rid]'))?.length === 0, 'TV: a re-render does not replay them');
 
     // DM page: the settings dialog rises in.
