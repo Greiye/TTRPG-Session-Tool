@@ -4,6 +4,9 @@ const designer = require('../designer');
 const wiki = require('../wiki');
 const lore = require('../lore');
 const creatures = require('../creatures');
+const items = require('../itemlib');
+const { roster, saveRoster } = require('../roster');
+const { applySheet } = require('../sheet');
 
 module.exports = function designerSockets(socket) {
   const dm = (event, fn) => socket.on(event, async (f = {}, ack) => {
@@ -44,6 +47,30 @@ module.exports = function designerSockets(socket) {
     const prev = state.lore.find((x) => x.cat === e.cat && x.name.toLowerCase() === e.name.toLowerCase());
     if (prev) return { ...lore.edit(state.lore, { id: prev.id, text: e.text, dm: e.dm }), updated: true };
     return lore.add(state.lore, e);
+  });
+
+  // ----- Item Designer and item cards (Nov 18) -----
+  dm('dm:item:save', (f) => {
+    if (!String(f.name || '').trim()) return { error: 'Give it a name.' };
+    return { ok: true, item: items.save(f) };
+  });
+  dm('dm:item:delete', ({ id }) => (items.lib.remove(id) ? { ok: true } : { error: 'No such item.' }));
+  dm('dm:item:samples', () => { items.seed(); return { ok: true }; });
+  // Give a card to characters: one more of an item they already carry by that name, or a new pack entry.
+  dm('dm:item:give', ({ id, to, qty }) => {
+    const it = items.lib.get(id);
+    if (!it) return { error: 'No such item.' };
+    const ids = (Array.isArray(to) ? to : [to]).filter((x) => state.players[x] && roster[x]);
+    if (!ids.length) return { error: 'Pick who gets it.' };
+    const n = Math.max(1, Math.min(9999, Math.floor(Number(qty)) || 1));
+    for (const cid of ids) {
+      const c = roster[cid];
+      const have = (c.inventory || []).find((i) => i.name.toLowerCase() === it.name.toLowerCase());
+      if (have) applySheet(c, { inv: { op: 'set', id: have.id, qty: have.qty + n } }, true);
+      else applySheet(c, { inv: { op: 'add', name: it.name, qty: n, note: it.note, img: it.image, icon: items.KINDS[it.kind], rarity: it.rarity } }, true);
+    }
+    saveRoster();
+    return { ok: true, given: ids.length };
   });
 
   // ----- wiki -----

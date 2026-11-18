@@ -95,7 +95,7 @@ function apply() {
   $$('[data-panel]:not([data-tab])').forEach((p) => { p.hidden = !p.dataset.panel.split(' ').includes(mode); });
   // One window open at a time in the tools column (public/js/dm/fold.js), checked when the shown tab changes.
   const shownKey = `${tab}:${sub}:${mode}:${planning}`;
-  if (shownKey !== lastShown) { lastShown = shownKey; window.dmCascade?.(); }
+  if (shownKey !== lastShown) { lastShown = shownKey; window.dmCascade?.({ openFirst: true }); } // a tab with every window folded opens its first (Nov 18)
 }
 
 function showTab(id) {

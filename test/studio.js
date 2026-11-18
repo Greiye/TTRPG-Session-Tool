@@ -12,7 +12,7 @@ const ROOT = path.join(__dirname, '..');
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'tavern-studio-'));
 let PORT; do PORT = 4100 + Math.floor(Math.random() * 400); while (PORT === 4190); // 4190 is on fetch's blocked-port list
 const URL = `http://127.0.0.1:${PORT}`;
-const ENV = { ...process.env, LOBBY: '0', PORT, HTTPS_PORT: PORT + 1000, DATA_DIR: path.join(TMP, 'data'), UPLOAD_DIR: path.join(TMP, 'uploads'), DM_KEY: 'dmkey' };
+const ENV = { ...process.env, LOBBY: '0', TEST_MODE: '0', PORT, HTTPS_PORT: PORT + 1000, DATA_DIR: path.join(TMP, 'data'), UPLOAD_DIR: path.join(TMP, 'uploads'), DM_KEY: 'dmkey' };
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 let failures = 0;
 const ok = (cond, msg) => { console.log(`${cond ? '  ok  ' : '  FAIL'} ${msg}`); if (!cond) failures++; };

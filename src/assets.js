@@ -21,6 +21,7 @@ const KINDS = {
   audio: { dir: '', ext: AUDIO, maxBytes: 40 * MB },
   portrait: { dir: 'portraits', ext: [...IMG, 'webm'], maxBytes: 12 * MB, video: { size: 256, maxSeconds: 10 } },
   creature: { dir: 'creatures', ext: [...IMG, 'webm'], maxBytes: 20 * MB, video: { size: 384, maxSeconds: 15 } },
+  item: { dir: 'items', ext: IMG, maxBytes: 12 * MB },
   map: { dir: 'maps', ext: ['png', 'jpg', 'webp'], maxBytes: 25 * MB },
 };
 const MIME_EXT = {

@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/combatfx.css">
   <link rel="stylesheet" href="/ctxmenu.css">
   <link rel="stylesheet" href="/designer.css">
+  <link rel="stylesheet" href="/items.css">
 </head>
 <body class="dm chron">
   <div class="dm-left">
@@ -22,6 +23,7 @@
       <button class="bar-min" id="barMin" title="Minimize the top bar" aria-label="Minimize the top bar" aria-expanded="true" aria-controls="dmBar">▴</button>
       <a href="/screen" target="_blank">Open TV screen ↗</a>
       <button class="btn small primary" id="lobbyStart" hidden title="The TV shows the landing page until the game starts. It needs one joined player.">▶ Start game</button>
+      <button class="btn small test-mode" id="testMode" aria-pressed="false" title="Test mode: a test player ([Test] Brann) sits at the table so you can try every tool. Turn it off before game night.">🧪 Test mode</button>
       <span class="note">Drag that window to the TV, double-click for fullscreen.</span>
       <span class="note tight">Room <b id="roomCode"></b> <button class="btn small" id="roomNew" title="New phones need the new QR; seated phones stay">New code</button></span>
       <label class="note tight">Join address <select id="hostSel"></select></label>
@@ -328,7 +330,14 @@
       <div class="row"><button class="btn primary" id="inspAll">✨ Everyone +1</button></div>
       <div id="inspList" class="list insp-list"></div>
     </div>
-    <div class="card" data-tab="items">
+    <!-- Item cards (Mike, Nov 18): the item library as cards; drag one onto a portrait to give it. -->
+    <div class="card it-cards" data-tab="items" data-fold-key="item-cards">
+      <h3>Item cards <span class="note" id="itCount"></span></h3>
+      <div class="it-party" id="itParty" role="group" aria-label="Give to: click to pick, or drop an item card on a portrait"></div>
+      <div class="row"><input id="itSearch" class="grow" type="search" placeholder="Search: name, kind, rarity, tag" aria-label="Search items" autocomplete="off"><span class="seg it-view" role="group" aria-label="View"><button class="btn small" data-itview="list" aria-pressed="false" title="List" aria-label="List view">☰</button><button class="btn small" data-itview="gallery" aria-pressed="true" title="Gallery" aria-label="Gallery view">▦</button></span><button class="btn small" id="itNew" title="Make a new item in the Item Designer">🛠 Designer</button><button class="btn small" id="itBig" aria-pressed="false" title="Open the cards in a big window over the map (the portraits come along)" aria-label="Big view">⤢</button></div>
+      <div id="itLib" class="it-lib" data-view="gallery" aria-label="Item cards: click to pick, drag onto a portrait to give"></div>
+    </div>
+    <div class="card" data-tab="items" data-fold-key="items-pack">
       <h3>Items <span class="note">players can't add items; you give them</span></h3>
       <div class="row"><select id="itWho" class="grow" aria-label="Character"></select><span id="itGold" class="row it-gold" hidden><span aria-hidden="true">🪙</span><input id="itGoldIn" type="number" min="0" step="0.01" style="width:90px" aria-label="Gold"><button class="btn small" id="itGoldSet" title="Set this character's gold (phones spend it in shops)">Set gold</button></span></div>
       <div class="row"><input id="itName" class="grow" maxlength="60" list="itNames" placeholder="Item name" autocomplete="off" aria-label="Item name"><input id="itQty" type="number" min="1" max="9999" value="1" style="width:64px" aria-label="Quantity"></div>

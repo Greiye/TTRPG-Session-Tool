@@ -1,0 +1,98 @@
+/* Item cards, the Items window's portraits and search, and the Item Designer (Mike, Nov 18). */
+:root { --rar-common: #9a8f7a; --rar-uncommon: #4fae5c; --rar-rare: #4a8fe0; --rar-very-rare: #a560e0; --rar-legendary: #e8902a; --rar-artifact: #d9473b; }
+.rar-common { --rar: var(--rar-common); }
+.rar-uncommon { --rar: var(--rar-uncommon); }
+.rar-rare { --rar: var(--rar-rare); }
+.rar-very-rare { --rar: var(--rar-very-rare); }
+.rar-legendary { --rar: var(--rar-legendary); }
+.rar-artifact { --rar: var(--rar-artifact); }
+
+/* Portraits to give to */
+.it-party { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.it-party:empty { display: none; }
+.it-to { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 3px 4px; border: 1px dashed transparent; border-radius: 10px; background: none; color: var(--ink); opacity: .7; cursor: pointer; transition: opacity .2s, border-color .2s, transform .2s, background .2s; }
+.it-to small { font-size: 10px; max-width: 54px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.it-to.on { opacity: 1; border-color: var(--gold); border-style: solid; }
+body.it-drag .it-to, body.it-drag [data-hero-pick], body.it-drag #party .item, body.it-drag .dm-hero .hero { outline: 1px dashed color-mix(in srgb, var(--gold) 60%, transparent); outline-offset: 2px; opacity: 1; }
+.it-over { background: color-mix(in srgb, var(--gold) 25%, transparent) !important; transform: scale(1.08); outline: 2px solid var(--gold) !important; }
+.it-got { animation: it-got .6s ease-out; }
+@keyframes it-got { 0% { transform: scale(1); } 35% { transform: scale(1.18); box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 60%, transparent); } 100% { transform: scale(1); box-shadow: none; } }
+
+/* Library */
+.it-view { display: inline-flex; gap: 2px; }
+.it-view [aria-pressed="true"] { background: var(--gold); color: var(--bg); }
+.it-lib { display: grid; gap: 8px; align-content: start; margin-top: 6px; min-height: 0; overflow: auto; max-height: 60vh; padding: 2px; }
+.it-lib[data-view="gallery"] { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
+.it-lib[data-view="list"] { grid-template-columns: 1fr; }
+.it-lib > .note { grid-column: 1 / -1; }
+
+/* A card */
+.it-card { --rar: var(--rar-common); position: relative; display: flex; flex-direction: column; border: 1px solid var(--rar); border-radius: 10px; background: linear-gradient(170deg, color-mix(in srgb, var(--rar) 18%, var(--panel)), var(--panel) 60%); box-shadow: 0 2px 6px rgb(0 0 0 / .35); overflow: hidden; animation: it-in .25s ease-out both; transition: transform .15s, box-shadow .15s; }
+.it-card[draggable="true"] { cursor: grab; }
+.it-card:hover, .it-card:focus-visible { box-shadow: 0 6px 14px rgb(0 0 0 / .45), 0 0 0 1px var(--rar); outline: none; }
+.it-card.picked { box-shadow: 0 0 0 2px var(--gold), 0 6px 14px rgb(0 0 0 / .45); }
+.it-card.it-dragging { opacity: .45; transform: scale(.96); }
+.it-art { display: grid; place-items: center; aspect-ratio: 4 / 3; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--rar) 35%, transparent), transparent 70%); font-size: 34px; }
+.it-art img { width: 100%; height: 100%; object-fit: cover; }
+.it-body { display: flex; flex-direction: column; gap: 2px; padding: 5px 7px 6px; min-width: 0; }
+.it-name { font-size: 13px; line-height: 1.2; }
+.it-meta { color: var(--muted); font-size: 10.5px; }
+.it-rar { color: var(--rar); font-weight: 700; }
+.it-note { margin: 2px 0 0; font-size: 11px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.it-props { margin: 3px 0 0; display: grid; gap: 1px; font-size: 10.5px; }
+.it-props div { display: flex; gap: 4px; }
+.it-props dt { color: var(--muted); }
+.it-props dt::after { content: ':'; }
+.it-props dd { margin: 0; }
+.it-acts { display: flex; gap: 4px; padding: 0 7px 7px; margin-top: auto; }
+.it-acts .primary { flex: 1; }
+.it-lib[data-view="gallery"] .it-props { display: none; }
+.it-lib[data-view="list"] .it-card { flex-direction: row; align-items: stretch; }
+.it-lib[data-view="list"] .it-art { aspect-ratio: 1; width: 56px; flex: none; font-size: 26px; }
+.it-lib[data-view="list"] .it-body { flex: 1; }
+.it-lib[data-view="list"] .it-acts { flex-direction: column; justify-content: center; padding: 6px; margin: 0; }
+@keyframes it-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
+
+/* Phone pack: the card's art or icon, and its rarity colour */
+.inv-img { width: 34px; height: 34px; flex: none; border-radius: 6px; object-fit: cover; }
+.inv-ico { display: grid; place-items: center; font-size: 22px; background: #2a2030; }
+.inv .grow { flex: 1; min-width: 0; }
+.inv [class*="rar-"] b { color: var(--rar); }
+
+/* Item Designer */
+.cd-dlg.id-dlg { width: min(860px, 96vw); height: auto; max-height: 92vh; }
+.id-shell { display: grid; grid-template-columns: 240px 1fr; gap: 0; max-height: 92vh; }
+.id-preview { padding: 14px; background: color-mix(in srgb, var(--bg) 60%, var(--panel)); border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.id-preview h3 { margin: 0; }
+.id-preview .it-card { animation: none; }
+.id-art-btn { text-align: center; cursor: pointer; }
+.id-fields { padding: 14px; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+.id-props-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.id-props { display: flex; flex-direction: column; gap: 4px; }
+.id-prop input[data-k="name"] { width: 130px; }
+.id-prop.fresh { animation: cd-row-in .2s ease both; }
+.id-btns { margin-top: 6px; }
+@media (max-width: 700px) { .id-shell { grid-template-columns: 1fr; } .id-preview { border-right: 0; border-bottom: 1px solid var(--line); } }
+
+/* Test mode button in the top bar */
+.test-mode.on { background: #3c5a2a; border-color: #7fbf5a; color: #eaffd8; }
+
+@media (prefers-reduced-motion: reduce) { .it-card, .it-got, .id-prop.fresh { animation: none !important; } .it-card, .it-to { transition: none !important; } }
+html[data-motion="reduce"] .it-card, html[data-motion="reduce"] .it-got { animation: none; }
+
+/* Cascade (one window open, no column scroll): the Items window fills the room left and only the cards scroll. */
+body.cascade #toolsCol > .card.it-cards:not(.folded):not([hidden]) { display: flex; flex-direction: column; flex: 1 1 auto; }
+body.cascade #toolsCol > .card.it-cards:not(.folded) > * { flex-shrink: 0; }
+body.cascade #toolsCol > .card.it-cards:not(.folded) > .it-lib { flex: 1 1 0; flex-shrink: 1; min-height: 72px; max-height: none; }
+
+/* Big view: a window over the map, not modal */
+.it-big { position: fixed; inset: 90px 300px 100px 390px; width: auto; height: auto; max-width: none; max-height: none; margin: 0; padding: 0; z-index: 40; display: none; flex-direction: column; border: 1px solid var(--gold); border-radius: 14px; background: var(--panel); color: var(--ink); box-shadow: 0 20px 60px rgb(0 0 0 / .6); overflow: hidden; }
+.it-big[open] { display: flex; animation: cd-in .26s cubic-bezier(.2, .9, .3, 1.2) both; }
+.it-big-head { display: flex; align-items: baseline; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.it-big-body { display: flex; flex-direction: column; gap: 8px; padding: 10px 14px 14px; min-height: 0; flex: 1; }
+.it-big-body .it-lib { flex: 1; max-height: none; min-height: 0; }
+.it-big-body .it-lib[data-view="gallery"] { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.it-big-body .it-party .av-pick { width: 48px; height: 48px; }
+.it-big-body .it-props { display: grid !important; }
+@media (max-width: 1100px) { .it-big { inset: 70px 12px 80px 12px; } }
+#itBig[aria-pressed="true"] { background: var(--gold); color: var(--bg); }

@@ -52,7 +52,7 @@ function bootServer(header, dir) {
   if (header.files?.characters) fs.writeFileSync(path.join(data, 'characters.json'), JSON.stringify(header.files.characters));
   let port;
   do port = 4800 + Math.floor(Math.random() * 1000); while (port === 5060 || port === 5061);
-  const env = { ...process.env, PORT: port, HTTPS: '0', DATA_DIR: data, UPLOAD_DIR: path.join(dir, 'uploads'),
+  const env = { ...process.env, PORT: port, HTTPS: '0', TEST_MODE: '0', DATA_DIR: data, UPLOAD_DIR: path.join(dir, 'uploads'),
     DM_KEY: BOOT_KEYS.dm, CODM_KEY: 'replay-codm', BATTLE_KEY: BOOT_KEYS.battle, SOCIAL_KEY: BOOT_KEYS.social, MUSIC_KEY: BOOT_KEYS.music };
   delete env.RECORD;
   const p = spawn(process.execPath, ['server.js'], { cwd: ROOT, env, stdio: ['ignore', 'pipe', 'pipe'] });

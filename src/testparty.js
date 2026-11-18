@@ -35,9 +35,9 @@ const PARTY = [
 ];
 
 // The DM's tool: create or refresh the test characters and seat them in the party.
-function seedTestParty() {
+function seedTestParty(defs = PARTY) {
   const out = [];
-  for (const def of PARTY) {
+  for (const def of defs) {
     let c = Object.values(roster).find((x) => x.name === def.name);
     if (!c) c = newCharacter({ name: def.name, cls: def.cls, race: def.race, player: 'Test' }, sys().id);
     c.cls = def.cls;
@@ -59,4 +59,23 @@ function seedTestParty() {
   return out;
 }
 
-module.exports = { PARTY, seedTestParty };
+// Test mode (Mike, Nov 18): on by default, so a fresh table has one test player ([Test] Brann, a fighter) to try
+// every tool on before friends arrive. The DM turns it off in the top bar, which takes the test characters out of
+// the party (they stay in the roster). Saved with the table; TEST_MODE=0 starts a fresh table with it off (the
+// tests use that). A test player has no phone, so it never counts for the landing page or the map vote.
+const isTest = (c) => c?.player === 'Test' && /^\[Test\]/.test(c.name || '');
+function setTestMode(on) {
+  state.settings.testMode = !!on;
+  if (on) {
+    if (!Object.values(state.players).some(isTest)) seedTestParty(PARTY.slice(0, 1));
+  } else {
+    for (const c of Object.values(state.players)) if (isTest(c) && !c.socketId) delete state.players[c.id];
+  }
+  return state.settings.testMode;
+}
+function bootTestMode() {
+  if (typeof state.settings.testMode !== 'boolean') state.settings.testMode = process.env.TEST_MODE !== '0';
+  if (state.settings.testMode) setTestMode(true);
+}
+
+module.exports = { PARTY, seedTestParty, setTestMode, bootTestMode, isTest };
