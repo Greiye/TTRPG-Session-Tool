@@ -4,6 +4,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { settled, poll } = require('./helpers');
 const { chromium, devices } = require('playwright');
 
 const PORT = 3800 + Math.floor(Math.random() * 100);
@@ -70,7 +71,7 @@ const SHOTS = process.env.SHOTS;
     const bb = await go.boundingBox();
     await ph.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
     await ph.mouse.down(); await ph.waitForTimeout(800); await ph.mouse.up(); // too short: nothing happens
-    await ph.waitForTimeout(300);
+    await ph.waitForTimeout(300); // nothing should happen: give a wrong activation time to show up
     if (/activated/.test(await ph.textContent('#tabSheet'))) errors.push('a short press activated a feature');
     await ph.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
     await ph.mouse.down(); await ph.waitForTimeout(3300); await ph.mouse.up();
@@ -144,18 +145,18 @@ const SHOTS = process.env.SHOTS;
   // Tools column: « minimizes it; the edge grip drags it back out (a short drag snaps closed again).
   const toolsW = () => dm.evaluate(() => document.querySelector('#toolsCol').getBoundingClientRect().width);
   await dm.click('#toolsMin');
-  await dm.waitForTimeout(500);
+  await poll(dm, () => document.querySelector('#toolsCol').getBoundingClientRect().width <= 2);
   if ((await toolsW()) > 2) errors.push('tools column did not minimize: ' + (await toolsW()));
   const gb = await dm.locator('#toolsGrip').boundingBox();
   const gx = gb.x + gb.width / 2, gy = gb.y + gb.height / 2;
   await dm.mouse.move(gx, gy); await dm.mouse.down(); await dm.mouse.move(gx + 40, gy, { steps: 4 }); await dm.mouse.up();
-  await dm.waitForTimeout(500);
+  await settled(dm, '#toolsCol');
   if ((await toolsW()) > 2) errors.push('short drag should snap the tools closed');
   await dm.mouse.move(gx, gy); await dm.mouse.down(); await dm.mouse.move(gx + 300, gy, { steps: 8 }); await dm.mouse.up();
-  await dm.waitForTimeout(500);
+  await poll(dm, () => document.querySelector('#toolsCol').getBoundingClientRect().width >= 300);
   if ((await toolsW()) < 300) errors.push('dragging the grip did not restore tools: ' + (await toolsW()));
-  await dm.click('#toolsMin'); await dm.waitForTimeout(450); await dm.click('#toolsGrip');
-  await dm.waitForTimeout(500);
+  await dm.click('#toolsMin'); await poll(dm, () => document.querySelector('#toolsCol').getBoundingClientRect().width <= 2); await dm.click('#toolsGrip');
+  await poll(dm, () => document.querySelector('#toolsCol').getBoundingClientRect().width >= 300);
   if ((await toolsW()) < 300) errors.push('clicking the grip did not restore tools');
   await dm.evaluate(() => socket.emit('dm:settings', { display: { palette: 'hc', motion: 'reduce' } }));
   await tv.waitForFunction(() => document.documentElement.dataset.palette === 'hc', null, { timeout: 3000 });
@@ -170,7 +171,7 @@ const SHOTS = process.env.SHOTS;
     await tv.waitForSelector('.party video.av-pc', { timeout: 5000 });
     await tv.evaluate(() => { window.__v = document.querySelector('.party video.av-pc'); });
     await dm.evaluate(() => socket.emit('dm:narrate', { text: 're-render' }));
-    await tv.waitForTimeout(500);
+    await poll(tv, () => document.body.textContent.includes('re-render'));
     if (!(await tv.evaluate(() => document.querySelector('.party video.av-pc') === window.__v))) errors.push('portrait video was recreated on re-render');
   }
   if (SHOTS) for (const [n, p] of [['dm', dm], ['tv', tv], ['phone', ph]]) await p.screenshot({ path: `${SHOTS}/ui-${n}.png` });

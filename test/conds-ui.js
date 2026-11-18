@@ -14,10 +14,10 @@ const h = harness('conds-ui');
   const errors = [];
   d.on('pageerror', (e) => errors.push(e.message));
   if (process.env.SHOTS) d.on('console', (m) => console.log('page:', m.text()));
-  await d.goto(h.URL + '/dm?key=dmkey'); await d.waitForTimeout(1500);
+  await d.goto(h.URL + '/dm?key=dmkey'); await d.waitForSelector('.dm-hero [data-hero-pick]'); await h.settled(d, 'body');
   const menu = d.locator('.ctx-menu:not(.closing)');
   const pc = dm.last.players[0];
-  await d.click(`.dm-hero [data-hero-pick="${pc.id}"]`); await d.waitForTimeout(200);
+  await d.click(`.dm-hero [data-hero-pick="${pc.id}"]`); await d.waitForSelector('.dm-hero .hero-art .cond-badge.add');
 
   h.ok(await d.locator('#condWho').count() === 0, 'the Conditions card is gone');
   h.ok(await d.locator('[data-act="reset"]').count() === 0, 'the Reset session button is gone');
@@ -28,7 +28,8 @@ const h = harness('conds-ui');
   h.ok(await menu.count() === 1 && /conditions/.test(await menu.locator('header b').textContent()), 'the + badge opens the conditions menu');
   await menu.locator('button', { hasText: 'Poisoned' }).click();
   h.ok(await h.until(() => dm.last.players.find((p) => p.id === pc.id).conditions.includes('Poisoned')), 'picking a condition sets it');
-  await d.keyboard.press('Escape'); await d.waitForTimeout(300);
+  await d.keyboard.press('Escape'); await d.waitForSelector('.ctx-menu', { state: 'detached', timeout: 3000 }).catch(() => {});
+  await d.waitForSelector('.dm-hero .hero-art .cond-badge[data-cond-key="Poisoned"]', { timeout: 3000 }).catch(() => {});
   h.ok(await d.locator('.dm-hero .hero-art .cond-badge[data-cond-key="Poisoned"]').count() === 1, 'the portrait shows a Poisoned badge');
   h.ok(await d.locator(`.dm-hero [data-hero-pick="${pc.id}"] .pick-cond`).count() === 1, 'the party picker shows a condition count');
 

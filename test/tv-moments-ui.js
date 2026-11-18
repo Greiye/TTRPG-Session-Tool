@@ -7,6 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { chromium } = require('playwright');
+const { settled } = require('./helpers');
 
 const PORT = 4100 + Math.floor(Math.random() * 100);
 const B = `http://127.0.0.1:${PORT}`;
@@ -46,7 +47,7 @@ const SHOTS = process.env.SHOTS;
 
   // Rolls: centred, fade out (an .out phase) rather than vanish.
   await tv.evaluate(() => RollPop.show({ who: 'Thorn', label: 'Athletics', dice: [{ sides: 20, value: 12, kept: true }], total: 15, outcome: 'pass' }));
-  await tv.waitForTimeout(900);
+  await settled(tv, '.rollpop');
   const pop = await centre(tv, '.rollpop');
   if (Math.abs(pop.cx - 640) > 20 || Math.abs(pop.cy - 360) > 40) fail(`roll popup should sit in the centre: ${JSON.stringify(pop)}`);
   await tv.waitForSelector('.rollpop.out', { timeout: 3000 }).catch(() => fail('roll popup should fade out'));
@@ -54,14 +55,14 @@ const SHOTS = process.env.SHOTS;
 
   // Natural 20: gold burst and a brighter screen; natural 1: a darker screen.
   await tv.evaluate(() => RollPop.show({ who: 'Vex', label: 'Stealth', dice: [{ sides: 20, value: 20, kept: true }], total: 27, crit: true }));
-  await tv.waitForTimeout(700);
+  await tv.waitForFunction(() => { const m = document.querySelector('.roll-mood'); return m && !m.hidden && /brightness\(1\.[1-9]/.test(getComputedStyle(m).backdropFilter); }, null, { timeout: 3000 }).catch(() => {});
   const mood = () => tv.evaluate(() => { const m = document.querySelector('.roll-mood'); return m && !m.hidden ? `${m.className}|${getComputedStyle(m).backdropFilter}` : null; });
   const crit = await mood();
   if (!crit || !/crit\b.*brightness\(1\.[1-9]/.test(crit)) fail('a natural 20 should brighten the TV: ' + crit);
   if (!(await tv.$('.rollpop.crit .rp-nat'))) fail('a natural 20 shows its banner');
   await shot(tv, 'tv-nat20');
   await tv.evaluate(() => RollPop.show({ who: 'Vex', label: 'Stealth', dice: [{ sides: 20, value: 1, kept: true }], total: 8, fumble: true }));
-  await tv.waitForTimeout(700);
+  await tv.waitForFunction(() => { const m = document.querySelector('.roll-mood'); return m && !m.hidden && /brightness\(0\.[0-9]/.test(getComputedStyle(m).backdropFilter); }, null, { timeout: 3000 }).catch(() => {});
   const fum = await mood();
   if (!fum || !/fumble.*brightness\(0\.[0-9]/.test(fum)) fail('a natural 1 should darken the TV: ' + fum);
   await shot(tv, 'tv-nat1');
@@ -70,10 +71,10 @@ const SHOTS = process.env.SHOTS;
 
   // 3D dice tray: centred on the TV and fades out.
   await tv.evaluate(() => Dice3D.show({ who: 'Elowen', label: 'Arcana', dice: [{ sides: 20, value: 20, kept: true }], total: 25, crit: true }));
-  await tv.waitForTimeout(500);
+  await settled(tv, '.dice-tray');
   const tray = await centre(tv, '.dice-tray');
   if (Math.abs(tray.cx - 640) > 10 || Math.abs(tray.cy - 360) > 10) fail('dice tray should sit in the centre: ' + JSON.stringify(tray));
-  await tv.waitForTimeout(1300);
+  await tv.waitForSelector('.roll-mood.crit:not([hidden])', { timeout: 4000 }).catch(() => {});
   if (!(await tv.$('.roll-mood.crit:not([hidden])'))) fail('a natural 20 on the dice tray brightens the TV once the dice settle');
   await shot(tv, 'tv-tray-nat20');
   await tv.evaluate(() => Dice3D.hide());
@@ -98,8 +99,9 @@ const SHOTS = process.env.SHOTS;
   if (!(await logged)) fail('chapter card should be in the log');
   await tv.waitForSelector('.mo-chapter:not([hidden])');
   await shot(tv, 'tv-chapter');
-  await tv.waitForTimeout(4500); // past the entrance, which also starts from opacity 0
-  await tv.waitForFunction(() => { const c = document.querySelector('.mo-chapter .mo-card'); return c && !c.parentElement.hidden && Number(getComputedStyle(c).opacity) < 0.9; }, null, { timeout: 3000, polling: 50 }).catch(() => fail('chapter card should fade out'));
+  // Past the entrance, which also starts from opacity 0: wait until the card is fully shown.
+  await tv.waitForFunction(() => Number(getComputedStyle(document.querySelector('.mo-chapter .mo-card')).opacity) >= 0.99, null, { timeout: 5000, polling: 50 }).catch(() => fail('chapter card should fade in'));
+  await tv.waitForFunction(() => { const c = document.querySelector('.mo-chapter .mo-card'); return c && !c.parentElement.hidden && Number(getComputedStyle(c).opacity) < 0.9; }, null, { timeout: 8000, polling: 50 }) // the card shows for 5.2 s.catch(() => fail('chapter card should fade out'));
   await tv.waitForSelector('.mo-chapter', { state: 'hidden', timeout: 2000 }).catch(() => fail('chapter card hides after fading'));
 
   // Clocks: wedges from the centre on the TV and in the DM's clock list.
@@ -113,7 +115,7 @@ const SHOTS = process.env.SHOTS;
   const tvPie = await tv.$eval('.clock .pie', (p) => ({ wedges: p.querySelectorAll('.wedges path').length, spokes: p.querySelectorAll('.spokes line').length }));
   if (tvPie.wedges !== 6 || tvPie.spokes !== 6) fail('TV clock should have 6 wedges and spokes: ' + JSON.stringify(tvPie));
   if (await tv.$('.pie i')) fail('clock should not use vertical bars');
-  await tv.waitForTimeout(800);
+  await settled(tv, '.clock');
   await shot(tv, 'tv-clock');
   await dm.waitForFunction(() => document.querySelectorAll('#clockList .pie .wedges path').length === 6, null, { timeout: 3000 }).catch(() => fail('DM clock list should show the wedge clock'));
 

@@ -16,10 +16,10 @@ const h = harness('ctxmenu');
   await d.addInitScript(() => { try { localStorage.setItem('dmFoldOpen', '1'); } catch { /* ignore */ } }); // DM cards start open in tests
   const errors = [];
   d.on('pageerror', (e) => errors.push(e.message));
-  await d.goto(h.URL + '/dm?key=dmkey'); await d.waitForTimeout(1500);
+  await d.goto(h.URL + '/dm?key=dmkey'); await d.waitForSelector('.dm-hero [data-hero-pick]'); await h.settled(d, 'body');
   const menu = d.locator('.ctx-menu:not(.closing)');
-  const close = async () => { await d.keyboard.press('Escape'); await d.waitForTimeout(200); };
-  const tab = async (id) => { await d.click(`[data-stab="${id}"]`); await d.waitForTimeout(250); };
+  const close = async () => { await d.keyboard.press('Escape'); await d.waitForSelector('.ctx-menu', { state: 'detached', timeout: 3000 }).catch(() => {}); };
+  const tab = async (id) => { await d.click(`[data-stab="${id}"]`); await h.settled(d, 'body'); };
 
   // Party member in the hero column's picker.
   const pc = dm.last.players[0];
@@ -37,7 +37,7 @@ const h = harness('ctxmenu');
   h.ok(await menu.count() === 0, 'Escape closes the menu');
 
   // Creature card in the Combat tab: remove is a two-click arm.
-  dm.emit('dm:mode', { mode: 'combat' }); await d.waitForTimeout(500);
+  dm.emit('dm:mode', { mode: 'combat' }); await h.until(() => dm.last.mode === 'combat'); await h.settled(d, 'body');
   await tab('combat');
   const foe = dm.last.combat.enemies[0];
   // The 3D battle map's unit menu is the same shared menu.
@@ -60,9 +60,9 @@ const h = harness('ctxmenu');
   h.ok(await h.until(() => !dm.last.combat.enemies.length), 'second click removes the creature');
 
   // A clock row has no menu of its own: its buttons become the menu.
-  dm.emit('dm:mode', { mode: 'exploration' }); await d.waitForTimeout(500);
+  dm.emit('dm:mode', { mode: 'exploration' }); await h.until(() => dm.last.mode === 'exploration'); await h.settled(d, 'body');
   await tab('scene');
-  await d.click('[data-sub-pick="clocks"]'); await d.waitForTimeout(250);
+  await d.click('[data-sub-pick="clocks"]'); await d.waitForSelector('#clockList .item');
   const clock = d.locator('#clockList .item').first();
   await clock.scrollIntoViewIfNeeded();
   await clock.click({ button: 'right', position: { x: 30, y: 8 } });
@@ -79,17 +79,18 @@ const h = harness('ctxmenu');
   await close();
 
   // World map place.
-  await d.click('#mapToggle'); await d.waitForTimeout(500);
+  await d.click('#mapToggle'); await d.waitForSelector('#wmBoard');
   await h.call(dm, 'dm:worldmap:example');
-  await d.waitForTimeout(400);
+  await h.until(() => dm.last.worldMap?.nodes?.length);
   const node = dm.last.worldMap.nodes.find((n) => !n.revealed) || dm.last.worldMap.nodes[0];
+  await d.waitForSelector(`#wmBoard [data-node="${node.id}"] i`); await h.settled(d, '#wmBoard');
   const was = !!node.revealed;
   await d.click(`#wmBoard [data-node="${node.id}"] i`, { button: 'right' });
   h.ok((await menu.locator('header b').textContent()) === node.name, 'right-click on a world map place opens its menu');
   await menu.locator('button', { hasText: 'Info revealed' }).click();
   h.ok(await h.until(() => !!dm.last.worldMap.nodes.find((n) => n.id === node.id).revealed !== was), 'reveal info from the menu');
   await close();
-  await d.click('#mapToggle'); await d.waitForTimeout(300);
+  await d.click('#mapToggle'); await h.settled(d, 'body');
 
   // Text fields and Shift + right-click keep the browser's own menu (no custom menu opens).
   await d.click('#narrate', { button: 'right' });

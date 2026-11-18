@@ -126,8 +126,13 @@ const shot = async (p, name) => { if (SHOTS) await p.screenshot({ path: path.joi
     await shot(dm, 'dm-npc-wheel.png');
     const s = await dm.evaluate(() => window.socket && true);
     const me = await ph.evaluate(() => localStorage.tavernChar);
-    await dm.evaluate(([id]) => { window.socket.emit('dm:sheet', { id, languages: ['Common', 'Gnollish'] }); }, [me]);
-    await dm.waitForTimeout(200);
+    // Send the languages and wait for the state that carries them (not a fixed pause).
+    await dm.evaluate(([id]) => new Promise((r) => {
+      const on = (st) => { if (JSON.stringify(st.players?.find((p) => p.id === id) || {}).includes('Gnollish')) { window.socket.off('state', on); r(); } };
+      window.socket.on('state', on);
+      setTimeout(() => { window.socket.off('state', on); r(); }, 3000);
+      window.socket.emit('dm:sheet', { id, languages: ['Common', 'Gnollish'] });
+    }), [me]);
     await dm.evaluate(() => window.socket.emit('dm:say', { text: 'Leave the bridge before the river takes it.', lang: 'Gnollish' }));
     await ph.waitForSelector('.tr-note', { timeout: 4000 });
     ok((await ph.textContent('.tr-note')).includes('Leave the bridge'), 'the player who knows Gnollish gets the translation');
@@ -139,7 +144,7 @@ const shot = async (p, name) => { if (SHOTS) await p.screenshot({ path: path.joi
     const qr = dm.locator('.show-toggle').first();
     const t0 = await qr.textContent();
     await qr.click();
-    await dm.waitForTimeout(300);
+    await dm.waitForFunction((t) => document.querySelector('.show-toggle')?.textContent !== t, t0, { timeout: 3000 }).catch(() => {});
     const t1 = await qr.textContent();
     ok(/Show/.test(t0) && /Hide/.test(t1), `a Show button flips to Hide (${t0.trim()} → ${t1.trim()})`);
   } catch (e) {

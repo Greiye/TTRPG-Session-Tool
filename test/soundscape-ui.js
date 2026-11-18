@@ -14,16 +14,17 @@ const untilPage = async (fn, ms = 3000) => { const end = Date.now() + ms; for (;
     const p = await (await b.newContext({ viewport })).newPage();
     p.on('pageerror', (e) => errors.push(e.message));
     await p.goto(h.URL + url);
-    await p.waitForTimeout(1200);
+    await p.waitForLoadState('networkidle');
     return p;
   };
   const d = await page('/dm?key=dmkey', { width: 1500, height: 950 });
+  await d.waitForFunction(() => window.dmShowTab);
   await d.evaluate(() => window.dmShowTab('scene', 'sound'));
-  await d.waitForTimeout(300);
+  await d.waitForSelector('#soundscape', { state: 'visible' });
   const card = d.locator('#soundscape');
   h.ok(await card.isVisible(), 'the DM finds the Soundscape under Scene');
   if (await card.evaluate((c) => c.classList.contains('folded'))) await card.locator('h3').click({ position: { x: 20, y: 10 } }); // folded, unless the tab opened it (Nov 18)
-  await d.waitForTimeout(300);
+  await d.waitForSelector('#soundscape:not(.folded) .ss-mood'); await h.settled(d, '#soundscape');
   h.ok(await card.locator('.ss-mood').count() === 9, 'the mood wheel has nine moods');
 
   await card.locator('[data-env="tavern"]').click();
@@ -38,7 +39,7 @@ const untilPage = async (fn, ms = 3000) => { const end = Date.now() + ms; for (;
   h.ok(await card.locator('[data-el="dm"]').isVisible(), 'the DM sees master volume and output');
   await card.locator('[data-output="tv"]').click();
   h.ok(await h.until(() => dm.last.audio.output === 'tv'), 'the DM picks the TV as output');
-  if (process.env.SHOTS) { await card.scrollIntoViewIfNeeded(); await d.waitForTimeout(500); await card.screenshot({ path: `${process.env.SHOTS}/dm-soundscape.png` }); }
+  if (process.env.SHOTS) { await card.scrollIntoViewIfNeeded(); await h.settled(d, '#soundscape'); await card.screenshot({ path: `${process.env.SHOTS}/dm-soundscape.png` }); }
 
   // Music Co-DM: the DM page with only the Soundscape card.
   const m = await page('/dm?key=musickey', { width: 390, height: 844 });

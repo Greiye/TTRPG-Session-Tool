@@ -27,14 +27,15 @@ const { ok } = h;
     for (const [n, p] of Object.entries(pages)) ok(!(await shown(p)), `${n}: no pill while connected`);
 
     await h.stop(srv);
-    await h.wait(2500);
+    for (const p of Object.values(pages)) await p.waitForSelector('.conn-pill.on', { timeout: 6000 }).catch(() => {});
     for (const [n, p] of Object.entries(pages)) ok(await shown(p), `${n}: pill slides in after the laptop drops`);
     const txt = await ph.evaluate(() => document.querySelector('.conn-pill')?.textContent);
     ok(/Reconnecting/.test(txt || ''), 'the pill says it is reconnecting');
 
     srv = await h.boot();
     ok((await h.room()) === room, 'the room code survives a restart (saved on shutdown)');
-    await h.wait(8000); // Socket.IO's reconnect backoff, then the 1.2 s "Back" message
+    // Socket.IO's reconnect backoff, then the 1.2 s "Back" message.
+    for (const p of Object.values(pages)) await p.waitForSelector('.conn-pill.on', { state: 'detached', timeout: 15000 }).catch(() => p.waitForFunction(() => !document.querySelector('.conn-pill.on'), null, { timeout: 1000 }).catch(() => {}));
     for (const [n, p] of Object.entries(pages)) ok(!(await shown(p)), `${n}: pill slides away once reconnected`);
     ok(!errors.length, `no page errors${errors.length ? `: ${errors.join(' | ')}` : ''}`);
   } catch (e) {

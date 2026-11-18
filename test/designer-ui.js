@@ -65,7 +65,7 @@ let srv;
   await p.waitForFunction(() => /Saved/.test(document.querySelector('#cdMsg').textContent));
   await p.waitForSelector('#cdList [data-open]');
   ok(await p.locator('#cdList [data-open]').count() === 1, 'the saved design is in the list');
-  if (SHOTS) { await p.waitForTimeout(400); await p.screenshot({ path: path.join(SHOTS, 'designer-people.png') }); }
+  if (SHOTS) { await p.waitForTimeout(400); /* screenshot only: let the list settle */ await p.screenshot({ path: path.join(SHOTS, 'designer-people.png') }); }
 
   await p.click('#cdCombat');
   await p.waitForFunction(() => /Combat/.test(document.querySelector('#cdMsg').textContent));
@@ -93,7 +93,7 @@ let srv;
   await p.fill('[data-rows="details"] .cd-row:nth-child(1) [data-k="value"]', 'Pickpocket');
   await p.click('#cdSave');
   await p.waitForFunction(() => document.querySelectorAll('#cdList [data-open]').length === 2);
-  if (SHOTS) { await p.waitForTimeout(400); await p.screenshot({ path: path.join(SHOTS, 'designer-person.png') }); }
+  if (SHOTS) { await p.waitForTimeout(400); /* screenshot only: let the list settle */ await p.screenshot({ path: path.join(SHOTS, 'designer-person.png') }); }
 
   await p.click('[data-cd-list="wiki"]');
   ok(/Connect the wiki/.test(await p.textContent('#cdList')), 'the Wiki list asks to connect first');
