@@ -38,6 +38,18 @@ function harness(name) {
     async player(room, name, cls = 'Fighter') { const s = await h.client(); s.me = await h.call(s, 'join', { name, cls, room }); return s; },
     // Wait until fn() is truthy (state updates are async); returns the value or false on timeout.
     async until(fn, ms = 2000) { const end = Date.now() + ms; for (;;) { let v; try { v = fn(); } catch { v = false; } if (v) return v; if (Date.now() > end) return false; await wait(25); } },
+    // Wait for an element's entrance animations to finish (instead of a fixed pause). Loops and long timers
+    // (over 1.5 s, e.g. a strike's time bar) are ignored, so this never waits on them.
+    async settled(page, sel, ms = 5000) {
+      await page.waitForFunction((s) => {
+        const el = document.querySelector(s);
+        if (!el) return false;
+        return el.getAnimations({ subtree: true }).every((a) => {
+          const t = a.effect?.getComputedTiming?.() || {};
+          return a.playState !== 'running' || t.iterations === Infinity || (t.activeDuration || 0) > 1500;
+        });
+      }, sel, { timeout: ms });
+    },
     async done(srv) {
       for (const s of sockets) s.close();
       if (srv) await h.stop(srv);

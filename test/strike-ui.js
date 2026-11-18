@@ -16,7 +16,7 @@ const SHOTS = process.env.SHOTS;
   await until(() => dm.last?.players.length === 2);
   dm.emit('dm:sheet', { id: a.me.id, inv: { op: 'add', name: 'Longsword', qty: 1, note: '[1d8 slashing]' } });
   dm.emit('dm:sheet', { id: a.me.id, inv: { op: 'add', name: 'Dagger', qty: 1 } });
-  await h.wait(200);
+  await until(() => /Dagger/.test(JSON.stringify(dm.last.players.find((p) => p.id === a.me.id))));
   const cues = [];
   dm.on('cfx', (c) => cues.push(c));
   dm.emit('dm:enemy:add', { name: 'Bandit', hp: 200, ac: 1, atk: 0, dmg: 1 });
@@ -68,7 +68,7 @@ const SHOTS = process.env.SHOTS;
   ok(await ph.waitForSelector('#strike .strike-sil', { timeout: 2000 }).then(() => true, () => false), 'picking an enemy opens its silhouette');
   if (SHOTS) await ph.screenshot({ path: `${SHOTS}/strike-open.png` });
   const before = attacks();
-  await h.wait(300); // wait for the card's entrance to finish
+  await h.settled(ph, '#strike'); // the card's entrance has finished
   const f = await ph.locator('#strike .strike-field').boundingBox();
   await ph.mouse.move(f.x + 20, f.y + f.height * 0.35);
   await ph.mouse.down();
@@ -85,24 +85,22 @@ const SHOTS = process.env.SHOTS;
   ok(await myTurn(), 'Mira\'s turn again');
   await ph.click(await attackBtn(ph, phUrl, wolf));
   await ph.waitForSelector('#strike .strike-sil');
-  await h.wait(300);
+  await h.settled(ph, '#strike');
   const g = await ph.locator('#strike .strike-field').boundingBox();
   const n1 = attacks();
   await ph.mouse.move(g.x + g.width / 2, g.y + g.height / 2); await ph.mouse.down();
   await ph.mouse.move(g.x + g.width / 2 + 40, g.y + g.height / 2, { steps: 4 }); await ph.mouse.up();
-  await h.wait(500);
+  await h.wait(500); // nothing should happen: give a wrong strike time to show up
   ok(attacks() === n1 && /slash/.test(await ph.locator('#strike .strike-hint').textContent()), 'a short drag does not strike and says how to slash');
 
   // Pierce: switch to the dagger and hold until the ring closes.
   await ph.click('#strike [data-weapon="1"]');
   ok(/hold/i.test(await ph.locator('#strike .strike-hint').textContent()), 'picking the dagger switches to a piercing hold');
   await ph.mouse.move(g.x + g.width / 2, g.y + g.height / 2); await ph.mouse.down();
-  await h.wait(200);
-  ok(await ph.locator('#strike .strike-ring:not([hidden])').count() === 1, 'holding shows the closing ring');
+  ok(await ph.waitForSelector('#strike .strike-ring:not([hidden])', { timeout: 2000 }).then(() => true, () => false), 'holding shows the closing ring');
   if (SHOTS) await ph.screenshot({ path: `${SHOTS}/strike-hold.png` });
-  await h.wait(800);
+  ok(await until(() => attacks() === n1 + 1, 5000), 'holding until the ring closes makes a piercing attack');
   await ph.mouse.up();
-  ok(await until(() => attacks() === n1 + 1, 3000), 'holding until the ring closes makes a piercing attack');
   await ph.waitForSelector('#strike', { state: 'detached', timeout: 4000 });
 
   // Node strike: Kai has no weapon, so the strike is unarmed: drag through numbered nodes in order.
@@ -111,12 +109,13 @@ const SHOTS = process.env.SHOTS;
   const kpUrl = `${h.URL}/play?takeover=${k.me.id}&key=dmkey`;
   await kp.goto(kpUrl);
   await kp.waitForFunction(() => window.Strike);
+  // A struck node pulses for the weapon's weight; the next step only counts once the pulse is over.
+  const pulseOver = () => kp.waitForFunction(() => document.querySelector('#strike .strike-node.on') && !document.querySelector('#strike .strike-node.pulse'), null, { timeout: 3000 });
   const kaiAttacks = () => dm.last.log.filter((l) => /^Kai attacks /.test(l.text) && !l.vis).length;
   ok(await turnOf(k), 'it is Kai\'s turn');
-  await h.wait(200);
   await kp.click(await attackBtn(kp, kpUrl, bandit));
   ok(await kp.waitForSelector('#strike[data-mode="nodes"] .strike-node', { timeout: 2000 }).then(() => true, () => false), 'unarmed gets numbered nodes on the silhouette');
-  await h.wait(350);
+  await h.settled(kp, '#strike');
   const nodes = await kp.$$eval('#strike .strike-node', (ns) => ns.map((n) => { const r = n.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, t: n.textContent }; }));
   ok(nodes.map((n) => n.t).join() === '1,2,3', 'the nodes are numbered 1 to 3');
   if (SHOTS) await kp.screenshot({ path: `${SHOTS}/strike-nodes.png` });
@@ -126,17 +125,18 @@ const SHOTS = process.env.SHOTS;
   ok(/node 1/.test(await kp.locator('#strike .strike-hint').textContent()), 'starting on the wrong node says to start on 1');
   // Lifting halfway resets the chain.
   await kp.mouse.move(nodes[0].x, nodes[0].y); await kp.mouse.down();
-  await h.wait(260);
+  await pulseOver();
   await kp.mouse.move(nodes[1].x, nodes[1].y, { steps: 6 }); await kp.mouse.up();
   ok(await kp.locator('#strike .strike-node.on').count() === 0 && kaiAttacks() === k0, 'lifting the finger halfway resets the chain');
   // The whole chain, waiting out each node's pulse (light: unarmed).
   await kp.mouse.move(nodes[0].x, nodes[0].y); await kp.mouse.down();
   await kp.waitForSelector('#strike .strike-node.pulse', { timeout: 500 }).catch(() => {});
   ok(await kp.locator('#strike .strike-node.pulse').count() === 1, 'a node pulses after it is struck');
-  await h.wait(260);
+  await pulseOver();
   await kp.mouse.move(nodes[1].x, nodes[1].y, { steps: 6 });
   if (SHOTS) await kp.screenshot({ path: `${SHOTS}/strike-nodes-chain.png` });
-  await h.wait(260);
+  await kp.waitForSelector('#strike .strike-node.on >> nth=1', { timeout: 3000 }).catch(() => {});
+  await pulseOver();
   await kp.mouse.move(nodes[2].x, nodes[2].y, { steps: 6 }); await kp.mouse.up();
   ok(await until(() => kaiAttacks() === k0 + 1, 3000), 'dragging through every node in order makes the attack');
   ok(await until(() => cues.some((c) => c.by?.id === k.me.id && c.style === 'combo'), 3000), 'the cue tells the screens it was a combo');
@@ -145,7 +145,7 @@ const SHOTS = process.env.SHOTS;
 
   // Special moves: the builder lays out a chain by tapping the body and saves it on the character.
   await kp.evaluate(() => Strike.openMoveBuilder({ moves: [] }));
-  await kp.waitForSelector('#moveBuild .strike-field'); await h.wait(350);
+  await kp.waitForSelector('#moveBuild .strike-field'); await h.settled(kp, '#moveBuild');
   const bf = await kp.locator('#moveBuild .strike-field').boundingBox();
   const tapAt = (fx, fy) => kp.mouse.click(bf.x + bf.width * fx, bf.y + bf.height * fy);
   await tapAt(0.5, 0.4);
@@ -165,15 +165,14 @@ const SHOTS = process.env.SHOTS;
   ok(await until(() => kaiMoves()[1]?.steps.length === 6, 3000), 'the server keeps the valid steps of a move');
   await nextTurn();
   ok(await turnOf(k), 'Kai\'s turn again');
-  await h.wait(200);
   const k1 = kaiAttacks(), c1 = cues.length;
   const wolfBtn = await attackBtn(kp, kpUrl, wolf);
   await kp.evaluate(() => { Strike.windowMs = 20000; }); // no auto-strike while a slow runner works through the chain
   await kp.click(wolfBtn);
   await kp.waitForSelector('#strike [data-move="1"]');
   await kp.click('#strike [data-move="1"]');
-  await h.wait(100);
-  ok(/hit, slash, pierce, two-press, two-slash, spell/.test(await kp.locator('#strike .strike-hint').textContent()), 'picking a move lays out its chain and names the steps');
+  ok(await kp.waitForFunction(() => /hit, slash, pierce, two-press, two-slash, spell/.test(document.querySelector('#strike .strike-hint')?.textContent), null, { timeout: 2000 }).then(() => true, () => false), 'picking a move lays out its chain and names the steps');
+  await h.settled(kp, '#strike'); // node positions are read below: the card must be in place
   if (SHOTS) await kp.screenshot({ path: `${SHOTS}/move-chain.png` });
   await kp.evaluate(async () => {
     const f = document.querySelector('#strike .strike-field');
@@ -208,7 +207,6 @@ const SHOTS = process.env.SHOTS;
   await until(() => dm.last.settings.display.gestures === 'off');
   await nextTurn(); await nextTurn();
   ok(await myTurn(), 'Mira\'s turn a third time');
-  await h.wait(200);
   const n2 = attacks();
   await ph.click(await attackBtn(ph, phUrl, bandit));
   ok(await until(() => attacks() === n2 + 1, 3000) && await ph.locator('#strike').count() === 0, 'with strike gestures off the button attacks at once');
