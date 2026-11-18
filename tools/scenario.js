@@ -62,7 +62,7 @@ function profileDir(name) {
   if (path.dirname(dir) !== PROFILES) throw new Error('Bad profile name.');
   return dir;
 }
-const envFor = (dir) => ({ DATA_DIR: path.join(dir, 'data'), UPLOAD_DIR: path.join(dir, 'uploads') });
+const envFor = (dir) => ({ TEST_MODE: '0', DATA_DIR: path.join(dir, 'data'), UPLOAD_DIR: path.join(dir, 'uploads') });
 const isSeeded = (dir) => fs.existsSync(path.join(dir, 'data', 'campaign.json'));
 
 function boot(dir, env = {}) {

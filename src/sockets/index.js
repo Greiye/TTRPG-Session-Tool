@@ -5,6 +5,7 @@ const { stateFor, broadcast } = require('../state');
 const worldSockets = require('./worldmap');
 const recorder = require('../recorder');
 require('../lobby'); // state.lobby: the TV opens on the landing page each server start
+require('../testparty').bootTestMode(); // test mode: one test player at a fresh table (Nov 18)
 
 // Hardening (audit): a malformed event from any phone must not take the table down.
 // - A null payload counts as "no payload", so `({ id } = {})` defaults apply.

@@ -15,7 +15,7 @@ const { release, newRoomCode } = require('../session');
 const net = require('../net');
 const creatures = require('../creatures');
 const iso = require('../iso');
-const { seedTestParty } = require('../testparty');
+const { seedTestParty, setTestMode } = require('../testparty');
 const rolls = require('../rolls');
 
 // Log types the DM can show on the TV (display setting showLog; none by default, Mike Nov 15).
@@ -591,6 +591,8 @@ module.exports = function dmSockets(socket) {
   });
   // Placeholder party for testing (src/testparty.js): seeds five complex classes and seats them.
   dm('dm:testparty', () => { seedTestParty(); });
+  // Test mode (Nov 18): on seats one test player; off takes the test characters out of the party.
+  dm('dm:testmode', ({ on }) => { setTestMode(!!on); });
   dm('dm:spotlight', ({ id }) => { if (roster[id]) game.spotlight(id, 'intro'); });
   // Death and legacy (src/legacy.js): fall = leaves the party, memorial card on the TV.
   dm('dm:char:fall', ({ id, cause, epitaph }) => legacy.fall(id, { cause, epitaph }));

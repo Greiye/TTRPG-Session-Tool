@@ -37,6 +37,17 @@ onState((s) => {
 });
 $('#lobbyStart')?.addEventListener('click', () => call('lobby:start', {}));
 
+// Test mode (Nov 18): on by default with one test player; the button turns it off (or back on).
+onState((s) => {
+  const on = !!s.settings?.testMode;
+  const b = $('#testMode');
+  b.setAttribute('aria-pressed', String(on));
+  b.classList.toggle('on', on);
+  b.textContent = on ? '🧪 Test mode on' : '🧪 Test mode off';
+  document.body.classList.toggle('test-mode', on);
+});
+$('#testMode').addEventListener('click', () => emit('dm:testmode', { on: !state().settings?.testMode }));
+
 // Top bar minimize (Mike, Nov 14): ▴ folds the bar to its title line; ▾ brings it back. Saved on this laptop.
 const BAR_KEY = 'dmBarMin';
 function setBar(min) {

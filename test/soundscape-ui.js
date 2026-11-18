@@ -22,7 +22,7 @@ const untilPage = async (fn, ms = 3000) => { const end = Date.now() + ms; for (;
   await d.waitForTimeout(300);
   const card = d.locator('#soundscape');
   h.ok(await card.isVisible(), 'the DM finds the Soundscape under Scene');
-  await card.locator('h3').click({ position: { x: 20, y: 10 } }); // tab cards start folded
+  if (await card.evaluate((c) => c.classList.contains('folded'))) await card.locator('h3').click({ position: { x: 20, y: 10 } }); // folded, unless the tab opened it (Nov 18)
   await d.waitForTimeout(300);
   h.ok(await card.locator('.ss-mood').count() === 9, 'the mood wheel has nine moods');
 

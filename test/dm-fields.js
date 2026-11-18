@@ -12,7 +12,7 @@ const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'tavern-fields-'));
 const SKIP = ['checkbox', 'radio', 'range', 'color', 'file', 'hidden'];
 
 (async () => {
-  const srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, LOBBY: '0', PORT, HTTPS_PORT: PORT + 1000, DATA_DIR: TMP + '/data', UPLOAD_DIR: TMP + '/up' }, stdio: ['ignore', 'pipe', 'inherit'] });
+  const srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, LOBBY: '0', TEST_MODE: '0', PORT, HTTPS_PORT: PORT + 1000, DATA_DIR: TMP + '/data', UPLOAD_DIR: TMP + '/up' }, stdio: ['ignore', 'pipe', 'inherit'] });
   await new Promise((r) => srv.stdout.on('data', (d) => /running/.test(d) && r()));
   const br = await chromium.launch();
   const bad = new Map();
