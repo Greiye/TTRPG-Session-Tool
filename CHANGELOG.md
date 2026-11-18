@@ -4,7 +4,12 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Changed
+- **Tests never touch the real `data/` and `uploads/`** (Nov 18). `npm test` and `npm run test:ui` now run through `test/run.js`, which gives every script its own temp folders, runs them all even after a failure, and prints a summary with the command to re-run only the failed ones. `src/config.js` also gives any script under `test/` a temp folder when it is run alone. Before, some tests created files and startup backups in the repo's `data/`.
+
 ### Added
+- **Back up everything** (Mike, Nov 18; studio review S5). New DM tile under Data and `npm run backup` write one zip of `data/` and `uploads/` (campaign, characters, save points, portraits, backdrops, music, maps, sprites; startup backups left out). Restore by unzipping into the game folder with the game stopped. `src/backup.js`, no new dependency.
+- `CLAUDE.md`: how to run and test, the rules every change follows, where things live.
 - `docs/improvement-review.md`: prioritized improvement review (18 Nov) with what is still open from the studio review.
 - **TV landing page** (Mike, Nov 18). Each time the server starts, the TV opens on a landing page: **Landing Page** at the top, three character slots with **Join Game** under each (arcade style; more slots appear if more players join), the join QR, and a faded **Start game** that lights up once one player has joined. The TV's Start game is display only: the first player to join gets **▶ Start game** on their phone (the DM also has it in the top bar), and the game opens straight on the world map. A phone that joins while the landing page is up gets **You have joined the game!** with **Continue**. `LOBBY=0` skips the landing page (the tests use it).
 - **Group Map View** (Mike, Nov 18). Players open the world map on the TV themselves: each phone has a **🗺 Group Map View** button on the Play tab, the TV counts how many want the map (**2 / 4 want the map**), and once every seated player has pressed it the TV shows the map. With the map up the button reads **✕ Close Map** and the same vote puts the TV back. Pressing again takes a press back; combat pauses the vote. The DM's **Show on TV** box on the world map is gone (the DM page shows the count instead).

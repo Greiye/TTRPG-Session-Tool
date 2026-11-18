@@ -108,6 +108,16 @@ module.exports = function routes(app) {
     broadcast();
     res.json(out);
   });
+  // Back up everything (S5): data/ and uploads/ as one zip, written to a temp file, then sent.
+  app.get('/api/backup', (req, res) => {
+    if (!dmOnly(req)) return res.sendStatus(403);
+    try { require('./state').flushAll(); } catch { /* the savers report their own errors */ }
+    const backup = require('./backup');
+    const name = backup.fileName();
+    const tmp = path.join(require('os').tmpdir(), `${Date.now()}-${name}`);
+    try { backup.writeZip(tmp); } catch (e) { return res.status(500).json({ error: `Backup failed: ${e.message}` }); }
+    res.download(tmp, name, () => require('fs').rm(tmp, { force: true }, () => {}));
+  });
   app.get('/api/transcript.md', (req, res) => {
     if (!dmOnly(req)) return res.sendStatus(403);
     res.attachment(`session-${stamp()}.md`).type('text/markdown').send(bundle.transcript());
