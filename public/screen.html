@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/worldmap.css">
   <link rel="stylesheet" href="/moments.css">
   <link rel="stylesheet" href="/combatfx.css">
+  <link rel="stylesheet" href="/lobby.css">
   <script src="/settings.js"></script>
   <style>
     .tv-ver { position: fixed; right: 12px; bottom: 8px; font: 13px/1 system-ui, sans-serif; color: #8a8478; background: none; border: 0; cursor: pointer; z-index: 50; }
@@ -35,6 +36,7 @@
   <script src="/dungeon.js"></script>
   <script src="/town.js"></script>
   <script src="/stage.js"></script>
+  <script src="/lobby.js"></script>
   <script src="/worldmap.js"></script>
   <script src="/moments.js"></script>
   <script src="/audio.js"></script>
@@ -60,9 +62,12 @@
       const on = !!(s.worldMap?.onTv && !s.shopPop); // a shop pop-up shows over the map; the map comes back when it closes
       if (on && mapOn === false) revealAt = Date.now();
       mapOn = on;
-      if (on) WorldMap.tv(root, s, { revealAt }); else Stage.stage(root, s);
+      // Landing page (Mike, Nov 18): each server start, until someone presses Start game.
+      if (s.lobby) Lobby.render(root, s, socket);
+      else { Lobby.leave(root); if (on) WorldMap.tv(root, s, { revealAt }); else Stage.stage(root, s); }
+      Lobby.mapCount(s); // Group Map View: how many phones want the map
       window.tvLast = s;
-      window.IsoTv?.update(s); // 3D battle map in combat (public/js/iso3d.js)
+      if (!s.lobby) window.IsoTv?.update(s); // 3D battle map in combat (public/js/iso3d.js)
       Moments.render(s);
       // End of session (Mike, Nov 16): a big card over everything until the DM resumes.
       const end = document.getElementById('endCard');

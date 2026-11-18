@@ -31,6 +31,8 @@ let sel = null;
 let placing = false;
 let drag = null;
 let pressing = false;
+const held = {}; // id -> { x, y } of places dragged but not yet confirmed by the server
+let boardAt = null; // the town the editor board last drew
 const keys = {};
 const once = (id, key, html) => { if (keys[id] === key) return false; keys[id] = key; $(id).innerHTML = html; return true; };
 const msg = (t) => { $('#tnMsg').textContent = t || ''; };
@@ -104,8 +106,20 @@ function draw(S) {
   const m = mapOf(S, at.id);
   if (sel && !m.nodes.some((n) => n.id === sel)) sel = null;
   once('#tnVisit', JSON.stringify([at.id, S.town.on, S.town.at, S.town.here, S.town.picks, S.town.tally, S.town.gate, S.worldMap.here, !!S.worldMap.travel, m.nodes.map((n) => n.name), S.players.map((p) => p.id + p.name), !!S.dungeon?.on]), visitHtml(S, at));
-  const view = { nodes: m.nodes, image: m.image, here: S.town.on && S.town.at === at.id ? S.town.here : null, tally: S.town.on && S.town.at === at.id ? S.town.tally : null };
-  if (!drag && !pressing && once('#tnBoard', JSON.stringify([at.id, view, sel]), Town.board(view, { dm: true, selected: sel, key: 'dm-ed' }))) Town.hydrate($('#tnBoard'), { key: 'dm-ed' });
+  // A place just dragged keeps its new spot until the server's copy catches up (no jump back, no flash).
+  for (const [id, p] of Object.entries(held)) { const node = m.nodes.find((x) => x.id === id); if (!node || (Math.abs(node.x - p.x) < 1e-3 && Math.abs(node.y - p.y) < 1e-3)) delete held[id]; }
+  const nodes = m.nodes.map((x) => (held[x.id] ? { ...x, ...held[x.id] } : x));
+  const view = { nodes, image: m.image, here: S.town.on && S.town.at === at.id ? S.town.here : null, tally: S.town.on && S.town.at === at.id ? S.town.tally : null };
+  if (!drag && !pressing) {
+    const same = boardAt === at.id; // the same town redrawn: keep its picture and skip the entrance animations
+    const keep = same ? Town.keepImages($('#tnBoard')) : null;
+    if (once('#tnBoard', JSON.stringify([at.id, view, sel]), Town.board(view, { dm: true, selected: sel, key: 'dm-ed' }))) {
+      keep?.();
+      if (same) $('#tnBoard .tn-board')?.classList.add('tn-still');
+      boardAt = at.id;
+      Town.hydrate($('#tnBoard'), { key: 'dm-ed' });
+    }
+  }
   const n = m.nodes.find((x) => x.id === sel);
   const ek = JSON.stringify([at.id, n, m.nodes.map((x) => x.id + x.name + x.kind), (S.shops || []).map((s) => s.id + s.name), S.town.on, S.town.at, S.town.here]);
   if (!$('#tnEdit').contains(document.activeElement) || !n) once('#tnEdit', ek, n ? editHtml(S, at, n) : '');
@@ -221,9 +235,9 @@ function dragEnd(e) {
   if (!d) return;
   $('#tnTrash').classList.remove('hot');
   if (!d.moved || e.type === 'pointercancel') { sel = d.id; keys['#tnBoard'] = null; return; }
-  keys['#tnBoard'] = null;
-  if (d.trash || overTrash(e)) { if (sel === d.id) sel = null; act('dm:town:remove', { id: d.id }); return; }
+  if (d.trash || overTrash(e)) { keys['#tnBoard'] = null; if (sel === d.id) sel = null; act('dm:town:remove', { id: d.id }); return; }
   sel = d.id;
+  held[d.id] = { x: d.x, y: d.y }; // the dragged node stays where it was dropped while the save goes out
   act('dm:town:node', { id: d.id, x: d.x, y: d.y });
 }
 $('#tnBoard').addEventListener('pointerup', dragEnd);

@@ -1,5 +1,5 @@
 // Phone Inbox, a section of the Journal tab (Phase 4 and 7): handouts, phrases in unknown tongues, spoils with claims,
-// and the dialogue vote.
+// (the dialogue vote was removed, Nov 18).
 import { socket, $, onState, state } from '../client.js';
 import { me } from './identity.js';
 import { addSection, tab, onTab, setBadge } from './tabs.js';
@@ -54,10 +54,6 @@ function render() {
   if (!c) return;
   // Handouts and phrases are pop-ups now (popups.js); only spoils stay in the inbox (Mike, Nov 16).
   const items = (S.handouts || []).filter((h) => h.kind === 'spoil').slice().reverse();
-  const vote = S.vote;
-  const voteHtml = vote ? `<div class="card vote"><h3>${vote.open ? 'The party votes' : 'Vote closed'}</h3>
-      <div class="list">${vote.options.map((o, i) => `<button class="btn ${vote.mine === i ? 'primary' : ''}" data-vote="${i}" ${vote.open ? '' : 'disabled'}>${esc(o)}</button>`).join('')}</div>
-      <p class="note">${vote.mine != null ? 'Tap another option to change your vote.' : 'Tap an option to vote.'}</p></div>` : '';
   // Secret objectives (item 9): the server only sends yours, plus any the DM has revealed.
   const objs = S.objectives || [];
   const objHtml = objs.map((o) => `<div class="card objective"><h3>🎯 ${esc(o.title)}</h3>${o.text ? `<p>${esc(o.text)}</p>` : ''}<p class="note">${o.revealed ? 'Revealed to the table by the DM.' : 'Secret. Only you see this.'}</p></div>`).join('');
@@ -81,7 +77,7 @@ function render() {
   const quizPending = q?.open ? q.questions.filter((x) => q.mine?.[x.id] === undefined).length : 0;
   const quiz = quizHtml(q, c);
   const pz = puzzleHtml(S.puzzle);
-  root().innerHTML = objHtml + pz + quiz + voteHtml + body + (items.length || objs.length || vote || q || pz ? '' : '<p class="note" style="text-align:center">Nothing here yet. Spoils, votes and quizzes from the DM show up here.</p>');
+  root().innerHTML = objHtml + pz + quiz + body + (items.length || objs.length || q || pz ? '' : '<p class="note" style="text-align:center">Nothing here yet. Spoils and quizzes from the DM show up here.</p>');
   // A handout that just arrived unfolds like paper. Items already on screen (and the first load) stay still.
   const wraps = [...root().querySelectorAll('.hwrap[data-hid]')];
   const arrived = wraps.filter((el) => !shownHandouts.has(el.dataset.hid));
@@ -89,7 +85,7 @@ function render() {
   if (primed) arrived.forEach((el) => window.Anim?.play(el, 'unfold', c));
   primed = true;
   // Badge: count new items since the tab was last opened.
-  const fresh = items.filter((h) => !seen.has(h.id)).length + objs.filter((o) => !seen.has(o.id)).length + (vote?.open && vote.mine == null ? 1 : 0);
+  const fresh = items.filter((h) => !seen.has(h.id)).length + objs.filter((o) => !seen.has(o.id)).length;
   setBadge('inbox', tab() === 'inbox' ? 0 : fresh + quizPending);
   if (tab() === 'inbox') { items.forEach((h) => seen.add(h.id)); objs.forEach((o) => seen.add(o.id)); }
 }
@@ -126,8 +122,7 @@ root().addEventListener('click', (e) => {
     navigator.vibrate?.(20);
     return;
   }
-  if (b.dataset.vote != null) socket.emit('player:vote', { index: Number(b.dataset.vote) });
-  else if (b.dataset.claim) {
+  if (b.dataset.claim) {
     const note = root().querySelector(`[data-claim-note="${b.dataset.claim}"]`)?.value || '';
     socket.emit('player:claim', { id: b.dataset.claim, note });
   }

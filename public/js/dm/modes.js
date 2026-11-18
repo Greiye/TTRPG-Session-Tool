@@ -25,7 +25,12 @@ try { subs = JSON.parse(load('dmSideSubs', '{}')) || {}; } catch { subs = {}; }
 let planning = load('dmPlanning', '') === '1';
 let mapPage = load('dmMapPage', '') === '1';
 let mode = 'exploration';
+let lastMode = null; // the mode the last state had: a change brings that mode's window to the top
 let kindsKey = null;
+let lastShown = '';
+// The window that belongs to each pillar (Mike, Nov 18): Explore puts the Scene window on top, Combat the
+// Battle Window. The tab opens, its button moves to the top of the tab list, and its first window unfolds.
+const MODE_TAB = { exploration: ['scene', 'scene'], combat: ['combat', null] };
 
 const inMode = (c) => !c.dataset.panel || c.dataset.panel.split(' ').includes(mode);
 // Battle and Social Masters (src/roles.js) see only their cards, in every mode, so they can prep ahead.
@@ -68,6 +73,9 @@ function apply() {
     b.setAttribute('aria-selected', String(b.dataset.stab === tab));
   });
   $$('.tab-group').forEach((g) => { g.hidden = ![...g.querySelectorAll('[data-stab]')].some((b) => !b.hidden); });
+  const top = MODE_TAB[mode]?.[0];
+  $$('[data-stab]').forEach((b) => b.classList.toggle('mode-top', b.dataset.stab === top));
+  $$('.tab-group').forEach((g) => g.classList.toggle('mode-top', !!g.querySelector('.mode-top')));
   const title = $('#sideTitle');
   if (title) title.textContent = $(`[data-stab="${tab}"]`)?.title || '';
 
@@ -85,6 +93,9 @@ function apply() {
     c.hidden = !(c.dataset.tab === tab && fits(c) && (!c.dataset.sub || c.dataset.sub === sub));
   });
   $$('[data-panel]:not([data-tab])').forEach((p) => { p.hidden = !p.dataset.panel.split(' ').includes(mode); });
+  // One window open at a time in the tools column (public/js/dm/fold.js), checked when the shown tab changes.
+  const shownKey = `${tab}:${sub}:${mode}:${planning}`;
+  if (shownKey !== lastShown) { lastShown = shownKey; window.dmCascade?.(); }
 }
 
 function showTab(id) {
@@ -116,7 +127,15 @@ onState((s) => {
   });
   const now = $('#modeNow');
   if (now) now.textContent = MODE_NAMES[s.mode] || '';
-  apply();
+  const changed = lastMode !== null && lastMode !== s.mode;
+  lastMode = s.mode;
+  const pick = MODE_TAB[s.mode];
+  if (changed && pick && !masterRole()) {
+    tab = pick[0];
+    if (pick[1]) subs[tab] = pick[1];
+    apply();
+    window.dmCascade?.({ openFirst: true });
+  } else apply();
   drawKinds(s);
 });
 

@@ -1,7 +1,6 @@
-// Phone pop-ups from the DM (Mike, Nov 16): roll calls, party votes and messages. One pop-up shows at a time,
+// Phone pop-ups from the DM (Mike, Nov 16): roll calls and messages (the party vote was removed, Nov 18). One pop-up shows at a time,
 // in that order of priority, and each stays up until the player answers or presses Continue.
 //   - roll call: roll button (and inspiration); after the roll, the result and Continue
-//   - vote: one big button per option; after voting, the pick (tap another to change) and Continue
 //   - message: a handout or a phrase, with Continue at the bottom; Continue marks it read for the DM
 import { socket, onState, state } from '../client.js';
 import { me } from './identity.js';
@@ -11,7 +10,6 @@ const { esc } = Stage;
 let el = null;
 let shownKey = null;
 const closedCalls = new Set(); // roll call ids this phone pressed Continue on
-const closedVotes = new Set(); // vote ids this phone pressed Continue on
 const readLocal = new Set(); // handout ids marked read here, before the server echoes it back
 
 function close() {
@@ -28,8 +26,6 @@ function pick(S) {
   if (!c) return null;
   const chk = S.check;
   if (chk && (!chk.targets || chk.targets.includes(c.id)) && !closedCalls.has(chk.id)) return callPop(S, c, chk);
-  const v = S.vote;
-  if (v?.open && !closedVotes.has(v.id)) return votePop(v);
   const h = (S.handouts || []).find((x) => (x.kind === 'handout' || x.kind === 'phrase' || !x.kind) && x.seen === false && !readLocal.has(x.id));
   if (h) return msgPop(h);
   return null;
@@ -51,17 +47,6 @@ function callPop(S, c, chk) {
   return {
     key: `call:${chk.id}:${done ? 'd' : 'w'}:${c.inspiration || 0}`, kind: 'call', id: chk.id,
     html: `<p class="pp-kicker">🎲 Roll call · ${kindName}</p><h3>${esc(chk.label)}</h3><p class="note">${dc}${mode}</p>${body}`,
-  };
-}
-
-function votePop(v) {
-  const voted = v.mine != null;
-  return {
-    key: `vote:${v.id}:${v.mine}:${v.options.join('|')}`, kind: 'vote', id: v.id,
-    html: `<p class="pp-kicker">🗳 Party vote</p><h3>${voted ? 'Vote cast' : 'The party votes'}</h3>
-      <div class="list pp-opts">${v.options.map((o, i) => `<button class="btn ${v.mine === i ? 'primary' : ''}" data-pp="vote" data-i="${i}">${esc(o)}${v.mine === i ? ' ✓' : ''}</button>`).join('')}</div>
-      <p class="note">${voted ? 'Tap another option to change your vote.' : 'Tap an option to vote.'}</p>
-      ${voted ? '<button class="bigbtn pp-continue" data-pp="vote-close">Continue</button>' : ''}`,
   };
 }
 
@@ -94,7 +79,7 @@ function render() {
   el.dataset.kind = next.kind; el.dataset.id = String(next.id);
   shownKey = next.key;
   const sheet = el.querySelector('.pop-sheet');
-  sheet.setAttribute('aria-label', next.kind === 'call' ? 'Roll call' : next.kind === 'vote' ? 'Party vote' : 'Message');
+  sheet.setAttribute('aria-label', next.kind === 'call' ? 'Roll call' : 'Message');
   sheet.innerHTML = next.html;
   sheet.classList.toggle('pp-msg', next.kind === 'msg');
   if (fresh) window.Anim?.play(sheet, next.kind === 'msg' ? 'unfold' : 'pop', null);
@@ -109,8 +94,6 @@ function onClick(e) {
   navigator.vibrate?.(30);
   if (act === 'roll') { b.disabled = true; b.classList.add('rolling'); socket.emit('player:answer', { inspire: !!b.dataset.inspire }); return; }
   if (act === 'call-close') closedCalls.add(Number(id));
-  if (act === 'vote') return socket.emit('player:vote', { index: Number(b.dataset.i) });
-  if (act === 'vote-close') closedVotes.add(id);
   if (act === 'msg-read') { readLocal.add(id); socket.emit('player:handout:read', { id }); }
   close();
   setTimeout(render, 240); // the next item in line, if any

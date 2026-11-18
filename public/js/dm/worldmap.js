@@ -12,7 +12,7 @@ const WM = () => window.WorldMap;
 mount(`<div class="card wm-page-card">
   <h3>World map <span class="note">places, votes, travel and road cards</span></h3>
   <div class="row wrap">
-    <label class="chk" title="Stays on the TV in exploration and social until you untick it. Entering combat gives the TV to the combat prep filter; tick again to show the map mid-fight."><input type="checkbox" id="wmTv"> Show on TV</label>
+    <span class="note wm-tvvote" id="wmTv" title="The players open the map on the TV themselves (Mike, Nov 18): every phone presses Group Map View, and Close Map the same way." role="status"></span>
     <label class="chk" title="When the server starts and on Next session: exploration mode with the world map on the TV"><input type="checkbox" id="wmOpen"> Open each session here</label>
     <label class="note tight">Leg (s) <input id="wmLeg" type="number" min="5" max="1800" style="width:72px"></label>
     <label class="chk" title="Each road leg moves the day clock on one segment; a two-leg road takes two (PR V)"><input type="checkbox" id="wmTime"> Travel uses time</label>
@@ -154,7 +154,8 @@ function draw(S) {
   if (!wm?.deck) return; // the DM view carries the deck and table; the first state before dm:auth does not
   setVal('#wmLeg', wm.legSeconds);
   setVal('#wmCard', wm.cardSeconds);
-  $('#wmTv').checked = !!wm.onTv;
+  const mv = S.mapVote;
+  $('#wmTv').textContent = `${wm.onTv ? '📺 Map on the TV' : '📺 Map not on the TV'}${mv?.want ? ` · ${mv.want} / ${mv.total} ${mv.dir === 'close' ? 'want to close it' : 'want it'}` : ' · players vote with Group Map View'}`;
   $('#wmOpen').checked = wm.openOnSession !== false;
   $('#wmFog').checked = !!wm.fog;
   $('#wmTime').checked = wm.timeOnTravel !== false;
@@ -370,7 +371,6 @@ $('#wmFog').onchange = (e) => emit('dm:worldmap:fog', { on: e.target.checked });
 $('#wmTime').onchange = (e) => emit('dm:worldmap:timing', { timeOnTravel: e.target.checked });
 $('#wmFogAll').onclick = () => emit('dm:worldmap:fog:all', { on: true });
 $('#wmFogNone').onclick = () => emit('dm:worldmap:fog:all', { on: false });
-$('#wmTv').onchange = (e) => emit('dm:worldmap:show', { on: e.target.checked });
 $('#wmOpen').onchange = (e) => emit('dm:worldmap:opensession', { on: e.target.checked });
 $('#wmLeg').onchange = (e) => emit('dm:worldmap:timing', { legSeconds: e.target.value });
 $('#wmCard').onchange = (e) => emit('dm:worldmap:timing', { cardSeconds: e.target.value });

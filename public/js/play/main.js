@@ -26,6 +26,9 @@ import './popups.js';
 import './table.js';
 import './spotlight.js';
 import './ended.js';
+import './mapview.js'; // Group Map View vote (Nov 18)
+import './lobby.js'; // "You have joined the game!" on the landing page (Nov 18)
+import './translate.js'; // translated NPC lines for players who know the tongue (Nov 18)
 
 import { socket } from '../client.js';
 import { me } from './identity.js';

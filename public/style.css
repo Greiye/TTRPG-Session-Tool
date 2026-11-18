@@ -1313,3 +1313,38 @@ body.reorder-on #toolsCol > .card[data-tab] > h3:first-of-type::before { content
 @keyframes strike-node { 50% { transform: translate(-50%, -50%) scale(1.12); box-shadow: 0 0 18px hsl(42 85% 60%); } }
 @keyframes strike-node-hit { 50% { transform: translate(-50%, -50%) scale(1.35); } to { transform: translate(-50%, -50%) scale(1); } }
 @keyframes strike-node-burst { to { transform: translate(-50%, -50%) scale(2); opacity: 0; } }
+body.reorder-on #sideTabs [data-stab]:not([hidden]) { cursor: grab; outline: 1px dashed rgb(227 180 90 / .6); outline-offset: 1px; }
+#sideTabs [data-stab].reorder-drag { opacity: .45; }
+/* Cascade (public/js/dm/fold.js): one window open per tab; it takes the height that is left, so the tools
+   column itself stops scrolling. Folded windows keep their title bar. */
+body.cascade #toolsCol > * { flex-shrink: 0; }
+body.cascade #toolsCol > .card[data-tab]:not(.folded):not([hidden]) { flex: 0 1 auto; min-height: 140px; overflow: auto; overscroll-behavior: contain; }
+body.cascade #toolsCol > .card[data-tab].folded > h3:first-of-type { margin-bottom: 0; }
+/* Group Map View button on the phone (public/js/play/mapview.js). */
+.mapview { margin: 0 0 10px; }
+.mapview-btn { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px; font-family: var(--display); font-size: calc(18px * var(--ts)); transition: background .2s, box-shadow .2s, transform .15s; }
+.mapview-btn small { font-family: system-ui, sans-serif; font-size: calc(12px * var(--ts)); opacity: .8; }
+.mapview-btn.on { background: rgb(240 190 90 / .25); box-shadow: 0 0 0 2px var(--gold) inset, 0 0 12px rgb(240 190 90 / .45); }
+.mapview-btn:active { transform: scale(.97); }
+/* "You have joined the game!" (public/js/play/lobby.js). */
+.lobby-pop { align-items: center; animation: lobby-fade .25s ease-out both; }
+@keyframes lobby-fade { from { opacity: 0; } }
+.lobby-sheet { border-radius: 16px; text-align: center; }
+.lobby-pop.closing { opacity: 0; transition: opacity .2s; }
+/* Translation notification (public/js/play/translate.js): drops in from the top, a bar shows the time left. */
+.tr-note { position: fixed; left: 50%; top: 12px; z-index: 950; width: min(480px, calc(100% - 24px)); transform: translateX(-50%); padding: 12px 14px 14px; border: 1px solid var(--gold); border-radius: 12px; background: var(--panel, #1d1622); color: var(--ink); box-shadow: 0 8px 24px rgb(0 0 0 / .5); animation: tr-in .35s cubic-bezier(.2, 1.2, .4, 1) both; overflow: hidden; }
+.tr-note.out { animation: tr-out .3s ease-in both; }
+.tr-note p { margin: 0; }
+.tr-kicker { font-size: calc(12px * var(--ts)); letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+.tr-who { font-size: calc(12px * var(--ts)); opacity: .75; margin-top: 2px !important; }
+.tr-text { font-size: calc(17px * var(--ts)); line-height: 1.35; margin-top: 4px !important; }
+.tr-bar { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--gold); transform-origin: left; animation: tr-bar var(--tr-ms, 6s) linear both; }
+@keyframes tr-in { from { transform: translate(-50%, -140%); opacity: 0; } }
+@keyframes tr-out { to { transform: translate(-50%, -140%); opacity: 0; } }
+@keyframes tr-bar { to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .tr-note, .tr-note.out, .lobby-pop { animation: none; } }
+.lobby-bar { margin: 0 0 10px; text-align: center; }
+.lobby-bar .lobby-start { animation: lb-glow 1.6s ease-in-out infinite; }
+.lobby-wait { padding: 10px; border: 1px dashed var(--gold); border-radius: 10px; }
+@keyframes lb-glow { 50% { box-shadow: 0 0 18px rgb(240 190 90 / .8); } }
+@media (prefers-reduced-motion: reduce) { .lobby-bar .lobby-start { animation: none; } }

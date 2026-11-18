@@ -47,7 +47,7 @@ mount(`
     <span id="tenVal">0</span> / 10
     <button class="btn small" data-tension="1">+</button>
     <input id="tenLabel" placeholder="Label" maxlength="30" aria-label="Tension label">
-    <button class="btn small" id="tenOn">Show on TV</button>
+    <button class="btn small" id="tenOn" aria-pressed="false">Show on TV</button>
   </div>
 
   <h4>Foreshadowing</h4>
@@ -102,6 +102,7 @@ onState((s) => {
   $('#tenLabel').placeholder = t.label || 'Label';
   $('#tenOn').textContent = t.on ? 'Hide from TV' : 'Show on TV';
   $('#tenOn').classList.toggle('primary', !!t.on);
+  $('#tenOn').setAttribute('aria-pressed', String(!!t.on));
 
   $('#tblHints').innerHTML = (s.foreshadow || []).map((h) => `<div class="item"><span>${h.paid ? '✔ ' : '○ '}${esc(h.text)}${h.paid ? `<br><small>Paid off: ${esc(h.payoff || '—')}</small>` : ''}</span><span class="row">${h.paid ? `<button class="btn small" data-unpay="${esc(h.id)}">Undo</button>` : `<input class="payoff" data-payoff-for="${esc(h.id)}" placeholder="How it pays off" maxlength="200"><button class="btn small" data-pay="${esc(h.id)}">Paid off</button>`}<button class="btn small" data-hint-rm="${esc(h.id)}" aria-label="Remove hint">✕</button></span></div>`).join('') || '<p class="note">No hints planted yet.</p>';
 

@@ -1,4 +1,4 @@
-// Browser test (Mike, Nov 16): DM messages, party votes and roll calls pop up on phones and stay until answered.
+// Browser test (Mike, Nov 16): DM messages and roll calls pop up on phones and stay until answered.
 // Usage: node test/phone-popups.js  (needs Playwright). SHOTS=dir saves screenshots.
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -13,7 +13,7 @@ const SHOTS = process.env.SHOTS;
 let failures = 0;
 const ok = (c, m) => { console.log(`${c ? '  ok  ' : '  FAIL'} ${m}`); if (!c) failures++; };
 (async () => {
-  const srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, HTTPS_PORT: PORT + 1000, DATA_DIR: TMP + '/data', UPLOAD_DIR: TMP + '/up' }, stdio: ['ignore', 'pipe', 'inherit'] });
+  const srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, LOBBY: '0', PORT, HTTPS_PORT: PORT + 1000, DATA_DIR: TMP + '/data', UPLOAD_DIR: TMP + '/up' }, stdio: ['ignore', 'pipe', 'inherit'] });
   await new Promise((r) => srv.stdout.on('data', (d) => /running/.test(d) && r()));
   const br = await chromium.launch();
   const errors = [];
@@ -51,20 +51,7 @@ const ok = (c, m) => { console.log(`${c ? '  ok  ' : '  FAIL'} ${m}`); if (!c) f
     await ph.waitForSelector('.phone-pop', { state: 'detached', timeout: 3000 });
     ok(!!(await dm.waitForFunction(() => document.querySelector('#msgList').textContent.includes('read by all'), null, { timeout: 3000 }).catch(() => null)), 'DM sees the message was read');
 
-    // Party vote: its own card; starting it pops up on the phone.
-    ok(await dm.isVisible('.vote-card #voteOpts'), 'party vote has its own card in the Messages tab');
-    await dm.fill('#voteOpts', 'Fight, Flee, Parley');
-    await dm.click('[data-act="voteStart"]');
-    await ph.waitForSelector('.phone-pop[data-kind="vote"] [data-pp="vote"]', { timeout: 5000 });
-    ok((await ph.$$('.phone-pop [data-pp="vote"]')).length === 3, 'vote pop-up shows each option');
-    await ph.click('.phone-pop [data-pp="vote"][data-i="2"]');
-    await ph.waitForSelector('.phone-pop [data-pp="vote-close"]', { timeout: 3000 });
-    if (SHOTS) { await ph.screenshot({ path: `${SHOTS}/phone-vote.png` }); }
-    ok(!!(await dm.waitForFunction(() => document.querySelector('#voteTally [data-vtn="2"]')?.textContent === '1', null, { timeout: 3000 }).catch(() => null)), 'DM vote card counts the vote');
-    if (SHOTS) await dm.locator('.vote-card').screenshot({ path: `${SHOTS}/dm-vote.png` });
-    await ph.click('.phone-pop [data-pp="vote-close"]');
-    await ph.waitForSelector('.phone-pop', { state: 'detached', timeout: 3000 });
-    await dm.click('[data-act="voteClose"]');
+    ok(!(await dm.$('.vote-card')), 'the Party vote window is gone (Mike, Nov 18)');
 
     // Roll call: roll type changes the outcome text; the call pops up on the phone.
     await dm.click('[data-stab="rolls"]');

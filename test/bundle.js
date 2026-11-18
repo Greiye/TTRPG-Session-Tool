@@ -9,7 +9,7 @@ let PORT; do PORT = 3600 + Math.floor(Math.random() * 90); while (PORT === 3659)
 const B = `http://127.0.0.1:${PORT}`;
 const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082', 'hex');
 const boot = (dir) => new Promise((r) => {
-  const p = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, HTTPS: '0', DATA_DIR: dir + '/d', UPLOAD_DIR: dir + '/u' }, stdio: ['ignore', 'pipe', 'inherit'] });
+  const p = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, LOBBY: '0', PORT, HTTPS: '0', DATA_DIR: dir + '/d', UPLOAD_DIR: dir + '/u' }, stdio: ['ignore', 'pipe', 'inherit'] });
   p.stdout.on('data', (d) => /running/.test(d) && r(p));
 });
 const stop = (p) => new Promise((r) => { p.on('exit', r); p.kill(); });

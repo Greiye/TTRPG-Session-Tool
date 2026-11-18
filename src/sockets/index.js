@@ -4,6 +4,7 @@ const { isLocalAddr } = require('../net');
 const { stateFor, broadcast } = require('../state');
 const worldSockets = require('./worldmap');
 const recorder = require('../recorder');
+require('../lobby'); // state.lobby: the TV opens on the landing page each server start
 
 // Hardening (audit): a malformed event from any phone must not take the table down.
 // - A null payload counts as "no payload", so `({ id } = {})` defaults apply.
@@ -58,6 +59,15 @@ module.exports = function sockets(io) {
     require('./journal')(socket);
     require('./takeover')(socket);
     require('./legends')(socket);
+    // TV landing page (src/lobby.js): Start game from the first joined player's phone, or the DM.
+    socket.on('lobby:start', (_p, ack) => {
+      const L = require('../lobby');
+      const me = require('../control').actorOf(require('../state').state, socket);
+      if (socket.data.role !== 'dm' && !(me && me.id === L.starter())) return ack?.({ error: 'The first player to join starts the game.' });
+      const r = L.start();
+      broadcast();
+      ack?.(r);
+    });
     worldSockets(socket);
     require('./moments')(socket);
     require('./table')(socket); // Phase I table tools

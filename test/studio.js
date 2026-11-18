@@ -12,7 +12,7 @@ const ROOT = path.join(__dirname, '..');
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'tavern-studio-'));
 let PORT; do PORT = 4100 + Math.floor(Math.random() * 400); while (PORT === 4190); // 4190 is on fetch's blocked-port list
 const URL = `http://127.0.0.1:${PORT}`;
-const ENV = { ...process.env, PORT, HTTPS_PORT: PORT + 1000, DATA_DIR: path.join(TMP, 'data'), UPLOAD_DIR: path.join(TMP, 'uploads'), DM_KEY: 'dmkey' };
+const ENV = { ...process.env, LOBBY: '0', PORT, HTTPS_PORT: PORT + 1000, DATA_DIR: path.join(TMP, 'data'), UPLOAD_DIR: path.join(TMP, 'uploads'), DM_KEY: 'dmkey' };
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 let failures = 0;
 const ok = (cond, msg) => { console.log(`${cond ? '  ok  ' : '  FAIL'} ${msg}`); if (!cond) failures++; };
@@ -116,8 +116,10 @@ function boot(env = ENV) {
   ok(await until(() => botIds().length === 2), 'two playtest bots join the party');
   dm.emit('dm:check', { skill: 'Perception', dc: 5 });
   ok(await until(() => botIds().every((id) => dm.last.check?.results?.[id]), 6000), 'bots answer a roll call');
-  dm.emit('dm:vote:start', { options: ['Left', 'Right'] });
-  ok(await until(() => botIds().every((id) => dm.last.vote?.votes?.[id] !== undefined), 6000), 'bots vote');
+  // Group Map View (Nov 18): once one bot asks for the map, the other joins and the TV shows it.
+  const tvWas = !!dm.last.worldMap?.onTv;
+  bots[0].emit('player:mapview', { on: true });
+  ok(await until(() => !!dm.last.worldMap?.onTv !== tvWas, 6000), 'bots vote for the Group Map View');
 
   for (const b of bots) b.close();
   dm.close();

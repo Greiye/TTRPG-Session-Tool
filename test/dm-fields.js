@@ -12,12 +12,14 @@ const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'tavern-fields-'));
 const SKIP = ['checkbox', 'radio', 'range', 'color', 'file', 'hidden'];
 
 (async () => {
-  const srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, HTTPS_PORT: PORT + 1000, DATA_DIR: TMP + '/data', UPLOAD_DIR: TMP + '/up' }, stdio: ['ignore', 'pipe', 'inherit'] });
+  const srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, LOBBY: '0', PORT, HTTPS_PORT: PORT + 1000, DATA_DIR: TMP + '/data', UPLOAD_DIR: TMP + '/up' }, stdio: ['ignore', 'pipe', 'inherit'] });
   await new Promise((r) => srv.stdout.on('data', (d) => /running/.test(d) && r()));
   const br = await chromium.launch();
   const bad = new Map();
   for (const width of [1280, 1500]) {
     const p = await (await br.newContext({ viewport: { width, height: 900 } })).newPage();
+    // Every card open at once (cascade off, public/js/dm/fold.js), so every field is measured at full width.
+    await p.addInitScript(() => { try { localStorage.dmFoldOpen = '1'; } catch { /* ignore */ } });
     await p.goto(`http://127.0.0.1:${PORT}/dm`);
     await p.waitForSelector('[data-stab]');
     if ((await p.getAttribute('#planToggle', 'aria-pressed')) !== 'true') await p.click('#planToggle');

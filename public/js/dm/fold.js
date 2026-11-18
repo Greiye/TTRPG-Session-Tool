@@ -33,7 +33,33 @@ export function setFold(card, folded) {
   saved[card.dataset.foldKey] = folded;
   save();
 }
-const toggle = (card) => setFold(card, !card.classList.contains('folded'));
+// Cascade (Mike, Nov 18: "all the tabs and windows cascade, scrolling up and down is bad UX"): the tools column
+// shows one window open at a time. Opening a window folds the others in the same tab, so the tab is a stack of
+// title bars with one window open between them, and that window takes the room that is left (style.css). On by
+// default; Settings › Windows can turn it off. localStorage dmFoldOpen (the browser tests) leaves it off.
+const col = document.getElementById('toolsCol');
+const cascadeOn = () => !OPEN_ALL && window.Settings?.local().cascade !== 'off';
+const shown = () => (col ? [...col.querySelectorAll(':scope > .card[data-fold]:not([hidden])')].filter((c) => c.dataset.tab && head(c)) : []);
+function cascade({ openFirst = false, keep = null } = {}) {
+  document.body.classList.toggle('cascade', cascadeOn());
+  if (!cascadeOn()) return;
+  const cards = shown();
+  let open = cards.filter((c) => !c.classList.contains('folded'));
+  if (keep && open.includes(keep)) open = [keep, ...open.filter((c) => c !== keep)];
+  open.slice(1).forEach((c) => { c.classList.add('folded'); head(c)?.setAttribute('aria-expanded', 'false'); });
+  if (openFirst && !open.length && cards[0]) setFold(cards[0], false);
+}
+window.dmCascade = cascade;
+cascade(); // the body class (style.css) is set from the start; modes.js runs it again on each tab change
+window.addEventListener('settings:local', (e) => { if (e.detail?.name === 'cascade') cascade(); });
+const toggle = (card) => {
+  const opening = card.classList.contains('folded');
+  setFold(card, !opening);
+  if (opening && card.parentElement === col) {
+    cascade({ keep: card });
+    window.Anim?.play?.(card, 'unfold', null);
+  }
+};
 
 function scan() {
   document.querySelectorAll('.card[data-tab]:not([data-fold])').forEach((c) => { if (head(c)) c.dataset.fold = 'closed'; });

@@ -1,7 +1,7 @@
 // Playtest bots: fake friends on phones, for testing the TV and DM screens alone.
 // Each bot joins the running game like a phone, then answers what the table asks of it, the way a player would:
 //   rolls      roll calls (big Roll button or tapping the skill), a free d20 when it sits down
-//   explore    a line of action whenever the DM narrates, party votes, handouts, spoils claims
+//   explore    a line of action whenever the DM narrates, Group Map View votes, handouts, spoils claims
 //   world map  world map votes, the dungeon gate, the town gate, a place to go once inside a town
 //   shops      buys the cheapest thing it can afford from a shop pop-up (a weapon first if it needs one), then leaves
 //   social     a line with an emotion in each live conversation, and a pick from the DM's choice wheel
@@ -74,8 +74,9 @@ function bot(url, room, i, log = console.log, { fast = false } = {}) {
     // ----- exploration -----
     const story = (st.narration || []).at(-1);
     if (story && st.mode === 'exploration') once(`act:${story.id}`, () => send('player:action', { text: pick(ACTIONS) }, 'action'));
-    const v = st.vote;
-    if (v?.open && v.votes?.[me] === undefined && v.options?.length) once(`vote:${v.id}`, () => send('player:vote', { index: Math.floor(Math.random() * v.options.length) }, 'vote'));
+    // Group Map View (Nov 18): a bot joins once someone else has asked for the map (or to close it).
+    const mv = st.mapVote;
+    if (mv?.want > 0 && !mv.mine && !mv.blocked) once(`mapview:${mv.n}`, () => send('player:mapview', { on: true }, 'mapview'));
     for (const h of st.handouts || []) {
       if (h.kind === 'handout' && !h.read?.[me]) once(`read:${h.id}`, () => send('player:handout:read', { id: h.id }, 'handout'));
       if (h.kind === 'spoil' && !h.awarded && !h.claims?.[me]) once(`claim:${h.id}`, () => send('player:claim', { id: h.id, note: 'Bot wants it' }, 'claim'));
@@ -188,11 +189,12 @@ async function tour(url, bots, { dm, log = console.log } = {}) {
     dm.emit('dm:narrate', { text: '[Bot tour] The road forks under the old oak.' });
     return until(() => bots.every((b) => byBot('action').some((e) => e.who === b.botName)));
   });
-  await step('exploration: party vote', async () => {
-    dm.emit('dm:vote:start', { options: ['Left', 'Right'] });
-    const ok = await until(() => all((id) => S().vote?.votes?.[id] !== undefined));
-    dm.emit('dm:vote:clear');
-    return ok;
+  await step('exploration: Group Map View vote', async () => {
+    const was = !!S().worldMap?.onTv;
+    bots[0].emit('player:mapview', { on: true });
+    if (!(await until(() => !!S().worldMap?.onTv !== was))) return false;
+    bots[0].emit('player:mapview', { on: true }); // and the same vote puts the TV back
+    return until(() => !!S().worldMap?.onTv === was);
   });
   await step('exploration: handout read', async () => {
     dm.emit('dm:handout', { title: '[Bot tour] Note', text: 'A placeholder note.', to: 'all' });
