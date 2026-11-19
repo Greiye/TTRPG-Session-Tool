@@ -42,6 +42,7 @@ import './dock.js';
 import './endsession.js';
 import './lore.js';
 import './designer.js'; // Creature Designer and lore wiki (PR W)
+import './keywords.js'; // creature keyword bank and ideas in the designer (Nov 19)
 import './menus.js';
 import './reorder.js'; // re-orderable sidebar windows (Mike, Nov 17)
 import './toggles.js'; // Show/Hide checkboxes become one toggle button (Mike, Nov 18)
