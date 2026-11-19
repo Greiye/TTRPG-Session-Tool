@@ -50,6 +50,7 @@ function record(entry, { pop = true } = {}) {
   const e = { id: nextId(), t: Date.now(), ...entry };
   state.rolls.push(e);
   if (state.rolls.length > 60) state.rolls.shift();
+  require('./storybook').roll(e); // the whole session, on disk
   // Hall of fame (src/legends.js): a natural 1 on a d20 by a player counts toward "most natural 1s".
   if (e.fumble && e.whoId && e.vis !== 'dm' && (e.dice || []).some((d) => d.kept && d.sides === 20)) legends.recordNat1(roster[e.whoId]);
   if (pop && state.settings.rollPopup !== false) {

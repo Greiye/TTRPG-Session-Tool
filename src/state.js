@@ -19,6 +19,7 @@ const legends = require('./legends');
 const houserules = require('./houserules');
 const absent = require('./absent');
 const recorder = require('./recorder'); // session recorder (test tool, off by default)
+const storybook = require('./storybook'); // append-only session journal and the Keep star (/story)
 const tableState = require('./table-state'); // Phase I table tools: defaults for their fields
 const worldmap = require('./worldmap');
 const living = require('./living');
@@ -183,6 +184,7 @@ function log(kind, text, extra = {}) {
   if (state.log.length > 80) state.log.shift();
   absent.note(state, entry); // empty chairs keep what they missed (src/absent.js)
   recorder.logLine(entry); // session recorder; a no-op unless recording
+  storybook.line(entry); // the whole session, on disk (state.log keeps 80)
 }
 
 // Full snapshot. Never sent as-is: stateFor() filters it per viewer (see visibility.js).
@@ -215,6 +217,7 @@ function broadcast() {
     });
     // Soundscape layers follow the shared weather however it changed (buttons, oracles, undo): src/soundscape.js.
     require('./soundscape').sync(state);
+    storybook.watch(state); // mood changes and TV moments for the storybook
     const base = fullState();
     const cache = new Map();
     for (const socket of hub.io.sockets.sockets.values()) {
@@ -254,6 +257,8 @@ module.exports.loadSnapshot = (saved) => {
   cast.ensure(state.social);
 };
 module.exports.snapshot = snap;
+// The DM page shows the Keep star filling in, for the DM's own taps and for automatic keeps (nat 20, chapter cards).
+storybook.init({ onKept: (k) => hub.io?.to('dms').emit('story:kept', k) });
 
 // DM undo (src/undo.js): the history holds the campaign and each character sheet. Going back restores both;
 // phones stay connected (socket ids are kept) and characters made since then are left alone.
@@ -266,6 +271,7 @@ undo.init({
   apply(step) {
     const campaign = Object.fromEntries(Object.entries(step.parts).map(([k, v]) => [k, JSON.parse(v)]));
     module.exports.loadSnapshot({ ...campaign, version: store.VERSION, seq: 0 });
+    storybook.rewind(Math.max(0, ...state.log.map((l) => Number(l.id) || 0), ...(state.rolls || []).map((r) => Number(r.id) || 0))); // undone lines leave the story
     for (const [id, json] of Object.entries(step.chars)) {
       const saved = JSON.parse(json);
       const c = roster[id];

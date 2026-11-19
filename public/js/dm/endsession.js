@@ -9,6 +9,7 @@ const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
 const dlg = $('#endDlg');
 const qs = dmKey() ? `?key=${encodeURIComponent(dmKey())}` : '';
 $('#endTranscript').href = `/api/transcript.md${qs}`;
+$('#endStory').href = `/story${qs}`;
 
 holdButton($('#endSession'), { ms: 1000, idle: 'End Session', holding: 'Keep holding…', onFire: () => emit('dm:session:end') });
 

@@ -32,9 +32,9 @@ function dosTime(t) {
 }
 
 // Writes a standard zip (deflate, or stored when that is smaller, e.g. images and audio). One file in
-// memory at a time. Returns { file, count, bytes }.
-function writeZip(target) {
-  const list = files();
+// memory at a time. Returns { file, count, bytes }. `list` defaults to data/ and uploads/; each item is
+// { name, full } (a file on disk) or { name, data } (a Buffer or string), so the story pack can reuse it.
+function writeZip(target, list = files()) {
   const fd = fs.openSync(target, 'w');
   const central = [];
   let offset = 0;
@@ -42,13 +42,13 @@ function writeZip(target) {
   try {
     for (const f of list) {
       let raw;
-      try { raw = fs.readFileSync(f.full); } catch { continue; } // removed while we read: skip it
+      try { raw = f.data !== undefined ? Buffer.from(f.data) : fs.readFileSync(f.full); } catch { continue; } // removed while we read: skip it
       const deflated = zlib.deflateRawSync(raw);
       const store = deflated.length >= raw.length;
       const body = store ? raw : deflated;
       const name = Buffer.from(f.name, 'utf8');
       const crc = zlib.crc32(raw) >>> 0;
-      const { time, date } = dosTime(fs.statSync(f.full).mtimeMs);
+      const { time, date } = dosTime(f.full ? fs.statSync(f.full).mtimeMs : Date.now());
       const head = Buffer.alloc(30);
       head.writeUInt32LE(0x04034b50, 0); head.writeUInt16LE(20, 4); head.writeUInt16LE(0x0800, 6);
       head.writeUInt16LE(store ? 0 : 8, 8); head.writeUInt16LE(time, 10); head.writeUInt16LE(date, 12);

@@ -96,9 +96,9 @@ function importBundle(bundle) {
 }
 
 // Session transcript as Markdown: a script, scene by scene, for recaps and Arthuria.
-function transcript({ title } = {}) {
+function transcript({ title, entries = state.log } = {}) {
   const lines = [`# ${title || state.scene.title}`, '', `_Session transcript, exported ${new Date().toLocaleString()}_`, ''];
-  for (const l of state.log) {
+  for (const l of entries) {
     if (l.vis && l.vis !== 'all') continue; // DM-only and private entries stay out
     const time = new Date(l.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const mode = l.kind === 'system' && l.text.match(/^— (\w+) —$/);
@@ -114,9 +114,9 @@ function transcript({ title } = {}) {
 
 // Visual-novel script (item 14): scene headers, speakers, emotions as stage directions, actions as
 // stage directions in italics. Good for captions, for a cinematic re-read, or a podcast script.
-function script({ title } = {}) {
+function script({ title, entries = state.log } = {}) {
   const out = [`# ${title || state.scene.title}`, '', `*Script, exported ${new Date().toLocaleDateString()}*`, ''];
-  for (const l of state.log) {
+  for (const l of entries) {
     if (l.vis && l.vis !== 'all') continue;
     const mode = l.kind === 'system' && l.text.match(/^— (\w+) —$/);
     if (mode) { out.push('', `## ${mode[1][0]}${mode[1].slice(1).toLowerCase()}`, ''); continue; }
@@ -131,11 +131,11 @@ function script({ title } = {}) {
 
 // Session recap (item 14b): a short Markdown recap for Arthuria. Dialogue and combat in order,
 // with the outcome of each fight and the rolls that mattered. Private entries stay out.
-function recap({ title } = {}) {
+function recap({ title, entries = state.log } = {}) {
   const lines = [`# Recap: ${title || state.scene.title}`, ''];
   const combat = [];
   let inFight = false;
-  for (const l of state.log) {
+  for (const l of entries) {
     if (l.vis && l.vis !== 'all') continue;
     if (/^Roll initiative!/.test(l.text)) { inFight = true; combat.push('', '### Combat', ''); }
     if (l.kind === 'npc') lines.push(`- **${l.who}** says: "${l.text}"`);

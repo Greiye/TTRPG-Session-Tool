@@ -47,6 +47,7 @@ import './menus.js';
 import './reorder.js'; // re-orderable sidebar windows (Mike, Nov 17)
 import './toggles.js'; // Show/Hide checkboxes become one toggle button (Mike, Nov 18)
 import './undo.js';
+import './keep.js'; // Keep star and Storybook link (src/storybook.js)
 import { isoStage } from '../iso3d.js';
 
 
