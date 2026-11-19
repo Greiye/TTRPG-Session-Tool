@@ -1163,6 +1163,8 @@ body.dm .card > .btn, body.dm .card > button { display: block; margin-inline: au
 .lore-entry summary b { flex: 1; }
 .lore-entry.shared { border-color: rgb(80 160 110 / .6); }
 .lore-badge { font-size: .75rem; padding: 1px 6px; border-radius: 99px; background: rgb(80 160 110 / .25); }
+.lore-badge.repo { background: rgb(90 120 200 / .25); }
+.lore-badge.repo.dirty { background: rgb(220 160 60 / .3); }
 .lore-entry[open] .lore-body { animation: lore-open .2s ease both; }
 .lore-body { display: flex; flex-direction: column; gap: 6px; padding: 0 8px 8px; }
 .lore-body textarea { width: 100%; resize: vertical; }

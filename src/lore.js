@@ -47,14 +47,16 @@ function pull(lore, state) {
   const who = (c) => (c.kind === 'item' ? 'item' : 'npc');
   for (const c of state.social?.cast || []) put(who(c), c.name, '');
   if (state.social?.npc?.name) put(who(state.social.npc), state.social.npc.name, '');
+  // The DM's own item cards (not the samples), so the lore sync can carry them to the lore repo.
+  for (const it of require('./itemlib').lib.list()) if (!it.sample) put('item', it.name, it.note || '');
   return n;
 }
 
-// Phones get shared entries without the DM note; the TV and spectators get none.
+// Phones get shared entries without the DM note or the lore repo link; the TV and spectators get none.
 function viewFor(lore, viewer) {
   if (viewer.role === 'dm') return lore || [];
   if (viewer.role !== 'player') return [];
-  return (lore || []).filter((e) => e.shared).map(({ dm, ...e }) => e);
+  return (lore || []).filter((e) => e.shared).map(({ dm, src, ...e }) => e);
 }
 
 module.exports = { CATS, MAX, fresh, ensure, add, edit, remove, pull, viewFor };
