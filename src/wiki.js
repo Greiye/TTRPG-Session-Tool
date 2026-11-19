@@ -74,23 +74,28 @@ const ref = () => `?ref=${encodeURIComponent(cfg.branch)}`;
 const enc = (p) => p.split('/').map(encodeURIComponent).join('/');
 
 // Pages in the folder: [{ name, path, sha }]. README.md and files starting with "_" are skipped.
-async function list() {
+// `folder` picks another folder of the same repo (the lore sync reads content/lore, content/artifacts and
+// content/table); left out, it is the Creature Designer's folder.
+const pick = (folder) => (folder === undefined ? cfg.folder : cleanFolder(folder));
+
+async function list(folder) {
   if (!ready()) throw new Error('Connect the wiki first.');
+  const f = pick(folder);
   const keep = (n) => /\.md$/i.test(n) && !/^(_|readme\.md$)/i.test(n);
   if (cfg.mode === 'folder') {
-    const dir = path.join(cfg.dir, cfg.folder);
+    const dir = path.join(cfg.dir, f);
     if (!fs.existsSync(dir)) return [];
-    return fs.readdirSync(dir).filter(keep).sort().map((n) => ({ name: n.replace(/\.md$/i, ''), path: `${cfg.folder}/${n}`, sha: '' }));
+    return fs.readdirSync(dir).filter(keep).sort().map((n) => ({ name: n.replace(/\.md$/i, ''), path: `${f}/${n}`, sha: '' }));
   }
-  const out = await gh('GET', `${enc(cfg.folder)}${ref()}`);
+  const out = await gh('GET', `${enc(f)}${ref()}`);
   if (out.missing) return [];
   return (Array.isArray(out) ? out : []).filter((f) => f.type === 'file' && keep(f.name)).map((f) => ({ name: f.name.replace(/\.md$/i, ''), path: f.path, sha: f.sha }));
 }
 
-async function read(name) {
+async function read(name, folder) {
   const n = cleanName(name);
   if (!n) throw new Error('No such page.');
-  const rel = `${cfg.folder}/${n}.md`;
+  const rel = `${pick(folder)}/${n}.md`;
   if (cfg.mode === 'folder') {
     const file = path.join(cfg.dir, rel);
     if (!fs.existsSync(file)) throw new Error('No such page.');
@@ -103,10 +108,10 @@ async function read(name) {
 
 // Write one page. `sha` is the version the DM last pulled or pushed; if the page has moved on since,
 // the write stops with { conflict } unless `force` (then it overwrites the newer page).
-async function write(name, text, { sha = '', force = false, message } = {}) {
+async function write(name, text, { sha = '', force = false, message, folder } = {}) {
   const n = cleanName(name);
   if (!n) throw new Error('The page needs a name.');
-  const rel = `${cfg.folder}/${n}.md`;
+  const rel = `${pick(folder)}/${n}.md`;
   if (cfg.mode === 'folder') {
     const file = path.join(cfg.dir, rel);
     fs.mkdirSync(path.dirname(file), { recursive: true });

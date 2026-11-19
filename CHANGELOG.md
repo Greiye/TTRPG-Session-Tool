@@ -4,6 +4,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+- **Lore sync with the lore repo** (Mike, Nov 19). Lore tab › **⤓ Pull lore repo** reads Mike's Artheria lore repo (`content/lore/` books, `content/artifacts/` characters, `content/table/` pages) into Lore entries: places go to Locations, characters to NPCs, the rest to Books or Notes. **⤒ Push to lore repo** writes entries made at the table to `content/table/<name>.md`, one commit each, never with DM notes; library books are never written. Each entry shows 📖 lore repo, ☁ synced or ✎ to push. A pull keeps the DM's edits when a page changed in both places, and a push asks before overwriting a page changed on GitHub. Uses the Creature Designer's wiki connection (token or local clone). "From the table" now also adds the DM's own item cards. Format: `docs/lore-sync.md`.
+
 ## [1.2.0] - 2026-11-18
 
 First tagged release (`v1.2.0`): everything built since 1.1.0. Play game nights from a tag; update the laptop between sessions.

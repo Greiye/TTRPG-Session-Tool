@@ -214,4 +214,4 @@ function toLore(d) {
   return { cat: d.kind === 'person' ? 'npc' : 'creature', name: d.name, text: [d.summary, facts, d.lore].filter(Boolean).join('\n\n').slice(0, 2000), dm: d.dm.slice(0, 2000) };
 }
 
-module.exports = { KINDS, DETAILS, PRESETS, SECTIONS, lib, normalize, save, toMarkdown, fromMarkdown, fileSlug, toStatBlock, toLore };
+module.exports = { KINDS, DETAILS, PRESETS, SECTIONS, lib, normalize, save, toMarkdown, fromMarkdown, fileSlug, toStatBlock, toLore, frontmatter };

@@ -13,6 +13,17 @@ const openIds = new Set();
 let drawn = null;
 let fresh = null; // id of an entry just added: opened and flashed once
 
+// Lore repo sync (src/lorebook.js): library books and characters come from the repo and are edited there;
+// entries made here go to content/table/ on Push.
+const canPush = (e) => !e.src || e.src.folder === 'content/table';
+const dirty = (e) => canPush(e) && (!e.src || (e.at || 0) > (e.src.at || 0));
+function repoBadge(e) {
+  if (!e.src) return '';
+  if (!canPush(e)) return `<span class="lore-badge repo" title="From ${esc(e.src.path)} in the lore repo. Edit it there; a pull brings changes in.">📖 lore repo</span>`;
+  return dirty(e) ? '<span class="lore-badge repo dirty" title="Changed here since the last push">✎ to push</span>'
+    : `<span class="lore-badge repo" title="In sync with ${esc(e.src.path)}">☁ synced</span>`;
+}
+
 $('#loreCat').innerHTML = Object.entries(CATS).map(([k, [i, n]]) => `<option value="${k}">${i} ${n}</option>`).join('');
 const msg = (t) => { $('#loreMsg').textContent = t || ''; };
 
@@ -27,7 +38,7 @@ function drawCats(list) {
 function entry(e) {
   const [icon, catName] = CATS[e.cat] || CATS.note;
   return `<details class="lore-entry ${e.shared ? 'shared' : ''} ${e.id === fresh ? 'fresh' : ''}" data-lore="${esc(e.id)}" ${openIds.has(e.id) ? 'open' : ''}>
-    <summary><i>${icon}</i><b>${esc(e.name)}</b>${cat === 'all' ? `<small class="muted">${catName}</small>` : ''}${e.shared ? '<span class="lore-badge" title="Phones can read this">👁 shared</span>' : ''}</summary>
+    <summary><i>${icon}</i><b>${esc(e.name)}</b>${cat === 'all' ? `<small class="muted">${catName}</small>` : ''}${repoBadge(e)}${e.shared ? '<span class="lore-badge" title="Phones can read this">👁 shared</span>' : ''}</summary>
     <div class="lore-body">
       <div class="row"><input class="grow" data-lore-f="name" maxlength="80" value="${esc(e.name)}" aria-label="Name"><select data-lore-f="cat" style="width:auto" aria-label="Category">${Object.entries(CATS).map(([k, [i, n]]) => `<option value="${k}" ${k === e.cat ? 'selected' : ''}>${i} ${n}</option>`).join('')}</select></div>
       <label class="fld">What the party can learn<textarea data-lore-f="text" rows="3" maxlength="2000" placeholder="Description, history, what people say">${esc(e.text)}</textarea></label>
@@ -41,6 +52,8 @@ function draw(force = false) {
   const s = state();
   if (!s?.lore) return;
   const list = s.lore;
+  const n = list.filter(dirty).length;
+  $('#lorePending').textContent = n ? `(${n})` : '';
   const q = $('#loreFind').value.trim().toLowerCase();
   const key = JSON.stringify([list, cat, q]);
   // Don't redraw under the DM's cursor: an edit in progress would lose its caret.
@@ -80,6 +93,32 @@ $('#loreName').addEventListener('keydown', (e) => { if (e.key === 'Enter') add()
 $('#lorePull').onclick = async () => {
   const r = await call('dm:lore:pull');
   msg(r?.added ? `Added ${r.added} from the world map and the scene.` : 'Nothing new on the table.');
+};
+
+const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+async function repo(btn, event, args, say) {
+  btn.disabled = true;
+  msg('Talking to the lore repo…');
+  const r = await call(event, args);
+  btn.disabled = false;
+  if (r?.error) return msg(r.error);
+  msg(say(r) + (r.errors?.length ? ` Skipped: ${r.errors.join('; ')}.` : ''));
+  draw(true);
+  return r;
+}
+$('#loreRepoPull').onclick = (e) => repo(e.currentTarget, 'dm:lore:repo:pull', {}, (r) => {
+  const parts = [r.added && `added ${r.added}`, r.updated && `updated ${r.updated}`].filter(Boolean);
+  return (parts.length ? `Pulled: ${parts.join(', ')}.` : 'The lore tab already matches the lore repo.')
+    + (r.kept.length ? ` Kept your edits to ${r.kept.join(', ')} (changed in both places).` : '');
+});
+$('#loreRepoPush').onclick = async (e) => {
+  const btn = e.currentTarget;
+  const r = await repo(btn, 'dm:lore:repo:push', {}, (x) => (x.pushed ? `Pushed ${plural(x.pushed, 'page')} to content/table/.` : 'Nothing new to push.')
+    + (x.conflicts.length ? ` ${x.conflicts.join(', ')} changed in the repo since your last pull.` : ''));
+  if (r?.conflicts?.length && confirm(`${r.conflicts.join(', ')} changed in the lore repo since your last pull. Overwrite with the table's words?`)) {
+    const ids = (state()?.lore || []).filter((x) => r.conflicts.includes(x.name)).map((x) => x.id);
+    await repo(btn, 'dm:lore:repo:push', { force: true, ids }, (x) => `Overwrote ${plural(x.pushed, 'page')}.`);
+  }
 };
 
 const list = $('#loreList');
