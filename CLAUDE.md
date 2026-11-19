@@ -32,6 +32,8 @@ public product: no accounts, scaling or store work.
 - `server.js` boots; `src/state.js` holds the one shared state and `broadcast()`; `src/store.js` saves it
   (debounced atomic JSON writes, `data/campaign.json`); `src/saves.js` save points and startup backups.
 - Socket handlers: `src/sockets/*.js` (guarded; one throw never ends the process, see `src/safety.js`).
+- Storybook: `src/storybook.js` (append-only session journal in `data/sessions/`, Keep star), `src/storypack.js`
+  (story pack zip), viewer `public/story.html` + `public/js/story.js`. New TV moments or mood fields go there too.
 - HTTP routes: `src/routes.js`. Front end: plain ES modules, no build step, `public/js/{dm,play}/`,
   pages `public/{dm,screen,play,codm}.html`.
 - Decisions: `docs/decisions.md`. Plans not yet built: `docs/backlog.md`. Reviews:

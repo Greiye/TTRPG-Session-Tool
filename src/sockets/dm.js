@@ -647,14 +647,22 @@ module.exports = function dmSockets(socket) {
   });
   // End of session (Mike, Nov 16): a 1 s hold on the DM page. The TV shows "End of Session", phones
   // show "Thanks for playing.", and the DM gets a save and log dialog. Resume clears it.
+  // Keep star (storybook): marks the newest thing the table saw, or the item named by id; pressing it again un-keeps.
+  socket.on('dm:keep', ({ id, on } = {}, ack) => {
+    if (socket.data.role !== 'dm') return ack?.({ error: 'DM only' });
+    const r = require('../storybook').keep({ id: typeof id === 'number' || typeof id === 'string' ? id : undefined, on: typeof on === 'boolean' ? on : undefined });
+    ack?.(r);
+  });
   dm('dm:session:end', () => {
     if (state.ended) return;
     state.ended = { n: nextId(), at: Date.now(), session: state.intro?.session || null };
     log('system', '— END OF SESSION —');
+    require('../storybook').end();
   });
   dm('dm:session:resume', () => {
     if (!state.ended) return;
     state.ended = null;
+    require('../storybook').resume();
     log('system', 'Session resumed.');
   });
 };

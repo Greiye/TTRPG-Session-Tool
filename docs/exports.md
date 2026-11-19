@@ -1,6 +1,8 @@
 # Exports: turning sessions into art, music, animation and comics
 
-Status: design only, nothing built yet (Mike, 2026-11-16).
+Status: export 1 is built (Storybook, Nov 19: `src/storybook.js`, `src/storypack.js`, `/story`); the rest is design only (Mike, 2026-11-16).
+
+Built differently from the plan below: the journal folder is `data/sessions/<start time>/` (one session per server run, carried on after a restart within 6 hours), the story pack is a zip download from the Storybook page rather than a Pack screen, and the pack holds `story/`, `moments.md`, `moments.json`, `music/mood.csv` and `art/`. Snap stills, clips, panels and character sheets are not built yet.
 
 Mike's goal: the tool should become an inspiration tool. After a session, his artistic friends should be able to pick up what happened at the table and make art, music, animations and comics from it.
 
