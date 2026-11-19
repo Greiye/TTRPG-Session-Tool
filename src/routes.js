@@ -16,7 +16,7 @@ const QR_COLORS = { dark: '#1b1420', light: '#f4ead5' };
 module.exports = function routes(app) {
   app.use(express.static(PUBLIC_DIR));
   app.get('/', (_req, res) => res.redirect('/dm'));
-  for (const page of ['dm', 'screen', 'play', 'codm']) {
+  for (const page of ['dm', 'screen', 'play', 'codm', 'story']) {
     app.get(`/${page}`, (_req, res) => res.sendFile(path.join(PUBLIC_DIR, `${page}.html`)));
   }
   // Upload filenames are unique per upload, so browsers may cache them forever.
@@ -117,6 +117,32 @@ module.exports = function routes(app) {
     const tmp = path.join(require('os').tmpdir(), `${Date.now()}-${name}`);
     try { backup.writeZip(tmp); } catch (e) { return res.status(500).json({ error: `Backup failed: ${e.message}` }); }
     res.download(tmp, name, () => require('fs').rm(tmp, { force: true }, () => {}));
+  });
+  // Storybook (src/storybook.js, src/storypack.js): past sessions for the replay viewer at /story, the Keep star,
+  // and the story pack zip. DM only: the timeline holds DM-only lines (the pack never does).
+  const storybook = require('./storybook');
+  const storyDm = (req) => dmOnly(req) || isDm(req);
+  app.get('/api/story/sessions', (req, res) => (storyDm(req) ? res.json(storybook.list()) : res.sendStatus(403)));
+  app.get('/api/story/sessions/:id', (req, res) => {
+    if (!storyDm(req)) return res.sendStatus(403);
+    const s = storybook.read(req.params.id);
+    if (!s) return res.sendStatus(404);
+    res.json({ ...s, motion: require('./state').state.settings?.display?.motion || 'auto' });
+  });
+  app.post('/api/story/sessions/:id/keep', express.json(), (req, res) => {
+    if (!storyDm(req)) return res.sendStatus(403);
+    const { item, on } = req.body || {};
+    if (typeof item !== 'number' && typeof item !== 'string') return res.status(400).json({ error: 'Which item?' });
+    const r = storybook.keep({ id: item, on: on !== false, session: req.params.id });
+    res.status(r.error ? 404 : 200).json(r);
+  });
+  app.get('/api/story/sessions/:id/pack.zip', (req, res) => {
+    if (!storyDm(req)) return res.sendStatus(403);
+    const pack = require('./storypack').build(req.params.id, { keptOnly: req.query.kept === '1' });
+    if (!pack) return res.sendStatus(404);
+    const tmp = path.join(require('os').tmpdir(), `${Date.now()}-${pack.name}`);
+    try { require('./backup').writeZip(tmp, pack.files); } catch (e) { return res.status(500).json({ error: `Story pack failed: ${e.message}` }); }
+    res.download(tmp, pack.name, () => require('fs').rm(tmp, { force: true }, () => {}));
   });
   app.get('/api/transcript.md', (req, res) => {
     if (!dmOnly(req)) return res.sendStatus(403);

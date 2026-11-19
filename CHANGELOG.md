@@ -4,6 +4,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+- **Storybook: session journal, Keep star, replay viewer and story pack** (Mike, Nov 19; export 1 in `docs/exports.md`). Every log line, dice result, TV moment (entrance, relic reveal, quote, echo) and mood change (scene, backdrop, mode, NPC and emotion, weather, time of day, music) is appended to `data/sessions/<start time>/journal.jsonl`, so the whole session is kept (the live log keeps 80 lines). A restart within 6 hours without End Session carries on in the same session; DM undo takes undone lines out of the story. The DM bar has a **☆ Keep** star (key **K**): one tap keeps the newest thing the table saw, a second tap un-keeps it. A natural 20, a chapter card, a TV moment and the end of a fight are kept automatically; tapping the filled star un-keeps them. **📖 Storybook** (`/story`, also in the End Session window) replays a session: the stage shows the backdrop, scene, mode, mood and the line as it was, a scrubber with kept-moment ticks, play, step and jump-to-kept (arrow keys, Space, `[` `]`, K), and the transcript beside it with search, kept-only and DM-only filters. **📦 Story pack** downloads a zip with the transcript, script, recap, kept moments (Markdown and JSON with their mood), a mood timeline CSV for musicians, and the backdrops and portraits that were on screen. Only what the table saw goes in the pack; DM-only and private lines stay on the laptop. Respects the Motion setting.
+
 ## [1.2.0] - 2026-11-18
 
 First tagged release (`v1.2.0`): everything built since 1.1.0. Play game nights from a tag; update the laptop between sessions.

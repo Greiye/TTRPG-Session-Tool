@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Storybook — TTRPG Session Tool</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/story.css">
+</head>
+<!-- Storybook (Mike, Nov 19): replay a past session. DM only: the data needs the laptop or the DM key. -->
+<body class="chron story-page">
+  <header class="story-head">
+    <h2>📖 Storybook</h2>
+    <label class="note">Session <select id="sbSession" aria-label="Session"></select></label>
+    <span class="grow"></span>
+    <a class="btn" id="sbPack" download title="Transcript, script, recap, kept moments, mood timeline and the pictures. Only what the table saw.">📦 Story pack</a>
+    <a class="btn" id="sbPackKept" download title="The same, with the kept moments only">📦 Kept only</a>
+  </header>
+  <p class="note story-empty" id="sbEmpty" hidden>No sessions yet. The storybook starts writing with the first line of play.</p>
+
+  <main class="story-main" id="sbMain" hidden>
+    <section class="story-left">
+      <div class="story-stage" id="sbStage" aria-live="polite">
+        <div class="sb-bd" id="sbBdA"></div><div class="sb-bd" id="sbBdB"></div>
+        <div class="sb-top">
+          <b class="sb-scene" id="sbScene"></b>
+          <span class="sb-chip" id="sbMode"></span>
+          <span class="grow"></span>
+          <button class="btn sb-star" id="sbStar" aria-pressed="false" title="Keep this moment (K)">☆ Keep</button>
+        </div>
+        <div class="sb-chips" id="sbChips"></div>
+        <div class="sb-line" id="sbLine">
+          <div class="sb-who" id="sbWho"></div>
+          <div class="sb-text" id="sbText"></div>
+        </div>
+      </div>
+
+      <div class="sb-scrub">
+        <div class="sb-ticks" id="sbTicks" aria-label="Kept moments"></div>
+        <input type="range" id="sbRange" min="0" max="0" value="0" aria-label="Position in the session">
+        <div class="row sb-time"><small id="sbAt"></small><span class="grow"></span><small id="sbCount"></small></div>
+      </div>
+
+      <div class="row sb-controls">
+        <button class="btn" id="sbPrevKept" title="Previous kept moment ([)">⏮ Kept</button>
+        <button class="btn" id="sbPrev" title="Back one (←)">◀</button>
+        <button class="btn primary" id="sbPlay" title="Play (Space)">▶ Play</button>
+        <button class="btn" id="sbNext" title="Forward one (→)">▶</button>
+        <button class="btn" id="sbNextKept" title="Next kept moment (])">Kept ⏭</button>
+        <select id="sbSpeed" aria-label="Play speed" style="width:auto"><option value="3200">Slow</option><option value="2000" selected>Normal</option><option value="900">Fast</option></select>
+      </div>
+    </section>
+
+    <section class="story-right card">
+      <div class="row">
+        <input id="sbFind" class="grow" placeholder="Search the session">
+        <label class="note tight"><input type="checkbox" id="sbKeptOnly"> Kept only</label>
+        <label class="note tight"><input type="checkbox" id="sbDmOnly" checked> DM-only lines</label>
+      </div>
+      <div class="sb-list" id="sbList" role="list"></div>
+    </section>
+  </main>
+  <script type="module" src="/js/story.js"></script>
+</body>
+</html>
