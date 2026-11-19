@@ -95,6 +95,40 @@ let srv;
   await p.waitForFunction(() => document.querySelectorAll('#cdList [data-open]').length === 2);
   if (SHOTS) { await p.waitForTimeout(400); /* screenshot only: let the list settle */ await p.screenshot({ path: path.join(SHOTS, 'designer-person.png') }); }
 
+  // 💡 Ideas from the keyword bank (Nov 19): a frog finds pond, swamp…; tapping a word puts it where you typed.
+  await p.click('#cdNew');
+  await p.click('[data-kind="beast"]');
+  await p.fill('#cdForm [name="name"]', 'Bog Frog');
+  await p.waitForSelector('#kwHits .kw-chip[data-kw="pond"]');
+  ok(/frog/i.test(await p.textContent('#kwHits .kw-hit:first-child .kw-head b')), 'typing a frog name shows the frog keywords');
+  await p.click('#kwHits .kw-chip[data-kw="pond"]');
+  ok(await p.inputValue('#cdForm [name="name"]') === 'Bog Frog pond', 'a word goes to the field you typed in last');
+  await p.fill('#cdForm [name="name"]', 'Bog Frog');
+  await p.click('#cdForm [name="tags"]');
+  await p.click('#kwHits .kw-chip[data-kw="swamp"]');
+  await p.click('#kwHits .kw-chip[data-kw="slimy"]');
+  ok(await p.inputValue('#cdForm [name="tags"]') === 'swamp, slimy', 'words tapped into tags are comma separated');
+  await p.click('#kwSpark');
+  ok(/Found near|Hook:/.test(await p.inputValue('#cdForm [name="lore"]')), '🎲 Spark writes a line of flavour into the lore');
+  if (SHOTS) { await p.locator('#kwIdeas').scrollIntoViewIfNeeded(); await p.waitForTimeout(400); /* screenshot only: let the chips settle */ await p.screenshot({ path: path.join(SHOTS, 'designer-ideas.png') }); }
+  // The bank: add a word of your own and it is suggested.
+  await p.click('#kwHits [data-kw-edit="frog"]');
+  await p.waitForSelector('#kwDlg[open]');
+  ok(await p.inputValue('#kwForm [name="word"]') === 'frog', '✎ opens the bank on that word');
+  await p.click('#kwNew');
+  await p.fill('#kwForm [name="word"]', 'mimic');
+  await p.fill('#kwForm [name="also"]', 'chest');
+  await p.fill('#kwForm [name="habitat"]', 'treasure room, dungeon');
+  await p.click('#kwSave');
+  await p.waitForFunction(() => /Saved mimic/.test(document.querySelector('#kwMsg').textContent));
+  ok(await p.locator('#kwList [data-kw-open="mimic"]').count() === 1, 'the new word is in the bank');
+  if (SHOTS) await p.screenshot({ path: path.join(SHOTS, 'keyword-bank.png') });
+  await p.click('#kwClose');
+  await p.waitForSelector('#kwDlg:not([open])', { state: 'attached' });
+  await p.fill('#kwLook', 'chest');
+  await p.waitForSelector('#kwHits .kw-chip[data-kw="treasure room"]');
+  ok(true, 'looking up a word finds the DM\'s own word');
+
   await p.click('[data-cd-list="wiki"]');
   ok(/Connect the wiki/.test(await p.textContent('#cdList')), 'the Wiki list asks to connect first');
   await p.click('#cdClose');

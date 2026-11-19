@@ -4,6 +4,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+- **Creature keyword bank** (Mike, Nov 19: "frog = water, pond, swamp, bog"). The Creature Designer has a **💡 Ideas** panel: words from the bank that match the design's name, race, tags, summary and details (plurals and other names count: toad finds frog), in six groups (habitat, look and feel, sounds and smells, behaviour, story hooks, name parts). Tap a word to put it in the field you were typing in (tags if none); **🎲 Spark** adds one line of flavour to the lore; **Look up a word** browses any entry. Nothing is filled in unless you tap it. 43 built-in words (animals, peoples, undead, fey, elements…); **Planning › Creatures › 💡 Keyword bank** adds your own words and edits, removes or resets any built-in one. DM only; saved in `data/keywords.json`. `src/keywords.js`, `public/js/dm/keywords.js`.
+
 ## [1.2.0] - 2026-11-18
 
 First tagged release (`v1.2.0`): everything built since 1.1.0. Play game nights from a tag; update the laptop between sessions.

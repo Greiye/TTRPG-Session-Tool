@@ -1,6 +1,7 @@
 // Creature Designer and lore wiki events (PR W). DM only: Battle and Social Masters never get these.
 const { state, broadcast } = require('../state');
 const designer = require('../designer');
+const keywords = require('../keywords');
 const wiki = require('../wiki');
 const lore = require('../lore');
 const creatures = require('../creatures');
@@ -48,6 +49,12 @@ module.exports = function designerSockets(socket) {
     if (prev) return { ...lore.edit(state.lore, { id: prev.id, text: e.text, dm: e.dm }), updated: true };
     return lore.add(state.lore, e);
   });
+
+  // ----- keyword bank (Nov 19): suggestions for a design, and the DM's own words -----
+  dm('dm:keywords:suggest', (f) => ({ ok: true, groups: keywords.GROUPS, matches: keywords.suggest(f.design || {}, { limit: 6 }) }));
+  dm('dm:keywords:save', (f) => keywords.save(f));
+  dm('dm:keywords:delete', ({ id }) => keywords.remove(String(id || '')));
+  dm('dm:keywords:reset', ({ id }) => keywords.reset(String(id || '')));
 
   // ----- Item Designer and item cards (Nov 18) -----
   dm('dm:item:save', (f) => {
