@@ -222,6 +222,7 @@ function edit(d, { animate = true } = {}) {
   dirty = false;
   msg('');
   if (animate) { const form = $('#cdForm'); form.classList.remove('swap'); void form.offsetWidth; form.classList.add('swap'); form.scrollTop = 0; }
+  dlg.dispatchEvent(new CustomEvent('cd:edit')); // the keyword ideas panel re-reads the form
 }
 
 // ----- list -----

@@ -98,3 +98,25 @@
 /* Dropdowns for size, stats and skills (Nov 18). */
 .cd-pick { cursor: pointer; }
 .cd-row select.cd-k { min-width: 0; }
+
+/* Keyword bank (Nov 19): 💡 Ideas in the designer and the bank pop-up. */
+.kw-ideas summary { cursor: pointer; list-style: none; }
+.kw-ideas summary::-webkit-details-marker { display: none; }
+.kw-ideas summary h4::before { content: '▸'; transition: transform .15s; display: inline-block; }
+.kw-ideas[open] summary h4::before { transform: rotate(90deg); }
+.kw-bar { gap: 6px; margin-top: 6px; }
+.kw-hits { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow: auto; }
+.kw-hit { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: rgb(0 0 0 / .15); animation: cd-row-in .22s ease both; }
+.kw-head { gap: 6px; align-items: baseline; }
+.kw-head b { font-family: var(--display); color: var(--gold); text-transform: capitalize; }
+.kw-group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; }
+.kw-g { width: 1.6em; text-align: center; }
+.kw-chip { font: inherit; font-size: calc(12px * var(--ts)); padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); background: rgb(255 255 255 / .05); color: inherit; cursor: pointer; transition: background .15s, border-color .15s, transform .12s; }
+.kw-chip:hover { border-color: var(--gold); background: rgb(227 180 90 / .16); transform: translateY(-1px); }
+.kw-chip:active { transform: scale(.94); }
+.kw-chip.used { border-color: var(--good); color: var(--good); }
+.cd-dlg .kw-got { animation: kw-got .5s ease; }
+@keyframes kw-got { 30% { box-shadow: 0 0 0 2px var(--gold); } }
+.kw-dlg { width: min(860px, 96vw); }
+@media (prefers-reduced-motion: reduce) { .kw-chip, .kw-hit, .kw-got, .kw-ideas summary h4::before { animation: none !important; transition: none !important; } }
+html[data-motion="reduce"] :is(.kw-chip, .kw-hit, .kw-got, .kw-dlg, .kw-ideas summary h4::before) { animation: none !important; transition: none !important; }
