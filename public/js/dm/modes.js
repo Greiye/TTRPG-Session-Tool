@@ -126,7 +126,19 @@ onState((s) => {
     b.setAttribute('aria-pressed', String(b.dataset.mode === s.mode));
   });
   const now = $('#modeNow');
-  if (now) now.textContent = MODE_NAMES[s.mode] || '';
+  // Prepare combat (Mike, Nov 21): the DM is in the Battle Window, the table still in its own mode.
+  const staged = !!s.combat?.staged;
+  document.body.classList.toggle('combat-staged', staged);
+  if (now) now.textContent = staged ? '🛠 Preparing combat' : MODE_NAMES[s.mode] || '';
+  const prep = $('#prepCombat');
+  if (prep) {
+    prep.hidden = s.combat?.active || (s.mode === 'combat' && !staged);
+    prep.textContent = staged ? '✕ Stop preparing' : '🛠 Prepare combat';
+    prep.classList.toggle('on', staged);
+    prep.setAttribute('aria-pressed', String(staged));
+  }
+  const note = $('#prepNote');
+  if (note) { note.hidden = !staged; $('#prepFrom').textContent = (MODE_NAMES[s.tableMode] || s.tableMode || '').replace(/^\S+\s/, ''); }
   const changed = lastMode !== null && lastMode !== s.mode;
   lastMode = s.mode;
   const pick = MODE_TAB[s.mode];
@@ -182,6 +194,7 @@ $('#mapToggle')?.addEventListener('click', () => {
 
 // Entering social mode opens the Social window's NPC list (public/js/dm/social.js).
 onClick('mode', (m) => emit('dm:mode', { mode: m }));
+$('#prepCombat')?.addEventListener('click', () => emit('dm:combat:stage', { on: !state()?.combat?.staged }));
 onClick('act', (act) => {
   if (act === 'testparty') emit('dm:testparty');
 });

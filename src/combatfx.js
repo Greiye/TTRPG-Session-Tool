@@ -20,6 +20,9 @@ function who(c) {
   const out = { id: c.id, name: String(c.name || '').slice(0, 40), side: sideOf(c) };
   if (Number.isFinite(c.hue)) out.hue = c.hue % 360;
   if (typeof c.accent === 'string' && /^#[0-9a-f]{6}$/i.test(c.accent)) out.accent = c.accent;
+  // The attacker pop-up shows this picture; without one the screens draw a placeholder.
+  const img = [c.portrait, c.img, c.image].find((u) => typeof u === 'string' && /^(\/uploads\/|\/samples\/|https?:\/\/)/.test(u));
+  if (img) out.img = img.slice(0, 300);
   return out;
 }
 
@@ -48,4 +51,12 @@ function emit(kind, opts) {
   return c;
 }
 
-module.exports = { KINDS, cue, forPlayers, emit, numbersForAll };
+// End of combat (Mike, Nov 21): one pop-up on every screen. won: every enemy is down.
+let endSeq = 0;
+function end({ won = false } = {}) {
+  const c = { n: ++endSeq, won: !!won };
+  hub.io?.emit('cfx:end', c);
+  return c;
+}
+
+module.exports = { KINDS, cue, forPlayers, emit, end, numbersForAll };
