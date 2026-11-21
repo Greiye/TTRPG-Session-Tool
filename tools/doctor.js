@@ -8,7 +8,7 @@ const path = require('path');
 
 async function checks() {
   const cfg = require('../src/config');
-  const { lanAddresses } = require('../src/net');
+  const { lanAddresses, listenAll } = require('../src/net');
   const out = [];
   const add = (ok, label, detail, warnOnly = false) => out.push({ ok, warn: !ok && warnOnly, label, detail });
 
@@ -20,9 +20,10 @@ async function checks() {
     try { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(probe, 'ok'); fs.unlinkSync(probe); add(true, label, `${dir} can be written`); } catch (e) { add(false, label, `${dir} cannot be written (${e.code || e.message})`); }
   }
 
+  // Same bind as the game (src/net.js listenAll), so an app on the IPv6 side of the port counts as taken.
   const free = (port) => new Promise((res) => {
-    const s = net.createServer().once('error', (e) => res(e.code)).once('listening', () => s.close(() => res(null)));
-    s.listen(port, '0.0.0.0');
+    const s = net.createServer();
+    listenAll(s, port, () => s.close(() => res(null)), (e) => res(e.code));
   });
   const ports = [['Game port', cfg.PORT]];
   if (cfg.HTTPS) ports.push(['Phone port (HTTPS)', cfg.HTTPS_PORT]);

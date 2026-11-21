@@ -59,6 +59,33 @@ function boot(env = ENV) {
     await wait(100);
   }
 
+  // ----- localhost reaches the game on IPv6 too -----
+  // Browsers try ::1 first for localhost. With the game on 0.0.0.0 only, another app on [::]:PORT answered
+  // instead ("Cannot GET /dm"). The game now listens on both, so ::1 reaches it and a clash fails loudly.
+  {
+    const v6 = await new Promise((r) => { const s = net.createServer().once('error', () => r(false)).listen(0, '::1', () => s.close(() => r(true))); });
+    if (!v6) console.log('  skip  no IPv6 loopback on this computer');
+    else {
+      const p = boot();
+      await until(() => /running/.test(p.out), 8000);
+      const res = await fetch(`http://[::1]:${PORT}/dm`).catch(() => null);
+      ok(res && res.status === 200 && /<html/i.test(await res.text()), 'the DM page answers on IPv6 localhost (::1)');
+      p.kill();
+      await new Promise((r) => p.on('exit', r));
+      await wait(100);
+
+      const blocker = net.createServer().listen(PORT, '::1');
+      await new Promise((r) => blocker.once('listening', r));
+      const q = boot();
+      const guard = setTimeout(() => q.kill(), 8000); // a game that starts anyway must not hang the run
+      const code = await new Promise((r) => q.on('exit', r));
+      clearTimeout(guard);
+      ok(code === 1 && /already in use/.test(q.out), 'another app on the IPv6 side of the port stops the game with the port message');
+      blocker.close();
+      await wait(100);
+    }
+  }
+
   // ----- game-night check -----
   {
     const run = (env) => new Promise((res) => {

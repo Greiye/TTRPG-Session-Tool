@@ -33,4 +33,36 @@ const codmUrl = (role = 'codm') => (role === 'battle' ? `${baseUrl()}/dm?key=${B
   : role === 'music' ? `${baseUrl()}/dm?key=${MUSIC_KEY}` : `${baseUrl()}/dm?key=${CODM_KEY}`); // the co-DM is a second DM
 const isLocalAddr = (a) => ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(a);
 
-module.exports = { lanAddresses, lanAddress, setHost, baseUrl, joinUrl, codmUrl, isLocalAddr };
+// Does anything already answer on this port on the laptop itself (IPv4 or IPv6 loopback)?
+function portAnswers(port, timeoutMs = 400) {
+  const probe = (host) => new Promise((res) => {
+    const s = require('net').connect({ port, host });
+    const done = (v) => { s.destroy(); res(v); };
+    s.setTimeout(timeoutMs, () => done(false));
+    s.once('connect', () => done(true)).once('error', () => done(false));
+  });
+  return Promise.all([probe('127.0.0.1'), probe('::1')]).then((r) => r.some(Boolean));
+}
+
+// Listen on every address, IPv6 and IPv4 together ('::'). Windows lets two programs share a port when they
+// bind different wildcards (0.0.0.0 vs ::), so the game used to start beside another app and the browser's
+// localhost reached that app ("Cannot GET /dm"). So first check that nothing answers on the port.
+// Falls back to 0.0.0.0 only on a computer without IPv6.
+function listenAll(server, port, onReady, onError) {
+  portAnswers(port).then((taken) => {
+    if (taken) return onError(Object.assign(new Error(`port ${port} in use`), { code: 'EADDRINUSE' }));
+    attempt('::');
+  });
+  const attempt = (host) => {
+    const fail = (e) => {
+      server.off('listening', ready);
+      if (host === '::' && ['EAFNOSUPPORT', 'EADDRNOTAVAIL'].includes(e.code)) attempt('0.0.0.0');
+      else onError(e);
+    };
+    const ready = () => { server.off('error', fail); onReady(); };
+    server.once('error', fail).once('listening', ready);
+    server.listen(port, host);
+  };
+}
+
+module.exports = { lanAddresses, lanAddress, setHost, baseUrl, joinUrl, codmUrl, isLocalAddr, listenAll };

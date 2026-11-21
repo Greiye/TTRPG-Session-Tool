@@ -58,7 +58,8 @@ const { ok, until } = h;
   ok(dm.last.bulbsOn === false, 'smart bulbs are off by default');
   dm.emit('dm:bulbs', { on: true });
   ok(await until(() => dm.last.bulbsOn === true), 'DM can turn smart bulbs on');
-  ok(!JSON.stringify(tv.last).includes('BULBS_') && tv.last.bulbsOn === true, 'the TV gets the on/off flag and nothing about addresses or keys');
+  await until(() => tv.last?.bulbsOn === true); // the TV's copy of the broadcast can land after the DM's
+  ok(!JSON.stringify(tv.last).includes('BULBS_') && tv.last.bulbsOn === true,'the TV gets the on/off flag and nothing about addresses or keys');
   dm.emit('dm:light', { light: 'torchlight' });
   ok(await until(() => tv.last.scene.light === 'torchlight'), 'lighting changes still reach the TV with bulbs on');
   await h.done(srv);
