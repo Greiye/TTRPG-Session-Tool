@@ -26,6 +26,9 @@ onState((s) => {
     $('#mapToken').innerHTML = tokenList.map((x) => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('') || '<option value="">Add players or enemies first</option>';
   }
   $('#mapFog').checked = !!m?.fog;
+  // Kind and light follow the map (Mike, Nov 22); Kind is used by the next Generate.
+  if (m && document.activeElement !== $('#mapTheme') && !$('#mapTheme').dataset.touched) $('#mapTheme').value = m.theme === 'dungeon' ? 'dungeon' : 'outdoor';
+  if (document.activeElement !== $('#mapDaylight')) $('#mapDaylight').value = m?.daylight || 'auto';
   const lit = selTok && s.tokens?.[selTok];
   if (lit) $('#mapLight').value = lit.light || 'none';
   if (m) {
@@ -72,10 +75,14 @@ holdButton($('#mapGen'), {
   onFire: () => {
     if (!state()?.map) emit('dm:map', { cols: $('#mapCols').value, rows: $('#mapRows').value, image: null });
     const seed = $('#mapSeed').value.trim();
-    emit('dm:map:generate', seed ? { seed: Number(seed) || [...seed].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) } : {});
+    const theme = $('#mapTheme').value;
+    emit('dm:map:generate', seed ? { theme, seed: Number(seed) || [...seed].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) } : { theme });
+    delete $('#mapTheme').dataset.touched;
     fold(true);
   },
 });
+$('#mapTheme').onchange = () => { $('#mapTheme').dataset.touched = '1'; };
+$('#mapDaylight').onchange = () => emit('dm:map:daylight', { light: $('#mapDaylight').value });
 // The Battle map card folds by its title (fold.js); it starts folded (Mike, Nov 15 and 16).
 const fold = (on) => setFold($('#mapCard'), on);
 $('#mapFile').onchange = async (e) => {

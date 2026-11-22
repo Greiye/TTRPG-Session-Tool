@@ -133,7 +133,7 @@ const SHOTS = process.env.SHOTS;
   await dm.evaluate(() => socket.emit('dm:mode', { mode: 'combat' }));
   await ph.waitForSelector('#combatPop:not([hidden])', { timeout: 5000 }).catch(() => errors.push('phone combat pop-up did not show'));
   if (!/Steel yourselves/.test(await ph.textContent('#combatPop'))) errors.push('combat pop-up should start with "Steel yourselves"');
-  if (await ph.evaluate(() => document.querySelector('#tabPlay').firstElementChild.id) !== 'combatPop') errors.push('combat pop-up should be first in the Play tab');
+  if (await ph.evaluate(() => [...document.querySelector('#tabPlay').children].find((e) => !e.hidden)?.id) !== 'combatPop') errors.push('combat pop-up should be first in the Play tab (the phone battle map sits above it only once a fight with a map starts)');
   await dm.evaluate(() => socket.emit('dm:combat:start', {}));
   await ph.waitForFunction(() => /YOUR TURN|'s turn/.test(document.querySelector('#combatPop').textContent), null, { timeout: 5000 }).catch(() => errors.push('combat pop-up did not follow the turn'));
   if (await ph.$('#gameView .iso-layer, #isoPhone')) errors.push('phones should not show the 3D battle map');

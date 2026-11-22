@@ -22,6 +22,7 @@ mapHost.hidden = true;
 $('#combatPop')?.before(mapHost);
 const mapOn = (S) => S?.mode === 'combat' && !!S.map && !!S.combat?.active && S.viewer?.role === 'player';
 const phoneIso = isoStage(mapHost, { role: 'player', socket, charId: () => id.charId, slotSel: null, pad: true, when: mapOn });
+window.IsoPhone = phoneIso; // handle for tests and debugging
 
 // Waiting, my turn, someone else's turn, or down: each change pops the card in again.
 function popKey(S, c) {

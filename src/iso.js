@@ -1,26 +1,39 @@
 // Isometric battle map rules (the 3D map that replaced the flat image grid).
 // The map stays in state.map ({ cols, rows, image, terrain, fog }) and gains three sparse layers, all keyed "x,y":
 //   elev    height in steps (0 to 12). One step is half a tile tall on screen; climbing one step costs 5 ft.
-//   ground  surface look: grass, dirt, stone, sand, water, snow, floor (water is difficult ground).
-//   props   things standing on a tile: rock, tree, crate. Walls stay in `terrain` as before.
+//   ground  surface look: grass, dirt, stone, sand, water, snow, floor, and the dungeon set flagstone, cobble, moss
+//           (water is difficult ground).
+//   props   things standing on a tile: rock, tree, crate, and the dungeon set door, pillar, barrel, chest.
+//           Walls stay in `terrain` as before. A door blocks sight but not movement (walking through opens it).
+// map.theme is 'outdoor' or 'dungeon' (how terrain is generated and how walls look); map.daylight is the DM's
+// light override for the 3D map ('auto' follows the story clock).
 // Geometry (A*, 3D line of sight, map generation) comes from the iso core in lib/iso-battle (built to dist/core.cjs).
 // The tool's rules system still decides every roll; this file only answers "can it get there", "can it see" and "is it in cover".
 const core = require('../lib/iso-battle/dist/core.cjs');
 const { int } = require('./util');
 
 const TILE_FT = 5;
-const GROUNDS = ['grass', 'dirt', 'stone', 'sand', 'water', 'snow', 'floor'];
-const PROPS = ['rock', 'tree', 'crate'];
+const GROUNDS = ['grass', 'dirt', 'stone', 'sand', 'water', 'snow', 'floor', 'flagstone', 'cobble', 'moss'];
+const PROPS = ['rock', 'tree', 'crate', 'door', 'pillar', 'barrel', 'chest'];
+const THEMES = ['outdoor', 'dungeon'];
+// Light on the 3D map (Mike, Nov 22): 'auto' follows the story clock (dungeons are always dark); the rest are DM overrides.
+const DAYLIGHTS = ['auto', 'dawn', 'day', 'dusk', 'night', 'dark'];
 const MAX_ELEV = 12;
 // Cover (5e): a low prop gives half cover (+2 AC), a wall or tree three-quarters cover (+5 AC).
-const COVER = { rock: 2, crate: 2, tree: 5, wall: 5 };
+const COVER = { rock: 2, crate: 2, tree: 5, wall: 5, pillar: 5, barrel: 2, chest: 2 };
 
 const OBSTACLES = {
   wall: { height: 2.5, blocksMove: true, cover: true },
   tree: { height: 2.5, blocksMove: true, cover: true },
   rock: { height: 1.0, blocksMove: true, cover: true },
   crate: { height: 1.0, blocksMove: true, cover: true },
+  door: { height: 2.5, blocksMove: false, cover: false },
+  pillar: { height: 2.5, blocksMove: true, cover: true },
+  barrel: { height: 1.0, blocksMove: true, cover: true },
+  chest: { height: 0.8, blocksMove: true, cover: true },
 };
+// Props a walker may stand on.
+const WALKABLE = new Set(['door']);
 // Costs are in tiles (5 ft each). Walkers: difficult ground and water cost double; each step up costs one more tile;
 // at most 2 steps up or 3 down in one stride. Fliers ignore ground cost and height and pass over rocks and crates.
 const RULES = {
@@ -28,12 +41,12 @@ const RULES = {
   visionHeight: 1.2,
   grid: { maxClimb: 2, maxDrop: 3, climbCostPerStep: 1 },
   obstacles: OBSTACLES,
-  terrain: { grass: { moveCost: 1 }, dirt: { moveCost: 1 }, stone: { moveCost: 1 }, sand: { moveCost: 1 }, snow: { moveCost: 1 }, floor: { moveCost: 1 }, water: { moveCost: 2 }, difficult: { moveCost: 2 } },
+  terrain: { ...Object.fromEntries(GROUNDS.map((g) => [g, { moveCost: g === 'water' ? 2 : 1 }])), difficult: { moveCost: 2 } },
 };
 const FLY_RULES = {
   ...RULES,
   grid: { maxClimb: 99, maxDrop: 99, climbCostPerStep: 0 },
-  obstacles: { ...OBSTACLES, rock: { ...OBSTACLES.rock, blocksMove: false }, crate: { ...OBSTACLES.crate, blocksMove: false } },
+  obstacles: { ...OBSTACLES, ...Object.fromEntries(['rock', 'crate', 'barrel', 'chest'].map((k) => [k, { ...OBSTACLES[k], blocksMove: false }])) },
   terrain: Object.fromEntries(Object.keys(RULES.terrain).map((k) => [k, { moveCost: 1 }])),
 };
 
@@ -99,10 +112,12 @@ function editTile(map, { x, y, elev, raise, ground, prop } = {}) {
   return true;
 }
 
-// Fill the map with generated terrain (rolling hills, water, ruined walls, trees and rocks). Same seed, same map.
-// Replaces the layers and the terrain; keeps the size, the image and fog.
-function generate(map, seed = Math.floor(Math.random() * 1e9)) {
-  const g = core.generateMap(map.cols, map.rows, seed >>> 0);
+// Fill the map with generated terrain. Outdoors: rolling hills, water, ruined walls, trees and rocks. Dungeon:
+// rooms and corridors with doors, pillars, barrels, crates and chests. Same seed and theme, same map.
+// Replaces the layers and the terrain; keeps the size, the image and fog. The theme stays on the map.
+function generate(map, seed = Math.floor(Math.random() * 1e9), theme = map.theme) {
+  const th = THEMES.includes(theme) ? theme : 'outdoor';
+  const g = th === 'dungeon' ? core.generateDungeon(map.cols, map.rows, seed >>> 0) : core.generateMap(map.cols, map.rows, seed >>> 0);
   const elev = {}; const ground = {}; const props = {}; const terrain = {};
   g.tiles.forEach((t, i) => {
     const k = key(i % map.cols, Math.floor(i / map.cols));
@@ -111,11 +126,18 @@ function generate(map, seed = Math.floor(Math.random() * 1e9)) {
     if (t.obstacle === 'wall') terrain[k] = 'wall';
     else if (t.obstacle) props[k] = t.obstacle;
   });
-  Object.assign(map, { elev, ground, props, terrain, seed });
+  Object.assign(map, { elev, ground, props, terrain, seed, theme: th });
   return map;
+}
+
+// The DM's light override for the 3D map. Returns false for an unknown value.
+function setDaylight(map, v) {
+  if (!map || !DAYLIGHTS.includes(v)) return false;
+  if (v === 'auto') delete map.daylight; else map.daylight = v;
+  return true;
 }
 
 // Facing from one tile toward another, 0 to 7 (0 = +y). Used by the 3D view to turn the sprite.
 const facing = (from, to) => core.dirFromDelta(to[0] - from[0], to[1] - from[1]);
 
-module.exports = { TILE_FT, GROUNDS, PROPS, MAX_ELEV, COVER, RULES, FLY_RULES, toGrid, route, sees, cover, editTile, generate, facing };
+module.exports = { TILE_FT, GROUNDS, PROPS, THEMES, DAYLIGHTS, WALKABLE, MAX_ELEV, COVER, RULES, FLY_RULES, setDaylight, toGrid, route, sees, cover, editTile, generate, facing };

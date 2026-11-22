@@ -169,17 +169,20 @@ module.exports = function dmSockets(socket) {
     if (mustPlaceFirst() || !state.map) return;
     if (iso.editTile(state.map, f) && f.prop && f.prop !== 'none') delete state.map.terrain?.[`${f.x},${f.y}`]; // a prop replaces a wall
   });
-  dm('dm:map:generate', ({ seed } = {}) => {
+  // theme: 'outdoor' or 'dungeon' (Mike, Nov 22), picked per encounter; left out, the map keeps its theme.
+  dm('dm:map:generate', ({ seed, theme } = {}) => {
     if (mustPlaceFirst() || !state.map) return;
-    iso.generate(state.map, seed === undefined || seed === '' ? undefined : Number(seed));
+    iso.generate(state.map, seed === undefined || seed === '' ? undefined : Number(seed), iso.THEMES.includes(theme) ? theme : state.map.theme);
     // Tokens left standing in a wall or a prop move to the nearest open tile.
     for (const [id, t] of Object.entries(state.tokens || {})) {
       const open = (x, y) => x >= 0 && y >= 0 && x < state.map.cols && y < state.map.rows && !state.map.terrain[`${x},${y}`] && !state.map.props[`${x},${y}`];
       if (open(t.x, t.y)) continue;
-      outer: for (let r = 1; r < 6; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (open(t.x + dx, t.y + dy)) { state.tokens[id] = { ...t, x: t.x + dx, y: t.y + dy }; break outer; }
+      outer: for (let r = 1; r < Math.max(state.map.cols, state.map.rows); r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (open(t.x + dx, t.y + dy)) { state.tokens[id] = { ...t, x: t.x + dx, y: t.y + dy }; break outer; }
     }
-    log('system', 'The battle map gets new terrain.', { vis: 'dm' });
+    log('system', state.map.theme === 'dungeon' ? 'The battle map becomes a dungeon.' : 'The battle map gets new terrain.', { vis: 'dm' });
   });
+  // Light on the 3D map (Mike, Nov 22): 'auto' follows the story clock; dawn, day, dusk, night or dark override it.
+  dm('dm:map:daylight', ({ light } = {}) => { if (state.map) iso.setDaylight(state.map, light); });
   dm('dm:token', ({ id, x, y, z }) => {
     const q = state.pendingPlace || [];
     if (q.length && id !== q[0]) return;

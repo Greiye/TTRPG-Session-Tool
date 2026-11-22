@@ -7,8 +7,21 @@ import { actionIcon, actionDetail } from './actions.js';
 import * as Ctx from './ctxmenu.js';
 
 const STEP_FT = 5;
-const COVER = { rock: 2, crate: 2, tree: 5, wall: 5 }; // same as src/iso.js
-const GROUNDS = ['grass', 'dirt', 'stone', 'sand', 'water', 'snow', 'floor'];
+const COVER = { rock: 2, crate: 2, tree: 5, wall: 5, pillar: 5, barrel: 2, chest: 2 }; // same as src/iso.js
+const GROUNDS = ['grass', 'dirt', 'stone', 'sand', 'water', 'snow', 'floor', 'flagstone', 'cobble', 'moss'];
+const OBSTACLES = { // same as src/iso.js
+  wall: { height: 2.5, blocksMove: true, cover: true }, tree: { height: 2.5, blocksMove: true, cover: true },
+  rock: { height: 1, blocksMove: true, cover: true }, crate: { height: 1, blocksMove: true, cover: true },
+  door: { height: 2.5, blocksMove: false, cover: false }, pillar: { height: 2.5, blocksMove: true, cover: true },
+  barrel: { height: 1, blocksMove: true, cover: true }, chest: { height: 0.8, blocksMove: true, cover: true },
+};
+// Light on the map (Mike, Nov 22): the DM's override, else the story clock; a dungeon is always dark.
+export function lightOf(s) {
+  const m = s.map || {};
+  if (m.daylight && m.daylight !== 'auto') return m.daylight;
+  if (m.theme === 'dungeon') return 'dark';
+  return s.story?.light || 'day';
+}
 
 // Sprite looks. Each unit picks one by class or creature name; a character's colour tints the clothes.
 const KINDS = {
@@ -66,7 +79,7 @@ function rulesOf(s) {
   return {
     heightStep: 0.5, visionHeight: 1.2, abilities,
     grid: { maxClimb: 2, maxDrop: 3, climbCostPerStep: 1 },
-    obstacles: { wall: { height: 2.5, blocksMove: true, cover: true }, tree: { height: 2.5, blocksMove: true, cover: true }, rock: { height: 1, blocksMove: true, cover: true }, crate: { height: 1, blocksMove: true, cover: true } },
+    obstacles: OBSTACLES,
     terrain: Object.fromEntries([...GROUNDS.map((g) => [g, { moveCost: g === 'water' ? 2 : 1 }]), ['difficult', { moveCost: 2 }]]),
     combat: { coverPenalty: 0, heightBonusPerStep: 0, maxHeightBonus: 0, minHit: 0, maxHit: 100 },
     units: Object.fromEntries(Object.entries(KINDS).map(([k, v]) => [k, { ...v, team: 'monsters', hp: 1, ap: 6, init: 0, defense: 10, sight: 8, abilities: [] }])),
@@ -101,7 +114,7 @@ function viewOf(s, you) {
   const order = c.order.map((o) => o.id);
   const visible = s.mapVision ? s.mapVision.map((k) => { const [x, y] = k.split(',').map(Number); return y * m.cols + x; }) : null;
   return {
-    meta: { w: m.cols, h: m.rows, round: c.round || 1, turn: Math.max(0, order.indexOf(turnId)), initiative: order, fog: !!m.fog, seed: m.seed || 0, active: turnId && units[turnId] ? turnId : null, players: [], freeMove: !c.active },
+    meta: { w: m.cols, h: m.rows, round: c.round || 1, turn: Math.max(0, order.indexOf(turnId)), initiative: order, fog: !!m.fog, seed: m.seed || 0, active: turnId && units[turnId] ? turnId : null, players: [], freeMove: !c.active, theme: m.theme === 'dungeon' ? 'dungeon' : 'outdoor', light: lightOf(s) },
     tiles: tilesOf(m), units, visible, revealed: [],
     log: (s.log || []).filter((l) => l.kind === 'combat').slice(-30).map((l) => ({ seq: l.id, msg: l.text })),
     you,
@@ -216,7 +229,7 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       dmTools: ['select', 'teleport', 'raise', 'lower', 'paint', 'obstacle'],
       dmOptions: { inspector: false, initiative: false, fog: false, maps: false },
       terrainChoices: [...GROUNDS, 'difficult'],
-      obstacleChoices: ['none', 'wall', 'rock', 'tree', 'crate'],
+      obstacleChoices: ['none', 'wall', 'rock', 'tree', 'crate', 'door', 'pillar', 'barrel', 'chest'],
       // A creature the DM just added must be placed first: the next tile clicked puts it there.
       onTileClick: dm ? ({ x, y }) => { const pend = (last?.pendingPlace || [])[0]; if (!pend) return false; emit('dm:token', { id: pend, x, y }); return true; } : undefined,
       moveLabel: (u) => (u.ap < 0 ? `Move · ${-u.ap * STEP_FT} ft over [M]` : `Move · ${u.ap * STEP_FT} ft left [M]`),
@@ -317,7 +330,9 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
     cov = document.createElement('div');
     cov.className = 'iso-cov';
     cov.innerHTML = '<button type="button" class="iso-fit" title="Show the whole battle map">⛶ Fit</button><label>Coverage <input type="range" min="3" max="60" step="0.5" aria-label="Map coverage"></label>'
-      + '<span class="iso-tvcam" title="Turn the TV view of the battle map"><b>TV</b><button type="button" data-tvcam="-1" aria-label="Turn the TV view left">⟲</button><button type="button" data-tvcam="1" aria-label="Turn the TV view right">⟳</button><button type="button" data-tvcam="top" aria-label="TV overhead view" aria-pressed="false">⬒ Top</button></span>';
+      + '<span class="iso-tvcam" title="Turn the TV view of the battle map"><b>TV</b><button type="button" data-tvcam="-1" aria-label="Turn the TV view left">⟲</button><button type="button" data-tvcam="1" aria-label="Turn the TV view right">⟳</button><button type="button" data-tvcam="top" aria-label="TV overhead view" aria-pressed="false">⬒ Top</button></span>'
+      + '<label class="iso-daylight" title="Light on the battle map. Auto follows the time of day; a dungeon is always dark.">☀ <select aria-label="Battle map light"><option value="auto">Auto</option><option value="dawn">Dawn</option><option value="day">Day</option><option value="dusk">Dusk</option><option value="night">Night</option><option value="dark">Dark</option></select></label>';
+    cov.querySelector('.iso-daylight select').onchange = (e) => emit('dm:map:daylight', { light: e.target.value });
     cov.addEventListener('click', (e) => {
       const b = e.target.closest('[data-tvcam]'); if (!b) return;
       const v = b.dataset.tvcam;
@@ -438,6 +453,8 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       refreshMenu();
       if (role === 'screen') applyCam();
       cov?.querySelector('[data-tvcam="top"]')?.setAttribute('aria-pressed', String(!!s.combat?.cam?.top));
+      const dl = cov?.querySelector('.iso-daylight select');
+      if (dl && document.activeElement !== dl) { dl.value = s.map.daylight || 'auto'; dl.title = `Now: ${lightOf(s)}`; }
     },
     get battle() { return battle; },
     fit: () => battle?.camera.fit(),
