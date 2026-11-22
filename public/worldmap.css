@@ -13,9 +13,9 @@
 .wm-token { position: absolute; transform: translate(-50%, -110%); font-size: 22px; pointer-events: none; filter: drop-shadow(0 2px 3px #000); transition: none; }
 .wm-token.moving span { display: inline-block; animation: wm-bob 1.2s ease-in-out infinite; }
 @keyframes wm-bob { 50% { transform: translateY(-4px); } }
-.wm-card, .wm-card-tv { background: #1b1420; border: 1px solid #5a4a30; border-radius: 10px; padding: 10px 12px; margin: 8px 0; }
+.wm-card, .wm-card-tv { background: var(--panel2); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 8px 0; }
 .wm-card.vetoed { opacity: .45; text-decoration: line-through; }
-.wm-lore { color: #c9a86a; margin: 6px 0 0; }
+.wm-lore { color: var(--gold); margin: 6px 0 0; }
 .wm-comments { margin: 6px 0 0; padding-left: 18px; font-size: 14px; }
 .wm-cform { display: flex; gap: 6px; margin-top: 8px; }
 .wm-votes { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -35,7 +35,7 @@
 .wm-tv .wm-node span { font-size: 1.5em; }
 .wm-tv .wm-node i { width: 22px; height: 22px; }
 .wm-tv .wm-token { font-size: 2.6em; }
-.wm-card-tv { position: absolute; left: 4%; right: 4%; bottom: 4%; font-size: 1.8em; background: rgba(27,20,32,.92); animation: wm-in .6s both; }
+.wm-card-tv { position: absolute; left: 4%; right: 4%; bottom: 4%; font-size: 1.8em; background: rgba(27,20,32,.92); border-color: #5a4a30; animation: wm-in .6s both; }
 @keyframes wm-in { from { opacity: 0; transform: translateY(12px); } }
 .wm-card-tv p { margin: 0; }
 
