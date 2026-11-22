@@ -19,12 +19,14 @@ const { ok, call, until } = h;
   ok(mine(a).derived.saves.int === 5 && mine(a).derived.saves.str === -1, 'save bonuses include proficiency');
   ok(mine(b).derived.passive.Perception === 15, 'passive perception is 10 + Perception');
   ok(mine(a).slots[1].max === 2 && mine(a).languages.includes('Elvish'), 'caster starts with slots and languages');
-  a.emit('player:sheet', { slot: { level: 1, used: 1 } });
+  // Stats and health are the DM's (Mike, Nov 21): the phone keeps notes, inventory use and languages.
+  a.emit('player:sheet', { slot: { level: 1, used: 1 }, hp: 1, tempHp: 7 });
   a.emit('player:sheet', { inv: { op: 'add', name: 'Stolen gem', qty: 1 } }); // players can't add items (Mike, Nov 16)
   dm.emit('dm:sheet', { id: a.me.id, inv: { op: 'add', name: 'Rope', qty: 2 } });
-  a.emit('player:sheet', { hp: 9, tempHp: 4, notes: 'PRIVATE-NOTE' });
-  await until(() => mine(a).inventory.length === 1 && mine(a).hp === hpAtSave);
-  ok(mine(a).slots[1].used === 1 && mine(a).inventory[0].qty === 2 && mine(a).tempHp === 4, 'player updates slots, inventory, HP, temp HP');
+  dm.emit('dm:sheet', { id: a.me.id, slot: { level: 1, used: 1 }, hp: 9, tempHp: 4 });
+  a.emit('player:sheet', { notes: 'PRIVATE-NOTE' });
+  await until(() => mine(a).inventory.length === 1 && mine(a).hp === 9 && mine(a).notes === 'PRIVATE-NOTE');
+  ok(mine(a).slots[1].used === 1 && mine(a).inventory[0].qty === 2 && mine(a).tempHp === 4, 'DM updates slots, HP, temp HP; inventory and notes arrive');
   ok(!mine(a).inventory.some((i) => i.name === 'Stolen gem'), 'a player cannot add an item; the DM does');
   a.emit('player:sheet', { inv: { op: 'set', id: mine(a).inventory[0].id, qty: 50 } });
   a.emit('player:sheet', { inv: { op: 'set', id: mine(a).inventory[0].id, qty: 1 } });
@@ -34,12 +36,12 @@ const { ok, call, until } = h;
   ok(seenByDm.inventory[0].name === 'Rope' && seenByDm.slots[1].used === 1, 'DM sees the sheet live');
   const seenByB = b.last.players.find((p) => p.id === a.me.id);
   ok(seenByB.hp === 9 && seenByB.inventory === undefined && !JSON.stringify(b.last).includes('PRIVATE-NOTE'), 'other players see HP but not inventory or notes');
-  a.emit('player:sheet', { languages: ['Draconic'], speed: 90, slotMax: { 1: 9 } });
-  await h.wait(150);
-  ok(!mine(a).languages.includes('Draconic') && mine(a).speed === 30 && mine(a).slots[1].max === 2, 'players cannot change DM-only sheet fields');
-  dm.emit('dm:sheet', { id: a.me.id, languages: ['Common', 'Draconic'], slotMax: { 1: 4, 2: 2 }, abilities: { int: 18 } });
+  a.emit('player:sheet', { languages: ['Common', 'Draconic'], speed: 90, slotMax: { 1: 9 } });
   await until(() => mine(a).languages.includes('Draconic'));
-  ok(mine(a).slots[2].max === 2 && mine(a).slots[1].used === 1 && mine(a).derived.mods.int === 4, 'DM edits languages, slots and abilities');
+  ok(mine(a).speed === 30 && mine(a).slots[1].max === 2, 'players set their languages but not DM-only sheet fields');
+  dm.emit('dm:sheet', { id: a.me.id, languages: ['Orc'], slotMax: { 1: 4, 2: 2 }, abilities: { int: 18 } });
+  await until(() => mine(a).slots[2]?.max === 2);
+  ok(mine(a).slots[1].used === 1 && mine(a).derived.mods.int === 4 && !mine(a).languages.includes('Orc'), 'DM edits slots and abilities, not languages');
 
   // --- creatures (3)
   const lib = await (await fetch(`${h.URL}/api/creatures`)).json();
@@ -95,7 +97,7 @@ const { ok, call, until } = h;
   ok(r2.monsters === 1 && bat && bat.ac === 12 && bat.speed.fly === 30 && bat.init === 2, '5e-SRD (5e-bits) monster format imports');
   const light = (await (await fetch(`${h.URL}/api/spells`)).json()).find((s) => s.id === 'srd_light');
   ok(light && light.level === 0 && light.classes.includes('Cleric') && /firefly/.test(light.components), 'spell import keeps level, classes and material');
-  a.emit('player:sheet', { spells: ['srd_light', 'srd_fire-bolt'] });
+  dm.emit('dm:sheet', { id: a.me.id, spells: ['srd_light', 'srd_fire-bolt'] }); // the DM keeps the spell list (Nov 21)
   await until(() => mine(a).spells.length === 2);
   ok(true, 'player adds spells to the sheet');
 
@@ -104,7 +106,7 @@ const { ok, call, until } = h;
   const sp = await call(dm, 'dm:save:create', { name: 'Before the vault' });
   ok(sp.id === 'before-the-vault' && (await until(() => dm.last.saves?.length === 1)), 'save point created and listed');
   dm.emit('dm:scene', { title: 'The Vault' });
-  a.emit('player:sheet', { hp: hpAtSave === 1 ? 2 : 1 });
+  dm.emit('dm:sheet', { id: a.me.id, hp: hpAtSave === 1 ? 2 : 1 });
   dm.emit('dm:creature:delete', { id: saved.id });
   await until(() => dm.last.scene.title === 'The Vault' && mine(a).hp !== hpAtSave);
   dm.emit('dm:save:load', { id: sp.id });

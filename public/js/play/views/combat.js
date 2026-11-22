@@ -16,7 +16,12 @@ export default function combatView(S, me) {
   if (me.hp === 0) return `<div class="card"><p class="turn-banner" style="color:var(--bad)">⚔️ You are down</p><p class="muted" style="text-align:center">Hope a cleric is nearby.</p></div>${order}`;
   if (turnId !== me.id) return `<div class="card"><p class="turn-banner">⚔️ ${esc(who?.name || '…')}'s turn</p><p class="muted" style="text-align:center">Watch the TV.</p></div>${order}`;
   const foes = c.enemies.filter((e) => e.hp > 0 && e.side !== 'ally');
+  // Special moves (Nov 21): the player's named chains, when there is someone to strike. Pick one, then a target.
+  const moves = foes.length ? (me.moves || []).filter((m) => m?.steps?.length) : [];
+  const sel = window.__movePick ?? null;
+  const moveRow = moves.length ? `<div class="move-picks" role="group" aria-label="Special moves">${moves.map((m, i) => `<button class="btn small ${sel === i ? 'on' : ''}" data-move-pick="${i}" aria-pressed="${sel === i}">✴ ${esc(m.name || `Move ${i + 1}`)}</button>`).join('')}</div>${sel != null && moves[sel] ? `<p class="note">Pick a target for ${esc(moves[sel].name)}.</p>` : ''}` : '';
   return `<div class="card"><p class="turn-banner">⚔️ YOUR TURN</p><h3>Attack (+${me.atk}, ${me.dmg[0]}d${me.dmg[1]}+${me.dmg[2]})</h3>
+      ${moveRow}
       <div class="grid2">${foes.map((e) => `<button class="btn primary" data-attack="${e.id}">🗡 ${esc(e.name)}<br><small>${esc(def)} ${e.ac}</small></button>`).join('') || '<span class="muted">No targets</span>'}</div>
     <div class="grid3" style="margin-top:8px">
       <button class="btn" data-act="dodge">🛡 Dodge</button><button class="btn" data-act="dash">💨 Dash</button><button class="btn" data-act="hide">👤 Hide</button>

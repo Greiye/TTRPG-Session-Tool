@@ -49,7 +49,7 @@ const { ok, until, call } = h;
   ok(await until(() => a.last.players.find((p) => p.id === a.me.id)?.gold === 42), 'the DM sets a character\'s gold');
 
   // Translated lines: the player who knows the tongue reads it, numbered so the phone notifies once.
-  dm.emit('dm:sheet', { id: a.me.id, languages: ['Common', 'Gnollish'] });
+  a.emit('player:sheet', { languages: ['Common', 'Gnollish'] }); // the player sets their languages (Nov 21)
   await until(() => dm.last.players.find((p) => p.id === a.me.id)?.languages?.includes('Gnollish'));
   dm.emit('dm:say', { text: 'The bridge will not hold three of you.', lang: 'Gnollish' });
   ok(await until(() => a.last.social.line?.lang === 'Gnollish' && b.last.social.line?.lang === 'Gnollish'), 'both phones get the line');

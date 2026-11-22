@@ -262,13 +262,15 @@ module.exports = function playerSockets(socket) {
     broadcast();
   });
 
-  socket.on('player:combat', ({ act, target, style } = {}) => {
+  socket.on('player:combat', ({ act, target, style, move } = {}) => {
     const p = me();
     if (!p || game.currentTurnId() !== p.id || p.hp <= 0) return;
     T.bump(p.id, 'acts');
     if (act === 'attack') {
       const t = state.combat.enemies.find((e) => e.id === target && e.hp > 0 && e.side !== 'ally');
       if (!t) return;
+      const named = (p.moves || []).find((m) => m.name && m.name === move); // a special move picked on the phone (Nov 21)
+      if (named) log('combat', `${p.name} uses ${named.name}!`);
       const r = game.attack(p, t, { style }); // style: the phone's strike gesture (slash, pierce, tap, combo), for the effects only
       if (r.blocked) { log('combat', r.blocked, { tone: 'bad', vis: { to: [p.id] } }); broadcast(); return; } // no roll, the turn goes on
     } else if (['dodge', 'dash', 'help', 'hide'].includes(act)) {

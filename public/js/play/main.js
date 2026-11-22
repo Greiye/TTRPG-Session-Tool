@@ -20,6 +20,7 @@ import './camp.js';
 import './inspiration.js';
 import './control.js';
 import './socialpop.js';
+import './hitdice.js'; // hit dice pop-up (Nov 21)
 import './dungeon.js';
 import './town.js'; // town visits (PR V)
 import './popups.js';

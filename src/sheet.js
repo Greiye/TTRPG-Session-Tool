@@ -94,6 +94,7 @@ function applySheet(c, f, isDm) {
       if (f.inv.note !== undefined) item.note = str(f.inv.note, 200);
     } else if (op === 'del' && item) c.inventory = c.inventory.filter((x) => x !== item);
   }
+  if (Array.isArray(f.spells)) c.spells = [...new Set(f.spells.map((x) => str(x, 80)).filter(Boolean))].slice(0, 200); // the spells a caster knows (their pick, before a rest too)
   if (!isDm) {
     if (Array.isArray(f.languages)) c.languages = cleanLanguages(f.languages);
     return;
@@ -105,7 +106,6 @@ function applySheet(c, f, isDm) {
     if (s) s.used = int(f.slot.used, 0, s.max, s.used);
   }
   if (f.hitDiceUsed !== undefined) c.hitDice.used = int(f.hitDiceUsed, 0, c.level, c.hitDice.used);
-  if (Array.isArray(f.spells)) c.spells = [...new Set(f.spells.map((x) => str(x, 80)).filter(Boolean))].slice(0, 200);
   if (f.gold !== undefined) c.gold = clampGold(f.gold, c.gold);
   for (const k of RESOURCES) {
     const r = c[k];
