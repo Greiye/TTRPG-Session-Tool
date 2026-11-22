@@ -5,7 +5,7 @@
 //
 // Click a node to pick it (its editor opens below the board). Drag a node to move it. 🔗 Connect, then click two
 // nodes, to link them. ⤢ opens the board in a big window over the map.
-import { $, emit, onState, mount, state } from '../client.js';
+import { $, emit, call, onState, mount, state } from '../client.js';
 
 const { esc } = Stage;
 const W = 1000;
@@ -150,10 +150,10 @@ function add() {
   if (kind === 'echo') {
     const consequence = val('#sgCons');
     if (!consequence) { $('#sgCons').focus(); return; }
-    emit('dm:graph:echo', { decision: title, consequence, after: Number($('#sgAfter').value), from }, (r) => { if (r?.node) { sel = r.node.id; draw(); } });
+    call('dm:graph:echo', { decision: title, consequence, after: Number($('#sgAfter').value), from }).then((r) => { if (r?.node) { sel = r.node.id; draw(); } });
     $('#sgCons').value = '';
   } else {
-    emit('dm:graph:add', { kind, title }, (r) => {
+    call('dm:graph:add', { kind, title }).then((r) => {
       if (!r?.node) return;
       if (from) emit('dm:graph:link', { a: from, b: r.node.id });
       sel = r.node.id;

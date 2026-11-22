@@ -91,6 +91,25 @@ const BACKDROPS = {
 `,
 };
 
+// Sprites with a transparent background that stand in front of a picture (Nov 21): the TV shop merchant.
+const SPRITES = {
+  merchant: () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="400" height="600">
+  <ellipse cx="100" cy="292" rx="70" ry="8" fill="hsl(0 0% 0% / .35)"/>
+  <path d="M38 292 q-4 -110 62 -122 q66 12 62 122z" fill="hsl(22 55% 27%)" stroke="hsl(25 60% 10%)" stroke-width="3"/>
+  <path d="M70 292 l8 -112 h44 l8 112z" fill="hsl(37 45% 60%)" stroke="hsl(25 60% 10%)" stroke-width="3"/>
+  <rect x="62" y="214" width="76" height="12" rx="4" fill="hsl(20 40% 16%)"/>
+  <circle cx="122" cy="232" r="11" fill="hsl(43 75% 56%)" stroke="hsl(25 60% 10%)" stroke-width="3"/>
+  <circle cx="100" cy="122" r="40" fill="hsl(30 60% 76%)" stroke="hsl(25 60% 10%)" stroke-width="3"/>
+  <path d="M60 118 q40 -70 80 0 q-10 -20 -40 -22 q-30 2 -40 22z" fill="hsl(25 50% 19%)" stroke="hsl(25 60% 10%)" stroke-width="3"/>
+  <path d="M56 104 h88 l-10 -14 h-68z" fill="hsl(8 63% 29%)" stroke="hsl(25 60% 10%)" stroke-width="3"/>
+  <circle cx="86" cy="124" r="4" fill="hsl(25 60% 10%)"/><circle cx="114" cy="124" r="4" fill="hsl(25 60% 10%)"/>
+  <path d="M80 140 q20 34 40 0 q-20 10 -40 0z" fill="hsl(24 40% 38%)" stroke="hsl(25 60% 10%)" stroke-width="2"/>
+  <path d="M88 146 q12 8 24 0" stroke="hsl(25 60% 10%)" stroke-width="3" fill="none" stroke-linecap="round"/>
+  ${TAG(270, 13)}
+</svg>
+`,
+};
+
 function write() {
   fs.mkdirSync(OUT, { recursive: true });
   const files = [];
@@ -98,8 +117,9 @@ function write() {
   for (const p of PORTRAITS) put(`placeholder-portrait-${p[0]}.svg`, portrait(p));
   for (const t of TOKENS) put(`placeholder-token-${t[0]}.svg`, token(t));
   for (const [id, fn] of Object.entries(BACKDROPS)) put(`placeholder-backdrop-${id}.svg`, fn());
+  for (const [id, fn] of Object.entries(SPRITES)) put(`placeholder-${id}.svg`, fn());
   return files;
 }
 
 if (require.main === module) console.log(`  Wrote ${write().length} placeholder files to ${OUT}`);
-module.exports = { PORTRAITS, TOKENS, BACKDROPS, OUT };
+module.exports = { PORTRAITS, TOKENS, BACKDROPS, SPRITES, OUT };

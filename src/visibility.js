@@ -171,7 +171,7 @@ function viewState(base, viewer) {
     const seated = base.players.filter((p) => p.online !== false).map((p) => p.id);
     const done = pop.done.filter((id) => seated.includes(id));
     const me = viewer.role === 'player' ? base.players.find((p) => p.id === viewer.charId) : null;
-    out.shopPop = shop ? { shopId: pop.shopId, n: pop.n, done, shopping: Math.max(0, seated.length - done.length), mine: me ? pop.done.includes(me.id) : false,
+    out.shopPop = shop ? { shopId: pop.shopId, n: pop.n, done, trade: pop.trade || null, shopping: Math.max(0, seated.length - done.length), mine: me ? pop.done.includes(me.id) : false,
       sell: me ? require('./shops').offers(shop, me, require('./living').priceMult(base, shop)) : [] } : null;
   }
   if (viewer.role === 'dm') {
