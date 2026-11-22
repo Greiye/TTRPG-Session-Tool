@@ -133,7 +133,9 @@ onState((s) => {
   const prep = $('#prepCombat');
   if (prep) {
     prep.hidden = s.combat?.active || (s.mode === 'combat' && !staged);
-    prep.textContent = staged ? '✕ Stop preparing' : '🛠 Prepare combat';
+    prep.textContent = staged ? '✕' : '🛠';
+    prep.title = staged ? 'Stop preparing: back to the mode the table is in' : 'Prepare combat: set up a fight in private. The Battle Window opens here; the TV and phones stay where they are.';
+    prep.setAttribute('aria-label', staged ? 'Stop preparing combat' : 'Prepare combat');
     prep.classList.toggle('on', staged);
     prep.setAttribute('aria-pressed', String(staged));
   }
