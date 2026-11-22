@@ -664,7 +664,7 @@ html[data-motion="reduce"] .memorial { animation-duration: .001ms; }
 .hall-cat li { font-size: calc(1.3cqw * var(--ts)); padding: .4cqw 0; border-bottom: 1px solid rgb(255 255 255 / .12); }
 .hall-cat li b { color: #f4ead5; } .hall-cat li span { color: #c9bfae; } .hall-cat li em { float: right; font-style: normal; color: var(--gold); }
 .hall-cat li small { display: block; color: #b9ad97; }
-.hall-none { color: #a79c86; font-style: italic; }
+.hall-none { color: var(--muted); font-style: italic; }
 .shelf { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.2cqw; margin-top: 2cqw; }
 .shelf li { padding: 1cqw 1.6cqw; border: 1px solid #6b5a3a; border-radius: 10px; background: #1b1420; font-size: calc(1.4cqw * var(--ts)); }
 html[data-motion="reduce"] .legends-tv, html[data-motion="reduce"] .trophy-tv { animation-duration: .001ms; }

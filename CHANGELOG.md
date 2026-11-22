@@ -4,6 +4,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Fixed
+- **Readable text everywhere** (Mike, Nov 22). Text that was hard to read on its background. Road cards on the world map were dark ink on a near-black card; the map's town list, the dungeon editor, the backdrop picker, Creature Designer tabs and "Nobody yet" notes had the same kind of problem. Dark panels on parchment now take the light palette from one theme rule, parchment muted text is a shade darker (4.5:1), and a new browser test (`test/contrast-ui.js`) checks every DM, TV, phone and co-DM page for faint text.
+
 ### Added
 - **Social: press, hold and drag who joins** (Mike, Nov 21). The DM's Social window lists NPCs and players; press and hold one, then drag it into the circle (a tap still works). Players dragged in stand on the TV's left. During the talk the same circle shows who is in it: drag more NPCs or players in, or take them out with ×. Players can also join themselves: **Join the Conversation?** now sits in the middle of the phone, and Yes puts them in the scene.
 - **Hit dice pop-up** (Mike, Nov 21). After a short rest a hurt character's phone asks how many hit dice to spend (− and +, Roll, or Not now); each heals a roll plus CON. The DM can offer hit dice any time from a party member's right-click menu, and the sheet has **🎲 Spend hit dice**.
