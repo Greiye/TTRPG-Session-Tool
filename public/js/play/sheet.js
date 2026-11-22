@@ -58,7 +58,7 @@ function featuresHtml(c) {
     <div class="feat-grid">${list.map((f) => { const left = Math.max(0, f.max - (c.uses?.[f.name] || 0)); return `<button class="btn feat ${openFeat === f.name ? 'on' : ''} ${left ? '' : 'spent'}" data-feat="${esc(f.name)}" aria-expanded="${openFeat === f.name}">${esc(f.name)}<small>${left} / ${f.max}${f.pool ? ' pts' : ''}</small></button>`; }).join('')}</div>
     ${list.filter((f) => f.name === openFeat).map((f) => { const left = Math.max(0, f.max - (c.uses?.[f.name] || 0)); return `<div class="feat-desc">
       <p>${esc(f.text || 'No description yet. Ask your DM.')}</p>
-      <p class="note">${left} of ${f.max}${f.pool ? ' points' : ' uses'} left · refills on a ${esc(f.reset)} rest${f.auto ? ' · works by itself when activated' : ''}</p>
+      <p class="note">${left} of ${f.max}${f.pool ? ' points' : ' uses'} left · refills on a ${esc(f.reset)} rest${f.auto ? ' · takes effect by itself' : ''}</p>
       <button class="bigbtn feat-go" data-feat-go="${esc(f.name)}" ${left ? '' : 'disabled'} aria-label="Activate ${esc(f.name)}, press and hold for 3 seconds"><span class="feat-fill"></span><span class="feat-label">${left ? 'Hold to activate' : 'No uses left'}</span></button>
       ${featNote ? `<p class="note" role="status">${esc(featNote)}</p>` : ''}
     </div>`; }).join('')}
