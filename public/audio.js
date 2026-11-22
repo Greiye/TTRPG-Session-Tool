@@ -164,6 +164,18 @@
       n.connect(bp).connect(env(c, 0.5, 0.02, 0.25));
       n.start();
     },
+    // Coins on a shop counter (Nov 21): a few short bright pings, a little apart.
+    coin(c) {
+      [0, 0.07, 0.15].forEach((d, i) => {
+        const g = c.createGain();
+        const t = c.currentTime + d;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.22 * sfxVolume, t + 0.004);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+        g.connect(c.destination);
+        [2400 + i * 260, 3900 + i * 310].forEach((f) => { const o = c.createOscillator(); o.type = 'triangle'; o.frequency.value = f; o.connect(g); o.start(t); o.stop(t + 0.4); });
+      });
+    },
     clash(c) {
       // Steel on steel: a sharp noise tick and a ringing set of inharmonic partials.
       const n = noise(c, 0.08);

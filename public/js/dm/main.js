@@ -36,6 +36,7 @@ import './camp.js';
 import './inspiration.js';
 import './legends.js';
 import './moments.js';
+import './storygraph.js'; // Story Nodes Graph with choice echoes, in Planning (Nov 21)
 import './table.js';
 import './chronicle.js';
 import './dock.js';

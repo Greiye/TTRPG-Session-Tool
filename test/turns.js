@@ -32,7 +32,7 @@ const { ok, until } = h;
   ok(await until(() => dm.last.clocks[0].filled === 2), 'DM can wind a clock back');
   // Rests (18)
   dm.emit('dm:sheet', { id: a.me.id, hp: 3 });
-  a.emit('player:sheet', { slot: { level: 1, used: 1 }, hitDiceUsed: 1, tempHp: 5 });
+  dm.emit('dm:sheet', { id: a.me.id, slot: { level: 1, used: 1 }, hitDiceUsed: 1, tempHp: 5 });
   await until(() => dm.last.players[0].slots?.[1]?.used === 1 && dm.last.players[0].hp === 3);
   dm.emit('dm:rest', { kind: 'short' });
   await h.wait(120);

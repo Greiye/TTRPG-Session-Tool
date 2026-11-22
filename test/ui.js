@@ -61,12 +61,12 @@ const SHOTS = process.env.SHOTS;
   await ph.click('#tabs [data-tab="misc"]');
   const misc = await ph.$$eval('#tabMisc .subtabs [data-tab]', (bs) => bs.map((b) => b.dataset.tab).join());
   if (misc !== 'logs,world,legends,bond') errors.push('misc sections: ' + misc);
-  // Sheet: skills roll on tap; a class feature opens its description and activates after a 3 s hold.
+  // Sheet: skills roll on a press and hold (Nov 21); a class feature opens its description and activates after a 3 s hold.
   await ph.click('#tabs [data-tab="sheet"]');
-  await ph.click('#tabSheet [data-skill]');
   if (await ph.$('#tabSheet [data-feat]')) {
     await ph.click('#tabSheet [data-feat]');
-    const go = await ph.waitForSelector('#tabSheet [data-feat-go]');
+    const go = ph.locator('#tabSheet [data-feat-go]'); // a locator, so a redraw after the skill roll does not lose it
+    await go.waitFor();
     await go.scrollIntoViewIfNeeded();
     const bb = await go.boundingBox();
     await ph.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
@@ -77,6 +77,8 @@ const SHOTS = process.env.SHOTS;
     await ph.mouse.down(); await ph.waitForTimeout(3300); await ph.mouse.up();
     await ph.waitForFunction(() => /activated/.test(document.querySelector('#tabSheet').textContent), null, { timeout: 3000 }).catch(() => errors.push('holding Activate for 3 s did not activate the feature'));
   }
+  await ph.dispatchEvent('#tabSheet [data-sk]', 'pointerdown');
+  await ph.waitForSelector('#tabSheet [data-sk].cool', { timeout: 3000 }).catch(() => errors.push('holding a skill did not roll it'));
   // Items (Mike, Nov 16): players can't add items; the DM gives them from the Items tab.
   await ph.click('#tabs [data-tab="inventory"]');
   if (await ph.$('#invForm')) errors.push('the phone should not have an add-item form');
@@ -93,6 +95,7 @@ const SHOTS = process.env.SHOTS;
   await tv.waitForSelector('.convo-wait', { timeout: 5000 });
   await dm.waitForSelector('#socialWin:not([hidden]) #convoPool [data-pool]', { timeout: 5000 });
   await dm.click('#convoPool [data-pool="pool-albert"]');
+  await dm.locator('#convoStart').scrollIntoViewIfNeeded();
   const sb = await dm.locator('#convoStart').boundingBox();
   await dm.mouse.move(sb.x + sb.width / 2, sb.y + sb.height / 2);
   await dm.mouse.down(); await dm.waitForTimeout(1200); await dm.mouse.up();
@@ -103,8 +106,9 @@ const SHOTS = process.env.SHOTS;
   await ph.waitForSelector('.convo-pop [data-cv="yes"]', { timeout: 5000 });
   await ph.click('.convo-pop [data-cv="yes"]');
   await ph.fill('#convoText', 'Hello there.');
+  await settled(ph, '.convo-pop'); // the speech box slides down from the top (Nov 21): tap once it is still
   // Emotion wheel: segments are clipped, so tap where the label sits.
-  const tapAt = async (sel) => { const r = await ph.locator(sel).boundingBox(); await ph.mouse.click(r.x + r.width / 2, r.y + r.height / 2); };
+  const tapAt = async (sel) => { await ph.locator(sel).scrollIntoViewIfNeeded(); const r = await ph.locator(sel).boundingBox(); await ph.mouse.click(r.x + r.width / 2, r.y + r.height / 2); };
   await tapAt('.convo-wheel [data-emo="happy"] .wheel-lbl');
   if (await ph.getAttribute('.convo-wheel [data-emo="happy"]', 'aria-pressed') !== 'true') errors.push('tapping an emotion segment did not pick it');
   if ((await ph.$$('.convo-tip')).length !== 2) errors.push('the speech-to-text and drag tips should show');
@@ -112,6 +116,7 @@ const SHOTS = process.env.SHOTS;
   await tv.waitForFunction(() => document.querySelector('.vn-box.emo-happy') && /Hello there/.test(document.querySelector('.vn-box').textContent), null, { timeout: 5000 }).catch(() => errors.push('phone line and emotion did not reach the TV'));
   // Drag an emotion onto Send: the line goes out with that emotion.
   await ph.fill('#convoText', 'Back off.');
+  await ph.locator('.convo-wheel').scrollIntoViewIfNeeded();
   const from = await ph.locator('.convo-wheel [data-emo="angry"] .wheel-lbl').boundingBox();
   const to = await ph.locator('.convo-wheel .wheel-send').boundingBox();
   await ph.mouse.move(from.x + from.width / 2, from.y + from.height / 2);

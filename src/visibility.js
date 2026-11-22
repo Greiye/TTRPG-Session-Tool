@@ -141,6 +141,8 @@ function viewState(base, viewer) {
   if (base.social) out.social = { ...base.social, line: require('./speech').lineFor(base.social.line, viewer, base) };
   out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own
   // TV moments (src/moments.js): the TV and the DM only. Planned echoes stay with the DM.
+  // Story Nodes Graph (Nov 21): DM prep, never sent to phones, the TV or helpers.
+  if (viewer.role !== 'dm') delete out.storyGraph;
   if (viewer.role === 'dm') out.tv = base.tv;
   else if (['screen', 'codm'].includes(viewer.role)) out.tv = { ...base.tv, echoes: [] };
   else delete out.tv;
@@ -184,7 +186,7 @@ function viewState(base, viewer) {
     const seated = base.players.filter((p) => p.online !== false).map((p) => p.id);
     const done = pop.done.filter((id) => seated.includes(id));
     const me = viewer.role === 'player' ? base.players.find((p) => p.id === viewer.charId) : null;
-    out.shopPop = shop ? { shopId: pop.shopId, n: pop.n, done, shopping: Math.max(0, seated.length - done.length), mine: me ? pop.done.includes(me.id) : false,
+    out.shopPop = shop ? { shopId: pop.shopId, n: pop.n, done, trade: pop.trade || null, shopping: Math.max(0, seated.length - done.length), mine: me ? pop.done.includes(me.id) : false,
       sell: me ? require('./shops').offers(shop, me, require('./living').priceMult(base, shop)) : [] } : null;
   }
   if (viewer.role === 'dm') {

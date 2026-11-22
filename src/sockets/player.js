@@ -99,6 +99,7 @@ module.exports = function playerSockets(socket) {
     const r = shops.buy(shop, p, itemId, qty, living.priceMult(state, shop));
     if (r.error) return ack?.(r);
     log('shop', `${p.name} buys ${r.qty}× ${r.item.name} from ${shop.name} for ${r.cost.toFixed(2)} gp.`, { who: p.name, vis: { to: [p.id], screen: false } });
+    shops.traded(state, shop, 'buy', io);
     broadcast();
     ack?.({ ok: true, gold: p.gold });
   });
@@ -113,6 +114,7 @@ module.exports = function playerSockets(socket) {
     const r = shops.sell(shop, p, invId, qty, living.priceMult(state, shop));
     if (r.error) return ack?.(r);
     log('shop', `${p.name} sells ${r.qty}× ${r.item.name} to ${shop.name} for ${r.gain.toFixed(2)} gp.`, { who: p.name, vis: { to: [p.id], screen: false } });
+    shops.traded(state, shop, 'sell', io);
     broadcast();
     ack?.({ ok: true, gold: p.gold });
   });
@@ -155,9 +157,23 @@ module.exports = function playerSockets(socket) {
     if (!p) return ack?.({ error: 'Claim a character first.' });
     const r = require('../rests').useFeature(p, String(name || ''));
     if (r.error) return ack?.(r);
-    log('action', `${p.name} uses ${name}${r.pool ? ` (${r.left} points left)` : ''}.`);
+    log('action', `${p.name} uses ${name}${r.text ? ` ${r.text}` : ''}${r.pool ? ` (${r.left} points left)` : ''}.`);
+    if (r.healed) combatfx.emit('heal', { target: p, amount: r.healed });
     broadcast();
-    ack?.({ ok: true, left: r.left });
+    ack?.({ ok: true, left: r.left, text: r.text });
+  });
+  // Hit dice from the phone (Nov 21): answers the prompt after a short rest or the DM's offer, or the sheet's
+  // "Spend a hit die". n 0 says no thanks. Each die heals d(die) + CON; the DM can still change HP.
+  socket.on('player:hitdice', ({ n } = {}, ack) => {
+    const p = me();
+    if (!p) return ack?.({ error: 'Claim a character first.' });
+    const rests = require('../rests');
+    const r = rests.spendHitDice(p, n);
+    delete p.hdOffer;
+    if (r) log('system', `${p.name} ${r.line}.`, { tone: 'good' });
+    if (r?.healed) combatfx.emit('heal', { target: p, amount: r.healed });
+    broadcast();
+    ack?.(r ? { ok: true, healed: r.healed } : { ok: true, healed: 0 });
   });
   // Tapping a skill, save or ability: answers the DM's roll call if it matches, else it is a free roll.
   socket.on('player:check', ({ skill, kind = 'skill', key = skill, mode } = {}) => {
@@ -208,18 +224,34 @@ module.exports = function playerSockets(socket) {
 
   // "Join the conversation?" pop-up (Nov 16): a line and the emotion it is said with. The character's
   // emotion changes on the TV only now, together with the line.
-  socket.on('player:social:say', ({ text, emotion } = {}) => {
+  // lang (Nov 21): a language the character knows. The line is scrambled for everyone who does not know it
+  // (src/speech.js), like an NPC line in a tongue; the DM can still gloss it.
+  socket.on('player:social:say', ({ text, emotion, lang } = {}) => {
     const p = me();
     text = String(text || '').trim().slice(0, 200);
     if (!p || !text || state.mode !== 'social' || !state.social.convo?.live || state.social.convo.ending) return;
     if (!cast.EMOTIONS.includes(emotion)) emotion = 'neutral';
     T.bump(p.id, 'talk');
+    cast.join(state.social, p.id); // speaking puts the character in the conversation
     cast.setExpression(state.social, p.id, emotion);
     const c = roster[p.id];
     if (c?.sprite) { c.sprite = { ...c.sprite, state: emotion }; p.sprite = c.sprite; }
-    state.social.line = { speaker: p.name, text, emotion, player: true, pid: p.id };
-    log('say', cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, text), { pid: p.id, emotion, said: text });
+    const tongue = str(lang, 30);
+    const known = tongue && tongue.toLowerCase() !== 'common' && (p.languages || []).includes(tongue);
+    state.social.line = { n: nextId(), speaker: p.name, text, emotion, player: true, pid: p.id, ...(known ? { lang: tongue, gloss: [] } : {}) };
+    const said = cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, text);
+    if (!known) log('say', said, { pid: p.id, emotion, said: text });
+    else {
+      log('say', cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, require('../speech').scramble(text)), { pid: p.id, emotion, said: require('../speech').scramble(text) });
+      log('say', `(${tongue}) ${said}`, { pid: p.id, emotion, said: text, vis: 'dm' });
+    }
     broadcast();
+  });
+  // "Join the Conversation?" Yes (Nov 21): the character steps into the scene before saying anything.
+  socket.on('player:convo:join', () => {
+    const p = me();
+    if (!p || state.mode !== 'social' || !state.social.convo?.live || state.social.convo.ending) return;
+    if (cast.join(state.social, p.id)) { log('system', `${p.name} joins the conversation.`); broadcast(); }
   });
 
   socket.on('player:choice', ({ index } = {}) => {
@@ -232,13 +264,15 @@ module.exports = function playerSockets(socket) {
     broadcast();
   });
 
-  socket.on('player:combat', ({ act, target, style } = {}) => {
+  socket.on('player:combat', ({ act, target, style, move } = {}) => {
     const p = me();
     if (!p || game.currentTurnId() !== p.id || p.hp <= 0) return;
     T.bump(p.id, 'acts');
     if (act === 'attack') {
       const t = state.combat.enemies.find((e) => e.id === target && e.hp > 0 && e.side !== 'ally');
       if (!t) return;
+      const named = (p.moves || []).find((m) => m.name && m.name === move); // a special move picked on the phone (Nov 21)
+      if (named) log('combat', `${p.name} uses ${named.name}!`);
       const r = game.attack(p, t, { style }); // style: the phone's strike gesture (slash, pierce, tap, combo), for the effects only
       if (r.blocked) { log('combat', r.blocked, { tone: 'bad', vis: { to: [p.id] } }); broadcast(); return; } // no roll, the turn goes on
     } else if (['dodge', 'dash', 'help', 'hide'].includes(act)) {
@@ -256,6 +290,8 @@ module.exports = function playerSockets(socket) {
       }
       combatfx.emit('heal', { target: p, amount: h.total });
     } else return;
+    // Action Surge (src/rests.js): this action does not end the turn.
+    if (p.surge) { delete p.surge; log('combat', `${p.name} surges on with another action.`); broadcast(); return; }
     game.advanceTurn();
     broadcast();
   });

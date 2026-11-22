@@ -27,7 +27,7 @@ const SKIP = ['checkbox', 'radio', 'range', 'color', 'file', 'hidden'];
     for (const mode of ['exploration', 'social', 'combat']) {
       await p.click(`[data-mode="${mode}"]`);
       await settled(p, 'body');
-      for (const tab of await p.$$eval('[data-stab]:not([hidden])', (b) => b.map((x) => x.dataset.stab))) {
+      for (const tab of await p.$$eval('[data-stab]:not([hidden]):not([disabled])', (b) => b.map((x) => x.dataset.stab))) {
         await p.click(`[data-stab="${tab}"]`);
         const subs = await p.$$eval('[data-sub-pick]', (b) => b.map((x) => x.dataset.subPick));
         for (const sub of subs.length ? subs : [null]) {

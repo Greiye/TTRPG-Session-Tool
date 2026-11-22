@@ -1,5 +1,5 @@
 // DM controls for TV moments (src/moments.js): transitions, dramatic pause, chapter and entrance cards,
-// quote wall, choice echoes (a Planning Mode tab), relics and the journal book. The TV shows them. The story clock has its own card
+// quote wall, relics and the journal book. The TV shows them. The story clock has its own card
 // under Scene > Clocks. The epilogue controls were taken off the DM page (Mike, Nov 14) and their archived copy removed (Nov 16).
 import { $, emit, onState, mount } from '../client.js';
 
@@ -39,15 +39,7 @@ card.innerHTML = `
     <button class="btn small" data-act="book" id="moBook">Open on the TV</button></div>
 `;
 
-// Choice echoes are prep, so they live in Planning Mode (Mike, Nov 16): plant one now, it fires after N scenes.
-const echoCard = mount(`<div class="card" data-tab="echo" data-fold-key="choice-echo">
-  <h3>Choice echo <span class="note">planned now, fires after N scenes</span></h3>
-  <input id="moDec" placeholder="What the party chose">
-  <input id="moCons" placeholder="What comes back later">
-  <div class="row"><label class="note tight">Fires after <input id="moAfter" type="number" min="1" max="20" value="3" title="Scenes until it fires" style="width:5em"> scenes</label>
-    <button class="btn small primary" data-act="echo">Plant</button></div>
-  <div id="moEchoes" class="list"></div>
-</div>`);
+// Choice echoes moved into the Story Nodes Graph in Planning (Mike, Nov 21): public/js/dm/storygraph.js.
 
 // Story clock (Mike, Nov 14): five segments, Dawn, Day, Noon, Dusk and Night, and no clock hours. Each move
 // shows the day and segment on the TV for a few seconds with that segment's sound.
@@ -83,9 +75,6 @@ onState((s) => {
   }
   $('#moQuotes').innerHTML = (tv.quotes || []).map((q) => `<div class="item"><span>“${esc(q.text)}”${q.who ? ` <small class="muted">${esc(q.who)}</small>` : ''}</span>
     <button class="btn small danger" data-act="quoteremove" data-id="${esc(q.id)}">✕</button></div>`).join('') || '';
-  $('#moEchoes').innerHTML = (tv.echoes || []).map((e) => `<div class="item"><span><b>${esc(e.decision)}</b> → ${esc(e.consequence)} <small class="muted">in ${e.left} scene${e.left === 1 ? '' : 's'}</small></span>
-    <span class="row"><button class="btn small" data-act="echofire" data-id="${esc(e.id)}">Fire now</button>
-    <button class="btn small danger" data-act="echocancel" data-id="${esc(e.id)}">✕</button></span></div>`).join('') || '';
   $('#moRelics').innerHTML = (tv.relics || []).map((r) => `<div class="item"><span>${esc(r.icon)} <b>${esc(r.name)}</b> ${r.revealed ? '<small class="muted">revealed</small>' : ''}</span>
     <span class="row">${tv.relic?.id === r.id ? `<button class="btn small on" data-act="relicclose" aria-pressed="true">Hide card</button>` : `<button class="btn small" data-act="relicreveal" data-id="${esc(r.id)}" aria-pressed="false">${r.revealed ? 'Show card' : 'Reveal'}</button>`}
     <button class="btn small danger" data-act="relicremove" data-id="${esc(r.id)}">✕</button></span></div>`).join('') || '';
@@ -103,12 +92,6 @@ const actions = {
   },
   quote: () => { if (val('moQuote')) emit('dm:tv:quote:add', { text: val('moQuote'), who: val('moWho') }); clear('moQuote', 'moWho'); },
   quoteremove: (b) => emit('dm:tv:quote:remove', { id: b.dataset.id }),
-  echo: () => {
-    emit('dm:tv:echo:plant', { decision: val('moDec'), consequence: val('moCons'), after: Number(val('moAfter')) });
-    clear('moDec', 'moCons');
-  },
-  echofire: (b) => emit('dm:tv:echo:fire', { id: b.dataset.id }),
-  echocancel: (b) => emit('dm:tv:echo:cancel', { id: b.dataset.id }),
   relic: () => {
     if (!val('moRelName')) return;
     emit('dm:tv:relic:add', { name: val('moRelName'), icon: val('moRelIcon'), lore: val('moRelLore') });
@@ -127,7 +110,7 @@ clockCard.addEventListener('click', (e) => {
   else if (b.id === 'moDaySet') emit('dm:story:set', { day: Number(val('moDay')), seg: story?.seg ?? 1 });
   else if (b.id === 'moNext') emit('dm:story:advance', { segs: 1 });
 });
-for (const c of [card, echoCard]) {
+for (const c of [card]) {
   c.addEventListener('click', (e) => {
     const b = e.target.closest('[data-act]');
     if (b && actions[b.dataset.act]) actions[b.dataset.act](b);

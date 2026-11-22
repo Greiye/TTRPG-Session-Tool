@@ -23,8 +23,7 @@ onState((s) => {
       <div class="row">
         <label class="fld" style="width:70px">Speed<input type="number" data-sheet="speed" step="5"></label>
         ${s.rules.slotLevels ? `<label class="fld grow">Spell slots <small>(per level, e.g. 4 3 2)</small><input data-sheet="slots" placeholder="none"></label>` : ''}
-        <label class="fld grow">Languages <small>(comma separated)</small><input data-sheet="languages" list="langList"></label>
-        <datalist id="langList">${s.rules.languages.map((l) => `<option>${esc(l)}</option>`).join('')}</datalist>
+        <label class="fld grow">Languages <small>(the player sets these on their phone)</small><input data-sheet="languages" readonly tabindex="-1" aria-readonly="true"></label>
       </div>`;
   }
   render();
@@ -97,7 +96,7 @@ $('#charSave').onclick = () => {
   sheet('[data-ab]').forEach((i) => { if (i.value !== '') data.abilities[i.dataset.ab] = i.value; });
   sheet('[data-sheet]').forEach((i) => {
     const k = i.dataset.sheet;
-    if (k === 'speed') { if (i.value !== '') data.speed = i.value; } else if (k === 'languages') data.languages = i.value.split(',').map((x) => x.trim()).filter(Boolean);
+    if (k === 'speed') { if (i.value !== '') data.speed = i.value; } else if (k === 'languages') { /* the player's to set (Nov 21) */ }
     else { const max = i.value.trim().split(/[\s,/]+/).map(Number); data.slotMax = Object.fromEntries(Array.from({ length: 9 }, (_, l) => [l + 1, max[l] || 0])); }
   });
   emit('dm:char:save', data);

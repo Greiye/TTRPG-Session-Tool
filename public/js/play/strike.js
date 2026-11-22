@@ -150,20 +150,21 @@ export const isOpen = () => !!open;
 const pref = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } } };
 
 // Opens the pop-up for `foe`; `hero` is this phone's character (weapons and saved moves). Resolves when it closes.
-export function openStrike(foe, hero) {
+// opts.move: index of a special move picked from the combat choices (Nov 21).
+export function openStrike(foe, hero, opts = {}) {
   if (open) return open.done;
   const shape = shapeOf(foe);
   const weapons = weaponsOf(hero);
   const moves = (hero?.moves || []).filter((m) => m?.steps?.length >= MIN_STEPS);
   let weapon = weapons.find((w) => w.name === pref.get('strike.weapon')) || weapons[0];
-  let pick = 'strike'; // 'strike' or a move index
+  let pick = Number.isInteger(opts.move) && moves[opts.move] ? opts.move : 'strike'; // 'strike' or a move index
   const el = document.createElement('div');
   el.id = 'strike';
   el.className = 'strike-pop';
   el.innerHTML = `<div class="strike-card" role="dialog" aria-label="Strike ${esc(foe.name)}">
       <header><b>Strike ${esc(foe.name)}</b><button type="button" class="icon-btn strike-x" aria-label="Cancel">✕</button></header>
       ${weapons.length > 1 ? `<div class="strike-chips" data-row="weapon">${weapons.map((w, i) => `<button type="button" class="chip" data-weapon="${i}">${esc(w.name)}</button>`).join('')}</div>` : ''}
-      ${moves.length ? `<div class="strike-chips" data-row="move"><button type="button" class="chip" data-move="strike">Strike</button>${moves.map((m, i) => `<button type="button" class="chip" data-move="${i}">Move ${i + 1}</button>`).join('')}</div>` : ''}
+      ${moves.length ? `<div class="strike-chips" data-row="move"><button type="button" class="chip" data-move="strike">Strike</button>${moves.map((m, i) => `<button type="button" class="chip" data-move="${i}">${esc(m.name || `Move ${i + 1}`)}</button>`).join('')}</div>` : ''}
       <div class="strike-field">
         <svg class="strike-sil" viewBox="0 0 200 300" aria-hidden="true"><g>${SHAPES[shape]}</g></svg>
         <svg class="strike-ink" aria-hidden="true"><polyline points=""/></svg>
@@ -219,7 +220,8 @@ export function openStrike(foe, hero) {
     }
     if (style === 'combo') field.querySelectorAll('.strike-node').forEach((d, i) => { d.style.animationDelay = `${i * 70}ms`; d.classList.add('burst'); });
     navigator.vibrate?.(style === 'pierce' ? [10, 30, 60] : style === 'combo' ? [] : [45]);
-    later(() => socket.emit('player:combat', { act: 'attack', target: foe.id, style }), PAUSE_MS);
+    const move = pick !== 'strike' ? moves[pick]?.name : undefined; // a named special move is called out on the TV log
+    later(() => socket.emit('player:combat', { act: 'attack', target: foe.id, style, move }), PAUSE_MS);
     later(close, 4000); // no answer (no line of sight, turn moved on): close anyway
   }
 
@@ -435,17 +437,17 @@ export function openStrike(foe, hero) {
 }
 
 // --- Special move builder (on the sheet): tap the silhouette to lay out a chain, then save it. ---
-// Saved on the character as `moves` (src/sheet.js). No names: players call their moves out at the table.
+// Saved on the character as `moves` (src/sheet.js). Nov 21: each move has a name the player picks.
 export function openMoveBuilder(hero, index = null) {
   if (document.getElementById('moveBuild')) return;
-  const moves = (hero?.moves || []).map((m) => ({ steps: [...m.steps] }));
+  const moves = (hero?.moves || []).map((m, i) => ({ name: m.name || `Move ${i + 1}`, steps: [...m.steps] }));
   const steps = index != null && moves[index] ? moves[index].steps.map((s) => ({ ...s })) : [];
   let kind = 'hit', taps = []; // taps placed so far for a step that needs several
   const el = document.createElement('div');
   el.id = 'moveBuild';
   el.className = 'strike-pop';
   el.innerHTML = `<div class="strike-card" role="dialog" aria-label="Special move">
-      <header><b>${index != null ? `Move ${index + 1}` : 'New move'}</b><button type="button" class="icon-btn" data-b="cancel" aria-label="Cancel">✕</button></header>
+      <header><input class="move-title" maxlength="30" value="${esc(index != null && moves[index] ? moves[index].name : `Move ${moves.length + 1}`)}" aria-label="Move name"><button type="button" class="icon-btn" data-b="cancel" aria-label="Cancel">✕</button></header>
       <div class="strike-chips">${STEP_KINDS.map((k) => `<button type="button" class="chip" data-kind="${k}">${STEP_ICON[k] ? `${STEP_ICON[k]} ` : ''}${STEP_LABEL[k]}</button>`).join('')}</div>
       <div class="strike-field build">
         <svg class="strike-sil" viewBox="0 0 200 300" aria-hidden="true"><g>${SHAPES.humanoid}</g></svg>
@@ -496,7 +498,8 @@ export function openMoveBuilder(hero, index = null) {
     else if (b.dataset.b === 'undo') { if (taps.length) taps.pop(); else steps.pop(); draw(); }
     else if (b.dataset.b === 'cancel') close();
     else if (b.dataset.b === 'save' && steps.length >= MIN_STEPS) {
-      if (index != null && moves[index]) moves[index] = { steps }; else moves.push({ steps });
+      const name = el.querySelector('.move-title').value.trim().slice(0, 30) || `Move ${(index ?? moves.length) + 1}`;
+      if (index != null && moves[index]) moves[index] = { name, steps }; else moves.push({ name, steps });
       socket.emit('player:sheet', { moves: moves.slice(0, MAX_MOVES) });
       close();
     }

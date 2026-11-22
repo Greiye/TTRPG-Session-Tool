@@ -8,6 +8,7 @@ const creatures = require('../creatures');
 const items = require('../itemlib');
 const { roster, saveRoster } = require('../roster');
 const { applySheet } = require('../sheet');
+const gifts = require('../gifts');
 
 module.exports = function designerSockets(socket) {
   const dm = (event, fn) => socket.on(event, async (f = {}, ack) => {
@@ -72,9 +73,11 @@ module.exports = function designerSockets(socket) {
     const n = Math.max(1, Math.min(9999, Math.floor(Number(qty)) || 1));
     for (const cid of ids) {
       const c = roster[cid];
+      const prev = gifts.before(c);
       const have = (c.inventory || []).find((i) => i.name.toLowerCase() === it.name.toLowerCase());
       if (have) applySheet(c, { inv: { op: 'set', id: have.id, qty: have.qty + n } }, true);
       else applySheet(c, { inv: { op: 'add', name: it.name, qty: n, note: it.note, img: it.image, icon: items.KINDS[it.kind], rarity: it.rarity } }, true);
+      gifts.tell(c, prev);
     }
     saveRoster();
     return { ok: true, given: ids.length };

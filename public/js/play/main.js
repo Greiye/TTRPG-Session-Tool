@@ -18,8 +18,10 @@ import './world.js';
 import './legends.js';
 import './camp.js';
 import './inspiration.js';
+import './gifts.js'; // "Received 'Item'" toast (Nov 21)
 import './control.js';
 import './socialpop.js';
+import './hitdice.js'; // hit dice pop-up (Nov 21)
 import './dungeon.js';
 import './town.js'; // town visits (PR V)
 import './popups.js';
