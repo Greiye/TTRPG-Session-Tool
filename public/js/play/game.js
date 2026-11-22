@@ -9,11 +9,19 @@ import socialView from './views/social.js';
 import combatView from './views/combat.js';
 import * as Fx from './fx.js';
 import { openStrike, wantGesture } from './strike.js';
+import { isoStage } from '../iso3d.js';
 
 const { esc } = Stage;
 const VIEWS = { exploration: exploreView, social: socialView, combat: combatView };
 let lastMode = null;
 let lastPop = null; // what the combat pop-up last showed, so it pops in again only when that changes
+// Phone combat map (Mike, Nov 21): the battle map from above, with a D-pad (and gamepad) to move your character.
+const mapHost = document.createElement('div');
+mapHost.className = 'phone-map';
+mapHost.hidden = true;
+$('#combatPop')?.before(mapHost);
+const mapOn = (S) => S?.mode === 'combat' && !!S.map && !!S.combat?.active && S.viewer?.role === 'player';
+const phoneIso = isoStage(mapHost, { role: 'player', socket, charId: () => id.charId, slotSel: null, pad: true, when: mapOn });
 
 // Waiting, my turn, someone else's turn, or down: each change pops the card in again.
 function popKey(S, c) {
@@ -42,7 +50,9 @@ function render() {
   $('#say').placeholder = S.mode === 'social' ? 'Say something in character…' : 'What do you do?';
   $('#sayForm').hidden = S.mode === 'combat' || tab() !== 'play';
   $('#tabPlay').classList.toggle('combat-quiet', S.mode === 'combat'); // combat: no spectator notes, no free-text box
-  // Combat: no 3D map on phones (the TV shows it). The combat card pops up at the top of the Play tab instead.
+  // Combat: the overhead battle map with a D-pad on top, the combat card under it.
+  mapHost.hidden = !(mapOn(S) && tab() === 'play');
+  phoneIso.update(mapHost.hidden ? { ...S, mode: 'off' } : S);
   const pop = $('#combatPop');
   if (S.mode === 'combat') {
     pop.innerHTML = combatView(S, c);

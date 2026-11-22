@@ -154,6 +154,16 @@
       const cr = osc(c, 'sawtooth', 320, creak, 0.6);
       cr.frequency.exponentialRampToValueAtTime(140, c.currentTime + 0.55);
     },
+    swish(c) {
+      // A blade through the air: a short band of noise sweeping down.
+      const n = noise(c, 0.3);
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.setValueAtTime(3200, c.currentTime);
+      bp.frequency.exponentialRampToValueAtTime(600, c.currentTime + 0.25);
+      n.connect(bp).connect(env(c, 0.5, 0.02, 0.25));
+      n.start();
+    },
     clash(c) {
       // Steel on steel: a sharp noise tick and a ringing set of inharmonic partials.
       const n = noise(c, 0.08);
@@ -310,6 +320,8 @@
       socket.on('sfx', sfx);
     },
     get output() { return routed(lastState); },
+    /** Plays a built-in sound here when this screen is the table's speaker (combat effects, public/combatfx.js). */
+    play(builtin) { if (SYNTH[builtin]) sfx({ builtin }); },
     get master() { return master; },
     status: () => ({ track: current, paused: decks[live].paused, volume: +decks[live].volume.toFixed(2) }),
   };

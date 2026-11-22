@@ -188,8 +188,9 @@ function coverOf(v, a, b) {
  * role: 'dm' | 'player' | 'screen'. emit: DM socket emit (dm events). socket: the page socket.
  * when(state): extra condition for showing it. Returns { update(state) }: call it after each state render.
  */
-export function isoStage(root, { role, socket, emit = () => {}, charId = () => null, slotSel = '.stage-center', layerClass = '', when = null, onSelect = null } = {}) {
-  let layer = null; let battle = null; let transport = null; let last = null; let ro = null;
+export function isoStage(root, { role, socket, emit = () => {}, charId = () => null, slotSel = '.stage-center', layerClass = '', when = null, onSelect = null, pad = false } = {}) {
+  let layer = null; let battle = null; let transport = null; let last = null; let ro = null; let camKey = '';
+  const phone = role === 'player';
 
   function place() {
     if (!layer) return;
@@ -209,7 +210,9 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
     battle = mountBattle(layer, {
       transport,
       keyboard: role !== 'screen',
-      ui: { topBar: role !== 'screen', initiative: false, actions: role !== 'screen', log: false, dmPanel: dm, hint: role !== 'screen', party: false },
+      // Phones (Mike, Nov 21): just the overhead map; moves come from the D-pad, a gamepad or a tap on a tile.
+      ui: { topBar: role === 'dm', initiative: false, actions: role === 'dm', log: false, dmPanel: dm, hint: role === 'dm', party: false },
+      strainMs: dm ? 700 : 0, // DM arrow keys: a step past the creature's speed is a longer hold (Mike, Nov 21)
       dmTools: ['select', 'teleport', 'raise', 'lower', 'paint', 'obstacle'],
       dmOptions: { inspector: false, initiative: false, fog: false, maps: false },
       terrainChoices: [...GROUNDS, 'difficult'],
@@ -224,21 +227,102 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       showPips: false,
       showHp: dm, // health bars are for the DM only; the TV shows names (Mike, Nov 16)
       transparent: role === 'screen', // the TV keeps its backdrop behind the map
-      camera: { followActive: true, zoom: 6 },
+      // The TV recentres on the whole map at each turn instead of chasing the active unit (Mike, Nov 21).
+      camera: phone ? { followActive: false, zoom: 7, overhead: true } : { followActive: role !== 'screen', zoom: 6 },
       describeAttack: (u, ab, tgt) => { const cv = coverOf(battle.getView(), u, tgt); return `Attack ${tgt.name} · AC ${tgt.defense ?? '?'}${cv ? ` +${cv} ${cv === 5 ? 'three-quarters' : 'half'} cover` : ''}`; },
     });
     ro = new ResizeObserver(place); ro.observe(root);
     if (onSelect) battle.on('select', (u) => onSelect(u?.id || null));
     if (dm) { dmChrome(); requestAnimationFrame(() => requestAnimationFrame(() => battle?.camera.fit())); }
+    if (role === 'screen') {
+      battle.on('ready', () => applyCam(true));
+      battle.on('turnStart', () => battle?.camera.fit());
+    }
+    if (phone) { battle.on('ready', () => followMe()); battle.on('turnStart', () => followMe()); if (pad) dpad(); }
+    anchors();
   }
-  function unmount() { closeMenu(); onSelect?.(null); tray = cov = null; ro?.disconnect(); battle?.destroy(); layer?.remove(); layer = battle = transport = ro = null; }
+  function unmount() { stopPad(); closeMenu(); onSelect?.(null); tray = cov = padEl = null; camKey = ''; ro?.disconnect(); battle?.destroy(); layer?.remove(); layer = battle = transport = ro = null; }
+
+  // TV camera (Mike, Nov 21): the DM turns it a quarter turn at a time, or looks straight down (state.combat.cam).
+  function applyCam(force = false) {
+    const cam = last?.combat?.cam || { rot: 0, top: false };
+    const k = `${cam.rot || 0}|${!!cam.top}`;
+    if (!battle || (!force && k === camKey)) return;
+    camKey = k;
+    battle.camera.setView({ rot: cam.rot || 0, top: !!cam.top });
+    requestAnimationFrame(() => battle?.camera.fit());
+  }
+  const meUnit = () => { const id = charId(); return id && battle?.getView()?.units[id]; };
+  function followMe() { const u = meUnit(); if (u) battle.camera.focus(u.x, u.y); }
+
+  // Combat effects land on the 3D tokens: public/combatfx.js asks where a unit is drawn and flashes it.
+  function anchors() {
+    window.CombatFx?.setMap?.({
+      at: (id) => { const p = battle?.screenOf(id); return p ? { x: p.x, y: p.y, size: p.size } : null; },
+      flash: (id, color) => battle?.flash(id, { color, shake: !window.Settings?.reducedMotion?.() }),
+    });
+  }
+
+  // Phone D-pad (Mike, Nov 21): eight arrows step your character one tile in the direction they point on screen.
+  // A gamepad's d-pad or left stick does the same; the middle button (or Y) centres the map on you.
+  let padEl = null; let padTimer = null; let padBusy = false;
+  const DIRS = [[-1, -1], [0, -1], [1, -1], [-1, 0], null, [1, 0], [-1, 1], [0, 1], [1, 1]];
+  const ARROW = ['↖', '↑', '↗', '←', '◎', '→', '↙', '↓', '↘'];
+  function step(sx, sy) {
+    const u = meUnit(); const s = last;
+    if (!u || !battle || padBusy) return;
+    const turn = s?.combat?.active ? s.combat.order[s.combat.turn]?.id : null;
+    if (turn !== u.id) { padNote('Wait for your turn.'); return; }
+    const to = battle.stepTile(u.id, sx, sy, true);
+    if (!to) return;
+    padBusy = true;
+    socket.emit('player:move', { x: to[0], y: to[1] }, (r) => { padBusy = false; if (r?.error) padNote(r.error); else navigator.vibrate?.(15); });
+    setTimeout(() => { padBusy = false; }, 600);
+  }
+  function padNote(t) { const n = padEl?.querySelector('.iso-pad-note'); if (!n) return; n.textContent = t; clearTimeout(padNote.h); padNote.h = setTimeout(() => { n.textContent = ''; }, 1800); }
+  function dpad() {
+    padEl = document.createElement('div');
+    padEl.className = 'iso-pad';
+    padEl.innerHTML = `<div class="iso-pad-grid">${DIRS.map((d, i) => `<button type="button" class="iso-pad-b ${d ? '' : 'mid'}" data-i="${i}" aria-label="${d ? `Step ${ARROW[i]}` : 'Centre on me'}">${ARROW[i]}</button>`).join('')}</div><p class="iso-pad-note" aria-live="polite"></p>`;
+    padEl.addEventListener('click', (e) => {
+      const b = e.target.closest('.iso-pad-b'); if (!b) return;
+      const d = DIRS[Number(b.dataset.i)];
+      if (d) step(d[0], d[1]); else followMe();
+    });
+    layer.append(padEl);
+    // Gamepad: poll while the map is up. One step per press, repeating every 250 ms while held.
+    let held = null; let next = 0; let yWas = false;
+    const poll = () => {
+      padTimer = requestAnimationFrame(poll);
+      const gp = [...(navigator.getGamepads?.() || [])].find(Boolean);
+      if (!gp) return;
+      const b = (i) => !!gp.buttons[i]?.pressed;
+      let sx = (b(15) ? 1 : 0) - (b(14) ? 1 : 0); let sy = (b(13) ? 1 : 0) - (b(12) ? 1 : 0);
+      const ax = gp.axes[0] || 0; const ay = gp.axes[1] || 0;
+      if (!sx && !sy && Math.hypot(ax, ay) > 0.5) { sx = Math.abs(ax) > 0.38 ? Math.sign(ax) : 0; sy = Math.abs(ay) > 0.38 ? Math.sign(ay) : 0; }
+      const k = sx || sy ? `${sx},${sy}` : null;
+      const now = performance.now();
+      if (k && (k !== held || now >= next)) { step(sx, sy); next = now + (k !== held ? 400 : 250); }
+      held = k;
+      if (b(3) && !yWas) followMe();
+      yWas = b(3);
+    };
+    padTimer = requestAnimationFrame(poll);
+  }
+  function stopPad() { if (padTimer) cancelAnimationFrame(padTimer); padTimer = null; }
 
   // DM only: a coverage slider (how much of the field the view shows) and a tray of tokens not yet on the map.
   let tray = null; let cov = null; let trayKey = '';
   function dmChrome() {
     cov = document.createElement('div');
     cov.className = 'iso-cov';
-    cov.innerHTML = '<button type="button" class="iso-fit" title="Show the whole battle map">⛶ Fit</button><label>Coverage <input type="range" min="3" max="60" step="0.5" aria-label="Map coverage"></label>';
+    cov.innerHTML = '<button type="button" class="iso-fit" title="Show the whole battle map">⛶ Fit</button><label>Coverage <input type="range" min="3" max="60" step="0.5" aria-label="Map coverage"></label>'
+      + '<span class="iso-tvcam" title="Turn the TV view of the battle map"><b>TV</b><button type="button" data-tvcam="-1" aria-label="Turn the TV view left">⟲</button><button type="button" data-tvcam="1" aria-label="Turn the TV view right">⟳</button><button type="button" data-tvcam="top" aria-label="TV overhead view" aria-pressed="false">⬒ Top</button></span>';
+    cov.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-tvcam]'); if (!b) return;
+      const v = b.dataset.tvcam;
+      if (v === 'top') emit('dm:tv:cam', { top: !last?.combat?.cam?.top }); else emit('dm:tv:cam', { turn: Number(v) });
+    });
     const range = cov.querySelector('input');
     range.oninput = () => battle?.camera.zoom(Number(range.value));
     cov.querySelector('.iso-fit').onclick = () => battle?.camera.fit();
@@ -352,6 +436,8 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       battle.setGroundImage(s.map.image || null);
       renderTray(s);
       refreshMenu();
+      if (role === 'screen') applyCam();
+      cov?.querySelector('[data-tvcam="top"]')?.setAttribute('aria-pressed', String(!!s.combat?.cam?.top));
     },
     get battle() { return battle; },
     fit: () => battle?.camera.fit(),
