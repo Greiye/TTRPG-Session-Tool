@@ -106,6 +106,7 @@ const SHOTS = process.env.SHOTS;
   await ph.waitForSelector('.convo-pop [data-cv="yes"]', { timeout: 5000 });
   await ph.click('.convo-pop [data-cv="yes"]');
   await ph.fill('#convoText', 'Hello there.');
+  await settled(ph, '.convo-pop'); // the speech box slides down from the top (Nov 21): tap once it is still
   // Emotion wheel: segments are clipped, so tap where the label sits.
   const tapAt = async (sel) => { await ph.locator(sel).scrollIntoViewIfNeeded(); const r = await ph.locator(sel).boundingBox(); await ph.mouse.click(r.x + r.width / 2, r.y + r.height / 2); };
   await tapAt('.convo-wheel [data-emo="happy"] .wheel-lbl');

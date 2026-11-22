@@ -8,6 +8,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { chromium, devices } = require('playwright');
+const { settled } = require('./helpers');
 
 const PORT = 4300 + Math.floor(Math.random() * 300);
 const B = `http://127.0.0.1:${PORT}`;
@@ -133,7 +134,7 @@ const shot = async (p, name) => { if (SHOTS) await p.screenshot({ path: path.joi
     await shot(wz, 'phone-join-center.png');
     await wz.click('.convo-pop [data-cv="yes"]');
     await dm.waitForFunction(() => window.__state().social.party.length === 2, null, { timeout: 3000 }).catch(() => errors.push('Yes did not join the conversation'));
-    await wz.waitForTimeout(400); // let the slide-in finish before measuring
+    await settled(wz, '.convo-pop'); // let the slide-in finish before measuring
     ok((await wz.locator('.convo-pop .pop-sheet').boundingBox()).y <= 2, 'the speech box comes from the top');
     ok(await wz.$('#convoLang option[value="Elvish"]'), 'the speech box offers the languages the character knows');
     await shot(wz, 'phone-speech-top.png');
