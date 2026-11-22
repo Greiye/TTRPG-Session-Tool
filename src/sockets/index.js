@@ -58,6 +58,7 @@ module.exports = function sockets(io) {
     require('./quiz')(socket);
     require('./downtime')(socket);
     require('./journal')(socket);
+    require('./storygraph')(socket); // Story Nodes Graph in Planning (Nov 21)
     require('./takeover')(socket);
     require('./legends')(socket);
     // TV landing page (src/lobby.js): Start game from the first joined player's phone, or the DM.

@@ -14,7 +14,7 @@ const MODE_NAMES = { exploration: '🧭 Explore', combat: '⚔️ Combat', socia
 const KIND_NAMES = { action: 'Actions', check: 'Checks', combat: 'Combat', downtime: 'Downtime', narrate: 'Narration', npc: 'NPC speech', say: 'Player speech', shop: 'Shops', system: 'System', notice: 'Notices' };
 const SUB_NAMES = {
   scene: 'Scene', stage: 'Stage and music', sound: 'Soundscape', clocks: 'Clocks', moments: 'TV moments', puzzle: 'Puzzles',
-  npc: 'NPCs', legends: 'Legends', lights: 'Smart lights', table: 'Table tools', quiz: 'Recap quiz', web: 'Relations web', journal: 'Notes and journal', camp: 'Camp and downtime', roads: 'Road cards', rules: 'Rules system', codm: 'Co-DM', data: 'Campaign data',
+  inspiration: 'Inspiration', npc: 'NPCs', legends: 'Legends', lights: 'Smart lights', table: 'Table tools', quiz: 'Recap quiz', web: 'Relations web', journal: 'Notes and journal', camp: 'Camp and downtime', roads: 'Road cards', rules: 'Rules system', codm: 'Co-DM', data: 'Campaign data',
 };
 const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
@@ -28,8 +28,8 @@ let mode = 'exploration';
 let lastMode = null; // the mode the last state had: a change brings that mode's window to the top
 let kindsKey = null;
 let lastShown = '';
-// The window that belongs to each pillar (Mike, Nov 18): Explore puts the Scene window on top, Combat the
-// Battle Window. The tab opens, its button moves to the top of the tab list, and its first window unfolds.
+// The window that belongs to each pillar (Mike, Nov 18): Explore opens the Scene window, Combat the Battle
+// Window, and its first window unfolds. The tab buttons no longer move (Nov 21): same place in every mode.
 const MODE_TAB = { exploration: ['scene', 'scene'], combat: ['combat', null] };
 
 const inMode = (c) => !c.dataset.panel || c.dataset.panel.split(' ').includes(mode);
@@ -66,16 +66,18 @@ function apply() {
 
   const vis = visibleTabs();
   if (!vis.has(tab)) tab = $$('[data-stab]').map((b) => b.dataset.stab).find((id) => vis.has(id)) || tab;
+  // Tabs keep their place in every mode (Mike, Nov 21): a tab with nothing for this mode stays in its slot,
+  // greyed out, instead of leaving a gap that moves the tabs under it. Helpers (masterRole) still see only theirs,
+  // and the Planning group shows only in Planning (its Shops tab, data-live, also during play).
   $$('[data-stab]').forEach((b) => {
     const show = vis.has(b.dataset.stab);
-    b.hidden = !show;
+    const keep = !masterRole() && !planTab(b.dataset.stab);
+    b.hidden = !show && !keep;
+    b.disabled = !show;
     b.classList.toggle('on', show && b.dataset.stab === tab);
     b.setAttribute('aria-selected', String(b.dataset.stab === tab));
   });
   $$('.tab-group').forEach((g) => { g.hidden = ![...g.querySelectorAll('[data-stab]')].some((b) => !b.hidden); });
-  const top = MODE_TAB[mode]?.[0];
-  $$('[data-stab]').forEach((b) => b.classList.toggle('mode-top', b.dataset.stab === top));
-  $$('.tab-group').forEach((g) => g.classList.toggle('mode-top', !!g.querySelector('.mode-top')));
   const title = $('#sideTitle');
   if (title) title.textContent = $(`[data-stab="${tab}"]`)?.title || '';
 
@@ -171,6 +173,7 @@ $('#planToggle')?.addEventListener('click', () => {
   planning = !planning;
   save('dmPlanning', planning ? '1' : '');
   if (planning) tab = 'shops'; // open on the first planning tab (Road cards moved to Miscellaneous, Nov 15)
+  // Planning is a row of the Modes card (Mike, Nov 21), a DM-only view over whatever mode the table is in.
   apply();
 });
 $('#mapToggle')?.addEventListener('click', () => {

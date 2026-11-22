@@ -109,9 +109,13 @@ const shot = async (p, name) => { if (SHOTS) await p.screenshot({ path: path.joi
     await dm.click('button[data-mode="combat"]');
     await dm.waitForFunction(() => document.querySelector('[data-stab="combat"]')?.classList.contains('on'), null, { timeout: 4000 });
     ok((await dm.textContent('[data-stab="combat"]')).includes('Battle Window'), 'Combat is now the Battle Window and opens on Combat');
-    ok(await dm.$eval('[data-stab="combat"]', (b) => b.classList.contains('mode-top')), 'the Battle Window tab sits on top');
+    const tabTops = () => dm.$$eval('#sideTabs [data-stab]', (bs) => bs.map((b) => `${b.dataset.stab}:${b.hidden ? '-' : Math.round(b.getBoundingClientRect().top - b.closest('.tab-list').getBoundingClientRect().top)}`).join());
+    const inCombat = await tabTops();
     await dm.click('button[data-mode="exploration"]');
     await dm.waitForFunction(() => document.querySelector('[data-stab="scene"]')?.classList.contains('on'), null, { timeout: 4000 });
+    const inExplore = await tabTops();
+    ok(inExplore === inCombat, `the tabs keep their place when the mode changes (Nov 21)${inExplore === inCombat ? '' : `: ${inCombat} vs ${inExplore}`}`);
+    ok(await dm.$eval('[data-stab="combat"]', (b) => b.disabled && !b.hidden), 'the Battle Window tab stays in its slot, greyed out, outside combat');
     ok(true, 'Explore opens the Scene window on top');
 
     // ----- NPC emotion wheel and translation -----
