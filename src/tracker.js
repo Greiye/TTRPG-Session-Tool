@@ -46,7 +46,7 @@ function rest(kind, spend = {}) {
     ensureSheet(p);
     const lines = restCharacter(p, short ? 'short' : 'long', spend[p.id] || 0);
     if (lines.length) parts.push(`${p.name} ${lines.join('; ')}.`);
-    if (roster[p.id]) Object.assign(roster[p.id], { hp: p.hp, tempHp: p.tempHp, slots: p.slots, hitDice: p.hitDice, conditions: p.conditions, uses: p.uses });
+    if (roster[p.id]) Object.assign(roster[p.id], { hp: p.hp, tempHp: p.tempHp, slots: p.slots, hitDice: p.hitDice, conditions: p.conditions, uses: p.uses, hdOffer: p.hdOffer });
   }
   saveRoster();
   log('system', short ? 'The party takes a short rest.' : 'The party takes a long rest. HP, spell slots and half the hit dice are restored.', { tone: 'good' });

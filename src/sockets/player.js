@@ -155,9 +155,23 @@ module.exports = function playerSockets(socket) {
     if (!p) return ack?.({ error: 'Claim a character first.' });
     const r = require('../rests').useFeature(p, String(name || ''));
     if (r.error) return ack?.(r);
-    log('action', `${p.name} uses ${name}${r.pool ? ` (${r.left} points left)` : ''}.`);
+    log('action', `${p.name} uses ${name}${r.text ? ` ${r.text}` : ''}${r.pool ? ` (${r.left} points left)` : ''}.`);
+    if (r.healed) combatfx.emit('heal', { target: p, amount: r.healed });
     broadcast();
-    ack?.({ ok: true, left: r.left });
+    ack?.({ ok: true, left: r.left, text: r.text });
+  });
+  // Hit dice from the phone (Nov 21): answers the prompt after a short rest or the DM's offer, or the sheet's
+  // "Spend a hit die". n 0 says no thanks. Each die heals d(die) + CON; the DM can still change HP.
+  socket.on('player:hitdice', ({ n } = {}, ack) => {
+    const p = me();
+    if (!p) return ack?.({ error: 'Claim a character first.' });
+    const rests = require('../rests');
+    const r = rests.spendHitDice(p, n);
+    delete p.hdOffer;
+    if (r) log('system', `${p.name} ${r.line}.`, { tone: 'good' });
+    if (r?.healed) combatfx.emit('heal', { target: p, amount: r.healed });
+    broadcast();
+    ack?.(r ? { ok: true, healed: r.healed } : { ok: true, healed: 0 });
   });
   // Tapping a skill, save or ability: answers the DM's roll call if it matches, else it is a free roll.
   socket.on('player:check', ({ skill, kind = 'skill', key = skill, mode } = {}) => {
@@ -272,6 +286,8 @@ module.exports = function playerSockets(socket) {
       }
       combatfx.emit('heal', { target: p, amount: h.total });
     } else return;
+    // Action Surge (src/rests.js): this action does not end the turn.
+    if (p.surge) { delete p.surge; log('combat', `${p.name} surges on with another action.`); broadcast(); return; }
     game.advanceTurn();
     broadcast();
   });

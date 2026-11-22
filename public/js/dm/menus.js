@@ -66,6 +66,7 @@ function unitMenu(id) {
       { items: [
         pick && { label: '👤 Show in the hero column', run: () => pick.click() },
         pc && { label: '⭐ Spotlight on the TV', run: () => emit('dm:spotlight', { id }) },
+        pc && pc.hitDice?.die && { label: '🎲 Offer hit dice on their phone', run: () => emit('dm:hitdice:offer', { id }) },
         foe?.boss && (s.bossCard?.id === id ? { label: '👑 Hide boss card', run: () => emit('dm:boss:clear') } : { label: '👑 Show boss card', run: () => emit('dm:boss:card', { id }) }),
         tok && window.IsoDm?.battle && { label: '🎯 Centre the 3D map on it', run: () => window.IsoDm.battle.camera.focus(tok.x, tok.y) },
         conc && { label: `💫 Drop concentration (${conc.name})`, run: () => emit('dm:concentrate:drop', { id }) },

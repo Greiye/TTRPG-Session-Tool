@@ -569,6 +569,11 @@ module.exports = function dmSockets(socket) {
     }
     applyEdits(c, f, true);
   });
+  // Hit dice (Nov 21): the DM offers a character a hit dice pop-up on their phone (any time dice are spent).
+  dm('dm:hitdice:offer', ({ id }) => {
+    const p = state.players[id];
+    if (p && require('../rests').offerHitDice(p, 'Your DM offers hit dice')) log('system', `${p.name} may spend hit dice.`, { vis: 'dm' });
+  });
   // Sheet edits from the DM (HP, slots, inventory, abilities, languages...). Same patch shape as the phone.
   dm('dm:sheet', ({ id, ...patch }) => { const c = roster[id]; if (c) { applySheet(c, patch, true); saveRoster(); } });
 

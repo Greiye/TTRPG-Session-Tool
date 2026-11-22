@@ -8,7 +8,7 @@ const net = require('./net');
 const { newRoomCode } = require('./session');
 const store = require('./store');
 const saves = require('./saves');
-const { derived } = require('./sheet');
+const { derived, isCaster } = require('./sheet');
 const library = require('./library');
 const perception = require('./perception');
 const plan = require('./plan');
@@ -190,7 +190,7 @@ function log(kind, text, extra = {}) {
 // Full snapshot. Never sent as-is: stateFor() filters it per viewer (see visibility.js).
 function fullState() {
   const { io } = hub;
-  const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId, derived: derived(p) }));
+  const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId, derived: derived(p), caster: isCaster(p) }));
   const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId, dead: !!c.death }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const all = [...io.sockets.sockets.values()];
