@@ -374,6 +374,8 @@ span.av svg { width: 100%; height: 100%; display: block; transform: scale(1.35) 
 @keyframes insp-pop { 0% { transform: scale(0); } 60% { transform: scale(1.5); box-shadow: 0 0 12px #f2c94c; } }
 .insp-toast { position: fixed; left: 50%; bottom: 24px; z-index: 60; transform: translateX(-50%); padding: 10px 18px; border-radius: 999px; background: linear-gradient(#4a3510, #2a1d08); color: #ffe9a6; border: 1px solid #f2c94c; box-shadow: 0 0 18px rgb(242 201 76 / .6); font-weight: 700; animation: insp-toast 2.6s ease-out forwards; pointer-events: none; }
 @keyframes insp-toast { 0% { transform: translate(-50%, 40px); opacity: 0; } 15%, 80% { transform: translate(-50%, 0); opacity: 1; } 100% { transform: translate(-50%, -20px); opacity: 0; } }
+.gift-toast { animation-duration: 3.2s; max-width: calc(100vw - 32px); white-space: normal; text-align: center; border-radius: 18px; }
+html[data-motion="reduce"] .insp-toast { animation: none; }
 .camp-tv { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgb(0 0 0 / .55); }
 .camp-tv-box { width: min(70cqw, 1000px); text-align: center; color: #f4ead5; }
 .camp-tv-box img, .camp-tv-box video { width: 100%; max-height: 60cqh; object-fit: cover; border-radius: 12px; }

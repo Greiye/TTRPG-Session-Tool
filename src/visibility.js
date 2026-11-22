@@ -126,6 +126,8 @@ function viewState(base, viewer) {
   if (base.social) out.social = { ...base.social, line: require('./speech').lineFor(base.social.line, viewer, base) };
   out.quiz = require('./quiz').viewFor(base.quiz, viewer); // recap quiz: DM sees all, phones see their own
   // TV moments (src/moments.js): the TV and the DM only. Planned echoes stay with the DM.
+  // Story Nodes Graph (Nov 21): DM prep, never sent to phones, the TV or helpers.
+  if (viewer.role !== 'dm') delete out.storyGraph;
   if (viewer.role === 'dm') out.tv = base.tv;
   else if (['screen', 'codm'].includes(viewer.role)) out.tv = { ...base.tv, echoes: [] };
   else delete out.tv;

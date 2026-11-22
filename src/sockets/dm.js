@@ -1,5 +1,6 @@
 // DM-only events: modes, scene, checks, combat, NPC dialogue, characters.
 const hub = require('../hub');
+const gifts = require('../gifts');
 const { removeUrl } = require('../assets');
 const { state, log, nextId, broadcast, EMOTIONS, sys } = require('../state');
 const rules = require('../rules');
@@ -543,7 +544,7 @@ module.exports = function dmSockets(socket) {
     applyEdits(c, f, true);
   });
   // Sheet edits from the DM (HP, slots, inventory, abilities, languages...). Same patch shape as the phone.
-  dm('dm:sheet', ({ id, ...patch }) => { const c = roster[id]; if (c) { applySheet(c, patch, true); saveRoster(); } });
+  dm('dm:sheet', ({ id, ...patch }) => { const c = roster[id]; if (c) { const prev = gifts.before(c); applySheet(c, patch, true); gifts.tell(c, prev); saveRoster(); } });
 
   // ----- save points (item 1) -----
   socket.on('dm:save:create', ({ name } = {}, ack) => {
