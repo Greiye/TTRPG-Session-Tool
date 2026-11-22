@@ -136,12 +136,13 @@ module.exports = function routes(app) {
     const r = storybook.keep({ id: item, on: on !== false, session: req.params.id });
     res.status(r.error ? 404 : 200).json(r);
   });
-  app.get('/api/story/sessions/:id/pack.zip', (req, res) => {
+  // pack.zip: the story pack (src/storypack.js); renpy.zip: a Ren'Py project folder (src/renpy.js).
+  app.get('/api/story/sessions/:id/:kind(pack|renpy).zip', (req, res) => {
     if (!storyDm(req)) return res.sendStatus(403);
-    const pack = require('./storypack').build(req.params.id, { keptOnly: req.query.kept === '1' });
+    const pack = require(req.params.kind === 'renpy' ? './renpy' : './storypack').build(req.params.id, { keptOnly: req.query.kept === '1' });
     if (!pack) return res.sendStatus(404);
     const tmp = path.join(require('os').tmpdir(), `${Date.now()}-${pack.name}`);
-    try { require('./backup').writeZip(tmp, pack.files); } catch (e) { return res.status(500).json({ error: `Story pack failed: ${e.message}` }); }
+    try { require('./backup').writeZip(tmp, pack.files); } catch (e) { return res.status(500).json({ error: `Export failed: ${e.message}` }); }
     res.download(tmp, pack.name, () => require('fs').rm(tmp, { force: true }, () => {}));
   });
   app.get('/api/transcript.md', (req, res) => {

@@ -44,7 +44,41 @@
 .sb-tick:hover, .sb-tick:focus-visible { transform: scale(1.4); }
 .sb-scrub input[type=range] { width: 100%; }
 .sb-time { color: var(--muted); }
-.sb-controls { flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+/* playback: one row that fills the width at any size (Mike, Nov 21); words drop out on narrow screens, icons stay */
+.sb-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 1.6fr) repeat(2, minmax(0, 1fr)) minmax(4.5em, auto);
+  gap: 6px; margin-top: 8px; container-type: inline-size; }
+.sb-controls .btn { min-width: 0; width: 100%; margin: 0; padding-inline: 4px; white-space: nowrap; overflow: hidden; text-overflow: clip; justify-content: center; }
+.sb-controls select { width: 100%; min-width: 0; margin: 0; }
+@container (max-width: 460px) { .sb-controls .lbl { display: none; } }
+@media (max-width: 460px) { .sb-controls .lbl { display: none; } }
+
+/* the log can be hidden: the stage then takes the whole width (remembered on this device) */
+.story-main.log-hidden { grid-template-columns: minmax(0, 1fr); }
+.story-main.log-hidden .story-right { display: none; }
+.story-main.log-hidden .story-left { max-width: calc((100vh - 230px) * 16 / 9); width: 100%; justify-self: center; }
+#sbLogBtn[aria-pressed=false] { opacity: .75; }
+
+/* social replays: the party on the left and the NPC on the right, as on the TV */
+.sb-vn { position: absolute; z-index: 1; left: 3%; right: 3%; top: 22%; bottom: 30%; display: flex; justify-content: space-between; align-items: flex-end; pointer-events: none; }
+.sb-vn-left, .sb-vn-right { display: flex; align-items: flex-end; height: 100%; }
+.sb-vn-left { gap: 0; }
+.sb-pc { position: relative; height: 70%; aspect-ratio: 3 / 4; margin-right: -4%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  filter: grayscale(.6) brightness(.7); transform: scale(.92); transform-origin: bottom center; transition: filter .3s, transform .3s; }
+.sb-pc.speaking { filter: none; transform: scale(1.05); z-index: 2; }
+.sb-pc .av, .sb-pc .lay { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: block; overflow: hidden;
+  border: 2px solid hsl(var(--hue, 40) 60% 60%); background: hsl(var(--hue, 40) 30% 20%); }
+.sb-pc .av svg { width: 100%; height: 100%; }
+.sb-pc small, .sb-npc small { margin-top: 3px; background: rgb(20 14 22 / .8); color: #f4ead5; border-radius: 999px; padding: 0 8px; font-size: .75em; white-space: nowrap; }
+.sb-pc .sb-emo { position: absolute; top: -6px; right: -6px; font-size: 1.2em; filter: drop-shadow(0 1px 2px #000); }
+.sb-npc { height: 100%; aspect-ratio: 200 / 260; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; transition: transform .3s; }
+.sb-npc.speaking { transform: scale(1.06); transform-origin: bottom center; }
+.sb-npc.quiet { filter: brightness(.75); }
+.sb-npc .portrait, .sb-npc .lay, .sb-npc img, .sb-npc video { width: 100%; height: 100%; object-fit: contain; display: block; }
+.sb-npc.changed .sb-npc-art { animation: sb-emo .45s ease-out; }
+@keyframes sb-emo { 0% { transform: scale(.94) translateY(6px); } 60% { transform: scale(1.04); } 100% { transform: none; } }
+.sb-npc-art { height: 100%; width: 100%; }
+html.sb-reduce .sb-pc, html.sb-reduce .sb-npc { transition: none; }
+html.sb-reduce .sb-npc.changed .sb-npc-art { animation: none; }
 
 /* transcript list */
 .story-right { max-height: calc(100vh - 90px); display: flex; flex-direction: column; gap: 8px; }
@@ -64,4 +98,5 @@
 /* Motion setting: Reduce stops the animations */
 html.sb-reduce .sb-bd { transition: none; }
 html.sb-reduce .sb-line.enter, html.sb-reduce .sb-star.pop { animation: none; }
-@media (max-width: 520px) { .sb-text { font-size: 1em; } .sb-scene { font-size: 1.05em; } .sb-chips { top: 40px; } }
+@media (max-width: 520px) { .sb-text { font-size: 1em; } .sb-scene { font-size: 1.05em; } .sb-chips { top: 40px; }
+  .story-stage { aspect-ratio: 4 / 5; } .sb-vn { top: 24%; bottom: 36%; } }

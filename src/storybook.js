@@ -4,11 +4,14 @@
 //
 // One file per session: DATA_DIR/sessions/<id>/journal.jsonl, one JSON record per line, never rewritten:
 //   { type: 'header', v, id, startedAt }
-//   { type: 'line', id, t, kind, text, who?, emotion?, tone?, roll?, vis? }   every log() line
+//   { type: 'line', id, t, kind, text, who?, said?, emotion?, tone?, roll?, vis? }   every log() line (said: a phone's
+//                                                                            social words without the "X says" frame)
 //   { type: 'roll', id, t, who, label, total, crit?, fumble?, outcome?, vis? } every dice result
 //   { type: 'moment', id, t, kind, text }                                    TV moments with no log line of their own
 //   { type: 'mood', t, mood }                                                scene, backdrop, mode, NPC and emotion,
-//                                                                            weather, time of day, music (on change)
+//                                                                            weather, time of day, music (on change);
+//                                                                            in social mode also the NPC's look (hue,
+//                                                                            sprite, portrait) and the party on the left
 //   { type: 'keep', t, id, on, auto? }                                        the Keep star (auto: kept by the tool)
 //   { type: 'rewind', t, after }                                              DM undo: earlier records with a higher id are gone
 //   { type: 'end', t } / { type: 'resume', t }                                End Session and Resume
@@ -107,7 +110,10 @@ function autoKeep(id, text) {
 // Every log() line (src/state.js).
 function line(e) {
   if (!e || !e.text) return;
-  write({ type: 'line', id: e.id, t: e.t, kind: e.kind, text: str(e.text, 2000), ...pick(e, ['who', 'emotion', 'tone', 'roll', 'vis']) });
+  // A phone's social line logs as a sentence with only the character id: keep the name and the words it said.
+  let who = e.who;
+  if (!who && e.pid) { try { who = require('./roster').roster[e.pid]?.name; } catch { /* no roster in a unit test */ } }
+  write({ type: 'line', id: e.id, t: e.t, kind: e.kind, text: str(e.text, 2000), ...pick({ ...e, who, said: e.said && str(e.said, 2000) }, ['who', 'said', 'emotion', 'tone', 'roll', 'vis']) });
   if (!isPublic(e.vis)) return;
   last = { id: e.id, text: e.text };
   // Kept by the tool (one tap un-keeps): a natural 20, a chapter card, the end of a fight.
@@ -145,7 +151,19 @@ function moodOf(s) {
     weather: w ? `${w.kind}${w.intensity ? ` ${w.intensity}` : ''}` : null,
     time,
     music: s.audio?.playing && s.audio.music ? s.audio.music.name || null : null,
+    ...(social ? socialLook(s) : {}),
   };
+}
+// Social replays show who was talking (Mike, Nov 21): the NPC's look and the party portraits on the left (up to 3,
+// as on the TV), each with the expression chosen on their phone. Old journals have none of this: the viewer
+// falls back to a placeholder face.
+function socialLook(s) {
+  const npc = s.social?.npc || {};
+  const sprite = (x) => (x && typeof x === 'object' && x.id ? { id: String(x.id), state: String(x.state || 'neutral') } : null);
+  const expr = s.social?.expr || {};
+  const party = Object.values(s.players || {}).slice(0, 3).map((p) => ({ id: p.id, name: p.name, hue: p.hue ?? null, portrait: p.portrait || null,
+    sprite: sprite(p.sprite), emotion: expr[p.id] || null }));
+  return { npcHue: Number.isFinite(npc.hue) ? npc.hue : null, npcSprite: sprite(npc.sprite), npcPortrait: npc.portrait || null, npcKind: npc.kind || 'npc', party };
 }
 // Called from broadcast(): mood changes and TV moments that leave no log line (entrance, relic, quote, echo).
 function watch(s) {
@@ -212,7 +230,7 @@ function list() {
 }
 
 // A session folded into a timeline: each item carries the mood at that moment and whether it is kept.
-// { id, items: [{ id, t, type, kind, text, who, emotion, vis, roll, public, kept, auto, mood }], kept: n }
+// { id, items: [{ id, t, type, kind, text, who, said, emotion, vis, roll, public, kept, auto, mood }], kept: n }
 function read(id) {
   if (!ID_RE.test(String(id))) return null;
   const recs = readLines(path.join(dir(), id, 'journal.jsonl'));
@@ -224,7 +242,7 @@ function read(id) {
     if (r.type === 'mood') mood = r.mood;
     else if (r.type === 'line' || r.type === 'roll' || r.type === 'moment') {
       const text = r.type === 'roll' ? `${r.who || ''}: ${r.label || 'roll'} = ${r.total}${r.outcome ? ` (${r.outcome})` : ''}${r.crit ? ' · natural 20' : r.fumble ? ' · natural 1' : ''}` : r.text;
-      items.push({ id: r.id, t: r.t, type: r.type, kind: r.type === 'roll' ? 'roll' : r.kind, text, who: r.who || null, emotion: r.emotion || null, vis: r.vis ?? 'all',
+      items.push({ id: r.id, t: r.t, type: r.type, kind: r.type === 'roll' ? 'roll' : r.kind, text, who: r.who || null, said: r.said || null, emotion: r.emotion || null, vis: r.vis ?? 'all',
         roll: r.roll ?? (r.crit ? 20 : r.fumble ? 1 : undefined), tone: r.tone || null, public: isPublic(r.vis), mood });
     } else if (r.type === 'keep') keepOf.set(r.id, { on: r.on, auto: !!r.auto });
     else if (r.type === 'rewind') items = items.filter((x) => typeof x.id !== 'number' || x.id <= r.after);
