@@ -10,6 +10,7 @@ public product: no accounts, scaling or store work.
 - `npm test`: unit and socket tests through `test/run.js` (prints every failure, then a summary).
 - `npm run test:ui`: browser tests in headless Chromium (needs `playwright`; CI installs it).
 - Re-run only what failed: `node test/run.js <name> <name>`. One script alone: `node test/<name>.js`.
+- `npm run graph` rewrites `docs/module-graph.md` (Mermaid charts of the real imports).
 - `npm run doctor` (game-night check), `npm run backup` (zip of `data/` and `uploads/`),
   `npm run bots -- 4` (fake phones), `npm run scenario`, `npm run record` / `npm run replay`.
 - After changing `lib/iso-battle/src/`, rebuild the 3D map bundle: `npm run build:iso`.
