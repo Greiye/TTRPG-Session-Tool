@@ -49,6 +49,7 @@ async function open(id, { keepPlace = false } = {}) {
   $('#sbSession').value = id;
   $('#sbPack').href = `/api/story/sessions/${encodeURIComponent(id)}/pack.zip${qs()}`;
   $('#sbPackKept').href = `/api/story/sessions/${encodeURIComponent(id)}/pack.zip${qs('kept=1')}`;
+  $('#sbRenpy').href = `/api/story/sessions/${encodeURIComponent(id)}/renpy.zip${qs()}`;
   const list = visible();
   if (!keepPlace) at = 0;
   else if (wasEnd) at = Math.max(0, list.length - 1); // following the live end of the session
@@ -82,6 +83,55 @@ function drawList() {
   }).join('') || '<p class="note">Nothing matches.</p>';
 }
 
+// Social replays (Mike, Nov 21): the party on the left and the NPC on the right, as the TV showed them at that
+// moment, with the speaker in front. Uses the TV's own drawing (public/stage.js); old sessions without the
+// look in their mood fall back to the placeholder face.
+let vnSig = '';
+let vnNpc = '';
+function drawVn(x, m) {
+  const box = $('#sbVn');
+  const on = m.mode === 'social' && (m.npc || (m.party || []).length);
+  box.hidden = !on;
+  if (!on || !window.Stage) { vnSig = ''; return; }
+  const S = window.Stage;
+  const npcSpeaks = x.kind === 'npc' && x.who === m.npc;
+  const npcEmo = npcSpeaks && x.emotion ? x.emotion : m.emotion || 'neutral';
+  const party = (m.party || []).map((p) => ({ ...p, speaking: (x.kind === 'say' || x.kind === 'action') && x.who === p.name, emo: (x.who === p.name && x.emotion) || p.emotion }));
+  const sig = JSON.stringify([m.npc, npcEmo, m.npcHue, m.npcSprite, m.npcPortrait, npcSpeaks, party]);
+  if (sig === vnSig) return;
+  vnSig = sig;
+  const left = party.map((p) => {
+    const look = { ...p, sprite: p.sprite ? { ...p.sprite, state: p.emo || p.sprite.state } : null };
+    const emo = p.emo && S.EMO[p.emo] ? `<i class="sb-emo" title="${esc(S.EMO[p.emo].label)}">${S.EMO[p.emo].icon}</i>` : '';
+    return `<div class="sb-pc${p.speaking ? ' speaking' : ''}" style="--hue:${Number(p.hue) || 40}">${S.avatar(look)}${emo}<small>${esc(p.name)}</small></div>`;
+  }).join('');
+  let art = '';
+  if (m.npcKind === 'item') art = `<span class="sb-npc-art" style="font-size:5em;display:grid;place-items:end center">🗝️</span>`;
+  else if (m.npcSprite) art = `<div class="sb-npc-art">${S.layeredSprite(m.npcSprite.id, npcEmo, 'vn-lay')}</div>`;
+  else if (m.npcPortrait) art = `<div class="sb-npc-art">${window.Anim ? Anim.media(m.npcPortrait, '') : `<img src="${esc(m.npcPortrait)}" alt="">`}</div>`;
+  else art = `<div class="sb-npc-art">${S.portrait(npcEmo, Number.isFinite(m.npcHue) ? m.npcHue : 28)}</div>`;
+  const changed = vnNpc && vnNpc !== `${m.npc}|${npcEmo}` && !reduced;
+  vnNpc = `${m.npc}|${npcEmo}`;
+  const right = m.npc ? `<div class="sb-npc${npcSpeaks ? ' speaking' : ' quiet'}${changed ? ' changed' : ''}" data-emo="${esc(npcEmo)}">${art}<small>${esc(m.npc)} ${S.EMO[npcEmo] ? S.EMO[npcEmo].icon : ''}</small></div>` : '';
+  $('#sbVnLeft').innerHTML = left;
+  $('#sbVnRight').innerHTML = right;
+  window.Anim?.hydrate?.(box);
+}
+
+// The log can be hidden so the stage fills the page (remembered on this device).
+const LOG_KEY = 'tavern.story.log';
+function setLog(shown, save = true) {
+  $('#sbMain').classList.toggle('log-hidden', !shown);
+  $('#sbLogBtn').setAttribute('aria-pressed', String(shown));
+  $('#sbLogBtn').textContent = shown ? '☰ Hide log' : '☰ Show log';
+  if (save) try { localStorage.setItem(LOG_KEY, shown ? '1' : '0'); } catch { /* private window */ }
+  if (shown) document.querySelector('.sb-row.on')?.scrollIntoView({ block: 'nearest' });
+}
+let logPref = '1';
+try { logPref = localStorage.getItem(LOG_KEY) ?? '1'; } catch { /* private window */ }
+setLog(logPref !== '0', false);
+$('#sbLogBtn').onclick = () => setLog($('#sbMain').classList.contains('log-hidden'));
+
 function backdrop(url) {
   if (url === shownBd) return;
   shownBd = url;
@@ -106,10 +156,11 @@ function show(i, { jump = false } = {}) {
   $('#sbChips').innerHTML = [m.time && `🕰 ${m.time}`, m.weather && `🌧 ${m.weather}`, m.music && `🎵 ${m.music}`, m.npc && `🗣 ${m.npc}${m.emotion ? ` · ${m.emotion}` : ''}`]
     .filter(Boolean).map((c) => `<span class="sb-chip">${esc(c)}</span>`).join('');
   backdrop(m.backdrop || null);
+  drawVn(x, m);
   const line = $('#sbLine');
   line.className = `sb-line k-${x.kind}${x.kept ? ' kept' : ''}${x.roll === 20 ? ' crit' : ''}${x.public ? '' : ' private'}`;
   $('#sbWho').textContent = x.who && x.kind !== 'roll' ? `${x.who}${x.emotion && x.emotion !== 'neutral' ? ` · ${x.emotion}` : ''}` : KIND[x.kind] || x.kind;
-  $('#sbText').textContent = x.text;
+  $('#sbText').textContent = x.said || x.text; // a phone's social line: its words, the speaker is above
   if (!reduced && !jump) { line.classList.remove('enter'); void line.offsetWidth; line.classList.add('enter'); }
   const star = $('#sbStar');
   star.textContent = x.kept ? '★ Kept' : '☆ Keep';
@@ -141,11 +192,12 @@ function keptStep(d) {
   const list = visible();
   for (let i = at + d; i >= 0 && i < list.length; i += d) if (list[i].kept) return show(i);
 }
-function stop() { clearTimeout(playing); playing = null; $('#sbPlay').textContent = '▶ Play'; }
+const playLabel = (on) => { $('#sbPlay').innerHTML = on ? '⏸<span class="lbl"> Pause</span>' : '▶<span class="lbl"> Play</span>'; $('#sbPlay').setAttribute('aria-label', on ? 'Pause' : 'Play'); };
+function stop() { clearTimeout(playing); playing = null; playLabel(false); }
 function play() {
   if (playing) return stop();
   if (at >= visible().length - 1) show(0, { jump: true });
-  $('#sbPlay').textContent = '⏸ Pause';
+  playLabel(true);
   const tick = () => {
     const list = visible();
     if (at >= list.length - 1) return stop();
@@ -178,7 +230,7 @@ $('#sbList').addEventListener('click', (e) => {
 });
 document.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest?.('input:not([type=range]), textarea, select')) return;
-  const act = { ArrowLeft: () => step(-1), ArrowRight: () => step(1), ' ': play, k: () => toggleKeep(at), K: () => toggleKeep(at), '[': () => keptStep(-1), ']': () => keptStep(1) }[e.key];
+  const act = { ArrowLeft: () => step(-1), ArrowRight: () => step(1), ' ': play, k: () => toggleKeep(at), K: () => toggleKeep(at), '[': () => keptStep(-1), ']': () => keptStep(1), l: () => $('#sbLogBtn').click(), L: () => $('#sbLogBtn').click() }[e.key];
   if (act) { e.preventDefault(); act(); }
 });
 // The session being played right now grows: refresh it while the page is open (and follow the end if you are there).
