@@ -23,8 +23,17 @@
 
   // Where the target is on this screen: its party card, foe card or flat map token, fully in view and not
   // fading. Null when it is not shown (Mike, Nov 17: an effect never floats in empty space).
+  // The 3D battle map registers here (public/js/iso3d.js): where a unit is drawn, and a flash on its token.
+  let map = null;
+  function mapAnchor(id) {
+    const p = map?.at?.(id);
+    if (!p) return null;
+    const half = p.size / 2;
+    return { el: null, map: true, r: { left: p.x - half, top: p.y - half, width: p.size, height: p.size }, x: p.x, y: p.y };
+  }
   function anchorOf(id) {
     if (!id) return null;
+    if (document.querySelector('.iso-on')) { const m = mapAnchor(id); if (m) return m; }
     const q = CSS.escape(id);
     for (const sel of [`.tok[data-tok="${q}"]`, `.foe[data-fid="${q}"]`, `.pc[data-pid="${q}"]`]) {
       const el = document.querySelector(sel);
@@ -75,8 +84,36 @@
   }
   // A short shake on an element (the target card, or the whole stage on a crit). Skipped under reduce motion.
   function shake(el, ms = 380) {
-    if (!el?.animate || reduced()) return;
+    if (!el?.animate || reduced()) return; // a 3D token shakes on the map instead (no element here)
     el.animate([0, -1, 1, -1, 1, 0].map((k) => ({ transform: `translate(${k * 7}px, ${-k * 2}px)` })), { duration: ms, easing: 'ease-out' });
+  }
+
+  // Sound (Mike, Nov 21): the TV (the table's speaker) plays the clash through AudioOut; a phone plays a short,
+  // quiet blip for its own moments. Phones unlock their audio on the first tap (iPhone Safari needs one).
+  let ac = null;
+  const unlock = () => { try { ac ||= new (window.AudioContext || window.webkitAudioContext)(); ac.resume?.(); } catch { /* no audio */ } };
+  document.addEventListener('pointerdown', unlock, { once: true, capture: true });
+  function blip(kind) {
+    if (!ac || ac.state !== 'running') return;
+    const t = ac.currentTime; const g = ac.createGain(); g.connect(ac.destination);
+    const o = ac.createOscillator(); o.connect(g);
+    const [type, f0, f1, len, vol] = kind === 'miss' ? ['sine', 900, 300, 0.18, 0.08] : kind === 'end' ? ['triangle', 523, 784, 0.6, 0.1] : ['square', 220, 90, 0.16, 0.1];
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + len);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    o.start(t); o.stop(t + len + 0.02);
+  }
+  const SOUND = { hit: ['hit'], crit: ['clash', 'hit'], miss: ['swish'], end: ['bell'] };
+  function sound(kind, role) {
+    if (role === 'phone') return blip(kind === 'crit' ? 'hit' : kind);
+    for (const b of SOUND[kind] || []) window.AudioOut?.play?.(b);
+  }
+
+  // Attacker pop-up (Mike, Nov 21): the attacker's picture for half a second before the blow lands.
+  // PLACEHOLDER: a coloured disc with their initial when they have no picture.
+  const ACTOR_MS = 500;
+  function actor(by) {
+    const pic = by.img ? `<img src="${esc(by.img)}" alt="">` : `<b>${esc((by.name || '?').trim().charAt(0).toUpperCase() || '?')}</b>`;
+    spawn('cfx-actor', `<div class="cfx-actor-pic">${pic}</div><span>${esc(by.name)}</span>`, { color: colorOf(by), ms: ACTOR_MS + 150 });
   }
 
   // What a phone shows: only its own moments (you hit, you were hit, your turn). Returns the text or null.
@@ -104,9 +141,14 @@
     if (!c || !on()) return false;
     if (role === 'phone') return playPhone(c, me);
     if (c.kind === 'turn') return playAt(c, role, null);
-    // Effects on a target land on that target, or not at all (the 3D map draws its own lunge and word).
+    const blow = ['hit', 'crit', 'miss'].includes(c.kind);
+    if (blow && c.by && role === 'tv') { actor(c.by); await new Promise((r) => setTimeout(r, reduced() ? 150 : ACTOR_MS)); }
+    // Effects on a target land on that target, or not at all.
     const where = await locate(c.target?.id);
     if (!on()) return false;
+    if (blow) sound(c.kind, role);
+    if (where?.map) map?.flash?.(c.target.id, c.kind === 'miss' ? '#ffffff' : c.kind === 'heal' ? '#6aff6a' : '#ff4a3a');
+    else if (c.kind === 'heal' && map) map.flash?.(c.target.id, '#6aff6a');
     return playAt(c, role, where);
   }
   function playPhone(c, me) {
@@ -116,8 +158,11 @@
     if (!text) return false;
     if (c.by?.id === me && document.getElementById('strike')) return false; // the strike pop-up shows its own result
     spawn(`cfx-phone k-${c.kind}`, `<span>${esc(text)}</span>${amountTag(c)}`, { color: c.kind === 'turn' ? tColor : byColor, ms: 1600 });
+    // Haptics where the phone has them (Android); iPhone Safari has none, so it gets the picture and the sound.
     if (c.kind === 'turn') navigator.vibrate?.([40, 60, 40]);
     else if (c.target?.id === me && (c.kind === 'hit' || c.kind === 'crit')) navigator.vibrate?.(c.kind === 'crit' ? [120, 40, 120] : [70]);
+    else if (c.by?.id === me && (c.kind === 'hit' || c.kind === 'crit')) navigator.vibrate?.([30, 30, 60]);
+    if (['hit', 'crit', 'miss'].includes(c.kind)) { sound(c.kind, 'phone'); map?.flash?.(c.target.id, c.kind === 'miss' ? '#ffffff' : '#ff4a3a'); }
     if (c.kind === 'crit' && c.target?.id === me) shake(document.body);
     return true;
   }
@@ -167,9 +212,18 @@
     return true;
   }
 
-  function listen(socket, opts = {}) {
-    socket.on('cfx', (c) => play(c, { role: opts.role, me: opts.me?.() ?? null }));
+  // End of combat (Mike, Nov 21): a banner on every screen. PLACEHOLDER look (text only).
+  function end(e = {}, { role = 'tv' } = {}) {
+    if (!on()) return false;
+    spawn(`cfx-end ${role === 'phone' ? 'cfx-end-phone' : ''}`, `<span>${e.won ? 'Victory!' : 'Combat over'}</span><small>${e.won ? 'The battle is won' : 'The fight is done'}</small>`, { color: e.won ? 'hsl(42 85% 60%)' : 'hsl(220 15% 80%)', ms: 2800 });
+    if (role === 'phone') { navigator.vibrate?.([60, 80, 160]); blip('end'); } else sound('end', role);
+    return true;
   }
 
-  window.CombatFx = { play, listen, phoneText, colorOf };
+  function listen(socket, opts = {}) {
+    socket.on('cfx', (c) => play(c, { role: opts.role, me: opts.me?.() ?? null }));
+    socket.on('cfx:end', (e) => end(e, { role: opts.role }));
+  }
+
+  window.CombatFx = { play, listen, phoneText, colorOf, end, setMap: (m) => { map = m; } };
 })();

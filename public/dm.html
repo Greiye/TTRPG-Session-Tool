@@ -131,6 +131,7 @@
         <button class="btn" data-mode="exploration">🧭 Explore</button>
         <button class="btn" data-mode="combat">⚔️ Combat</button>
         <button class="btn" data-mode="social">💬 Social</button>
+        <button class="btn prep-combat" id="prepCombat" title="Prepare combat: set up a fight in private. The Battle Window opens here; the TV and phones stay where they are." aria-label="Prepare combat">🛠</button>
         <button class="btn plan-mode" id="planToggle" aria-pressed="false" title="Planning: prep between sessions (shops, creatures, story nodes). The table does not see it and the live mode stays as it is.">📝 Planning</button>
       </div>
     </div>
@@ -458,7 +459,11 @@
           <label class="note tight">Height <input id="mapZ" type="number" min="0" max="10" value="0" style="width:56px"></label>
         </div>
         <p class="note" id="mapInfo"></p>
-        <button class="btn go hold-btn" id="mapGen" title="Press and hold for 2 seconds: fills the map with hills, water, ruined walls, trees and rocks. Replaces the terrain."><i class="hold-fill"></i><span>⛰ Hold to generate terrain</span></button>
+        <div class="map-under">
+          <label class="note tight">Kind <select id="mapTheme" style="width:auto" title="Outdoors: hills, water, trees and rocks. Dungeon: stone rooms, corridors, doors and pillars."><option value="outdoor">⛰ Outdoors</option><option value="dungeon">🏰 Dungeon</option></select></label>
+          <label class="note tight">Light <select id="mapDaylight" style="width:auto" title="Light on the 3D map. Auto follows the time of day (a dungeon is always dark)."><option value="auto">Auto (time of day)</option><option value="dawn">Dawn</option><option value="day">Day</option><option value="dusk">Dusk</option><option value="night">Night</option><option value="dark">Dark</option></select></label>
+        </div>
+        <button class="btn go hold-btn" id="mapGen" title="Press and hold for 2 seconds: fills the map with terrain of the Kind above (outdoors or a dungeon). Replaces the terrain."><i class="hold-fill"></i><span>⛰ Hold to generate terrain</span></button>
         <div class="map-under">
           <input id="mapSeed" placeholder="seed (optional)" style="width:130px" title="Same seed, same terrain">
           <span class="note tight" id="mapSeedNow"></span>
@@ -467,6 +472,7 @@
     </div>
     <div class="card" data-tab="combat" data-panel="combat">
       <h3>Encounter <span class="note" id="encRound"></span></h3>
+      <p class="prep-note" id="prepNote" hidden>🛠 Preparing in private. The TV and phones still show <b id="prepFrom"></b>. Press ⚔️ Combat or roll initiative to bring the table in.</p>
       <div class="enc-btns">
         <button class="btn primary hold-btn" id="initHold" title="Press and hold, then release to roll initiative and sort everyone in turn order"><i class="hold-fill"></i><span>🎲 Hold to roll initiative</span></button>
         <button class="btn hold-btn" id="nextHold" title="Press and hold for 2 seconds to end this turn"><i class="hold-fill"></i><span>Hold for next turn ▸</span></button>

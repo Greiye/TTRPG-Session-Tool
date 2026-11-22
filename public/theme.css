@@ -741,6 +741,7 @@ html[data-motion="reduce"] .undo-note { transition: none; }
 /* Cascade (Nov 18): the tools column fits the screen, so the mode buttons sit in one row and the tabs in two
    columns, each a little tighter. */
 body.dm.cascade #toolsCol .modes-card .modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+body.dm.cascade #toolsCol .modes-card .modes:has(.prep-combat:not([hidden])) { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; } /* Prepare combat stays on the mode row */
 body.dm.cascade #toolsCol .modes-card .modes .btn { padding: 6px 4px; font-size: calc(12px * var(--ts)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.dm.cascade #toolsCol .tab-list { margin-top: 0; }
 body.dm.cascade #toolsCol .tab-list .tab-group { grid-template-columns: 1fr; gap: 0; padding: 4px 0; } /* one column in every layout (Nov 21) */
@@ -754,6 +755,23 @@ body.dm.cascade #toolsCol #sideTitle { display: none; }
 .dm-bar .keep-bar { order: 0; display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
 .dm-bar .keep-bar[hidden] { display: none; }
 
+/* TV camera buttons on the DM's battle map (Mike, Nov 21): turn the TV view a quarter turn, or look straight down. */
+.iso-tvcam { display: inline-flex; align-items: center; gap: 4px; padding-left: 8px; border-left: 1px solid #5a4330; }
+.iso-tvcam button { background: #2a2030; color: #e7d7b6; border: 1px solid #5a4330; border-radius: 4px; padding: 2px 7px; cursor: pointer; font: inherit; }
+.iso-tvcam button[aria-pressed="true"] { background: #e3b45a; color: #1a1420; }
+.iso-daylight { display: inline-flex; align-items: center; gap: 4px; padding-left: 8px; border-left: 1px solid #5a4330; }
+.iso-daylight select { background: #2a2030; color: #e7d7b6; border: 1px solid #5a4330; border-radius: 4px; padding: 2px 4px; font: inherit; width: auto; }
+/* Phone combat map with a D-pad (Mike, Nov 21). */
+.phone-map { position: relative; height: min(56vh, 420px); margin: 0 0 10px; border-radius: 12px; overflow: hidden; background: #1d2230; }
+.phone-map[hidden] { display: none; }
+.phone-map .iso-layer { position: absolute; inset: 0; }
+.iso-pad { position: absolute; right: 8px; bottom: 8px; z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.iso-pad-grid { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 4px; }
+.iso-pad-b { border: 1px solid #5a4330; border-radius: 10px; background: rgb(18 14 22 / .78); color: #f4ead5; font-size: 20px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.iso-pad-b:active { background: #e3b45a; color: #1a1420; }
+.iso-pad-b.mid { font-size: 16px; opacity: .8; }
+.iso-pad-note { margin: 0; min-height: 1.2em; font: 12px/1.2 system-ui, sans-serif; color: #f4ead5; text-shadow: 0 1px 2px #000; max-width: 150px; text-align: center; }
+@media (max-width: 360px) { .iso-pad-grid { grid-template-columns: repeat(3, 38px); grid-template-rows: repeat(3, 38px); } }
 /* ================= Player phone batch (Mike, Nov 21) ================= */
 /* Skills are tiles as large as the abilities, press and hold to roll. */
 .ab-grid.sk-big .sk-tile { grid-template-columns: 1fr auto; align-items: center; min-height: 54px; cursor: pointer; }
@@ -790,3 +808,7 @@ body.dm .modes .plan-mode.on { background: linear-gradient(#f2c96e, #b8862f); co
 .tab-list .tab-group { grid-template-columns: 1fr !important; }
 .tab-list button[disabled] { opacity: .38; cursor: default; filter: grayscale(.8); }
 .tab-list button[disabled]:hover { background: transparent; }
+/* Battle map compass (Mike, Nov 22): smaller on phones, larger on the TV. */
+.phone-map .isob { --isob-compass-size: 46px; --isob-compass-left: 8px; --isob-compass-bottom: 8px; }
+.iso-layer.tv .isob { --isob-compass-size: 76px; --isob-compass-left: 16px; --isob-compass-bottom: 16px; }
+html[data-motion="reduce"] .isob .isob-compass svg { transition: none; }

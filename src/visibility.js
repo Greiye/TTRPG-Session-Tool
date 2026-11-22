@@ -83,6 +83,21 @@ function viewState(base, viewer) {
   out.players = base.players.map((p) => strip(p, 'character', viewer));
   out.combat = { ...base.combat, enemies: base.combat.enemies.map((e) => strip(e, 'enemy', viewer)) };
   out.log = filterList(base.log, viewer);
+  // Prepare combat (Mike, Nov 21): while the DM sets up a fight in private, the DM's pages are in combat and
+  // everyone else stays in the table's mode without the creatures, battle map or tokens.
+  if (base.combat.staged && base.mode !== 'combat') {
+    if (viewer.role === 'dm') { out.mode = 'combat'; out.tableMode = base.mode; }
+    else {
+      out.combat = { ...out.combat, enemies: [], order: [], lastMove: null };
+      delete out.combat.staged;
+      out.map = null;
+      out.tokens = {};
+      out.pendingPlace = [];
+      const at = base.combat.staged.at || 0; // combat lines written during the prep wait for the fight
+      out.log = out.log.filter((l) => l.kind !== 'combat' || !(l.id > at));
+      if (base.bossCard) out.bossCard = null;
+    }
+  }
   out.rolls = filterList(base.rolls, viewer);
   out.objectives = filterList(base.objectives, viewer); // secret objectives: the owner's phone and the DM until revealed (src/objectives.js)
   out.suggestions = filterList(base.suggestions, viewer); // spectator suggestions: DM and players only (src/spectate.js)
@@ -91,7 +106,7 @@ function viewState(base, viewer) {
   // Fog of war (src/vision.js): every viewer gets the tiles the party can see. Phones and the TV never get
   // enemy tokens standing in the dark; the DM sees everything, with the fog drawn dimmer.
   out.mapVision = null;
-  if (base.map?.fog) {
+  if (base.map?.fog && out.map) {
     const party = new Set((base.players || []).map((p) => p.id));
     const seen = require('./vision').visibleTiles(base.map, base.tokens, party);
     out.mapVision = [...seen];

@@ -10,14 +10,14 @@
 
 const BATTLE = [
   // Encounter flow
-  'dm:combat:start', 'dm:combat:next', 'dm:combat:end',
+  'dm:combat:start', 'dm:combat:next', 'dm:combat:end', 'dm:combat:stage', 'dm:tv:cam',
   // The DM's forces: add, attack with, roll for, damage and remove creatures
   'dm:enemy:add', 'dm:enemy:attack', 'dm:enemy:remove', 'dm:hp', 'dm:condition', 'dm:timer:condition',
   'dm:concentrate', 'dm:concentrate:drop', 'dm:boss:card', 'dm:boss:clear',
   'dm:creature:spawn', 'dm:creature:save', 'dm:creature:delete', 'dm:creature:accent',
   'dm:roll:creature', 'dm:rnd:art',
   // Battle map
-  'dm:map', 'dm:map:generate', 'dm:map:paint', 'dm:map:tile', 'dm:fog',
+  'dm:map', 'dm:map:generate', 'dm:map:paint', 'dm:map:tile', 'dm:map:daylight', 'dm:fog',
   'dm:token', 'dm:token:move', 'dm:token:light', 'dm:token:remove', 'dm:move:reset',
 ];
 

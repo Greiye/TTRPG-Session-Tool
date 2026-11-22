@@ -82,7 +82,8 @@ function move(c, x, y, { dm = false } = {}) {
     }
     return { ok: true, cost: ft };
   }
-  if (state.map.props?.[`${x},${y}`] && !flying) return { error: 'That tile is blocked.' };
+  const prop = state.map.props?.[`${x},${y}`];
+  if (prop && !flying && !iso.WALKABLE.has(prop)) return { error: 'That tile is blocked.' };
   const budget = speedOf(c);
   const used = state.combat.moved?.[c.id] || 0;
   const r = iso.route(state.map, tk, { x, y }, { flying });

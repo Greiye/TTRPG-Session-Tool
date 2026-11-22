@@ -123,8 +123,9 @@ function boot(env = ENV) {
 
   for (const b of bots) b.close();
   dm.close();
-  srv.kill();
-  fs.rmSync(TMP, { recursive: true, force: true });
+  // Wait for the server to exit before removing its folder: a last debounced save can land after kill().
+  await new Promise((r) => { if (srv.exitCode !== null) return r(); srv.once('exit', r); srv.kill(); });
+  fs.rmSync(TMP, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   console.log(failures ? `\n${failures} failed` : '\nall passed');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

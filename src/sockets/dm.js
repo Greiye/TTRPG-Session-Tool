@@ -55,6 +55,9 @@ module.exports = function dmSockets(socket) {
 
   function setMode(mode, npcId) {
     if (!['exploration', 'combat', 'social'].includes(mode)) return;
+    // Prepare combat (Mike, Nov 21): any mode button ends the DM's private prep. Combat takes the table into the
+    // fight (the usual "Get ready" filter); the mode the table is already in just closes the prep.
+    if (state.combat.staged) state.combat.staged = false;
     // Pressing the mode you are already in does nothing (no log line, no re-entry), except picking who speaks.
     if (mode === state.mode) { if (mode === 'social' && npcId) cast.pick(state.social, npcId); return; }
     state.mode = mode;
@@ -77,6 +80,13 @@ module.exports = function dmSockets(socket) {
     if (mode === 'social' && npcId) cast.pick(state.social, npcId);
   }
   dm('dm:mode', ({ mode, npcId }) => setMode(mode, npcId));
+  // Prepare combat (Mike, Nov 21): the DM's page opens the Battle Window while the TV and phones stay in the mode
+  // they are in. Creatures, the battle map and tokens stay hidden from them (src/visibility.js) until the DM
+  // presses Combat or rolls initiative.
+  dm('dm:combat:stage', ({ on = true } = {}) => {
+    if (state.mode === 'combat' || state.combat.active) return; // the table is already in the fight
+    state.combat.staged = on ? { at: state.log[state.log.length - 1]?.id || 0 } : false;
+  });
   socket.on('dm:convo:start', ({ ids, pids } = {}, ack) => {
     if (!roles.can(socket.data.role, 'dm:convo:start')) return ack?.({ error: 'DM only.' });
     if (state.mode !== 'social') return ack?.({ error: 'Switch to Social mode first.' });
@@ -159,17 +169,20 @@ module.exports = function dmSockets(socket) {
     if (mustPlaceFirst() || !state.map) return;
     if (iso.editTile(state.map, f) && f.prop && f.prop !== 'none') delete state.map.terrain?.[`${f.x},${f.y}`]; // a prop replaces a wall
   });
-  dm('dm:map:generate', ({ seed } = {}) => {
+  // theme: 'outdoor' or 'dungeon' (Mike, Nov 22), picked per encounter; left out, the map keeps its theme.
+  dm('dm:map:generate', ({ seed, theme } = {}) => {
     if (mustPlaceFirst() || !state.map) return;
-    iso.generate(state.map, seed === undefined || seed === '' ? undefined : Number(seed));
+    iso.generate(state.map, seed === undefined || seed === '' ? undefined : Number(seed), iso.THEMES.includes(theme) ? theme : state.map.theme);
     // Tokens left standing in a wall or a prop move to the nearest open tile.
     for (const [id, t] of Object.entries(state.tokens || {})) {
       const open = (x, y) => x >= 0 && y >= 0 && x < state.map.cols && y < state.map.rows && !state.map.terrain[`${x},${y}`] && !state.map.props[`${x},${y}`];
       if (open(t.x, t.y)) continue;
-      outer: for (let r = 1; r < 6; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (open(t.x + dx, t.y + dy)) { state.tokens[id] = { ...t, x: t.x + dx, y: t.y + dy }; break outer; }
+      outer: for (let r = 1; r < Math.max(state.map.cols, state.map.rows); r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (open(t.x + dx, t.y + dy)) { state.tokens[id] = { ...t, x: t.x + dx, y: t.y + dy }; break outer; }
     }
-    log('system', 'The battle map gets new terrain.', { vis: 'dm' });
+    log('system', state.map.theme === 'dungeon' ? 'The battle map becomes a dungeon.' : 'The battle map gets new terrain.', { vis: 'dm' });
   });
+  // Light on the 3D map (Mike, Nov 22): 'auto' follows the story clock; dawn, day, dusk, night or dark override it.
+  dm('dm:map:daylight', ({ light } = {}) => { if (state.map) iso.setDaylight(state.map, light); });
   dm('dm:token', ({ id, x, y, z }) => {
     const q = state.pendingPlace || [];
     if (q.length && id !== q[0]) return;
@@ -455,11 +468,25 @@ module.exports = function dmSockets(socket) {
   // Ending combat clears the combat window for the next fight (Mike, Nov 16): creatures, tokens, the battle map,
   // initiative and movement all go. The party and the creature library stay.
   dm('dm:combat:end', () => {
-    Object.assign(state.combat, { active: false, order: [], turn: 0, round: 0, acted: {}, moved: {}, enemies: [], lastMove: null });
+    // End of combat pop-up (Mike, Nov 21) on the TV and phones, when the table saw a fight (not a private prep).
+    if (state.combat.active && !state.combat.staged) {
+      const foes = state.combat.enemies.filter((e) => (e.side || 'enemy') === 'enemy');
+      combatfx.end({ won: foes.length > 0 && foes.every((e) => e.hp <= 0) });
+    }
+    Object.assign(state.combat, { active: false, order: [], turn: 0, round: 0, acted: {}, moved: {}, enemies: [], lastMove: null, staged: false });
     state.tokens = {};
     state.pendingPlace = [];
     state.map = null;
     log('combat', 'Combat ends.');
+  });
+  // TV battle view (Mike, Nov 21): the DM turns the TV's camera a quarter turn at a time, and can look straight down.
+  // It stays between fights (dm:combat:end leaves combat.cam alone).
+  dm('dm:tv:cam', ({ turn, top, reset } = {}) => {
+    const cam = (state.combat.cam ||= { rot: 0, top: false, n: 0 });
+    if (reset) Object.assign(cam, { rot: 0, top: false });
+    if (turn === 1 || turn === -1) cam.rot = (((cam.rot || 0) + turn) % 4 + 4) % 4;
+    if (typeof top === 'boolean') cam.top = top;
+    cam.n = (cam.n || 0) + 1;
   });
   dm('dm:combat:next', () => { if (!mustPlaceFirst()) game.advanceTurn(); });
   // The DM plays every creature: enemies, allies and neutrals. `attack` picks one from the stat block.

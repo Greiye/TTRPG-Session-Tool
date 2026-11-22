@@ -240,6 +240,12 @@ textarea { resize: vertical; min-height: 54px; }
 .btn.on { background: var(--gold); color: #1b1420; }
 .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .modes .btn { padding: 10px 6px; font-family: var(--display); }
+/* Prepare combat (Mike, Nov 21): set up a fight while the TV and phones stay put. */
+.modes:has(.prep-combat:not([hidden])) { grid-template-columns: repeat(3, 1fr) auto; }
+.modes .prep-combat { padding: 10px 9px; }
+.prep-combat.on { border-color: var(--gold, #c9a86a); color: var(--gold, #c9a86a); }
+.prep-note { margin: 4px 0 8px; padding: 6px 10px; border: 1px dashed var(--gold, #c9a86a); border-radius: 8px; font-size: 13px; }
+body.combat-staged .modes [data-mode="combat"].on { outline: 2px dashed var(--gold, #c9a86a); outline-offset: 2px; }
 .emotions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .emotions .btn { display: flex; flex-direction: column; align-items: center; padding: 8px 2px; font-size: calc(13px * var(--ts)); }
 .emotions .btn span { font-size: calc(24px * var(--ts)); }
