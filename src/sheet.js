@@ -8,20 +8,23 @@ const { clampGold } = require('./shops');
 const { featureList } = require('./rests');
 
 // Fields only the owner and the DM see (other phones and the TV get the public card).
-const PRIVATE = ['abilities', 'saveProf', 'slots', 'hitDice', 'inventory', 'notes', 'spells', 'derived', 'gold', 'bond', 'uses', 'features', 'moves'];
+const PRIVATE = ['abilities', 'saveProf', 'slots', 'hitDice', 'inventory', 'notes', 'spells', 'derived', 'gold', 'bond', 'uses', 'features', 'moves', 'hdOffer'];
 
 // Optional resource pools (phase 4). A pool with max 0 is not kept by the character and is hidden on phones.
 const RESOURCES = ['stamina', 'mana'];
 const pool = (r) => { const max = int(r?.max, 0, 999, 0); return { max, cur: int(r?.cur, 0, max, max) }; };
 
 // Special moves (Mike, Nov 17): chains a player lays out on the phone and picks in the strike pop-up
-// (public/js/play/strike.js). For show only; no names (players call their moves out at the table).
+// (public/js/play/strike.js). Nov 21: players name and rename them, keep at least one, and pick them from the
+// combat choices on their turn.
 // A step: k, and points in the silhouette's 200 x 300 box (x,y; slash and twin add x2,y2; twinslash x3..y4).
 const MOVE_STEPS = { hit: 1, pierce: 1, spell: 1, slash: 2, twin: 2, twinslash: 4 };
-const MAX_MOVES = 6, MAX_STEPS = 8, MIN_STEPS = 2;
+const MAX_MOVES = 6, MAX_STEPS = 8, MIN_STEPS = 2, MIN_MOVES = 1;
+const STARTER_MOVE = () => ({ name: 'Quick combo', steps: [{ k: 'hit', x: 100, y: 90 }, { k: 'hit', x: 100, y: 170 }] });
 function cleanMoves(list) {
   if (!Array.isArray(list)) return null;
-  return list.slice(0, MAX_MOVES).map((m) => ({
+  return list.slice(0, MAX_MOVES).map((m, i) => ({
+    name: str(m?.name, 30) || `Move ${i + 1}`,
     steps: (Array.isArray(m?.steps) ? m.steps : []).filter((s) => MOVE_STEPS[s?.k]).slice(0, MAX_STEPS).map((s) => {
       const o = { k: s.k };
       for (let i = 0; i < MOVE_STEPS[s.k]; i++) { const n = i ? i + 1 : ''; o[`x${n}`] = int(s[`x${n}`], 0, 200, 100); o[`y${n}`] = int(s[`y${n}`], 0, 300, 150); }
@@ -43,10 +46,14 @@ function ensureSheet(c) {
   c.conditions ??= [];
   for (const k of RESOURCES) c[k] = pool(c[k]);
   c.uses ??= {};
-  c.moves ??= [];
+  if (!Array.isArray(c.moves) || !c.moves.length) c.moves = [STARTER_MOVE()]; // every character has at least one move
+  c.moves.forEach((m, i) => { m.name ||= `Move ${i + 1}`; });
   c.features = featureList(c); // class features with their maximum, for the owner's sheet
   return c;
 }
+
+// A spellcaster (Nov 21): has spell slots or knows a spell. System-agnostic; the phone shows the Spells tab only then.
+const isCaster = (c) => Object.values(c.slots || {}).some((s) => s?.max > 0) || (c.spells || []).length > 0;
 
 // Numbers the clients show but should not compute themselves (system-specific).
 function derived(c) {
@@ -59,18 +66,16 @@ function derived(c) {
   };
 }
 
-// Apply a sheet patch. Players may change what they track at the table; the DM may change everything.
+// Languages a character can speak (Nov 21): only the player sets these, from their phone. Free text, so a
+// homebrew tongue works too; the rules' list is offered as suggestions.
+const cleanLanguages = (list) => [...new Set(list.map((x) => str(x, 30)).filter(Boolean))].slice(0, 30);
+
+// Apply a sheet patch. Stats and health are the DM's alone (Mike, Nov 21). A player keeps notes, names their
+// special moves, uses up or drops items, and sets the languages they know (which the DM cannot change).
 function applySheet(c, f, isDm) {
   ensureSheet(c);
-  if (f.hp !== undefined) c.hp = int(f.hp, 0, c.maxHp, c.hp);
-  if (f.tempHp !== undefined) c.tempHp = int(f.tempHp, 0, 999, c.tempHp);
-  if (f.slot) {
-    const s = c.slots[String(f.slot.level)];
-    if (s) s.used = int(f.slot.used, 0, s.max, s.used);
-  }
-  if (f.hitDiceUsed !== undefined) c.hitDice.used = int(f.hitDiceUsed, 0, c.level, c.hitDice.used);
   if (f.notes !== undefined) c.notes = str(f.notes, 4000);
-  if (f.moves !== undefined) { const m = cleanMoves(f.moves); if (m) c.moves = m; }
+  if (f.moves !== undefined) { const m = cleanMoves(f.moves); if (m && m.length >= MIN_MOVES) c.moves = m; }
   if (f.inv) {
     const { op, id } = f.inv;
     const item = c.inventory.find((x) => x.id === id);
@@ -89,19 +94,25 @@ function applySheet(c, f, isDm) {
       if (f.inv.note !== undefined) item.note = str(f.inv.note, 200);
     } else if (op === 'del' && item) c.inventory = c.inventory.filter((x) => x !== item);
   }
-  for (const k of RESOURCES) {
-    const r = c[k];
-    if (f[k]?.cur !== undefined) r.cur = int(f[k].cur, 0, r.max, r.cur); // players track current points at the table
+  if (Array.isArray(f.spells)) c.spells = [...new Set(f.spells.map((x) => str(x, 80)).filter(Boolean))].slice(0, 200); // the spells a caster knows (their pick, before a rest too)
+  if (!isDm) {
+    if (Array.isArray(f.languages)) c.languages = cleanLanguages(f.languages);
+    return;
   }
-  if (Array.isArray(f.spells)) c.spells = [...new Set(f.spells.map((x) => str(x, 80)).filter(Boolean))].slice(0, 200);
-  if (!isDm) return;
+  if (f.hp !== undefined) c.hp = int(f.hp, 0, c.maxHp, c.hp);
+  if (f.tempHp !== undefined) c.tempHp = int(f.tempHp, 0, 999, c.tempHp);
+  if (f.slot) {
+    const s = c.slots[String(f.slot.level)];
+    if (s) s.used = int(f.slot.used, 0, s.max, s.used);
+  }
+  if (f.hitDiceUsed !== undefined) c.hitDice.used = int(f.hitDiceUsed, 0, c.level, c.hitDice.used);
   if (f.gold !== undefined) c.gold = clampGold(f.gold, c.gold);
   for (const k of RESOURCES) {
     const r = c[k];
     if (f[k]?.max !== undefined) { r.max = int(f[k].max, 0, 999, r.max); r.cur = Math.min(r.cur, r.max); }
+    if (f[k]?.cur !== undefined) r.cur = int(f[k].cur, 0, r.max, r.cur);
   }
   if (f.speed !== undefined) c.speed = int(f.speed, 0, 300, c.speed);
-  if (Array.isArray(f.languages)) c.languages = [...new Set(f.languages.map((x) => str(x, 30)).filter(Boolean))].slice(0, 30);
   if (f.slotMax) {
     for (const [lvl, max] of Object.entries(f.slotMax)) {
       const l = int(lvl, 1, 9, 0);
@@ -113,4 +124,4 @@ function applySheet(c, f, isDm) {
   rules.get(c.system).editSheet(c, f);
 }
 
-module.exports = { PRIVATE, ensureSheet, derived, applySheet, cleanMoves };
+module.exports = { PRIVATE, ensureSheet, derived, applySheet, cleanMoves, isCaster, MIN_MOVES };

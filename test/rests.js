@@ -56,7 +56,10 @@ assert(fl[0].text.length > 0, 'features carry a description for the phone');
 
 // Activating a feature from the phone spends one use; an empty feature or one the class lacks is refused.
 const f1 = mk('Fighter', { level: 1 });
-assert.deepStrictEqual(useFeature(f1, 'Second Wind'), { left: 0, pool: false });
+const sw = useFeature(f1, 'Second Wind');
+assert.strictEqual(sw.left, 0);
+assert.strictEqual(sw.pool, false);
+assert(sw.healed >= 0 && /heals/.test(sw.text)); // automated (Nov 21)
 assert.strictEqual(f1.uses['Second Wind'], 1);
 assert(useFeature(f1, 'Second Wind').error);
 assert(useFeature(f1, 'Action Surge').error); // level 2 feature

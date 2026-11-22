@@ -3,7 +3,8 @@
 const { str } = require('./util');
 
 const MAX_CAST = 5;
-const MAX_PARTY = 3;
+const MAX_PARTY = 3; // portraits on the TV's left
+const MAX_TALKERS = 8; // player characters in one conversation
 const KINDS = ['npc', 'item'];
 const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'fearful', 'surprised', 'suspicious', 'smug'];
 // NPCs the DM can pull into a conversation (placeholders for now, Mike Nov 16).
@@ -21,6 +22,7 @@ function ensure(social) {
   social.npc.id ??= null;
   social.pool ??= freshPool();
   social.convo ??= { live: false, ending: false, n: 0, from: 0 };
+  social.party ??= []; // player characters in the conversation (dragged in by the DM or joined from the phone)
   return social;
 }
 
@@ -80,11 +82,13 @@ function setExpression(social, pid, emotion) {
 // Conversation flow (Mike, Nov 16): entering Social mode shows the DM the NPC list; holding Start
 // puts the chosen NPCs on the scene, and phones get "Join the conversation?" (social.entered).
 // `from` is the id counter at the start, so the TV's social narration box shows only this talk's lines.
-function start(social, ids, from) {
+// pids: player characters the DM dragged in (Nov 21); players can also join from their phone (join()).
+function start(social, ids, from, pids = []) {
   ensure(social);
   const picked = [...new Set(Array.isArray(ids) ? ids : [])].map((id) => social.pool.find((p) => p.id === id)).filter(Boolean).slice(0, MAX_CAST);
   if (!picked.length) return { error: 'Pick at least one NPC for the conversation.' };
   social.cast = picked.map((p) => ({ ...p, emotion: 'neutral' }));
+  social.party = [...new Set((Array.isArray(pids) ? pids : []).map(String))].slice(0, MAX_TALKERS);
   pick(social, picked[0].id);
   social.expr = {};
   social.choices = [];
@@ -93,6 +97,30 @@ function start(social, ids, from) {
   social.entered += 1;
   return { ok: true, names: picked.map((p) => p.name) };
 }
+// A player character joins the live conversation (from the phone, or dragged in by the DM). Returns true when added.
+function join(social, pid) {
+  ensure(social);
+  if (!pid || social.party.includes(pid) || social.party.length >= MAX_TALKERS) return false;
+  social.party.push(pid);
+  return true;
+}
+function leave(social, pid) {
+  ensure(social);
+  const before = social.party.length;
+  social.party = social.party.filter((x) => x !== pid);
+  return social.party.length < before;
+}
+// The DM drags a pool NPC onto the live scene (Nov 21). Returns { ok } or { error }.
+function bring(social, id) {
+  ensure(social);
+  const p = social.pool.find((x) => x.id === id);
+  if (!p) return { error: 'No such NPC.' };
+  if (social.cast.some((c) => c.id === id)) return { error: `${p.name} is already in the conversation.` };
+  if (social.cast.length >= MAX_CAST) return { error: `The scene holds ${MAX_CAST} at once. Remove one first.` };
+  social.cast.push({ ...p, emotion: 'neutral' });
+  return { ok: true, name: p.name };
+}
+
 // End: the TV holds "The conversation has concluded" before the table returns to exploration.
 function end(social) {
   ensure(social);
@@ -104,8 +132,9 @@ function end(social) {
 function close(social) {
   ensure(social);
   social.convo = { ...social.convo, live: false, ending: false };
+  social.party = [];
 }
 
 const sentence = (name, pronoun, emotion, text) => `${name} looks to be ${MOOD[emotion] || emotion}. ${SAYS[pronoun] || SAYS.they} "${text}"`;
 
-module.exports = { MAX_CAST, MAX_PARTY, EMOTIONS, ensure, add, remove, pick, mirror, setExpression, start, end, close, sentence };
+module.exports = { MAX_CAST, MAX_PARTY, EMOTIONS, ensure, add, remove, pick, mirror, setExpression, start, join, leave, bring, end, close, sentence };

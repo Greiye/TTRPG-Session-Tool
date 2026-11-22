@@ -124,19 +124,21 @@ const shot = async (p, name) => { if (SHOTS) await p.screenshot({ path: path.joi
     await dm.evaluate(() => new Promise((r) => window.socket.emit('dm:convo:start', { ids: ['pool-albert'] }, r)));
     await dm.waitForSelector('#convoLive:not([hidden]) #emotions .convo-wheel', { timeout: 5000 });
     ok(!!(await dm.$('#emotions .convo-wheel .wheel-emo[data-emo="angry"]')), 'the DM has the players\' emotion wheel for NPCs');
+    await dm.locator('#emotions .convo-wheel').scrollIntoViewIfNeeded();
     await dm.click('#emotions .wheel-emo[data-emo="angry"] .wheel-lbl', { force: true });
     await dm.waitForFunction(() => document.querySelector('#emotions .wheel-emo[data-emo="angry"]').classList.contains('on'), null, { timeout: 3000 });
-    ok(true, 'tapping a segment sets the NPC emotion');
+    ok(true, 'tapping a segment picks the NPC emotion (it goes out with the next line, Nov 21)');
     await shot(dm, 'dm-npc-wheel.png');
     const s = await dm.evaluate(() => window.socket && true);
     const me = await ph.evaluate(() => localStorage.tavernChar);
-    // Send the languages and wait for the state that carries them (not a fixed pause).
-    await dm.evaluate(([id]) => new Promise((r) => {
+    // The player sets their own languages (Nov 21); wait for the state that carries them (not a fixed pause).
+    const seen = dm.evaluate(([id]) => new Promise((r) => {
       const on = (st) => { if (JSON.stringify(st.players?.find((p) => p.id === id) || {}).includes('Gnollish')) { window.socket.off('state', on); r(); } };
       window.socket.on('state', on);
       setTimeout(() => { window.socket.off('state', on); r(); }, 3000);
-      window.socket.emit('dm:sheet', { id, languages: ['Common', 'Gnollish'] });
     }), [me]);
+    await ph.evaluate(() => window.socket.emit('player:sheet', { languages: ['Common', 'Gnollish'] }));
+    await seen;
     await dm.evaluate(() => window.socket.emit('dm:say', { text: 'Leave the bridge before the river takes it.', lang: 'Gnollish' }));
     await ph.waitForSelector('.tr-note', { timeout: 4000 });
     ok((await ph.textContent('.tr-note')).includes('Leave the bridge'), 'the player who knows Gnollish gets the translation');

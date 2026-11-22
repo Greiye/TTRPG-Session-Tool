@@ -12,8 +12,10 @@ const { ok, until } = h;
   ok(c.stamina.max === 0 && c.stamina.cur === 0, 'a pool with no max stays empty (and is hidden on phones)');
   ok(c.mana.max === 9 && c.mana.cur === 9, 'mana is clamped to its maximum');
   sheet.applySheet(c, { mana: { cur: 3 } }, false);
-  ok(c.mana.cur === 3, 'players can spend current mana');
-  sheet.applySheet(c, { mana: { cur: 99 } }, false);
+  ok(c.mana.cur === 9, 'players cannot change current mana: stats are the DM\'s (Nov 21)');
+  sheet.applySheet(c, { mana: { cur: 3 } }, true);
+  ok(c.mana.cur === 3, 'the DM spends current mana');
+  sheet.applySheet(c, { mana: { cur: 99 } }, true);
   ok(c.mana.cur === 9, 'current points stay within the maximum');
   sheet.applySheet(c, { mana: { max: 50 } }, false);
   ok(c.mana.max === 9, 'players cannot raise the maximum');
@@ -35,8 +37,12 @@ const { ok, until } = h;
   ok(!a.last.players.find((p) => p.id === id).stamina || a.last.players.find((p) => p.id === id).stamina.max === 0, 'no stamina pool by default');
   dm.emit('dm:sheet', { id, stamina: { max: 10 } });
   ok(await until(() => a.last.players.find((p) => p.id === id).stamina?.max === 10), 'the DM gives the character stamina');
+  const before = a.last.players.find((p) => p.id === id).stamina.cur;
   a.emit('player:sheet', { stamina: { cur: 4 } });
-  ok(await until(() => a.last.players.find((p) => p.id === id).stamina.cur === 4), 'the player spends stamina');
+  await h.wait(150); // nothing should change: the DM keeps stats (Nov 21)
+  ok(a.last.players.find((p) => p.id === id).stamina.cur === before, 'the phone cannot change stamina');
+  dm.emit('dm:sheet', { id, stamina: { cur: 4 } });
+  ok(await until(() => a.last.players.find((p) => p.id === id).stamina.cur === 4), 'the DM spends stamina');
 
   // Free ability roll: the phone asks for 1d20 with a modifier and gets a total back.
   const r = await h.call(a, 'player:roll', { expr: '1d20+2', label: 'Strength check' });

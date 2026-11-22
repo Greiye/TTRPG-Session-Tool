@@ -7,8 +7,8 @@ const mod = (score) => Math.floor(((score ?? 10) - 10) / 2);
 // max(c) gives the uses at this level (0 means the feature is not yet unlocked); reset(c) is the rest that refills it.
 const FEATURES = {
   Fighter: [
-    { name: 'Second Wind', max: () => 1, reset: () => 'short', text: 'As a bonus action, regain hit points equal to 1d10 plus your fighter level.' },
-    { name: 'Action Surge', max: (c) => (c.level >= 2 ? 1 : 0), reset: () => 'short', text: 'Push past your limits: take one additional action on this turn.' },
+    { name: 'Second Wind', max: () => 1, reset: () => 'short', text: 'As a bonus action, regain hit points equal to 1d10 plus your fighter level.', effect: (c) => heal(c, rollDice([1, 10, c.level || 1]).total) },
+    { name: 'Action Surge', max: (c) => (c.level >= 2 ? 1 : 0), reset: () => 'short', text: 'Push past your limits: take one additional action on this turn.', effect: (c) => { c.surge = true; return { text: 'and gets one more action this turn' }; } },
   ],
   Cleric: [{ name: 'Channel Divinity', max: () => 1, reset: () => 'short', text: 'Channel divine energy for an effect such as Turn Undead or your domain\'s power.' }],
   Bard: [{ name: 'Bardic Inspiration', max: (c) => Math.max(1, mod(c.abilities?.cha)), reset: (c) => (c.level >= 5 ? 'short' : 'long'), text: 'As a bonus action, give an ally within 60 ft an inspiration die to add to one roll in the next 10 minutes.' }],
@@ -19,8 +19,45 @@ const FEATURES = {
   ],
 };
 
+// Automated feature effects (Mike, Nov 21: "class features automated"). Each returns { text, healed? } for the log.
+// The DM can still change HP afterwards; features without an effect just spend the use and tell the table.
+function heal(c, amount) {
+  const before = c.hp;
+  c.hp = Math.min(c.maxHp, c.hp + Math.max(0, amount));
+  return { text: `and heals ${c.hp - before} HP`, healed: c.hp - before };
+}
+
 const unlocked = (c) => (FEATURES[c.cls] || []).filter((f) => f.max(c) > 0);
 const spendable = (c) => Math.max(0, (c.level || 1) - (c.hitDice?.used || 0));
+
+// Spend n hit dice (Phase C; Nov 21 also from the phone's prompt): each heals d(die) + CON, at least 1.
+// Returns { n, healed, line } or null when nothing was spent.
+function spendHitDice(p, want) {
+  const n = Math.min(spendable(p), Math.max(0, Math.floor(Number(want)) || 0));
+  if (n <= 0) return null;
+  p.hitDice ??= { die: 8, used: 0 };
+  const die = p.hitDice.die || 8;
+  const conMod = mod(p.abilities?.con);
+  let healed = 0;
+  const rolls = [];
+  for (let i = 0; i < n; i++) {
+    const r = Math.max(1, rollDice([1, die, conMod]).total);
+    rolls.push(r);
+    healed += r;
+  }
+  const before = p.hp;
+  p.hp = Math.min(p.maxHp, p.hp + healed);
+  p.hitDice.used = (p.hitDice.used || 0) + n;
+  return { n, healed: p.hp - before, line: `spends ${n} hit di${n > 1 ? 'ce' : 'e'} (d${die}${conMod ? `${conMod > 0 ? '+' : ''}${conMod}` : ''}: ${rolls.join(', ')}) and heals ${p.hp - before} HP` };
+}
+// Hit dice prompt (Mike, Nov 21): after a short rest (or when the DM offers), a character who is hurt and has
+// dice left gets a pop-up on their phone to spend some. `n` changes with every new offer.
+let offerSeq = 0;
+function offerHitDice(p, why) {
+  if (!p.hitDice?.die || spendable(p) <= 0) { delete p.hdOffer; return false; }
+  p.hdOffer = { n: ++offerSeq, why: String(why || 'Hit dice').slice(0, 40) };
+  return true;
+}
 
 // Apply one character's rest in place. Returns short lines for the log (empty when nothing changed).
 // spend: hit dice the character spends on a short rest (ignored on a long rest and clamped to what is left).
@@ -30,22 +67,8 @@ function restCharacter(p, kind, spend = 0) {
   const short = kind === 'short';
 
   if (short) {
-    const n = Math.min(spendable(p), Math.max(0, Math.floor(Number(spend)) || 0));
-    if (n > 0) {
-      const die = p.hitDice?.die || 8;
-      const conMod = mod(p.abilities?.con);
-      let healed = 0;
-      const rolls = [];
-      for (let i = 0; i < n; i++) {
-        const r = Math.max(1, rollDice([1, die, conMod]).total); // d(die)+CON, at least 1
-        rolls.push(r);
-        healed += r;
-      }
-      const before = p.hp;
-      p.hp = Math.min(p.maxHp, p.hp + healed);
-      p.hitDice.used = (p.hitDice.used || 0) + n;
-      out.push(`spends ${n} hit di${n > 1 ? 'ce' : 'e'} (d${die}${conMod ? `${conMod > 0 ? '+' : ''}${conMod}` : ''}: ${rolls.join(', ')}) and heals ${p.hp - before} HP`);
-    }
+    const hd = spendHitDice(p, spend);
+    if (hd) out.push(hd.line);
     // Warlock: Pact Magic slots refill on a short rest.
     if (p.cls === 'Warlock') {
       const refilled = Object.values(p.slots || {}).some((s) => s.used > 0);
@@ -81,11 +104,13 @@ function restCharacter(p, kind, spend = 0) {
   });
   for (const f of back) p.uses[f.name] = 0;
   if (back.length) out.push(`${back.map((f) => f.name).join(' and ')} ${back.length > 1 ? 'are' : 'is'} restored`);
+  if (short && p.hp < p.maxHp) offerHitDice(p, 'Short rest');
+  else delete p.hdOffer;
   return out;
 }
 
 // What a character's sheet shows: each unlocked feature with its maximum and the rest that refills it.
-const featureList = (c) => unlocked(c).map((f) => ({ name: f.name, max: f.max(c), reset: f.reset(c), pool: !!f.pool, text: f.text || '' }));
+const featureList = (c) => unlocked(c).map((f) => ({ name: f.name, max: f.max(c), reset: f.reset(c), pool: !!f.pool, text: f.text || '', auto: !!f.effect }));
 
 // Spend one use (or one pool point) of a feature from the phone. Returns { left } or { error }.
 function useFeature(p, name) {
@@ -96,7 +121,8 @@ function useFeature(p, name) {
   const spent = p.uses[f.name] || 0;
   if (spent >= max) return { error: `No uses of ${f.name} left. It refills on a ${f.reset(p)} rest.` };
   p.uses[f.name] = spent + 1;
-  return { left: max - spent - 1, pool: !!f.pool };
+  const fx = f.effect ? f.effect(p) || {} : {};
+  return { left: max - spent - 1, pool: !!f.pool, text: fx.text || '', healed: fx.healed || 0 };
 }
 
 // Camp class section: what this character's class gets back on each rest, and camp ideas for the class.
@@ -130,4 +156,4 @@ function campInfo(c) {
   return { cls: c.cls || '', level: c.level || 1, short, long, features: feats, ideas: CAMP_IDEAS[c.cls] || ['Keep watch', 'Mend your gear', 'Share a story by the fire'] };
 }
 
-module.exports = { FEATURES, unlocked, spendable, restCharacter, featureList, useFeature, campInfo, CAMP_IDEAS };
+module.exports = { FEATURES, unlocked, spendable, spendHitDice, offerHitDice, restCharacter, featureList, useFeature, campInfo, CAMP_IDEAS };

@@ -77,13 +77,34 @@ module.exports = function dmSockets(socket) {
     if (mode === 'social' && npcId) cast.pick(state.social, npcId);
   }
   dm('dm:mode', ({ mode, npcId }) => setMode(mode, npcId));
-  socket.on('dm:convo:start', ({ ids } = {}, ack) => {
+  socket.on('dm:convo:start', ({ ids, pids } = {}, ack) => {
     if (!roles.can(socket.data.role, 'dm:convo:start')) return ack?.({ error: 'DM only.' });
     if (state.mode !== 'social') return ack?.({ error: 'Switch to Social mode first.' });
-    const r = cast.start(state.social, ids, nextId());
+    const r = cast.start(state.social, ids, nextId(), (Array.isArray(pids) ? pids : []).filter((id) => state.players[id]));
     if (r.ok) log('system', `A conversation begins with ${r.names.join(', ').replace(/, ([^,]*)$/, ' and $1')}.`);
     broadcast();
     ack?.(r);
+  });
+  // Press, hold and drag (Nov 21): the DM pulls an NPC from the pool or a player character into the live
+  // conversation, or takes one out again (dm:convo:drop).
+  socket.on('dm:convo:add', ({ id } = {}, ack) => {
+    if (!roles.can(socket.data.role, 'dm:convo:add')) return ack?.({ error: 'DM only.' });
+    if (state.mode !== 'social' || !state.social.convo?.live) return ack?.({ error: 'Start the conversation first.' });
+    const p = state.players[id];
+    if (p) {
+      if (!cast.join(state.social, p.id)) return ack?.({ error: `${p.name} is already in the conversation.` });
+      log('system', `${p.name} joins the conversation.`);
+    } else {
+      const r = cast.bring(state.social, String(id || ''));
+      if (r.error) return ack?.(r);
+      log('system', `${r.name} joins the conversation.`);
+    }
+    broadcast();
+    ack?.({ ok: true });
+  });
+  dm('dm:convo:drop', ({ id }) => {
+    id = String(id || '');
+    if (!cast.leave(state.social, id)) cast.remove(state.social, id);
   });
   // End conversation: the TV holds "The conversation has concluded" for about a second, then everyone
   // (and the DM) goes back to exploration.
@@ -513,10 +534,16 @@ module.exports = function dmSockets(socket) {
     broadcast();
     ack?.({ ok: true });
   });
-  dm('dm:say', ({ text, lang }) => {
+  dm('dm:say', ({ text, lang, emotion }) => {
     text = String(text || '').trim().slice(0, 500);
     if (!text) return;
     const { npc } = state.social;
+    // The wheel only picks an emotion; the NPC wears it when the line goes out (Mike, Nov 21).
+    if (EMOTIONS.includes(emotion)) {
+      npc.emotion = emotion;
+      if (npc.sprite) npc.sprite = { ...npc.sprite, state: emotion };
+      cast.mirror(state.social);
+    }
     const tongue = str(lang, 30);
     const line = { n: nextId(), speaker: npc.name, text, emotion: npc.emotion, style: npc.style || null }; // n: phones notify once per line
     if (tongue) Object.assign(line, { lang: tongue, gloss: [] }); // in a tongue: scrambled until glossed
@@ -542,6 +569,11 @@ module.exports = function dmSockets(socket) {
       c = newCharacter(f, state.system);
     }
     applyEdits(c, f, true);
+  });
+  // Hit dice (Nov 21): the DM offers a character a hit dice pop-up on their phone (any time dice are spent).
+  dm('dm:hitdice:offer', ({ id }) => {
+    const p = state.players[id];
+    if (p && require('../rests').offerHitDice(p, 'Your DM offers hit dice')) log('system', `${p.name} may spend hit dice.`, { vis: 'dm' });
   });
   // Sheet edits from the DM (HP, slots, inventory, abilities, languages...). Same patch shape as the phone.
   dm('dm:sheet', ({ id, ...patch }) => { const c = roster[id]; if (c) { const prev = gifts.before(c); applySheet(c, patch, true); gifts.tell(c, prev); saveRoster(); } });

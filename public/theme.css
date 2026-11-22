@@ -558,6 +558,39 @@ body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / 
 /* Rows, not columns (Mike, Nov 17): Emotions, Dialogue, NPC, Live voice stacked top to bottom. */
 .social-grid.social-rows { grid-template-columns: 1fr; }
 .social-rows .social-emo .emotions { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); }
+/* Nov 21: Emotions and Dialogue share the first row when there is room; the rest span both columns. */
+.social-win { container-type: inline-size; }
+@container (min-width: 520px) {
+  .social-grid.social-rows { grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); }
+  .social-rows > .card:not(.social-emo):not(.social-dlg) { grid-column: 1 / -1; }
+  .social-rows .social-dlg { align-self: stretch; display: flex; flex-direction: column; }
+  .social-rows .social-dlg textarea { flex: 1 1 auto; min-height: 70px; }
+}
+/* The wheel's segments lift outwards when picked: room around it so nothing is clipped (Nov 21). */
+.social-emo { overflow: visible; min-width: 0; }
+.emotions.dm-wheel { padding: 10px; }
+.emotions.dm-wheel .convo-wheel { width: min(240px, calc(100cqw - 40px), 100%); }
+/* Press, hold and drag NPCs and players into the conversation (Nov 21, public/js/dm/holddrag.js). */
+.convo-tray { display: grid; gap: 6px; }
+.convo-tray-row { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 8px; }
+.convo-tray-row .convo-pool { margin: 0; }
+.convo-chip-wrap { position: relative; display: block; min-width: 0; }
+.convo-chip-wrap .convo-npc { width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; }
+.convo-npc.pc .convo-face { display: grid; place-items: center; font-weight: 700; color: #f3e6c8; background: hsl(var(--hue) 35% 28%); }
+.convo-npc .convo-face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.convo-pool .convo-npc.on { opacity: .45; }
+.convo-x { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; padding: 0; border-radius: 50%; line-height: 1; z-index: 1; }
+.convo-zone { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; align-content: start; min-height: 74px; margin: 10px 0; padding: 12px; border: 2px dashed rgb(240 190 90 / .45); border-radius: 18px; background: radial-gradient(ellipse at center, rgb(240 190 90 / .08), transparent 70%); transition: border-color .2s, background .2s, box-shadow .2s; }
+.convo-zone-hint { grid-column: 1 / -1; align-self: center; text-align: center; }
+.convo-zone.drop-over, .convo-pool.drop-over { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset, 0 0 16px rgb(240 190 90 / .35); background: rgb(240 190 90 / .12); }
+.convo-pool.drop-over { border-radius: 12px; }
+.convo-scene .convo-zone { margin-top: 0; }
+.convo-npc.lifting { transform: scale(.97); }
+.convo-npc.lifted { opacity: .35; }
+.drag-ghost { position: fixed; z-index: 3000; margin: 0; pointer-events: none; transform: scale(1.06) rotate(-2deg); box-shadow: 0 10px 24px rgb(0 0 0 / .55); animation: ghostlift .16s ease-out; }
+@keyframes ghostlift { from { transform: scale(.95); } }
+body.dragging-chip { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+html[data-motion="reduce"] .drag-ghost, html[data-motion="reduce"] .convo-zone { animation: none; transition: none; }
 
 /* TV: waiting for the DM to start, the social narration box, emotion badges and the end card. */
 .convo-wait { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1cqw; text-align: center; }
@@ -576,7 +609,17 @@ body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / 
 .social-watch { text-align: center; display: grid; gap: 10px; justify-items: center; }
 .social-watch p { margin: 0; }
 .social-watch-eye { font-size: calc(34px * var(--ts)); animation: pulse 2.4s ease-in-out infinite; }
-.convo-pop { animation: fadein .2s ease-out; }
+/* Nov 21: "Join the Conversation?" sits in the middle of the phone; the speech box comes down from the top. */
+.convo-pop { animation: fadein .2s ease-out; align-items: center; padding: 16px; }
+.convo-pop .pop-sheet { border-radius: 16px; border-image-width: 22px; max-height: calc(100dvh - 32px); overflow-y: auto; }
+.convo-pop:not(.speaking) .pop-sheet { animation: convopopin .3s cubic-bezier(.2, 1.3, .4, 1) !important; }
+.convo-pop.speaking { align-items: flex-start; padding: 0 0 16px; }
+.convo-pop.speaking .pop-sheet { border-radius: 0 0 16px 16px; border-image-width: 0 22px 22px 22px; padding-top: max(16px, env(safe-area-inset-top)); animation: sheetfromtop .32s cubic-bezier(.2, .8, .2, 1) !important; }
+.convo-pop.closing .pop-sheet { animation: fadeout .2s ease-in forwards !important; }
+@keyframes convopopin { from { transform: scale(.85); opacity: 0; } }
+@keyframes sheetfromtop { from { transform: translateY(-100%); } }
+.convo-lang { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; }
+.convo-lang select { flex: 1; min-width: 0; }
 .convo-pop .pop-sheet { animation: sheetup .32s cubic-bezier(.2, .8, .2, 1); }
 .convo-pop.closing { animation: fadeout .2s ease-in forwards; }
 .convo-pop.closing .pop-sheet { animation: sheetdown .2s ease-in forwards; }
@@ -603,7 +646,8 @@ body.planning .tab-card { box-shadow: 0 0 0 2px #7a4610, 0 8px 22px rgb(0 0 0 / 
 .gem.used { background: #0b0b0b; border-color: #333; box-shadow: none; transform: rotate(45deg) scale(.85); }
 .me-foot { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 24px 0 calc(76px + env(safe-area-inset-bottom)); padding-top: 14px; border-top: 1px solid var(--line); }
 .me-foot .btn { flex: 1 1 0; min-width: 0; white-space: nowrap; }
-@media (prefers-reduced-motion: reduce) { .convo-pop, .convo-pop .pop-sheet, .vn-pc-emo, .convo-end b { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .convo-pop, .convo-pop .pop-sheet, .vn-pc-emo, .convo-end b { animation: none !important; } }
+html[data-motion="reduce"] .convo-pop, html[data-motion="reduce"] .convo-pop .pop-sheet { animation: none !important; }
 
 /* PR G (Nov 16): DM combat controls. */
 /* Movement past a creature's speed shows red, on the creature card, in the hero column and in the right-click menu. */
@@ -683,7 +727,7 @@ html[data-motion="reduce"] .undo-note { transition: none; }
 .tab-list { display: flex; flex-direction: column; }
 /* DM NPC emotion wheel (public/js/dm/social.js, Nov 18): the players' wheel, sized for the Emotions card. */
 .emotions.dm-wheel { display: block; }
-.emotions.dm-wheel .convo-wheel { width: min(260px, 100%); margin: 4px auto; }
+.emotions.dm-wheel .convo-wheel { margin: 4px auto; }
 /* Cascade (Nov 18): the tools column fits the screen, so the mode buttons sit in one row and the tabs in two
    columns, each a little tighter. */
 body.dm.cascade #toolsCol .modes-card .modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
@@ -699,6 +743,34 @@ body.dm.cascade #toolsCol #sideTitle { display: none; }
 /* Keep star and Storybook link (public/js/dm/keep.js): stays in the minimized bar like Undo */
 .dm-bar .keep-bar { order: 0; display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
 .dm-bar .keep-bar[hidden] { display: none; }
+
+/* ================= Player phone batch (Mike, Nov 21) ================= */
+/* Skills are tiles as large as the abilities, press and hold to roll. */
+.ab-grid.sk-big .sk-tile { grid-template-columns: 1fr auto; align-items: center; min-height: 54px; cursor: pointer; }
+.ab-grid.sk-big .sk-tile small { font-size: calc(13px * var(--ts)); color: var(--ink, inherit); opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ab-grid.sk-big .sk-tile b { color: var(--gold); }
+@media (max-width: 360px) { .ab-grid.sk-big { grid-template-columns: repeat(2, 1fr); } }
+.hp-read { justify-content: center; gap: 12px; }
+.pips .pip { display: inline-block; cursor: default; }
+.move-row { flex-wrap: wrap; }
+.move-row .move-name { min-width: 120px; font-weight: 600; }
+.move-row .move-steps { flex: 1 1 100%; font-size: calc(12px * var(--ts)); order: 3; }
+.chip.lang-chip { display: inline-flex; flex-direction: row; align-items: center; gap: 6px; }
+.lang-x { border: 0; background: none; color: inherit; opacity: .6; font-size: 16px; line-height: 1; padding: 0 2px; cursor: pointer; }
+/* Hit dice pop-up: in the middle of the screen. */
+.hd-pop { align-items: center; padding: 16px; animation: fadein .2s ease-out; }
+.hd-pop .pop-sheet { border-radius: 16px; border-image-width: 22px; text-align: center; animation: convopopin .3s cubic-bezier(.2, 1.3, .4, 1); }
+.hd-pop.closing { animation: fadeout .2s ease-in forwards; }
+.hd-hurt { font-size: calc(18px * var(--ts)); font-weight: 600; margin: 0 0 4px; }
+.hd-count { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 12px 0; }
+.hd-count b { font-size: calc(34px * var(--ts)); min-width: 48px; }
+.hd-count .btn { width: 52px; height: 52px; font-size: 24px; text-align: center !important; padding: 0 !important; }
+.hd-acts { display: grid; gap: 8px; }
+.hd-acts .btn { text-align: center !important; padding: 14px !important; }
+/* Combat: named special moves on your turn. */
+.move-picks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.move-picks .btn.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+html[data-motion="reduce"] .hd-pop, html[data-motion="reduce"] .hd-pop .pop-sheet { animation: none; }
 
 /* Nov 21: Planning is a full-width row under Explore, Combat and Social; tabs with nothing in this mode stay in
    place, greyed out, so no tab moves when the mode changes. */

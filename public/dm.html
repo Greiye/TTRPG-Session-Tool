@@ -37,21 +37,31 @@
            1 s hold to start; once the conversation is live, End conversation and every social control. -->
       <section id="socialWin" class="social-win" hidden aria-label="Social window">
         <div id="convoPick" class="card convo-pick">
-          <h3>Who joins the conversation? <span class="note">pick NPCs, then hold Start for 1 second</span></h3>
-          <div id="convoPool" class="convo-pool" role="group" aria-label="NPCs"></div>
+          <h3>Who joins the conversation? <span class="note">press, hold and drag NPCs and players into the circle, then hold Start for 1 second</span></h3>
+          <div class="convo-tray">
+            <div class="convo-tray-row"><span class="note tight">NPCs</span><div id="convoPool" class="convo-pool" role="group" aria-label="NPCs" data-drop="out"></div></div>
+            <div class="convo-tray-row"><span class="note tight">Players</span><div id="convoPlayers" class="convo-pool" role="group" aria-label="Players" data-drop="out"></div></div>
+          </div>
+          <div id="convoZone" class="convo-zone" data-drop="in" aria-label="In the conversation"></div>
           <button class="btn go hold-btn" id="convoStart" disabled><i class="hold-fill"></i><span>💬 Hold to start conversation</span></button>
           <div id="convoErr" class="note" role="alert"></div>
         </div>
         <div id="convoLive" class="convo-live" hidden>
           <div class="convo-bar"><button class="btn danger" id="convoEnd" title="The TV shows that the conversation has concluded, then everyone goes back to exploration">🚪 End conversation</button><span class="note" id="convoWho"></span></div>
-          <!-- Rows, top to bottom (Mike, Nov 17): Emotions, Dialogue, NPC, Live voice. -->
+          <!-- Nov 21: who is in the conversation; press, hold and drag more NPCs or players in, or out again. -->
+          <div class="card convo-scene">
+            <div id="convoIn" class="convo-zone" data-drop="in" aria-label="In the conversation"></div>
+            <div id="convoOut" class="convo-pool" role="group" aria-label="Not in the conversation" data-drop="out"></div>
+            <div id="convoLiveErr" class="note" role="alert"></div>
+          </div>
+          <!-- Rows (Mike, Nov 17; Nov 21): Emotions and Dialogue side by side, then NPC, then Live voice. -->
           <div class="social-grid social-rows">
         <div class="card social-emo">
           <h3>Emotions <span class="note">keys 1–8</span></h3>
           <div id="emotions" class="emotions"></div>
         </div>
-        <div class="card">
-          <h3>Dialogue</h3>
+        <div class="card social-dlg">
+          <h3>Dialogue <span class="note">the emotion shows when you speak</span></h3>
           <div class="row"><label class="note tight">Language <select id="lineLang" style="width:200px" aria-label="Language of this line"><option value="">Common</option></select></label></div>
           <textarea id="line" rows="2" placeholder="Type the NPC's line. Enter to speak, Shift+Enter for newline."></textarea>
           <button class="btn primary" data-act="say">Speak as NPC</button>
