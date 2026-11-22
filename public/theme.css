@@ -25,10 +25,20 @@ body.dm, body.codm { background: radial-gradient(ellipse at 50% -10%, rgb(120 80
 /* Parchment ink: everything sitting on parchment re-reads the palette from here */
 .card, body.phone, .char-dlg, .settings-dlg, .pop-sheet, .missed-box, .nudge-card, .camp-sheet .camp-box,
 .vn-box, .join, .pc, .log li, .check-banner, .tv-stats .box {
-  --ink: #2b1c0e; --muted: #6c5432; --gold: #7a4610; --line: #a3865a;
+  --ink: #2b1c0e; --muted: #634c2c; /* muted reads at 4.5:1 or better on every parchment shade */ --gold: #7a4610; --line: #a3865a;
   --panel: #e4d0a3; --panel2: #dcc493; --bg: #e2cc9c;
   --good: #2b7a3a; --bad: #a3271b; --call: #1d5b99;
   --pass-bg: rgb(60 140 70 / .3); --fail-bg: rgb(170 40 30 / .28);
+  color: var(--ink);
+}
+/* Dark surfaces that sit on parchment (a dark map pop-up, a picture strip, a dungeon editor): they take the
+   dark palette back, so var(--ink) and var(--muted) stay light on them. Add any new dark panel here instead of
+   colouring its text one by one (Mike, Nov 22: Road cards were dark ink on a near-black card).
+   test/contrast-ui.js checks every page for text too close to its background. */
+.wm-card-tv, .wm-node .wm-has, .dgw, .dgw-menu, .bd-item, .dg-gate-card, .cd-art, .hand {
+  --ink: #f4ead5; --muted: #b9a988; --gold: #e3b45a; --line: #4a3a4e;
+  --panel: #1f1722; --panel2: #2a2030; --bg: #120d14;
+  --good: #7fd18b; --bad: #ff7a6b; --call: #8fc6ff;
   color: var(--ink);
 }
 html[data-palette="cb"] :is(.card, body.phone, .char-dlg, .settings-dlg, .pop-sheet, .vn-box, .pc, .log li, .check-banner) {
@@ -154,7 +164,7 @@ input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; a
   background-color: rgb(255 246 222 / .42); background-image: none; color: var(--ink);
   border-radius: 2px; box-shadow: inset 0 -1px 0 rgb(122 70 16 / .35);
 }
-.chip { background: rgb(255 246 222 / .5); border-color: var(--line); border-radius: 3px; }
+.chip { background: color-mix(in srgb, var(--panel) 55%, transparent); /* follows the surface: cream on parchment, dark in dark dialogs */ border-color: var(--line); border-radius: 3px; }
 .list .item {
   padding-left: 22px;
   background-image: radial-gradient(circle at 10px 50%, rgb(255 255 255 / .8) 0 1.2px, var(--gem) 1.6px 4px, #1a1612 4.5px 5.5px, transparent 6px);
@@ -168,7 +178,7 @@ input[type=range], input[type=checkbox], input[type=radio] { box-shadow: none; a
 .list .item.turn { outline: 2px solid #b8862f; }
 .phone .cls { border: 1px solid var(--line); }
 .phone .cls.sel { background-color: rgb(236 190 100 / .45); border-color: #8a4f12; box-shadow: 0 0 0 2px #b8862f; }
-.voice-box { background: rgb(110 70 25 / .1); border-color: var(--line); color: var(--ink); }
+.voice-box { background: rgb(110 70 25 / .06); border-color: var(--line); color: var(--ink); }
 .char-row { border-left: 4px solid hsl(var(--hue) 55% 38%); }
 .rcard { border: 2px solid hsl(var(--hue) 45% 35%); }
 .missed-box, .nudge-card { color: var(--ink); }
@@ -412,7 +422,7 @@ body.planning .side-title::after { content: ' · planning'; color: #f2c96e; }
 .wm-page .wm-page-card { max-width: 1100px; width: 100%; margin: 0 auto; }
 .wm-page #wmBoard { width: 100%; max-width: min(100%, calc(62vh * 16 / 10)); margin: 0 auto; }
 .wm-page #wmBoard .wm-node span { font-size: 13px; color: #3b2a18; }
-.wm-page #wmBoard .wm-node small { color: #7a5a3a; }
+.wm-page #wmBoard .wm-node small:not(.wm-has *) { color: #7a5a3a; }
 
 /* Combat screen feedback (Nov 16) ---------------------------------------------------------------- */
 /* 7. Modes, tabs and section parts are one column. */

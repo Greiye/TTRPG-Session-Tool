@@ -4,6 +4,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Fixed
+- **Readable text everywhere** (Mike, Nov 22). Text that was hard to read on its background. Road cards on the world map were dark ink on a near-black card; the map's town list, the dungeon editor, the backdrop picker, Creature Designer tabs and "Nobody yet" notes had the same kind of problem. Dark panels on parchment now take the light palette from one theme rule, parchment muted text is a shade darker (4.5:1), and a new browser test (`test/contrast-ui.js`) checks every DM, TV, phone and co-DM page for faint text.
+
 ### Added
 - **Battle map compass** (Mike, Nov 22). A small compass rose in the corner of the 3D battle map on the DM page, the TV and phones turns with the view, so north is always marked. Tap it on a phone to turn the map a quarter turn.
 - **Battle map follows the time of day** (Mike, Nov 22). Light, sky colour and shadows on the 3D map follow the story clock (dawn, day, dusk, night); at night and in the dark the party carries torches that glow on the ground. The DM overrides it with **☀ Light** on the battle map bar or Light in the Battle map card (Auto, Dawn, Day, Dusk, Night, Dark); Auto goes back to the clock. Respects the Motion setting (no easing or flicker on Reduce).
