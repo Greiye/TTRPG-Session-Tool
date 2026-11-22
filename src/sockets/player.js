@@ -218,7 +218,7 @@ module.exports = function playerSockets(socket) {
     const c = roster[p.id];
     if (c?.sprite) { c.sprite = { ...c.sprite, state: emotion }; p.sprite = c.sprite; }
     state.social.line = { speaker: p.name, text, emotion, player: true, pid: p.id };
-    log('say', cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, text), { pid: p.id, emotion });
+    log('say', cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, text), { pid: p.id, emotion, said: text });
     broadcast();
   });
 
