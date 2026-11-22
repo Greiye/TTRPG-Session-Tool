@@ -63,6 +63,9 @@ async function aUntil(fn, ms = 3000) { const end = Date.now() + ms; for (;;) { l
 
   // The export.
   dm.emit('dm:mode', { mode: 'exploration' });
+  // The mode change is journalled when it is broadcast (setImmediate), so wait for it before the next line;
+  // sent back to back, the narration could land in the journal first (red CI on PR #155).
+  await until(() => dm.last.mode === 'exploration');
   dm.emit('dm:narrate', { text: 'They leave in the rain.' });
   await aUntil(async () => (await read(sid)).items.some((x) => x.text === 'They leave in the rain.'));
   const res = await fetch(`${h.URL}/api/story/sessions/${sid}/renpy.zip`);
