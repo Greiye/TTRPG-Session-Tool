@@ -175,6 +175,7 @@ Effort: S is about a day, M a few days, L a week or more, for one PR each.
 | 6 | World map with the party trail (PNG) | Artists, comic makers | S | none |
 | 7 | TV moment clips (WebM, MP4 where available) | Animators | L | 1, 4 |
 | 8 | Dice and combat highlights (beat list JSON, highlight cards) | Animators, comic makers | S | 1 |
+| 9 | Ren'Py project (`script.rpy`, `characters.rpy`, images; built Nov 21, `src/renpy.js`) | Visual novel makers | M | 1 |
 
 ### Notes on effort
 

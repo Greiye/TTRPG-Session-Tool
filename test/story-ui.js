@@ -63,6 +63,9 @@ const shot = async (p, name) => { if (SHOTS) await p.screenshot({ path: path.joi
     await sb.click('.sb-row:has-text("They came up out of the water") span');
     await sb.waitForFunction(() => document.querySelector('#sbText').textContent.includes('They came up'));
     ok(/fearful/.test(await sb.textContent('#sbWho')) && /Social/.test(await sb.textContent('#sbMode')), 'the stage shows speaker, emotion and mode at that moment');
+    // Social replays show the NPC (and the party, when heroes are at the table) on the stage, the speaker in front.
+    await sb.waitForSelector('#sbVn:not([hidden]) .sb-npc.speaking .portrait');
+    ok(await sb.isVisible('.sb-npc.speaking'), 'a social line shows the NPC who said it');
     await shot(sb, 'storybook.png');
 
     // Keep it from the stage star (K); it becomes a second tick.
@@ -80,6 +83,32 @@ const shot = async (p, name) => { if (SHOTS) await p.screenshot({ path: path.joi
     await sb.keyboard.press('ArrowRight');
     await sb.waitForFunction(() => document.querySelector('#sbAt').textContent.includes('2 of'));
     ok(true, 'the scrubber and arrow keys move through the session');
+
+    // Playback buttons fill one row, at desktop width and on a phone.
+    const oneRow = () => sb.$$eval('.sb-controls > *', (els) => { const tops = els.map((e) => Math.round(e.getBoundingClientRect().top)); const w = els.reduce((a, e) => a + e.getBoundingClientRect().width, 0);
+      return new Set(tops).size === 1 && w > document.querySelector('.sb-controls').clientWidth * 0.85; });
+    ok(await oneRow(), 'the playback buttons fill one row');
+    await sb.setViewportSize({ width: 360, height: 760 });
+    await sb.waitForFunction(() => getComputedStyle(document.querySelector('.sb-controls .lbl')).display === 'none');
+    ok(await oneRow() && await sb.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'on a phone they stay in one row (icons only), no sideways scroll');
+    await sb.setViewportSize({ width: 1400, height: 900 });
+
+    // The log can be hidden; the choice survives a reload.
+    ok(await sb.isVisible('#sbRight'), 'the log shows by default');
+    await sb.click('#sbLogBtn');
+    await sb.waitForSelector('#sbRight', { state: 'hidden' });
+    const wide = await sb.$eval('#sbStage', (e) => e.getBoundingClientRect().width);
+    ok(wide > 900, 'hiding the log gives the stage the width');
+    await sb.reload();
+    await sb.waitForSelector('#sbMain:not([hidden])');
+    ok(!(await sb.isVisible('#sbRight')) && (await sb.getAttribute('#sbLogBtn', 'aria-pressed')) === 'false', 'the log stays hidden after a reload');
+    await sb.keyboard.press('l');
+    await sb.waitForSelector('#sbRight', { state: 'visible' });
+    ok(true, 'L shows the log again');
+
+    // Ren'Py button downloads a zip.
+    const rp = await fetch(B + await sb.getAttribute('#sbRenpy', 'href'));
+    ok(rp.status === 200 && (rp.headers.get('content-type') || '').includes('zip'), 'the Ren\'Py button downloads a zip');
 
     // Story pack link downloads a zip.
     const href = await sb.getAttribute('#sbPack', 'href');

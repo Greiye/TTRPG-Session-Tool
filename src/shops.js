@@ -152,4 +152,13 @@ function outfitters(id) {
   return shop;
 }
 
-module.exports = { greer, outfitters, money, clampGold, parseList, create, buy, sell, offers, unitCp, MAX_SHOPS, SELL_SHARE };
+// A trade at the open shop pop-up (Mike, Nov 21): the TV merchant says a new line and a coin sound plays.
+// Only the count and buy or sell go out (who bought what stays private, see player.js).
+function traded(state, shop, kind, io) {
+  const pop = state.shopPop;
+  if (!pop || pop.shopId !== shop.id) return;
+  pop.trade = { n: (pop.trade?.n || 0) + 1, kind: kind === 'sell' ? 'sell' : 'buy' };
+  io?.emit('sfx', { builtin: 'coin' });
+}
+
+module.exports = { greer, outfitters, money, clampGold, parseList, create, buy, sell, offers, unitCp, MAX_SHOPS, SELL_SHARE, traded };

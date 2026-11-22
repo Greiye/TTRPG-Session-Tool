@@ -99,6 +99,7 @@ module.exports = function playerSockets(socket) {
     const r = shops.buy(shop, p, itemId, qty, living.priceMult(state, shop));
     if (r.error) return ack?.(r);
     log('shop', `${p.name} buys ${r.qty}× ${r.item.name} from ${shop.name} for ${r.cost.toFixed(2)} gp.`, { who: p.name, vis: { to: [p.id], screen: false } });
+    shops.traded(state, shop, 'buy', io);
     broadcast();
     ack?.({ ok: true, gold: p.gold });
   });
@@ -113,6 +114,7 @@ module.exports = function playerSockets(socket) {
     const r = shops.sell(shop, p, invId, qty, living.priceMult(state, shop));
     if (r.error) return ack?.(r);
     log('shop', `${p.name} sells ${r.qty}× ${r.item.name} to ${shop.name} for ${r.gain.toFixed(2)} gp.`, { who: p.name, vis: { to: [p.id], screen: false } });
+    shops.traded(state, shop, 'sell', io);
     broadcast();
     ack?.({ ok: true, gold: p.gold });
   });
@@ -238,10 +240,10 @@ module.exports = function playerSockets(socket) {
     const known = tongue && tongue.toLowerCase() !== 'common' && (p.languages || []).includes(tongue);
     state.social.line = { n: nextId(), speaker: p.name, text, emotion, player: true, pid: p.id, ...(known ? { lang: tongue, gloss: [] } : {}) };
     const said = cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, text);
-    if (!known) log('say', said, { pid: p.id, emotion });
+    if (!known) log('say', said, { pid: p.id, emotion, said: text });
     else {
-      log('say', cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, require('../speech').scramble(text)), { pid: p.id, emotion });
-      log('say', `(${tongue}) ${said}`, { pid: p.id, emotion, vis: 'dm' });
+      log('say', cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, require('../speech').scramble(text)), { pid: p.id, emotion, said: require('../speech').scramble(text) });
+      log('say', `(${tongue}) ${said}`, { pid: p.id, emotion, said: text, vis: 'dm' });
     }
     broadcast();
   });

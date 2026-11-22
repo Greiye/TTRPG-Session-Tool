@@ -81,7 +81,7 @@ function boot(env = ENV) {
   const gen = require('../tools/make-placeholders');
   {
     const files = fs.readdirSync(gen.OUT).filter((f) => f.endsWith('.svg'));
-    ok(files.length === gen.PORTRAITS.length + gen.TOKENS.length + Object.keys(gen.BACKDROPS).length, 'every placeholder is on disk');
+    ok(files.length === gen.PORTRAITS.length + gen.TOKENS.length + Object.keys(gen.BACKDROPS).length + Object.keys(gen.SPRITES).length, 'every placeholder is on disk');
     ok(files.every((f) => f.startsWith('placeholder-')), 'placeholder file names start with placeholder-');
     ok(files.every((f) => fs.readFileSync(path.join(gen.OUT, f), 'utf8').includes('PLACEHOLDER')), 'every placeholder image says PLACEHOLDER');
     ok(files.every((f) => !/#[0-9a-f]{3,8}\b/i.test(fs.readFileSync(path.join(gen.OUT, f), 'utf8'))), 'placeholders use named hsl colours, no hex codes');

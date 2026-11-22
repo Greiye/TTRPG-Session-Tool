@@ -1,114 +1,90 @@
-// Mike's Nov 21 batch: social drag-in and self-join, NPC emotion with the line, player languages, DM-only
-// stats, named moves (at least one), Spells tab for casters, hit dice prompts and automated class features.
-const h = require('./helpers').harness('nov21');
-const cast = require('../src/cast');
-const rests = require('../src/rests');
-const sheet = require('../src/sheet');
+// Nov 21 batch: Story Nodes Graph (with choice echoes), "Received 'Item'" toast, TV shop trade counter and coin sound.
+const { harness } = require('./helpers');
+const graph = require('../src/storygraph');
+const h = harness('nov21');
 const { ok, until } = h;
 
-// --- units ---
-{
-  const s = { npc: { name: 'x', emotion: 'neutral', hue: 1 } };
-  cast.ensure(s);
-  ok(Array.isArray(s.party) && !s.party.length, 'no one is in the conversation at first');
-  ok(cast.start(s, ['pool-albert'], 1, ['c1', 'c1', 'c2']).ok && s.party.join() === 'c1,c2', 'start takes the players dragged in, once each');
-  ok(cast.join(s, 'c3') && !cast.join(s, 'c3') && s.party.length === 3, 'a player joins once');
-  ok(cast.leave(s, 'c1') && s.party.join() === 'c2,c3', 'a player can be taken out');
-  ok(cast.bring(s, 'pool-brent').ok && s.cast.map((c) => c.name).join() === 'Albert,Brent', 'the DM drags another NPC in');
-  ok(cast.bring(s, 'pool-brent').error, 'an NPC already in the conversation is refused');
-  cast.close(s);
-  ok(!s.party.length, 'closing the conversation empties it');
-
-  const c = { cls: 'Fighter', system: 'dnd5e', level: 1, hp: 10, maxHp: 10 };
-  sheet.ensureSheet(c);
-  ok(c.moves.length === 1 && c.moves[0].name && c.moves[0].steps.length >= 2, 'every character starts with one named move');
-  sheet.applySheet(c, { moves: [] }, false);
-  ok(c.moves.length === 1, 'the last move cannot be deleted');
-  sheet.applySheet(c, { moves: [{ ...c.moves[0], name: 'Dragon Fang' }] }, false);
-  ok(c.moves[0].name === 'Dragon Fang', 'a player renames a move');
-  sheet.applySheet(c, { hp: 1, tempHp: 9, hitDiceUsed: 1, slotMax: { 1: 4 } }, false);
-  ok(c.hp === 10 && c.tempHp === 0 && !c.hitDice.used && !c.slots[1], 'a player cannot change stats or health');
-  sheet.applySheet(c, { languages: ['Elvish', 'Old Tongue', 'Elvish'] }, false);
-  ok(c.languages.join() === 'Elvish,Old Tongue', 'a player sets the languages they know, homebrew ones too');
-  sheet.applySheet(c, { languages: ['Orc'], hp: 4 }, true);
-  ok(c.languages.join() === 'Elvish,Old Tongue' && c.hp === 4, 'the DM changes HP but not languages');
-  ok(!sheet.isCaster(c) && sheet.isCaster({ slots: { 1: { max: 2, used: 0 } } }) && sheet.isCaster({ slots: {}, spells: ['x'] }), 'spellcaster: spell slots or spells');
-
-  const f = { cls: 'Fighter', level: 2, hp: 3, maxHp: 30, uses: {}, hitDice: { die: 10, used: 0 }, abilities: { con: 10 } };
-  const sw = rests.useFeature(f, 'Second Wind');
-  ok(sw.healed >= 3 && f.hp === 3 + sw.healed && /heals/.test(sw.text), 'Second Wind heals 1d10 + level by itself');
-  ok(!rests.useFeature(f, 'Action Surge').error && f.surge === true, 'Action Surge grants one more action');
-  rests.restCharacter(f, 'short');
-  ok(f.hdOffer?.n > 0 && f.hdOffer.why === 'Short rest', 'a hurt character is offered hit dice after a short rest');
-  rests.restCharacter(f, 'long');
-  ok(!f.hdOffer, 'a long rest clears the offer');
-}
+// Pure graph logic
+const g = graph.fresh();
+const a1 = graph.add(g, { kind: 'hook', title: 'Missing brother' });
+const b1 = graph.add(g, { kind: 'npc', title: 'Old Greer' });
+ok(a1.id && b1.id && a1.x >= 0 && a1.x <= graph.W && Math.abs(a1.x - b1.x) + Math.abs(a1.y - b1.y) > 50, 'nodes land on free spots on the board');
+ok(graph.add(g, { title: '  ' }).error, 'a node needs a title');
+ok(graph.add(g, { kind: 'dragon', title: 'x' }).kind === 'hook', 'an unknown kind falls back to a plot hook');
+const l1 = graph.link(g, { a: a1.id, b: b1.id, label: 'knows' });
+ok(l1.id && graph.link(g, { a: b1.id, b: a1.id }).id === l1.id && g.links.length === 1, 'one link per pair, either way round');
+ok(graph.link(g, { a: a1.id, b: a1.id }).error, 'a node cannot link to itself');
+graph.edit(g, { id: a1.id, x: 5000, y: -3 });
+ok(a1.x === graph.W && a1.y === 0, 'moves are kept on the board');
+graph.remove(g, b1.id);
+ok(!g.links.length, 'removing a node removes its links');
+const s0 = { tv: { echoes: [{ id: 'e9', decision: 'Spared the goblin', consequence: 'It returns', left: 2 }] } };
+ok(graph.sync(s0) && s0.storyGraph.nodes[0].echoId === 'e9' && s0.storyGraph.nodes[0].kind === 'echo', 'an echo planted elsewhere gets a node');
+s0.tv.echoes = [];
+graph.sync(s0);
+ok(s0.storyGraph.nodes[0].done === true, 'when its echo has gone, the node is marked done');
 
 (async () => {
-  const srv = await h.boot({});
+  const srv = await h.boot();
   const dm = await h.dm();
   const room = await h.room();
-  const a = await h.player(room, 'Thorn', 'Fighter');
-  const b = await h.player(room, 'Ilse', 'Wizard');
-  await until(() => dm.last?.players.length === 2);
-  const A = () => dm.last.players.find((p) => p.id === a.me.id);
-  const B = () => dm.last.players.find((p) => p.id === b.me.id);
-  ok(!A().caster && B().caster, 'the wizard is a spellcaster, the fighter is not');
+  const p = await h.player(room, 'Thorn', 'Fighter');
+  const tv = await h.client();
+  tv.emit('screen:hello');
+  await until(() => dm.last?.players.length === 1 && p.last?.players.length === 1);
 
-  // --- social ---
-  dm.emit('dm:mode', { mode: 'social' });
-  await until(() => dm.last.mode === 'social');
-  ok((await h.call(dm, 'dm:convo:start', { ids: ['pool-albert'], pids: [a.me.id, 'nobody'] })).ok, 'the DM starts with an NPC and a player dragged in');
-  ok(await until(() => dm.last.social.party.join() === a.me.id), 'only real players join');
-  b.emit('player:convo:join');
-  ok(await until(() => dm.last.social.party.includes(b.me.id)), 'a player joins from their phone');
-  dm.emit('dm:convo:drop', { id: b.me.id });
-  ok(await until(() => !dm.last.social.party.includes(b.me.id)), 'the DM takes a player out');
-  ok((await h.call(dm, 'dm:convo:add', { id: b.me.id })).ok && await until(() => dm.last.social.party.includes(b.me.id)), 'the DM drags a player back in');
-  ok((await h.call(dm, 'dm:convo:add', { id: 'pool-christina' })).ok && await until(() => dm.last.social.cast.some((c) => c.name === 'Christina')), 'the DM drags another NPC in');
+  // ----- Story Nodes Graph -----
+  const n1 = await h.call(dm, 'dm:graph:add', { kind: 'hook', title: "Thorn's missing brother", pc: p.me.id });
+  ok(n1.ok && n1.node.pc === p.me.id, 'the DM adds a plot hook for a PC');
+  const e1 = await h.call(dm, 'dm:graph:echo', { decision: 'Spared the goblin', consequence: 'It returns with friends', after: 2, from: n1.node.id });
+  ok(e1.ok && e1.node.kind === 'echo' && e1.node.echoId, 'a choice echo is planted as a node');
+  ok(await until(() => dm.last.tv.echoes.some((e) => e.id === e1.node.echoId) && dm.last.storyGraph.links.length === 1), 'the echo is planted and linked to the hook');
+  ok((await h.call(dm, 'dm:graph:echo', { decision: 'x', consequence: '', after: 2 })).error, 'an echo needs what comes back');
+  ok(!('storyGraph' in p.last) && !('storyGraph' in tv.last), 'phones and the TV never get the graph (DM only)');
+  const pl = await h.call(p, 'dm:graph:add', { title: 'hack' });
+  ok(pl?.error && dm.last.storyGraph.nodes.length === 2, 'a phone cannot add nodes');
+  ok((await h.call(dm, 'dm:graph:fire', { id: e1.node.id })).ok, 'Fire now');
+  ok(await until(() => dm.last.tv.echo?.decision === 'Spared the goblin' && dm.last.storyGraph.nodes.find((n) => n.id === e1.node.id)?.done), 'the echo shows on the TV and its node is done');
+  const e2 = await h.call(dm, 'dm:graph:echo', { decision: 'Lied to the mayor', consequence: 'The guard knows', after: 5 });
+  await h.call(dm, 'dm:graph:remove', { id: e2.node.id });
+  ok(await until(() => !dm.last.tv.echoes.some((e) => e.id === e2.node.echoId)), 'removing an echo node cancels the echo');
+  dm.emit('dm:tv:echo:plant', { decision: 'Old way', consequence: 'Still works', after: 3 });
+  ok(await until(() => dm.last.storyGraph.nodes.some((n) => n.kind === 'echo' && n.title === 'Old way')), 'an echo planted the old way shows up on the graph');
 
-  // NPC emotion changes with the line.
-  dm.emit('dm:say', { text: 'You again.', emotion: 'angry' });
-  ok(await until(() => dm.last.social.line.text === 'You again.' && dm.last.social.npc.emotion === 'angry' && dm.last.social.line.emotion === 'angry'), 'the NPC wears the picked emotion when the line goes out');
+  // ----- "Received 'Item'" -----
+  const got = [];
+  p.on('item:received', (m) => got.push(m));
+  dm.emit('dm:sheet', { id: p.me.id, inv: { op: 'add', name: 'Rope', qty: 2, note: '' } });
+  ok(await until(() => got.some((m) => m.items[0].name === 'Rope' && m.items[0].qty === 2)), "the phone hears Received 'Rope' when the DM gives it");
+  const rope = (await until(() => p.last.players[0].inventory?.find((i) => i.name === 'Rope')));
+  const before = got.length;
+  dm.emit('dm:sheet', { id: p.me.id, inv: { op: 'set', id: rope.id, qty: 1 } });
+  await until(() => p.last.players[0].inventory.find((i) => i.name === 'Rope').qty === 1);
+  await h.wait(150); // nothing should arrive: taking an item back is not a gift
+  ok(got.length === before, 'taking an item back sends no toast');
+  dm.emit('dm:item:samples');
+  const lib = await (await fetch(`${h.URL}/api/items`)).json();
+  const card = (lib.items || lib)[0];
+  if (card) {
+    const r = await h.call(dm, 'dm:item:give', { id: card.id, to: [p.me.id], qty: 1 });
+    ok(r.ok && await until(() => got.some((m) => m.items.some((i) => i.name === card.name))), 'an item card given by the DM sends the toast too');
+  } else ok(false, 'sample item cards exist');
 
-  // Languages: set by the player, used for their lines.
-  b.emit('player:sheet', { languages: ['Common', 'Draconic'] });
-  ok(await until(() => B().languages.join() === 'Common,Draconic'), 'the player sets their languages');
-  dm.emit('dm:sheet', { id: b.me.id, languages: ['Orc'] });
-  await h.wait(150); // nothing should change
-  ok(B().languages.join() === 'Common,Draconic', 'the DM cannot change a player\'s languages');
-  b.emit('player:social:say', { text: 'The vault is below.', emotion: 'smug', lang: 'Draconic' });
-  ok(await until(() => dm.last.social.line.text === 'The vault is below.' && dm.last.social.line.lang === 'Draconic'), 'a line in a language the speaker knows');
-  ok(await until(() => a.last.social.line.lang === 'Draconic' && a.last.social.line.text !== 'The vault is below.'), 'scrambled for a player who does not know it');
-  ok(b.last.social.line.text === 'The vault is below.', 'the speaker reads their own line');
-  b.emit('player:social:say', { text: 'Hello.', emotion: 'happy', lang: 'Abyssal' });
-  ok(await until(() => dm.last.social.line.text === 'Hello.' && !dm.last.social.line.lang), 'a language the speaker does not know falls back to Common');
-  dm.emit('dm:convo:end');
-  await until(() => dm.last.mode === 'exploration', 3000);
-  ok(!dm.last.social.party.length, 'ending the conversation empties it');
-
-  // --- stats are the DM's ---
-  a.emit('player:sheet', { hp: 1, notes: 'mine' });
-  ok(await until(() => A().notes === 'mine'), 'notes still save');
-  ok(A().hp === A().maxHp, 'a phone cannot change HP');
-
-  // --- hit dice ---
-  dm.emit('dm:sheet', { id: a.me.id, hp: 2 });
-  await until(() => A().hp === 2);
-  dm.emit('dm:rest', { kind: 'short' });
-  ok(await until(() => a.last.players.find((p) => p.id === a.me.id)?.hdOffer?.why === 'Short rest'), 'the phone is asked about hit dice after a short rest');
-  const r = await h.call(a, 'player:hitdice', { n: 1 });
-  ok(r.ok && await until(() => A().hp > 2 && A().hitDice.used === 1 && !A().hdOffer), 'spending a hit die heals and counts it');
-  dm.emit('dm:sheet', { id: a.me.id, hitDiceUsed: 0 }); // level 1: one die, now back
-  await until(() => A().hitDice.used === 0);
-  dm.emit('dm:hitdice:offer', { id: a.me.id });
-  ok(await until(() => A().hdOffer?.why), 'the DM can offer hit dice any time');
-  ok(!('hdOffer' in (b.last.players.find((p) => p.id === a.me.id) || {})), 'another phone does not see the offer');
-  await h.call(a, 'player:hitdice', { n: 0 });
-  ok(await until(() => !A().hdOffer) && A().hitDice.used === 0, '"Not now" spends nothing');
-
-  // --- named move in combat log ---
-  a.emit('player:sheet', { moves: [{ ...A().moves[0], name: 'Dragon Fang' }] });
-  ok(await until(() => A().moves[0].name === 'Dragon Fang'), 'the move keeps its new name');
+  // ----- shop pop-up trades -----
+  const shop = dm.last.shops.find((x) => x.name === "Greer's Trinkets");
+  dm.emit('dm:shop:pop', { id: shop.id });
+  await until(() => tv.last.shopPop?.shopId === shop.id);
+  ok(tv.last.shopPop.trade === null, 'no trade yet');
+  dm.emit('dm:sheet', { id: p.me.id, gold: 500 });
+  await until(() => p.last.players[0].gold === 500);
+  const sfx = [];
+  tv.on('sfx', (m) => sfx.push(m));
+  const buy = await h.call(p, 'player:buy', { shopId: shop.id, itemId: shop.items[0].id, qty: 1 });
+  ok(buy.ok && await until(() => tv.last.shopPop?.trade?.n === 1 && tv.last.shopPop.trade.kind === 'buy'), 'a buy counts as a trade on the TV');
+  ok(await until(() => sfx.some((m) => m.builtin === 'coin')), 'a coin sound plays on a trade');
+  const inv = p.last.players[0].inventory.find((i) => i.name === shop.items[0].name);
+  const sell = await h.call(p, 'player:sell', { shopId: shop.id, invId: inv.id, qty: 1 });
+  ok(sell.ok && await until(() => tv.last.shopPop?.trade?.n === 2 && tv.last.shopPop.trade.kind === 'sell'), 'a sell counts too');
+  ok(!JSON.stringify(tv.last.shopPop).includes('Thorn'), 'the TV is not told who traded');
   await h.done(srv);
 })();

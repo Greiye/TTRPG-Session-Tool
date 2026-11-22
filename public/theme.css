@@ -725,8 +725,6 @@ body.chron .convo-wheel .wheel-send, .convo-wheel .wheel-send { border: 0; borde
 html[data-motion="reduce"] .undo-note { transition: none; }
 /* The live pillar's window sits on top of the tab list (Mike, Nov 18): Scene in Explore, Battle Window in Combat. */
 .tab-list { display: flex; flex-direction: column; }
-.tab-list .tab-group.mode-top { order: -1; }
-.tab-list [data-stab].mode-top { order: -1; }
 /* DM NPC emotion wheel (public/js/dm/social.js, Nov 18): the players' wheel, sized for the Emotions card. */
 .emotions.dm-wheel { display: block; }
 .emotions.dm-wheel .convo-wheel { margin: 4px auto; }
@@ -735,9 +733,12 @@ html[data-motion="reduce"] .undo-note { transition: none; }
 body.dm.cascade #toolsCol .modes-card .modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
 body.dm.cascade #toolsCol .modes-card .modes .btn { padding: 6px 4px; font-size: calc(12px * var(--ts)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.dm.cascade #toolsCol .tab-list { margin-top: 0; }
-body.dm.cascade #toolsCol .tab-list .tab-group { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 6px; padding: 4px 0; }
-body.dm.cascade #toolsCol .tab-list button { padding: 3px 6px; gap: 6px; font-size: calc(12px * var(--ts)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.dm.cascade #toolsCol .tab-list .tab-group { grid-template-columns: 1fr; gap: 0; padding: 4px 0; } /* one column in every layout (Nov 21) */
+body.dm.cascade #toolsCol .tab-list button { padding: 1px 6px; line-height: 1.3; gap: 6px; font-size: calc(12px * var(--ts)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.dm.cascade #toolsCol > .card { margin-bottom: 0; }
+/* One column of tabs is taller (Nov 21): smaller icons, and the open tab's long title is left out (the tab is lit). */
+body.dm.cascade #toolsCol .tab-list button i { font-size: 13px; line-height: 1; }
+body.dm.cascade #toolsCol #sideTitle { display: none; }
 
 /* Keep star and Storybook link (public/js/dm/keep.js): stays in the minimized bar like Undo */
 .dm-bar .keep-bar { order: 0; display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
@@ -770,3 +771,12 @@ body.dm.cascade #toolsCol > .card { margin-bottom: 0; }
 .move-picks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .move-picks .btn.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
 html[data-motion="reduce"] .hd-pop, html[data-motion="reduce"] .hd-pop .pop-sheet { animation: none; }
+
+/* Nov 21: Planning is a full-width row under Explore, Combat and Social; tabs with nothing in this mode stay in
+   place, greyed out, so no tab moves when the mode changes. */
+.modes .plan-mode { grid-column: 1 / -1; margin-top: 6px; --gem: var(--gem-amber); }
+body.dm.cascade #toolsCol .modes .plan-mode { margin-top: 0; }
+body.dm .modes .plan-mode.on { background: linear-gradient(#f2c96e, #b8862f); color: #2a1606; box-shadow: 0 0 0 2px #7a4610 inset, 0 0 14px rgb(240 190 90 / .55); }
+.tab-list .tab-group { grid-template-columns: 1fr !important; }
+.tab-list button[disabled] { opacity: .38; cursor: default; filter: grayscale(.8); }
+.tab-list button[disabled]:hover { background: transparent; }

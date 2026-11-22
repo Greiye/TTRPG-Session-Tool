@@ -327,19 +327,106 @@
 
   // Shop pop-up on the TV: the shop, its wares, and how many are still shopping.
   const gp = (n) => Number(n || 0).toFixed(2).replace(/\.?0+$/, '');
-  // Greer's-style pop-up (Mike, Nov 15): the shop's title, the merchant banner under it (TV only, Nov 16), then up to 60 wares as buttons in
-  // 3 columns (rows grow as needed and shrink to fit the TV): name, description, price.
+  // Shop pop-up (Mike, Nov 21): the wares on the left, the shop image on the right with the merchant standing in
+  // front of it and a speech box under the merchant. Five random wares show at a time and change every 5 s, give
+  // or take 1 to 3 s. The merchant's line changes now and then, and on every buy or sell (with a coin sound from
+  // the server, src/shops.js traded). The wares wrap instead of cutting off. Lines: shop.lines, else the defaults.
+  const SHOP_SHOW = 5;
+  const SHOP_LINES = {
+    idle: ['Take your time, friend.', 'Finest wares this side of the river!', 'Touch it, you bought it. Ha! Only joking.', 'Looking for something special?',
+      'Fresh stock, just came in this morning.', 'Coin talks, and I am all ears.', 'Everything has a price. Most of it is fair.', 'Mind the dust. It adds character.'],
+    buy: ['A fine choice!', 'Pleasure doing business.', 'You have a good eye.', 'That one will serve you well.', 'Sold! Come back soon.'],
+    sell: ['Hmm, I can use this.', 'Not bad. Not bad at all.', 'I will find it a good home.', 'Fair trade, I think.', 'Into the back room it goes.'],
+  };
+  const shopRot = { id: null, ids: [], line: '', tradeN: 0, timer: null, talk: null };
+  const pickOne = (list, not) => { const pool = list.length > 1 ? list.filter((x) => x !== not) : list; return pool[Math.floor(Math.random() * pool.length)] || ''; };
+  const shopLines = (shop, kind) => (Array.isArray(shop.lines?.[kind]) && shop.lines[kind].length ? shop.lines[kind] : SHOP_LINES[kind]);
+  function shopPick(shop) {
+    const inStock = shop.items.filter((i) => i.stock !== 0);
+    const pool = (inStock.length ? inStock : shop.items).map((i) => i.id);
+    if (pool.length <= SHOP_SHOW) return pool;
+    // Prefer wares that were not just on show, so each turn brings new ones.
+    const fresh = pool.filter((id) => !shopRot.ids.includes(id));
+    const out = [];
+    const take = (list) => { while (out.length < SHOP_SHOW && list.length) out.push(list.splice(Math.floor(Math.random() * list.length), 1)[0]); };
+    take(fresh);
+    take(pool.filter((id) => !out.includes(id)));
+    return out;
+  }
+  const shopWare = (i) => `<li class="shop-ware ${i.stock === 0 ? 'out' : ''}" data-ware="${esc(i.id)}"><b>${esc(i.name)}</b>${i.note ? `<span>${esc(i.note)}</span>` : ''}<em>${gp(i.price)} gp${i.stock === null ? '' : i.stock ? ` · ${i.stock} left` : ' · sold out'}</em></li>`;
+  function shopStop() { clearTimeout(shopRot.timer); clearTimeout(shopRot.talk); shopRot.timer = shopRot.talk = null; shopRot.id = null; shopRot.ids = []; }
+  function shopRotate(shop) {
+    clearTimeout(shopRot.timer);
+    const wait = 5000 + (Math.random() < 0.5 ? -1 : 1) * (1000 + Math.random() * 2000);
+    shopRot.timer = setTimeout(() => {
+      const cur = window.lastShopState;
+      const sh = cur?.shopPop && (cur.shops || []).find((x) => x.id === cur.shopPop.shopId);
+      if (!sh || sh.id !== shopRot.id) return shopStop();
+      shopRot.ids = shopPick(sh);
+      document.querySelectorAll('.shop-tv .shop-grid').forEach((ul) => {
+        ul.innerHTML = shopRot.ids.map((id) => sh.items.find((i) => i.id === id)).filter(Boolean).map(shopWare).join('');
+        if (window.Anim && !Anim.reduced()) Anim.stagger([...ul.children], 'slideIn', null, 90);
+      });
+      shopRotate(sh);
+    }, wait);
+  }
+  function shopSay(text) {
+    shopRot.line = text;
+    document.querySelectorAll('.shop-tv .shop-say').forEach((el) => {
+      el.textContent = text;
+      el.classList.remove('talk');
+      void el.offsetWidth; // restart the pop animation
+      el.classList.add('talk');
+    });
+  }
+  function shopChatter(shop) {
+    clearTimeout(shopRot.talk);
+    shopRot.talk = setTimeout(() => {
+      const cur = window.lastShopState;
+      const sh = cur?.shopPop && (cur.shops || []).find((x) => x.id === cur.shopPop.shopId);
+      if (!sh || sh.id !== shopRot.id) return;
+      shopSay(pickOne(shopLines(sh, 'idle'), shopRot.line));
+      shopChatter(sh);
+    }, 9000 + Math.random() * 5000);
+  }
   function shopTv(s) {
     const pop = s.shopPop;
     const shop = pop && (s.shops || []).find((x) => x.id === pop.shopId);
-    if (!shop) return '';
-    const shown = shop.items.slice(0, 60);
-    const items = shown.map((i) => `<li class="shop-ware ${i.stock === 0 ? 'out' : ''}"><b>${esc(i.name)}</b>${i.note ? `<span>${esc(i.note)}</span>` : ''}<em>${gp(i.price)} gp${i.stock === null ? '' : i.stock ? ` · ${i.stock} left` : ' · sold out'}</em></li>`).join('');
+    window.lastShopState = s;
+    if (!shop) { if (shopRot.id) shopStop(); return ''; }
+    if (shopRot.id !== shop.id) {
+      shopStop();
+      shopRot.id = shop.id;
+      shopRot.ids = shopPick(shop);
+      shopRot.line = pickOne(shopLines(shop, 'idle'));
+      shopRot.tradeN = pop.trade?.n || 0;
+      shopRotate(shop);
+      shopChatter(shop);
+    } else {
+      shopRot.ids = shopRot.ids.filter((id) => shop.items.some((i) => i.id === id));
+      if (!shopRot.ids.length) shopRot.ids = shopPick(shop);
+    }
+    let talk = false;
+    if ((pop.trade?.n || 0) !== shopRot.tradeN) {
+      shopRot.tradeN = pop.trade?.n || 0;
+      shopRot.line = pickOne(shopLines(shop, pop.trade?.kind === 'sell' ? 'sell' : 'buy'), shopRot.line);
+      talk = true;
+      shopChatter(shop);
+    }
+    const shown = shopRot.ids.map((id) => shop.items.find((i) => i.id === id)).filter(Boolean);
     const left = pop.shopping;
-    return `<div class="shop-tv" data-n="${pop.n}"><div class="shop-box" style="--rows:${Math.max(1, Math.ceil(shown.length / 3))}">
-      <h2>🛒 ${esc(shop.name)}</h2>${shop.banner ? `<img class="shop-banner" src="${esc(shop.banner)}" alt="${esc(shop.npc || '')}">` : ''}
-      <ul class="shop-grid">${items || '<li class="shop-ware"><b>Nothing for sale.</b></li>'}</ul>
-      <p class="shop-left">${left ? `<b>${left}</b> still shopping` : 'Open for business'}</p>
+    const sprite = shop.sprite || '/samples/placeholders/placeholder-merchant.svg';
+    return `<div class="shop-tv" data-n="${pop.n}"><div class="shop-box">
+      <div class="shop-wares">
+        <h2>🛒 ${esc(shop.name)}</h2>
+        <ul class="shop-grid">${shown.map(shopWare).join('') || '<li class="shop-ware"><b>Nothing for sale.</b></li>'}</ul>
+        <p class="shop-left">${left ? `<b>${left}</b> still shopping` : 'Open for business'}</p>
+      </div>
+      <div class="shop-scene">
+        ${shop.banner ? `<img class="shop-banner" src="${esc(shop.banner)}" alt="">` : '<div class="shop-banner shop-banner-none"></div>'}
+        <img class="shop-merchant" src="${esc(sprite)}" alt="${esc(shop.npc || 'Merchant')}">
+        <div class="shop-talk">${shop.npc ? `<b>${esc(shop.npc)}</b>` : ''}<p class="shop-say ${talk ? 'talk' : ''}" aria-live="polite">${esc(shopRot.line)}</p></div>
+      </div>
     </div></div>`;
   }
 
