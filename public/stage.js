@@ -208,8 +208,10 @@
     const pc = line.player && s.players.find((p) => p.id === line.pid);
     // Party in a row, overlapping. The player who spoke last stands in front and is not greyed out.
     if (line.player && line.pid) vnRecent = [line.pid, ...vnRecent.filter((id) => id !== line.pid)];
-    const party = s.players.slice(0, MAX_PARTY);
     const rank = (p) => { const i = vnRecent.indexOf(p.id); return i < 0 ? 99 : i; };
+    // In a live conversation only the characters who joined stand on the left (Nov 21), the latest speakers when more than 3.
+    const joined = convo?.live && Array.isArray(s.social.party) ? s.social.party.map((id) => s.players.find((p) => p.id === id)).filter(Boolean) : null;
+    const party = joined ? (joined.length > MAX_PARTY ? [...joined].sort((a, b) => rank(a) - rank(b)).slice(0, MAX_PARTY) : joined) : s.players.slice(0, MAX_PARTY);
     const front = party.length ? party.reduce((a, b) => (rank(b) < rank(a) ? b : a)) : null;
     const left = party.map((p) => `
       <div class="vn-pc-l hold-zoom ${line.pid === p.id ? 'speaking' : ''} ${front && rank(front) < 99 && p.id === front.id ? 'front' : ''}" style="${accent(p)};z-index:${100 - rank(p)}">${avatar(p, 'av-vn')}${pcEmo(s, p)}<small>${esc(p.name)}</small></div>`).join('');

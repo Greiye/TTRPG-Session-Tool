@@ -208,18 +208,34 @@ module.exports = function playerSockets(socket) {
 
   // "Join the conversation?" pop-up (Nov 16): a line and the emotion it is said with. The character's
   // emotion changes on the TV only now, together with the line.
-  socket.on('player:social:say', ({ text, emotion } = {}) => {
+  // lang (Nov 21): a language the character knows. The line is scrambled for everyone who does not know it
+  // (src/speech.js), like an NPC line in a tongue; the DM can still gloss it.
+  socket.on('player:social:say', ({ text, emotion, lang } = {}) => {
     const p = me();
     text = String(text || '').trim().slice(0, 200);
     if (!p || !text || state.mode !== 'social' || !state.social.convo?.live || state.social.convo.ending) return;
     if (!cast.EMOTIONS.includes(emotion)) emotion = 'neutral';
     T.bump(p.id, 'talk');
+    cast.join(state.social, p.id); // speaking puts the character in the conversation
     cast.setExpression(state.social, p.id, emotion);
     const c = roster[p.id];
     if (c?.sprite) { c.sprite = { ...c.sprite, state: emotion }; p.sprite = c.sprite; }
-    state.social.line = { speaker: p.name, text, emotion, player: true, pid: p.id };
-    log('say', cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, text), { pid: p.id, emotion });
+    const tongue = str(lang, 30);
+    const known = tongue && tongue.toLowerCase() !== 'common' && (p.languages || []).includes(tongue);
+    state.social.line = { n: nextId(), speaker: p.name, text, emotion, player: true, pid: p.id, ...(known ? { lang: tongue, gloss: [] } : {}) };
+    const said = cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, text);
+    if (!known) log('say', said, { pid: p.id, emotion });
+    else {
+      log('say', cast.sentence(p.name, c?.pronoun || p.pronoun, emotion, require('../speech').scramble(text)), { pid: p.id, emotion });
+      log('say', `(${tongue}) ${said}`, { pid: p.id, emotion, vis: 'dm' });
+    }
     broadcast();
+  });
+  // "Join the Conversation?" Yes (Nov 21): the character steps into the scene before saying anything.
+  socket.on('player:convo:join', () => {
+    const p = me();
+    if (!p || state.mode !== 'social' || !state.social.convo?.live || state.social.convo.ending) return;
+    if (cast.join(state.social, p.id)) { log('system', `${p.name} joins the conversation.`); broadcast(); }
   });
 
   socket.on('player:choice', ({ index } = {}) => {

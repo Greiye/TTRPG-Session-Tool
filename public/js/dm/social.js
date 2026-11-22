@@ -2,6 +2,7 @@
 // Rows top to bottom (Mike, Nov 17): Emotions, Dialogue, NPC, Live voice. Player choices, faction and speech style left.
 import { $, $$, emit, call, onState, onClick, state } from '../client.js';
 import { holdButton } from './hold.js';
+import { holdDrag } from './holddrag.js';
 import { masterRole } from './auth.js';
 import { wheelHtml, wireWheel, markWheel } from '../wheel.js';
 
@@ -22,10 +23,17 @@ function drawCast(s) {
 }
 
 // Social window (Nov 16): shown in Social mode (always for a Social Master, so they can prep). Before the
-// conversation: the NPC list, pick one or more, hold Start for 1 s. Live: End conversation and the controls.
+// conversation: NPCs and players; press, hold and drag them into the circle (or tap), then hold Start for 1 s.
+// Live (Nov 21): who is in the conversation, and the rest to drag in (or out again), then End and the controls.
 const picked = new Set();
 let poolKey = null;
+let liveKey = null;
 let wasLive = null;
+const face = (p) => (p.kind === 'pc'
+  ? `<span class="convo-face">${p.portrait ? `<img src="${esc(p.portrait)}" alt="">` : esc((p.name || '?')[0])}</span>`
+  : `<span class="convo-face">${Stage.portrait('neutral', p.hue)}</span>`);
+const chipHtml = (p, { on = false, attr = 'data-pool', x = false } = {}) => `<span class="convo-chip-wrap"><button class="btn convo-npc ${p.kind === 'pc' ? 'pc' : ''} ${on ? 'on' : ''}" ${attr}="${esc(p.id)}" data-drag="${esc(p.id)}" aria-pressed="${on}" style="--hue:${p.hue ?? 40}">${face(p)}${esc(p.name)}</button>${x ? `<button class="btn small x convo-x" data-convo-x="${esc(p.id)}" aria-label="Take ${esc(p.name)} out">×</button>` : ''}</span>`;
+const pcs = (s) => (s.players || []).map((p) => ({ id: p.id, name: p.name, hue: p.hue, portrait: p.portrait, kind: 'pc' }));
 function drawWindow(s) {
   const convo = s.social.convo || {};
   const show = s.mode === 'social' || masterRole() === 'social';
@@ -38,43 +46,87 @@ function drawWindow(s) {
   if (!live && wasLive) picked.clear();
   wasLive = live;
   const pool = s.social.pool || [];
-  for (const id of [...picked]) if (!pool.some((p) => p.id === id)) picked.delete(id);
-  const key = JSON.stringify([pool, [...picked]]);
+  const players = pcs(s);
+  for (const id of [...picked]) if (!pool.some((p) => p.id === id) && !players.some((p) => p.id === id)) picked.delete(id);
+  const key = JSON.stringify([pool, players, [...picked]]);
   if (key !== poolKey) {
     poolKey = key;
-    $('#convoPool').innerHTML = pool.map((p) => `<button class="btn convo-npc ${picked.has(p.id) ? 'on' : ''}" data-pool="${esc(p.id)}" aria-pressed="${picked.has(p.id)}" style="--hue:${p.hue}"><span class="convo-face">${Stage.portrait('neutral', p.hue)}</span>${esc(p.name)}</button>`).join('');
+    $('#convoPool').innerHTML = pool.map((p) => chipHtml(p, { on: picked.has(p.id) })).join('');
+    $('#convoPlayers').innerHTML = players.map((p) => chipHtml(p, { on: picked.has(p.id) })).join('') || '<span class="note">No players at the table yet.</span>';
+    const inside = [...pool, ...players].filter((p) => picked.has(p.id));
+    $('#convoZone').innerHTML = inside.length ? inside.map((p) => chipHtml(p, { on: true, attr: 'data-zone', x: true })).join('') : '<span class="note convo-zone-hint">Drag NPCs and players here</span>';
   }
-  $('#convoStart').disabled = !picked.size || s.mode !== 'social';
-  $('#convoWho').textContent = convo.ending ? 'Wrapping up…' : (s.social.cast || []).map((c) => c.name).join(' · ');
+  $('#convoStart').disabled = ![...picked].some((id) => pool.some((p) => p.id === id)) || s.mode !== 'social';
+  if (live) drawLive(s, pool, players);
+  $('#convoWho').textContent = convo.ending ? 'Wrapping up…' : '';
   $('#convoEnd').disabled = !!convo.ending;
 }
-$('#convoPool').addEventListener('click', (e) => {
-  const b = e.target.closest('[data-pool]');
+// Live: cast NPCs and joined characters in the circle; pool NPCs and the other characters below it.
+function drawLive(s, pool, players) {
+  const cast = s.social.cast || [];
+  const party = s.social.party || [];
+  const inNpc = cast.map((c) => ({ ...c, kind: c.kind === 'item' ? 'item' : 'npc' }));
+  const inPc = party.map((id) => players.find((p) => p.id === id)).filter(Boolean);
+  const out = [...pool.filter((p) => !cast.some((c) => c.id === p.id)), ...players.filter((p) => !party.includes(p.id))];
+  const key = JSON.stringify([inNpc.map((c) => [c.id, c.name, c.hue]), inPc, out]);
+  if (key === liveKey) return;
+  liveKey = key;
+  $('#convoIn').innerHTML = [...inNpc, ...inPc].map((p) => chipHtml(p, { on: true, attr: 'data-in', x: true })).join('') || '<span class="note convo-zone-hint">Drag someone in</span>';
+  $('#convoOut').innerHTML = out.map((p) => chipHtml(p, { attr: 'data-out' })).join('') || '<span class="note">Everyone is in the conversation.</span>';
+}
+const addLive = async (id) => { const r = await call('dm:convo:add', { id }); $('#convoLiveErr').textContent = r?.error || ''; };
+const toggle = (id, on) => { if (on) picked.add(id); else picked.delete(id); $('#convoErr').textContent = ''; if (state()) drawWindow(state()); };
+$('#convoPick').addEventListener('click', (e) => {
+  const x = e.target.closest('[data-convo-x]');
+  if (x) return toggle(x.dataset.convoX, false);
+  const b = e.target.closest('[data-pool],[data-zone]');
   if (!b) return;
-  const id = b.dataset.pool;
-  if (picked.has(id)) picked.delete(id); else picked.add(id);
-  $('#convoErr').textContent = '';
-  if (state()) drawWindow(state());
+  const id = b.dataset.pool || b.dataset.zone;
+  toggle(id, !picked.has(id));
+});
+$('#convoLive').addEventListener('click', (e) => {
+  const x = e.target.closest('[data-convo-x]');
+  if (x) return emit('dm:convo:drop', { id: x.dataset.convoX });
+  const b = e.target.closest('[data-out]');
+  if (b) addLive(b.dataset.out);
+});
+holdDrag($('#convoPick'), { onDrop: (el, zone) => toggle(el.dataset.drag, zone.dataset.drop === 'in') });
+holdDrag($('#convoLive'), {
+  onDrop: (el, zone) => {
+    const id = el.dataset.drag;
+    if (zone.dataset.drop === 'in' && el.dataset.out) addLive(id);
+    else if (zone.dataset.drop === 'out' && el.dataset.in) emit('dm:convo:drop', { id });
+  },
 });
 holdButton($('#convoStart'), {
   ms: 1000,
   idle: '💬 Hold to start conversation',
   holding: 'Keep holding…',
   onFire: async () => {
-    const r = await call('dm:convo:start', { ids: [...picked] });
+    const pool = state()?.social.pool || [];
+    const ids = [...picked].filter((id) => pool.some((p) => p.id === id));
+    const pids = [...picked].filter((id) => !pool.some((p) => p.id === id));
+    const r = await call('dm:convo:start', { ids, pids });
     $('#convoErr').textContent = r?.error || '';
   },
 });
 $('#convoEnd').addEventListener('click', () => emit('dm:convo:end'));
 
-// NPC emotion wheel (Mike, Nov 18: NPCs get the same emotion circle as the players). Tap a segment to set the
-// emotion (keys 1-8 still work), press Speak in the middle to say the typed line, or drag a segment onto Speak.
+// NPC emotion wheel (Mike, Nov 18: NPCs get the same emotion circle as the players). Tap a segment (or keys 1-8)
+// to pick the emotion; the NPC wears it only when the line goes out (Mike, Nov 21): press Speak in the middle,
+// Enter, or drag a segment onto Speak. With a character chosen under "Sprites", a tap changes their sprite at once.
 $('#emotions').innerHTML = wheelHtml('neutral', { label: 'Speak', attrs: 'data-act="say" title="Speak the typed line as the NPC"', keys: true });
 $('#emotions').classList.add('dm-wheel');
-const emoTo = (emotion) => { const target = $('#emoTarget')?.value; if (target) emit('dm:pc:emotion', { id: target, emotion }); else emit('dm:emotion', { emotion }); };
+let staged = null; // emotion picked on the wheel, sent with the next line
+const pickEmo = (emotion) => {
+  const target = $('#emoTarget')?.value;
+  if (target) return emit('dm:pc:emotion', { id: target, emotion });
+  staged = emotion;
+  markWheel($('#emotions'), emotion);
+};
 wireWheel($('#emotions .convo-wheel'), {
-  onPick: (k) => markWheel($('#emotions'), k), // the click that follows sends it (onClick 'emo' below)
-  onSend: () => { const k = $('#emotions .wheel-emo.on')?.dataset.emo; if (k) emoTo(k); say(); },
+  onPick: (k) => pickEmo(k),
+  onSend: () => say(),
 });
 
 onState((s) => {
@@ -84,7 +136,7 @@ onState((s) => {
   }
   drawLangs(s);
   drawGloss(s);
-  markWheel($('#emotions'), s.social.npc.emotion);
+  markWheel($('#emotions'), staged || s.social.npc.emotion);
   drawCast(s);
   sprites(s);
   drawWindow(s);
@@ -131,7 +183,13 @@ function drawLangs(s) {
   sel.value = list.includes(cur) ? cur : '';
 }
 
-const say = () => { emit('dm:say', { text: $('#line').value, lang: $('#lineLang').value }); $('#line').value = ''; };
+const say = () => {
+  // Speak with no line: the picked emotion still goes on (a face without words).
+  if (!$('#line').value.trim()) { if (staged) emit('dm:emotion', { emotion: staged }); staged = null; return; }
+  emit('dm:say', { text: $('#line').value, lang: $('#lineLang').value, emotion: staged || state()?.social.npc.emotion });
+  staged = null;
+  $('#line').value = '';
+};
 // Sprites: the emotion buttons drive the speaker, or a chosen character's sprite state.
 function sprites(s) {
   const sel = $('#emoTarget');
@@ -165,7 +223,7 @@ const actions = {
   spriteClear,
 };
 onClick('act', (act) => actions[act]?.());
-onClick('emo', (emotion) => emoTo(emotion));
+onClick('emo', (emotion) => pickEmo(emotion)); // keyboard on a wheel segment
 $('#line').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); say(); } });
 $('#npcName').addEventListener('change', (e) => emit('dm:npc', { name: e.target.value }));
 $('#glossBtns').addEventListener('click', (e) => {
@@ -176,9 +234,9 @@ $('#glossBtns').addEventListener('click', (e) => {
   emit('dm:gloss', { to, on: !g.includes(to) });
 });
 
-// Number keys 1-8 switch emotions while not typing.
+// Number keys 1-8 pick an emotion while not typing (sent with the next line).
 document.addEventListener('keydown', (e) => {
   if (state()?.mode !== 'social' || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
   const k = Object.keys(EMO)[Number(e.key) - 1];
-  if (k) emit('dm:emotion', { emotion: k });
+  if (k) pickEmo(k);
 });
