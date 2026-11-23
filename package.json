@@ -13,7 +13,8 @@
     "bots": "node tools/playtest-bots.js",
     "scenario": "node tools/scenario.js",
     "record": "node server.js --record",
-    "replay": "node tools/replay.js"
+    "replay": "node tools/replay.js",
+    "graph": "node tools/module-graph.js"
   },
   "keywords": [],
   "author": "",
