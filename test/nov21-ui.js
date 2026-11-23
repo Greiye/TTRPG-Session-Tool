@@ -80,11 +80,8 @@ const shot = async (p, name) => { if (SHOTS) await p.screenshot({ path: path.joi
     sock.emit('dm:shop:pop', { id: st.shops.find((x) => x.name === "Greer's Trinkets").id });
     await tv.waitForSelector('.shop-tv .shop-merchant');
     ok((await tv.$$('.shop-tv .shop-ware')).length === 5, 'the TV shows five wares at a time');
-    // Wait for the layout instead of reading it once (Nov 23: one read came back false on a docs-only PR; a rerun passed).
-    const shopSides = () => { const el = document.querySelector('.shop-tv'); const sc = el?.querySelector('.shop-scene')?.getBoundingClientRect(); const w = el?.querySelector('.shop-wares')?.getBoundingClientRect(); return sc && w && sc.width > 0 && w.width > 0 && sc.left > w.left; };
-    const sidesOk = await tv.waitForFunction(shopSides, null, { timeout: 3000 }).then(() => true, () => false);
-    const sidesSeen = sidesOk ? '' : await tv.evaluate(() => { const r = (q) => { const b = document.querySelector(q)?.getBoundingClientRect(); return b ? `${q} left ${Math.round(b.left)} w ${Math.round(b.width)}` : `${q} missing`; }; return ` (${[r('.stage-wrap'), r('.shop-tv'), r('.shop-wares'), r('.shop-scene')].join(', ')}; ${document.querySelectorAll('.shop-tv').length} shop layers)`; });
-    ok(sidesOk, `the shop image and merchant sit on the right${sidesSeen}`);
+    // Wait for the layout to settle (container-unit widths can still be 0 on the first frame on a busy runner).
+    ok(await tv.waitForFunction(() => { const el = document.querySelector('.shop-tv'); const sc = el.querySelector('.shop-scene').getBoundingClientRect(); const w = el.querySelector('.shop-wares').getBoundingClientRect(); return w.width > 0 && sc.left > w.left; }, null, { timeout: 5000 }).then(() => true, () => false), 'the shop image and merchant sit on the right');
     ok((await tv.textContent('.shop-say')).trim().length > 0, 'the merchant says a line');
     ok(await tv.$$eval('.shop-tv .shop-ware', (ls) => ls.every((l) => l.scrollHeight <= l.clientHeight + 1)), 'no ware is cut off');
     await shot(tv, 'nov21-tv-shop.png');

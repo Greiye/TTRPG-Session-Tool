@@ -278,3 +278,19 @@ Built in the DM tabs thread right after PR H and S.
 - [ ] Tools: pen, eraser, a few colours, size, undo, clear, paper (parchment, white or night). The pad slides in and out like the other dialogs.
 - [ ] DM saves a drawing as the scene backdrop, a character portrait, a handout or a journal entry. [Uses what exists: the backdrop upload with `?live=1`, `/api/portrait/:id`, `dm:handout` (already takes an `image`) and the party journal. Adds a `drawing` asset kind in `uploads/drawings/` and an optional image on journal entries]
 - [ ] Players get their own sketch pad on phones and tablets (Mike, Nov 16), the same pad with pen pressure. They save a sketch to the party journal or as their own portrait. [Phones; a Sketch button opens it]
+
+## Mike's notes, 2026-11-23 (Bard song mode)
+
+Mike's sticky note: "Bard song mode. Bards set their spells. Duration: effect. Amount of notes: strength. They must perform the song in battle." Design approved by Mike on Nov 23; music plays on both the phone and the TV.
+
+### PR AA: Bard song mode
+`public/js/play/song.js` (new), `public/js/play/`, `public/js/stage.js`, `public/audio.js`, `src/songs.js` (new), `src/sockets/`, `src/spells.js`, `src/rules/`, `src/visibility.js`
+- [ ] Note economy: a fixed palette of 4 to 6 notes; songs are 3 to 7 notes long. Strength = notes played correctly, with a cap and diminishing returns past it. [Palette and cap live in the rules file so Mike's system can change them]
+- [ ] Duration and strength are separate. Duration comes from the song's rhythm and length; strength from the note count. Players trade long-and-weak against short-and-strong.
+- [ ] Performance on the phone: tap pads in time with the beat, with hold and release notes. Each note is graded miss, good or perfect. The music plays on the phone and on the TV at the same time; the TV also shows the staff and the beat so the whole table can follow. [Audio through `public/audio.js`, synced from the server's song start time; respects the Motion setting for the staff animation]
+- [ ] Battle: starting a song costs the bard's action (or bonus action, per the song). The bard keeps playing each turn to keep it going, like concentration. Damage or a failed check interrupts it. [Reuse the concentration save and auto-drop from PR #119]
+- [ ] Songbook: the bard prepares songs before combat. Each song is a note pattern plus an effect (heal, haste, fear...). Learning new patterns is progression. [Phone Spells tab gets a Songbook section; DM can add and edit songs]
+- [ ] Group harmony: an ally's action that lands on the beat adds a small bonus to the song.
+- [ ] DM one-tap override: grant, cut or extend any song effect. [Every automated result gets an override]
+- [ ] System-agnostic effects: songs carry effect tags (heal, buff, debuff, area) that `src/rules/` maps to 5e now and Daggerheart later. No 5e-only rules in shared code.
+- Open question: should misplayed notes have a downside (a backfire or a lost turn), or only lower the strength?
