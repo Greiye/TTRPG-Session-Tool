@@ -987,7 +987,8 @@ html[data-motion="reduce"] .shop-tv { animation-duration: .001ms; }
 .feat small { opacity: .8; font-size: calc(12px * var(--ts)); }
 .feat.on { outline: 2px solid var(--gold); }
 .feat.spent { opacity: .6; }
-.feat-desc { margin-top: 10px; animation: feat-open .25s ease-out; transform-origin: top; }
+.feat-desc { margin-top: 10px; transform-origin: top; }
+.feat-desc.fresh { animation: feat-open .25s ease-out; } /* only when just opened: a redraw must not replay it */
 @keyframes feat-open { from { opacity: 0; transform: scaleY(.85); } }
 .feat-go { position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; touch-action: none; -webkit-touch-callout: none; }
 .feat-go .feat-fill { position: absolute; inset: 0; background: rgb(255 255 255 / .35); transform: scaleX(0); transform-origin: left; }

@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Fixed
+- **Flaky browser tests** (Nov 23). Three of the last ten CI runs failed and passed on a rerun. The phone's class feature description replayed its slide-open animation on every redraw, so a state update mid-test left the Activate button moving or replaced ("Element is not attached"); it now animates only on the tap that opens it, which also stops it flickering on the phone. `test/ui.js` presses Activate through `hover()`, which waits and retries, and checks a redraw does not replay the animation. `test/nov21-ui.js` waits for the shop layout instead of reading it once, and prints the boxes it saw if it still fails.
 - **Readable text everywhere** (Mike, Nov 22). Text that was hard to read on its background. Road cards on the world map were dark ink on a near-black card; the map's town list, the dungeon editor, the backdrop picker, Creature Designer tabs and "Nobody yet" notes had the same kind of problem. Dark panels on parchment now take the light palette from one theme rule, parchment muted text is a shade darker (4.5:1), and a new browser test (`test/contrast-ui.js`) checks every DM, TV, phone and co-DM page for faint text.
 
 ### Added
