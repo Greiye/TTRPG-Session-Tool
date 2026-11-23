@@ -5,9 +5,11 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Fixed
+- **Shop layout UI test waits for layout** (Nov 23). `test/nov21-ui.js` now waits for the TV shop columns to settle before checking the merchant sits on the right, instead of reading the layout on the first frame (failed once in CI on PR #158).
 - **Readable text everywhere** (Mike, Nov 22). Text that was hard to read on its background. Road cards on the world map were dark ink on a near-black card; the map's town list, the dungeon editor, the backdrop picker, Creature Designer tabs and "Nobody yet" notes had the same kind of problem. Dark panels on parchment now take the light palette from one theme rule, parchment muted text is a shade darker (4.5:1), and a new browser test (`test/contrast-ui.js`) checks every DM, TV, phone and co-DM page for faint text.
 
 ### Added
+- **Backlog: Bard song mode** (Mike, Nov 23). PR AA in `docs/backlog.md`: bards perform songs on their phone in battle (note count sets strength, rhythm and length set duration), music on the phone and the TV, songbook, group harmony, concentration-style upkeep and a DM override. Not built.
 - **Module graph** (Mike, Nov 22). `docs/module-graph.md` shows how the code fits together as Mermaid charts: an overview by area, the server core, pages and their scripts, DM and phone modules, the iso battle map and tools, plus tables for socket handlers and tests. `tools/module-graph.js` builds it from the real `require`, `import` and `<script src>` lines; run `npm run graph` to refresh it. Test: `test/module-graph.js`.
 - **Battle map compass** (Mike, Nov 22). A small compass rose in the corner of the 3D battle map on the DM page, the TV and phones turns with the view, so north is always marked. Tap it on a phone to turn the map a quarter turn.
 - **Battle map follows the time of day** (Mike, Nov 22). Light, sky colour and shadows on the 3D map follow the story clock (dawn, day, dusk, night); at night and in the dark the party carries torches that glow on the ground. The DM overrides it with **☀ Light** on the battle map bar or Light in the Battle map card (Auto, Dawn, Day, Dusk, Night, Dark); Auto goes back to the clock. Respects the Motion setting (no easing or flicker on Reduce).
