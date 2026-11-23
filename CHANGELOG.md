@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Fixed
+- **Shop layout UI test waits for layout** (Nov 23). `test/nov21-ui.js` now waits for the TV shop columns to settle before checking the merchant sits on the right, instead of reading the layout on the first frame (failed once in CI on PR #158).
 - **Readable text everywhere** (Mike, Nov 22). Text that was hard to read on its background. Road cards on the world map were dark ink on a near-black card; the map's town list, the dungeon editor, the backdrop picker, Creature Designer tabs and "Nobody yet" notes had the same kind of problem. Dark panels on parchment now take the light palette from one theme rule, parchment muted text is a shade darker (4.5:1), and a new browser test (`test/contrast-ui.js`) checks every DM, TV, phone and co-DM page for faint text.
 
 ### Added

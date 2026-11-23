@@ -80,7 +80,8 @@ const shot = async (p, name) => { if (SHOTS) await p.screenshot({ path: path.joi
     sock.emit('dm:shop:pop', { id: st.shops.find((x) => x.name === "Greer's Trinkets").id });
     await tv.waitForSelector('.shop-tv .shop-merchant');
     ok((await tv.$$('.shop-tv .shop-ware')).length === 5, 'the TV shows five wares at a time');
-    ok(await tv.$eval('.shop-tv', (el) => { const sc = el.querySelector('.shop-scene').getBoundingClientRect(); const w = el.querySelector('.shop-wares').getBoundingClientRect(); return sc.left > w.left; }), 'the shop image and merchant sit on the right');
+    // Wait for the layout to settle (container-unit widths can still be 0 on the first frame on a busy runner).
+    ok(await tv.waitForFunction(() => { const el = document.querySelector('.shop-tv'); const sc = el.querySelector('.shop-scene').getBoundingClientRect(); const w = el.querySelector('.shop-wares').getBoundingClientRect(); return w.width > 0 && sc.left > w.left; }, null, { timeout: 5000 }).then(() => true, () => false), 'the shop image and merchant sit on the right');
     ok((await tv.textContent('.shop-say')).trim().length > 0, 'the merchant says a line');
     ok(await tv.$$eval('.shop-tv .shop-ware', (ls) => ls.every((l) => l.scrollHeight <= l.clientHeight + 1)), 'no ware is cut off');
     await shot(tv, 'nov21-tv-shop.png');
