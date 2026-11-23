@@ -278,3 +278,15 @@ Built in the DM tabs thread right after PR H and S.
 - [ ] Tools: pen, eraser, a few colours, size, undo, clear, paper (parchment, white or night). The pad slides in and out like the other dialogs.
 - [ ] DM saves a drawing as the scene backdrop, a character portrait, a handout or a journal entry. [Uses what exists: the backdrop upload with `?live=1`, `/api/portrait/:id`, `dm:handout` (already takes an `image`) and the party journal. Adds a `drawing` asset kind in `uploads/drawings/` and an optional image on journal entries]
 - [ ] Players get their own sketch pad on phones and tablets (Mike, Nov 16), the same pad with pen pressure. They save a sketch to the party journal or as their own portrait. [Phones; a Sketch button opens it]
+
+## Mike's notes, 2026-11-23 (wrap to content)
+
+### PR AB: Nodes and windows wrap their content
+`public/theme.css`, `public/js/dm/`, `public/js/play/`, `public/screen.html`, world map and town node modules
+Mike: "Nodes and windows should wrap the content." Read as world-map and town **nodes** (labels and hover lists) and pop-up **windows**; Mike can redirect if he meant something else. In priority order:
+- [ ] Map node labels and hover lists (world map, town nodes): size to the text with a max width, wrap beyond it; no clipping or overlap. [DM Screen, TV, phones]
+- [ ] Phone node and town windows: shrink-wrap to content; max height is the viewport, with internal scroll. [Phones]
+- [ ] DM pop-ups (Creature Designer, Item Designer, dungeon pop-up): content-sized with min and max bounds, and the drag position is remembered. [DM Screen]
+- [ ] TV pop-ups (roll, moment and banner cards): wrap to content and never truncate, so they read from across the room. [TV]
+- [ ] Tools dock: fixed width, height follows content. [DM Screen]
+- Out of scope: full-screen panels and the 3D battle map keep their fixed layouts.
