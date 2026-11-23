@@ -66,9 +66,12 @@ const SHOTS = process.env.SHOTS;
   if (await ph.$('#tabSheet [data-feat]')) {
     await ph.click('#tabSheet [data-feat]');
     const go = ph.locator('#tabSheet [data-feat-go]'); // a locator, so a redraw after the skill roll does not lose it
-    await go.waitFor();
-    await go.scrollIntoViewIfNeeded();
-    const bb = await go.boundingBox();
+    // The sheet can redraw (a state broadcast) between finding the button and scrolling to it; try again on the new one.
+    let bb = null;
+    for (let i = 0; i < 20 && !bb; i++) {
+      try { await go.waitFor({ timeout: 3000 }); await go.scrollIntoViewIfNeeded({ timeout: 1000 }); bb = await go.boundingBox(); } catch { bb = null; }
+    }
+    if (!bb) throw new Error('the class feature Activate button did not settle');
     await ph.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
     await ph.mouse.down(); await ph.waitForTimeout(800); await ph.mouse.up(); // too short: nothing happens
     await ph.waitForTimeout(300); // nothing should happen: give a wrong activation time to show up

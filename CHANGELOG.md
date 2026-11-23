@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - **Backlog: PR AB, nodes and windows wrap their content** (Mike, Nov 23). Map node labels, phone node windows, DM and TV pop-ups and the tools dock size to what they hold, in `docs/backlog.md`. Not built.
 
 ### Fixed
+- **UI test race** (Nov 23). `test/ui.js` tries again when the phone sheet redraws while it scrolls to a class feature's Activate button (CI failed with "Element is not attached to the DOM").
 - **Readable text everywhere** (Mike, Nov 22). Text that was hard to read on its background. Road cards on the world map were dark ink on a near-black card; the map's town list, the dungeon editor, the backdrop picker, Creature Designer tabs and "Nobody yet" notes had the same kind of problem. Dark panels on parchment now take the light palette from one theme rule, parchment muted text is a shade darker (4.5:1), and a new browser test (`test/contrast-ui.js`) checks every DM, TV, phone and co-DM page for faint text.
 
 ### Added
