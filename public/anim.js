@@ -44,23 +44,32 @@
     for (const [k, v] of pool) if (!used.has(k)) { v.pause(); v.removeAttribute('src'); v.load(); pool.delete(k); }
   }
 
+  // The easing tokens in public/theme.css (read once, on first use). bounce is the second token.
+  const EASE = {};
+  function ease(name = 'ease') {
+    if (EASE[name]) return EASE[name];
+    const v = document.documentElement && window.getComputedStyle?.(document.documentElement).getPropertyValue(`--${name}`).trim();
+    if (!v) return 'ease-out'; // theme.css is not in yet
+    return (EASE[name] = v);
+  }
+
   // Keyframes are written for intensity 1; `amp` scales transforms.
   const LIB = {
-    pop: (a) => ({ frames: [{ transform: 'scale(.6)', opacity: 0 }, { transform: `scale(${1 + 0.08 * a})`, opacity: 1, offset: 0.6 }, { transform: 'scale(1)', opacity: 1 }], ms: 450, easing: 'cubic-bezier(.2,.9,.3,1.3)' }),
+    pop: (a) => ({ frames: [{ transform: 'scale(.6)', opacity: 0 }, { transform: `scale(${1 + 0.08 * a})`, opacity: 1, offset: 0.6 }, { transform: 'scale(1)', opacity: 1 }], ms: 450, easing: ease('ease-bounce') }),
     shake: (a) => ({ frames: [0, -1, 1, -1, 1, 0].map((x) => ({ transform: `translateX(${x * 8 * a}px)` })), ms: 400 }),
     tremble: (a) => ({ frames: [0, 1, -1, 1, -1, 0].map((x) => ({ transform: `translate(${x * 2 * a}px, ${-x * 1.5 * a}px)` })), ms: 600 }),
-    bounce: (a) => ({ frames: [{ transform: 'translateY(0)' }, { transform: `translateY(${-14 * a}px)` }, { transform: 'translateY(0)' }], ms: 500, easing: 'ease-out' }),
+    bounce: (a) => ({ frames: [{ transform: 'translateY(0)' }, { transform: `translateY(${-14 * a}px)` }, { transform: 'translateY(0)' }], ms: 500, easing: ease() }),
     flash: () => ({ frames: [{ filter: 'brightness(1)' }, { filter: 'brightness(2.2)' }, { filter: 'brightness(1)' }], ms: 350 }),
-    slideUp: (a) => ({ frames: [{ transform: `translateY(${30 * a}px)`, opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], ms: 400, easing: 'ease-out' }),
+    slideUp: (a) => ({ frames: [{ transform: `translateY(${30 * a}px)`, opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], ms: 400, easing: ease() }),
     // Entrances for later features (handouts, cards, panels). Each collapses to a fade under reduce motion.
-    unfold: (a) => ({ frames: [{ transform: `perspective(700px) rotateX(${Math.min(90, 90 * a)}deg)`, opacity: 0, transformOrigin: 'top center' }, { transform: 'perspective(700px) rotateX(0deg)', opacity: 1, transformOrigin: 'top center' }], ms: 700, easing: 'cubic-bezier(.2,.8,.2,1)' }),
-    reveal: (a) => ({ frames: [{ transform: `scale(${1 - 0.12 * a})`, opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], ms: 350, easing: 'ease-out' }),
-    fade: () => ({ frames: [{ opacity: 0 }, { opacity: 1 }], ms: 300, easing: 'ease-out' }),
+    unfold: (a) => ({ frames: [{ transform: `perspective(700px) rotateX(${Math.min(90, 90 * a)}deg)`, opacity: 0, transformOrigin: 'top center' }, { transform: 'perspective(700px) rotateX(0deg)', opacity: 1, transformOrigin: 'top center' }], ms: 700, easing: ease() }),
+    reveal: (a) => ({ frames: [{ transform: `scale(${1 - 0.12 * a})`, opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], ms: 350, easing: ease() }),
+    fade: () => ({ frames: [{ opacity: 0 }, { opacity: 1 }], ms: 300, easing: ease() }),
     // TV moments (public/moments.js): scene transitions and a character entrance.
     curtain: () => ({ frames: [{ opacity: 0 }, { opacity: 1, offset: 0.4 }, { opacity: 1, offset: 0.6 }, { opacity: 0 }], ms: 1400, easing: 'ease-in-out' }),
     wipe: () => ({ frames: [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)', offset: 0.5 }, { clipPath: 'inset(0 0 0 100%)' }], ms: 1000, easing: 'ease-in-out' }),
     ink: () => ({ frames: [{ clipPath: 'circle(0% at 50% 50%)' }, { clipPath: 'circle(150% at 50% 50%)', offset: 0.5 }, { clipPath: 'circle(0% at 50% 50%)' }], ms: 1100, easing: 'ease-in-out' }),
-    slideIn: (a) => ({ frames: [{ transform: `translateX(${-60 * a}%)`, opacity: 0 }, { transform: 'translateX(0)', opacity: 1 }], ms: 700, easing: 'cubic-bezier(.2,.8,.2,1)' }),
+    slideIn: (a) => ({ frames: [{ transform: `translateX(${-60 * a}%)`, opacity: 0 }, { transform: 'translateX(0)', opacity: 1 }], ms: 700, easing: ease() }),
   };
   const DEFAULT_PROFILE = { speed: 1, intensity: 1 };
   const profile = (who) => ({ ...DEFAULT_PROFILE, ...(who?.anim || {}) });
@@ -89,5 +98,5 @@
     play(el, name, who);
   }
 
-  window.Anim = { media, hydrate, play, stagger, once, profile, isVideo, reduced, names: Object.keys(LIB) };
+  window.Anim = { ease, media, hydrate, play, stagger, once, profile, isVideo, reduced, names: Object.keys(LIB) };
 })();

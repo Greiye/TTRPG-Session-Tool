@@ -20,7 +20,7 @@
 .sg-node.from { box-shadow: 0 0 0 3px #c0392b; }
 .sg-node.dragging { cursor: grabbing; transform: translate(-50%, -50%) scale(1.06); z-index: 3; transition: none; }
 .sg-node.done { opacity: .55; border-style: dashed; }
-.sg-node.new { animation: sg-pop .35s cubic-bezier(.2, .9, .3, 1.4); }
+.sg-node.new { animation: sg-pop var(--t-medium) var(--ease-bounce); }
 @keyframes sg-pop { from { transform: translate(-50%, -50%) scale(.3); opacity: 0; } }
 html[data-motion="reduce"] .sg-node.new { animation: none; }
 .sg-node.k-hook { --k: #c0392b; } .sg-node.k-pc { --k: #2e6fb5; } .sg-node.k-npc { --k: #8e44ad; } .sg-node.k-place { --k: #2e8b57; }

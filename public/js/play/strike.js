@@ -189,7 +189,7 @@ export function openStrike(foe, hero, opts = {}) {
     timers.forEach(clearTimeout); clearTimeout(holdTimer); clearInterval(buzz);
     socket.off('cfx', onCue);
     el.classList.add('closing');
-    setTimeout(() => el.remove(), 250);
+    setTimeout(() => el.remove(), 320);
     open = null;
     resolve();
   }
@@ -476,7 +476,7 @@ export function openMoveBuilder(hero, index = null) {
       : steps.length >= MAX_STEPS ? `That's ${MAX_STEPS} steps, the most a move can have`
       : `Pick a step, then tap the body to place it (${steps.length} of ${MAX_STEPS})`;
   };
-  const close = () => { el.classList.add('closing'); setTimeout(() => el.remove(), 250); };
+  const close = () => { el.classList.add('closing'); setTimeout(() => el.remove(), 320); };
   field.addEventListener('click', (e) => {
     if (steps.length >= MAX_STEPS) return;
     const b = geometry(field).toBox(localIn(field, e));

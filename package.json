@@ -14,7 +14,9 @@
     "scenario": "node tools/scenario.js",
     "record": "node server.js --record",
     "replay": "node tools/replay.js",
-    "graph": "node tools/module-graph.js"
+    "graph": "node tools/module-graph.js",
+    "dupes": "node tools/dupes.js",
+    "fps": "node test/fps-ui.js"
   },
   "keywords": [],
   "author": "",

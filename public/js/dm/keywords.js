@@ -3,6 +3,7 @@
 //    (frog → pond, swamp, slimy, croak…). Tap a word to put it in the field you were typing in (tags if none);
 //    🎲 Spark writes one line of flavour into the lore. Nothing is filled in unless the DM taps it.
 // 2. The bank itself (Planning › Creatures › 💡 Keyword bank): built-in words plus the DM's own, all editable.
+import { closable } from '../dialog.js';
 import { $, call, mount, library } from '../client.js';
 import { dmKey } from './auth.js';
 
@@ -223,8 +224,6 @@ $('#kwReset').onclick = async () => {
   say(`${r.entry.word} is back to the built-in words.`, 'good');
   later();
 };
-const closeBank = () => { dlg.classList.add('closing'); setTimeout(() => { dlg.classList.remove('closing'); dlg.close(); }, 180); };
-$('#kwClose').onclick = closeBank;
-dlg.addEventListener('cancel', (e) => { e.preventDefault(); closeBank(); });
+closable(dlg, { button: $('#kwClose') });
 lib.onChange(() => { $('#kwCount').textContent = lib.items.length ? `${lib.items.length} words` : ''; if (dlg.open) drawBank(); });
 draw();

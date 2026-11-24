@@ -133,7 +133,7 @@
         const b = now[c.dataset.dg];
         if (!a || !b || (Math.abs(a.x - b.x) < 1 && Math.abs(a.y - b.y) < 1)) return;
         moved = true;
-        c.animate([{ translate: `${a.x - b.x}px ${a.y - b.y}px` }, { translate: '0 0' }], { duration: 650, easing: 'cubic-bezier(.2, .8, .2, 1)' });
+        c.animate([{ translate: `${a.x - b.x}px ${a.y - b.y}px` }, { translate: '0 0' }], { duration: 650, easing: Anim.ease() });
       });
       if (moved) { const end = performance.now() + 700; const tick = () => { draw(el, d); if (performance.now() < end && el.isConnected) requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
     }
@@ -183,7 +183,7 @@
     shifts.set(root, { x, y });
     if (x === was.x && y === was.y) return;
     void body.offsetWidth;
-    body.style.transition = reduce() ? 'none' : 'transform .7s cubic-bezier(.2, .8, .2, 1)';
+    body.style.transition = reduce() ? 'none' : 'transform .7s var(--ease)';
     body.style.transform = `translate(${x}px, ${y}px)`;
     const end = performance.now() + 760;
     const tick = () => { draw(el, d); if (performance.now() < end && el.isConnected) requestAnimationFrame(tick); };

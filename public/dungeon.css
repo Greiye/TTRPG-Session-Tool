@@ -20,9 +20,9 @@
 
 .dg-title { text-align: center; color: #f3c873; font-weight: 800; font-size: calc(2.3 * var(--u)); letter-spacing: .04em; padding: calc(1 * var(--u)) 0 calc(.2 * var(--u)); text-shadow: 0 calc(.2 * var(--u)) calc(.6 * var(--u)) #000, 0 0 calc(1.4 * var(--u)) rgb(240 170 70 / .35); }
 .dg-body { flex: 1; min-height: 0; display: flex; flex-direction: row; justify-content: space-evenly; gap: calc(1 * var(--u)); padding: calc(.4 * var(--u)) calc(2 * var(--u)) calc(1.4 * var(--u)); }
-.dg-col { position: relative; z-index: 2; flex: 1 1 calc(19 * var(--u)); min-width: 0; display: flex; flex-direction: column; align-items: center; transition: flex-basis .5s; }
+.dg-col { position: relative; z-index: 2; flex: 1 1 calc(19 * var(--u)); min-width: 0; display: flex; flex-direction: column; align-items: center; transition: flex-basis var(--t-slow); }
 .dg-col.trail { flex: 0 0 calc(6 * var(--u)); }
-.dg-level { display: flex; flex-direction: column; align-items: center; color: #eadbb8; text-shadow: 0 calc(.15 * var(--u)) calc(.4 * var(--u)) #000, 0 0 calc(.8 * var(--u)) #000; line-height: 1.1; transition: color .4s; min-height: calc(3.6 * var(--u)); }
+.dg-level { display: flex; flex-direction: column; align-items: center; color: #eadbb8; text-shadow: 0 calc(.15 * var(--u)) calc(.4 * var(--u)) #000, 0 0 calc(.8 * var(--u)) #000; line-height: 1.1; transition: color var(--t-slow); min-height: calc(3.6 * var(--u)); }
 .dg-level b { font-size: calc(1.5 * var(--u)); letter-spacing: .03em; white-space: nowrap; }
 .dg-level small { font-size: calc(1.1 * var(--u)); font-weight: 600; }
 .dg-col.now .dg-level { color: #ffd27a; }
@@ -42,7 +42,7 @@
 .dg-card { position: relative; z-index: 4; width: calc(17 * var(--u)); max-width: 100%; padding: calc(.9 * var(--u)) calc(1 * var(--u)) calc(1.5 * var(--u)); text-align: center; border-radius: calc(.35 * var(--u));
   border: calc(.3 * var(--u)) solid var(--plate-edge); outline: calc(.15 * var(--u)) solid rgb(0 0 0 / .6); outline-offset: calc(.05 * var(--u));
   box-shadow: 0 calc(.35 * var(--u)) calc(.9 * var(--u)) rgb(0 0 0 / .75), inset 0 0 calc(1.2 * var(--u)) rgb(90 60 20 / .45);
-  transition: transform .35s cubic-bezier(.2, .9, .3, 1.3), box-shadow .35s, filter .35s; }
+  transition: transform var(--t-medium) var(--ease-bounce), box-shadow var(--t-medium), filter var(--t-medium); }
 /* corner rivets */
 .dg-card::before { content: ''; position: absolute; inset: calc(.25 * var(--u)); pointer-events: none;
   background: radial-gradient(circle at 0 0, #6b6f75 calc(.3 * var(--u)), transparent calc(.35 * var(--u))), radial-gradient(circle at 100% 0, #6b6f75 calc(.3 * var(--u)), transparent calc(.35 * var(--u))),
@@ -79,8 +79,8 @@
 .dg-party { position: absolute; left: calc(-.8 * var(--u)); top: calc(-1.3 * var(--u)); z-index: 2; white-space: nowrap; font-size: calc(.95 * var(--u)); font-weight: 800; color: #2b1d10; padding: calc(.15 * var(--u)) calc(.6 * var(--u)); border-radius: calc(.3 * var(--u)); background: linear-gradient(#ffe39a, #e3b45a); border: calc(.15 * var(--u)) solid #5b4630; box-shadow: 0 calc(.2 * var(--u)) calc(.5 * var(--u)) rgb(0 0 0 / .7); animation: dg-bob 1.6s ease-in-out infinite; }
 .dg-card.choice:not(.here) { box-shadow: 0 calc(.35 * var(--u)) calc(.9 * var(--u)) rgb(0 0 0 / .75), 0 0 calc(1.2 * var(--u)) rgb(255 210 120 / .35); }
 .dg-card.sel { outline: calc(.25 * var(--u)) solid var(--call); }
-.dg-card.arrive { animation: dg-arrive .7s cubic-bezier(.2, .9, .3, 1.3) both; }
-.dg-card.flare { animation: dg-flare 1s ease-out, dg-here 2.2s 1s ease-in-out infinite; }
+.dg-card.arrive { animation: dg-arrive .7s var(--ease-bounce) both; }
+.dg-card.flare { animation: dg-flare 1s var(--ease), dg-here 2.2s 1s ease-in-out infinite; }
 @keyframes dg-here { 0%, 100% { box-shadow: 0 calc(.35 * var(--u)) calc(.9 * var(--u)) rgb(0 0 0 / .75), 0 0 0 calc(.2 * var(--u)) #f3c873, 0 0 calc(1.4 * var(--u)) rgb(255 200 90 / .55); } 50% { box-shadow: 0 calc(.35 * var(--u)) calc(.9 * var(--u)) rgb(0 0 0 / .75), 0 0 0 calc(.3 * var(--u)) #ffe39a, 0 0 calc(2.6 * var(--u)) rgb(255 200 90 / .85); } }
 @keyframes dg-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(calc(-.25 * var(--u))); } }
 @keyframes dg-arrive { from { opacity: 0; transform: translateX(calc(-1.5 * var(--u))) scale(.85); filter: blur(calc(.3 * var(--u))); } }
@@ -113,9 +113,9 @@
 .dg.center .dg-body { will-change: transform; }
 
 /* The dungeon gate on the TV (PR R): picture, name, and the players holding Enter Dungeon. */
-.dg-gate { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgb(8 6 10 / .6); backdrop-filter: blur(3px); animation: dg-gate-in .45s ease-out both; font-family: var(--display, Georgia, serif); color: #f4ead5; }
-.dg-gate.out { animation: dg-gate-out .4s ease-in both; }
-.dg-gate-card { display: flex; gap: 3vw; align-items: center; width: min(78vw, 1300px); padding: 3vh 3vw; background: #17110d; border: 2px solid #6b5a3a; border-radius: 14px; box-shadow: 0 0 80px #000c, 0 0 40px rgb(240 180 80 / .15); animation: dg-gate-unfold .7s cubic-bezier(.2, .8, .2, 1) both; transform-origin: top center; }
+.dg-gate { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgb(8 6 10 / .6); backdrop-filter: blur(3px); animation: dg-gate-in var(--t-slow) var(--ease) both; font-family: var(--display, Georgia, serif); color: #f4ead5; }
+.dg-gate.out { animation: dg-gate-out var(--t-slow) ease-in both; }
+.dg-gate-card { display: flex; gap: 3vw; align-items: center; width: min(78vw, 1300px); padding: 3vh 3vw; background: #17110d; border: 2px solid #6b5a3a; border-radius: 14px; box-shadow: 0 0 80px #000c, 0 0 40px rgb(240 180 80 / .15); animation: dg-gate-unfold .7s var(--ease) both; transform-origin: top center; }
 .dg-gate-art { flex: 0 0 40%; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; border: 1px solid #6b5a3a; position: relative; background: #1b1f24; }
 .dg-gate-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .dg-gate-arch { position: absolute; inset: 0; --u: 6px; }
@@ -126,9 +126,9 @@
 .dg-gate-text p { font-size: 1.8vw; line-height: 1.4; margin: 0 0 1.4vh; }
 .dg-gate-count { font-size: 2.4vw; margin-top: 2vh; }
 .dg-gate-count b { display: inline-block; font-size: 4.6vw; color: #9fe0a8; min-width: 1.2em; text-align: center; }
-.dg-gate-count b.bump { animation: dg-gate-bump .5s cubic-bezier(.2, .9, .3, 1.4); }
+.dg-gate-count b.bump { animation: dg-gate-bump var(--t-slow) var(--ease-bounce); }
 .dg-gate-pips { display: flex; flex-wrap: wrap; gap: .8vw; margin: 1vh 0 2vh; }
-.dg-gate-pips i { width: 2.2vw; height: 2.2vw; border-radius: 50%; border: 2px solid #6b5a3a; background: #2a1f16; transition: background .3s, box-shadow .3s, transform .3s; }
+.dg-gate-pips i { width: 2.2vw; height: 2.2vw; border-radius: 50%; border: 2px solid #6b5a3a; background: #2a1f16; transition: background var(--t-medium), box-shadow var(--t-medium), transform var(--t-medium); }
 .dg-gate-pips i.on { background: #9fe0a8; border-color: #cfffd6; box-shadow: 0 0 14px rgb(159 224 168 / .7); transform: scale(1.12); }
 .dg-gate-text .dg-gate-hint { font: 1.4vw system-ui, sans-serif; color: #b8a888; }
 @keyframes dg-gate-in { from { opacity: 0; } }
@@ -151,7 +151,7 @@
 .dgp-hold, .dgp-exit { width: 100%; min-height: 52px; font-size: 1.1em; }
 .dgp-wait { margin: 0; color: #9fe0a8; font-weight: 600; }
 .dgp-count { margin: 0; }
-.dgp-sheet { animation: dgp-up .35s cubic-bezier(.2, .8, .2, 1) both; }
+.dgp-sheet { animation: dgp-up var(--t-medium) var(--ease) both; }
 .dgp-later { display: block; margin: 12px auto 0; }
 @keyframes dgp-up { from { transform: translateY(60px); opacity: 0; } }
 @keyframes dg-gate-breathe-ph { to { filter: brightness(1.15); } }
@@ -159,7 +159,7 @@
 [data-motion="reduce"] .dgp-arch, [data-motion="reduce"] .dgp-sheet { animation: none; }
 
 /* DM: the dungeon editing tab under the world map (public/js/dm/dgwindow.js). */
-.dgw { position: relative; margin-top: 10px; border: 1px solid #6b5a3a; border-radius: 8px; background: rgb(23 17 13 / .9); color: #f4ead5; animation: dgw-in .35s ease-out both; }
+.dgw { position: relative; margin-top: 10px; border: 1px solid #6b5a3a; border-radius: 8px; background: rgb(23 17 13 / .9); color: #f4ead5; animation: dgw-in var(--t-medium) var(--ease) both; }
 .dgw[hidden] { display: none; }
 .dgw-tabs { display: flex; align-items: center; gap: 10px; padding: 0 8px; border-bottom: 1px solid #6b5a3a; }
 .dgw-tabs .note { flex: 1; color: #b8a888; }
@@ -176,7 +176,7 @@
 .dgw-board .dg-card.dgw-drop { outline: 3px dashed #9fe0a8; outline-offset: 3px; transform: scale(1.06); transition: transform .12s; }
 .dgw-edit textarea { width: 100%; }
 .dgw-ghost { position: fixed; z-index: 9999; pointer-events: none; transform: translate(-50%, -120%); padding: 4px 10px; border-radius: 6px; background: #f0dfb4; color: #2b1d10; border: 1px solid #6b5a3a; font: 600 13px var(--display, serif); box-shadow: 0 6px 14px rgb(0 0 0 / .5); white-space: nowrap; }
-.dgw-menu { position: absolute; z-index: 50; min-width: 220px; display: flex; flex-direction: column; padding: 6px; background: #1c140f; border: 1px solid #b8862f; border-radius: 6px; box-shadow: 0 10px 24px rgb(0 0 0 / .55); animation: dgw-menu-in .12s ease-out both; transform-origin: top left; }
+.dgw-menu { position: absolute; z-index: 50; min-width: 220px; display: flex; flex-direction: column; padding: 6px; background: #1c140f; border: 1px solid #b8862f; border-radius: 6px; box-shadow: 0 10px 24px rgb(0 0 0 / .55); animation: dgw-menu-in .12s var(--ease) both; transform-origin: top left; }
 .dgw-menu[hidden] { display: none; }
 .dgw-menu-title { padding: 4px 8px 6px; color: #f2c96e; font-family: var(--display); border-bottom: 1px solid #3a2a1a; margin-bottom: 4px; }
 .dgw-menu button { all: unset; cursor: pointer; padding: 5px 8px; border-radius: 4px; font: 13px/1.3 var(--sans, system-ui); color: #f4ead5; }

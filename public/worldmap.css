@@ -65,11 +65,11 @@
 .wm-node { transform: translate(-50%, -7px); }
 .wm-tv .wm-node { transform: translate(-50%, -11px); }
 /* Reveal (Nov 14): the map unrolls on the TV, then the roads and places drop in one by one. */
-.wm-revealing .wm-head { animation: wm-head-in .7s ease-out both; animation-delay: var(--wm-t, 0ms); }
-.wm-revealing .wm-pic { animation: wm-unroll 1.3s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--wm-t, 0ms); transform-origin: 50% 0; }
-.wm-revealing .wm-roads { animation: wm-fade 1s ease-out both; animation-delay: calc(var(--wm-t, 0ms) + 900ms); }
-.wm-revealing .wm-node { animation: wm-drop .5s cubic-bezier(.2,1.4,.4,1) both; animation-delay: calc(var(--wm-t, 0ms) + 1000ms + var(--i, 0) * 110ms); }
-.wm-revealing .wm-token { animation: wm-fade .6s ease-out both; animation-delay: calc(var(--wm-t, 0ms) + 1600ms); }
+.wm-revealing .wm-head { animation: wm-head-in .7s var(--ease) both; animation-delay: var(--wm-t, 0ms); }
+.wm-revealing .wm-pic { animation: wm-unroll 1.3s var(--ease) both; animation-delay: var(--wm-t, 0ms); transform-origin: 50% 0; }
+.wm-revealing .wm-roads { animation: wm-fade 1s var(--ease) both; animation-delay: calc(var(--wm-t, 0ms) + 900ms); }
+.wm-revealing .wm-node { animation: wm-drop var(--t-slow) var(--ease-bounce) both; animation-delay: calc(var(--wm-t, 0ms) + 1000ms + var(--i, 0) * 110ms); }
+.wm-revealing .wm-token { animation: wm-fade .6s var(--ease) both; animation-delay: calc(var(--wm-t, 0ms) + 1600ms); }
 @keyframes wm-unroll { from { clip-path: inset(0 0 100% 0); transform: perspective(900px) rotateX(18deg); filter: sepia(.6) brightness(.6); } to { clip-path: inset(0 0 0 0); transform: none; filter: none; } }
 @keyframes wm-drop { from { opacity: 0; translate: 0 -24px; scale: .6; } to { opacity: 1; translate: 0 0; scale: 1; } }
 @keyframes wm-fade { from { opacity: 0; } }
@@ -87,7 +87,7 @@ html[data-motion="reduce"] .wm-revealing * { animation-duration: .001ms !importa
 .wm-node.dungeon i { border-radius: 3px; background: #b06a4a; }
 .wm-node.here i { background: #7fd48a; }
 /* The dungeon pop-up over the world map, for everyone while the party is inside. */
-.wm-dg-pop { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 3%; background: rgb(8 6 10 / .55); backdrop-filter: blur(2px); animation: wm-fade .4s ease-out both; }
+.wm-dg-pop { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 3%; background: rgb(8 6 10 / .55); backdrop-filter: blur(2px); animation: wm-fade var(--t-slow) var(--ease) both; }
 .wm-dg-box { width: min(100%, 1400px); height: min(100%, 860px); display: flex; flex-direction: column; gap: 6px; background: #17110d; border: 2px solid #6b5a3a; border-radius: 8px; box-shadow: 0 10px 50px #000c; padding: 10px; overflow: hidden; }
 .wm-dg-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; color: #e9cf96; font-family: var(--display, serif); letter-spacing: .08em; }
 .wm-dg-head b { font-size: 1.15em; }
@@ -130,7 +130,7 @@ html[data-motion="reduce"] .wm-revealing * { animation-duration: .001ms !importa
 .wm-paper { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: multiply; }
 .wm-compass { position: absolute; right: 2.5%; bottom: 3%; width: clamp(54px, 11%, 150px); height: auto; pointer-events: none; opacity: .88; filter: drop-shadow(0 1px 0 #f4ead5aa); transform-origin: 50% 50%; animation: wm-compass-sway 9s ease-in-out infinite alternate; animation-delay: var(--wm-sway, 0ms); }
 /* The rose spins in as the map unrolls on the TV; the sway delay comes from the clock, so a redraw does not jump. */
-.wm-revealing .wm-compass { animation: wm-compass-in 1.4s cubic-bezier(.2,.9,.3,1.2) both; animation-delay: calc(var(--wm-t, 0ms) + 1200ms); }
+.wm-revealing .wm-compass { animation: wm-compass-in 1.4s var(--ease-bounce) both; animation-delay: calc(var(--wm-t, 0ms) + 1200ms); }
 @keyframes wm-compass-in { from { opacity: 0; transform: rotate(-200deg) scale(.4); } }
 @keyframes wm-compass-sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
 .wm-board.paper .wm-node span { color: #3b2a18; font-family: Georgia, 'Times New Roman', serif; font-weight: 600; letter-spacing: .02em; text-shadow: 0 0 3px #f4ead5, 0 0 3px #f4ead5, 0 0 6px #f4ead5; }

@@ -10,6 +10,7 @@ public product: no accounts, scaling or store work.
 - `npm test`: unit and socket tests through `test/run.js` (prints every failure, then a summary).
 - `npm run test:ui`: browser tests in headless Chromium (needs `playwright`; CI installs it).
 - Re-run only what failed: `node test/run.js <name> <name>`. One script alone: `node test/<name>.js`.
+- `npm run dupes` rewrites `docs/duplication-report.md` (copied code); `npm run fps` measures the TV frame rate.
 - `npm run graph` rewrites `docs/module-graph.md` (Mermaid charts of the real imports).
 - `npm run doctor` (game-night check), `npm run backup` (zip of `data/` and `uploads/`),
   `npm run bots -- 4` (fake phones), `npm run scenario`, `npm run record` / `npm run replay`.
@@ -25,7 +26,7 @@ public product: no accounts, scaling or store work.
   shared code; rules go through `src/rules/`. Condition names and sizes stay editable.
 - **Secrets stay DM-side.** All state goes out through `src/visibility.js` (per viewer: dm, codm, player,
   screen, guest). New DM-only fields must be stripped there, with a test.
-- Animate where it makes sense, and respect the Motion setting (Reduce stops animations).
+- Animate where it makes sense (motion tokens in `public/theme.css`, pop-ups through `public/js/dialog.js`), and respect the Motion setting (Reduce stops animations).
 - Plain, short UI text. No inventory weight, no player emoji reactions on the TV, no whispers or table log.
 
 ## Where things live

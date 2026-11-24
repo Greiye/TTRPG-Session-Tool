@@ -2,7 +2,7 @@
 // it is a town, else of the town the party stands on. Drag 🏠 Place onto the picture to add a place, drag a place
 // to move it or into the bin to remove it, tap one to edit it. While the party is in town: who picked what,
 // settle now, move the party, and leave. Rules and events: src/town.js, src/sockets/town.js.
-import { $, call, onState } from '../client.js';
+import { $, call, onState, isOver } from '../client.js';
 import { dmKey } from './auth.js';
 
 const esc = (s) => Stage.esc(s);
@@ -206,7 +206,7 @@ $('#tnNew').addEventListener('pointerdown', (e) => {
 });
 
 // Move a place by dragging; into the bin removes it. A short press is a tap that selects it.
-const overTrash = (e) => { const r = $('#tnTrash').getBoundingClientRect(); return e.clientX >= r.left - 8 && e.clientX <= r.right + 8 && e.clientY >= r.top - 8 && e.clientY <= r.bottom + 8; };
+const overTrash = (e) => isOver(e, $('#tnTrash'));
 document.addEventListener('pointerup', () => { if (pressing) setTimeout(() => { pressing = false; if (last) draw(last); }, 0); }, true);
 $('#tnBoard').addEventListener('pointerdown', (e) => {
   pressing = true;

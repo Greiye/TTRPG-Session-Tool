@@ -2,6 +2,7 @@
 // An item is a card: art (or the kind's icon), name, kind, rarity, value, the description the phone shows, and free
 // name/value properties for any system (Damage 1d8, Armor +2, Charges 3). The designer is a DM-only pop-up with a
 // live preview of the card. Items live in data/items.json (src/itemlib.js) and come down over /api/items.
+import { closable } from '../dialog.js';
 import { $, call, library } from '../client.js';
 import { dmKey } from './auth.js';
 
@@ -105,11 +106,7 @@ export function openItemDesigner(item) {
   form().elements.name.focus();
 }
 window.openItemDesigner = openItemDesigner; // for tests and other windows
-function close() {
-  dlg.classList.add('closing');
-  setTimeout(() => { dlg.classList.remove('closing'); dlg.close(); }, 180);
-}
-dlg.addEventListener('cancel', (e) => { e.preventDefault(); close(); });
+const close = closable(dlg);
 $('#idClose').onclick = close;
 dlg.addEventListener('input', () => { read(); preview(); });
 dlg.addEventListener('change', () => { read(); preview(); });

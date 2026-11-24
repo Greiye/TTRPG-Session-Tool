@@ -19,6 +19,8 @@ socket.on('connect', () => socket.emit('client:device', { device: deviceKind() }
 
 export const $ = (s) => document.querySelector(s);
 export const $$ = (s) => [...document.querySelectorAll(s)];
+// Is the pointer on an element (or within 8 px of it)? For dragging onto a bin.
+export const isOver = (e, el, pad = 8) => { const r = el.getBoundingClientRect(); return e.clientX >= r.left - pad && e.clientX <= r.right + pad && e.clientY >= r.top - pad && e.clientY <= r.bottom + pad; };
 export const emit = (ev, data = {}) => socket.emit(ev, data);
 export const call = (ev, data = {}) => new Promise((res) => socket.emit(ev, data, res));
 

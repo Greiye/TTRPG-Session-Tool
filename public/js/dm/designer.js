@@ -1,6 +1,7 @@
 // Creature Designer (Mike, Nov 16, backlog PR W): a DM-only pop-up from Planning > Creatures. Design peoples,
 // beasts, monsters and named persons with free stats (any system), skills, abilities, inventory and lore; send
 // them to the combat library or the Lore tab; push and pull them as Markdown pages in the lore wiki repo.
+import { closable } from '../dialog.js';
 import { $, call, mount, library } from '../client.js';
 import { dmKey } from './auth.js';
 
@@ -263,13 +264,7 @@ async function openDlg(id) {
 }
 $('#cdOpen').onclick = () => openDlg(cur?.id);
 $('#cdRecent').addEventListener('click', (e) => { const b = e.target.closest('[data-recent]'); if (b) openDlg(b.dataset.recent); });
-const close = () => {
-  if (dirty && !confirm('Close without saving your changes?')) return;
-  dlg.classList.add('closing');
-  setTimeout(() => { dlg.classList.remove('closing'); dlg.close(); }, 180);
-};
-$('#cdClose').onclick = close;
-dlg.addEventListener('cancel', (e) => { e.preventDefault(); close(); });
+closable(dlg, { button: $('#cdClose'), mayClose: () => !dirty || confirm('Close without saving your changes?') });
 
 // ----- editing -----
 $('#cdForm').addEventListener('input', () => { dirty = true; });

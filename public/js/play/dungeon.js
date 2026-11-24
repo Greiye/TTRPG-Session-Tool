@@ -7,6 +7,7 @@ import { me } from './identity.js';
 import { current } from './nav.js';
 import { addTab, setTabOn, setBadge } from './tabs.js';
 import { holdButton } from '../dm/hold.js';
+import { sheetPop } from '../dialog.js';
 
 const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
 addTab('dungeon', '🏰 Dungeon');
@@ -69,21 +70,16 @@ function holding(root, html) {
   if (el && count) el.textContent = count.replace('&#39;', "'");
   return true;
 }
-function closePop() { pop?.el.remove(); pop = null; }
+function closePop() { pop?.close(); pop = null; }
 function showPop(kind, key, html) {
   if (pop?.kind === kind && pop.key === key) return;
   const fresh = pop?.kind !== kind;
   if (fresh) closePop();
   if (!pop) {
-    const el = document.createElement('div');
-    el.className = 'pop-scrim dgp-scrim';
-    el.innerHTML = '<div class="pop-sheet dgp-sheet" role="dialog" aria-modal="true" aria-label="Dungeon"></div>';
-    el.addEventListener('click', (e) => { if (e.target === el) closePop(); });
-    document.body.appendChild(el);
-    pop = { kind, key: '', el };
+    pop = { kind, key: '', ...sheetPop({ cls: 'dgp-scrim', sheetCls: 'dgp-sheet', label: 'Dungeon', dismiss: closePop, backdrop: true }) };
   }
   pop.key = key;
-  const sheet = pop.el.firstElementChild;
+  const sheet = pop.sheet;
   if (holding(sheet, html)) return;
   sheet.innerHTML = `${html}<button class="btn small dgp-later" data-dgp="close">Later</button>`;
   wire(sheet);

@@ -302,12 +302,13 @@ Partly, New, Not adopted, with reasons) is in `docs/spec-merge.md`. The AI game 
 accounts and paid tiers are not adopted. These are the new items worth having at this table.
 
 ### PR AC: Code health from the spec (no behaviour change)
+Built Nov 24, except the merge steps still listed in the report.
 `tools/dupes.js` (new), `docs/duplication-report.md` (new), `public/theme.css`, `public/style.css`, `public/anim.js`, `public/js/dm/dgwindow.js`, `test/run.js`
-- [ ] Duplication audit: `npm run dupes` lists near-duplicate functions and CSS blocks across `src/` and `public/`, and writes `docs/duplication-report.md` (files, lines, what they should merge into). Sits beside `docs/module-graph.md`.
-- [ ] Merge steps from the report, smallest and safest first, one PR each, each with its own test and no visible change.
-- [ ] Motion tokens: the CSS uses 22 different easings. Fold them into a few named tokens in `public/theme.css` (one standard ease, one bounce; fast, medium and slow durations). `public/anim.js` reads the same tokens. The Motion setting keeps working as it does.
-- [ ] One dialog shell: list the pop-ups that still build their own frame, close button and Escape handling, and move them onto the shared dialog.
-- [ ] Measure before optimising: a check for dice tray and TV frame rate during a busy combat, next to the payload sizes PR #157 measures.
+- [x] Duplication audit: `npm run dupes` lists near-duplicate functions and CSS blocks across `src/` and `public/`, and writes `docs/duplication-report.md` (files, lines, what they should merge into). Sits beside `docs/module-graph.md`.
+- [ ] (Started: the repeated map and token CSS block, the bin hit test and the pop-up close functions are merged.) Merge steps from the report, smallest and safest first, one PR each, each with its own test and no visible change.
+- [x] Motion tokens: the CSS uses 22 different easings. Fold them into a few named tokens in `public/theme.css` (one standard ease, one bounce; fast, medium and slow durations). `public/anim.js` reads the same tokens. The Motion setting keeps working as it does.
+- [x] One dialog shell (`public/js/dialog.js`; the camp and shop sheets, the strike pop-up, the missed card and the settings dialog keep their own frame, as they work differently): list the pop-ups that still build their own frame, close button and Escape handling, and move them onto the shared dialog.
+- [x] Measure before optimising (`npm run fps`, `test/fps-ui.js`): a check for dice tray and TV frame rate during a busy combat, next to the payload sizes PR #157 measures.
 
 ### PR AD: Table play ideas from the spec
 `src/rules/`, `src/sheet.js`, `public/js/play/rolls.js`, `public/js/play/sheet.js`, `public/js/dm/social.js`, `src/storybook.js`, `public/js/play/mapview.js`, `public/js/dm/lore.js`, `src/soundscape.js`, `public/stage.js`, `public/audio.js`, `src/visibility.js`

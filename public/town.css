@@ -8,8 +8,8 @@
   repeating-linear-gradient(115deg, transparent 0 46px, rgb(90 70 40 / .12) 46px 49px),
   radial-gradient(circle at 30% 30%, #d9c49a, #b89a68 70%, #8c6f45); }
 .tn-layer { position: absolute; inset: 0; }
-.tn-node { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; color: #fff6e0; transition: left .5s, top .5s; }
-.tn-node i { font-style: normal; font-size: 22px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #2b1f14e6; border: 2px solid #c9a86a; box-shadow: 0 3px 8px #000a; transition: transform .25s, box-shadow .25s; }
+.tn-node { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; color: #fff6e0; transition: left var(--t-slow), top var(--t-slow); }
+.tn-node i { font-style: normal; font-size: 22px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #2b1f14e6; border: 2px solid #c9a86a; box-shadow: 0 3px 8px #000a; transition: transform var(--t-medium), box-shadow var(--t-medium); }
 .tn-node span { margin-top: 4px; font-size: 12px; white-space: nowrap; text-shadow: 0 1px 2px #000, 0 0 6px #000; font-weight: 600; }
 .tn-node:hover i { transform: scale(1.12); }
 .tn-node.here i { border-color: #7fd48a; box-shadow: 0 0 0 4px #7fd48a55, 0 3px 8px #000a; }
@@ -18,8 +18,8 @@
 .tn-node.unseen { opacity: .5; }
 .tn-node.unseen i { border-style: dashed; }
 .tn-node.visited:not(.here) i { border-color: #a89070; }
-.tn-node.tn-new { animation: tn-pop .7s cubic-bezier(.2, 1.4, .4, 1) both; }
-.tn-count { position: absolute; top: -6px; right: -10px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: #ffd36b; color: #2a1d12; font: 700 12px/20px system-ui, sans-serif; text-align: center; animation: tn-pop .4s both; }
+.tn-node.tn-new { animation: tn-pop .7s var(--ease-bounce) both; }
+.tn-count { position: absolute; top: -6px; right: -10px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: #ffd36b; color: #2a1d12; font: 700 12px/20px system-ui, sans-serif; text-align: center; animation: tn-pop var(--t-slow) both; }
 .tn-token { position: absolute; transform: translate(-50%, -50%); margin-top: -30px; font-size: 22px; pointer-events: none; filter: drop-shadow(0 2px 3px #000); }
 .tn-token span { display: inline-block; animation: wm-bob 1.6s ease-in-out infinite; }
 .tn-board.dm .tn-node { touch-action: none; }
@@ -47,7 +47,7 @@
 .wm-node .wm-has li { font-size: 13px; white-space: nowrap; padding: 2px 0; color: #f4ead5; }
 .wm-node .wm-has li.hid { opacity: .55; }
 .wm-node .wm-has li.more { color: #b8a888; font-style: italic; }
-.wm-node.settlement:hover .wm-has, .wm-node.settlement:focus-within .wm-has { display: block; animation: wm-in .25s both; }
+.wm-node.settlement:hover .wm-has, .wm-node.settlement:focus-within .wm-has { display: block; animation: wm-in var(--t-medium) both; }
 .wm-node.low .wm-has { top: auto; bottom: 100%; margin: 0 0 6px; }
 .wm-tv .wm-node .wm-has li { font-size: 1.3em; }
 .wm-node.settlement i { border-radius: 3px; }
@@ -55,11 +55,11 @@
 /* Phones: the town tab and windows. */
 .tnp { display: flex; flex-direction: column; gap: 10px; }
 .tnp h3 { margin: 0; font-family: var(--display); color: var(--gold, #e3b45a); text-align: center; }
-.tnp-here { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border: 1px solid #8a6a3a; border-radius: 10px; background: rgb(255 248 230 / .55); color: inherit; animation: dgp-up .35s both; }
+.tnp-here { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border: 1px solid #8a6a3a; border-radius: 10px; background: rgb(255 248 230 / .55); color: inherit; animation: dgp-up var(--t-medium) both; }
 .tnp-here > i { font-style: normal; font-size: 40px; line-height: 1; }
 .tnp-here p { margin: 4px 0 0; line-height: 1.4; }
 .tnp-list { display: grid; gap: 8px; }
-.tnp-opt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; text-align: left; border-radius: 10px; border: 1px solid #8a6a3a; background: rgb(255 248 230 / .45); color: inherit; font: inherit; transition: background .2s, border-color .2s, transform .15s; }
+.tnp-opt { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; text-align: left; border-radius: 10px; border: 1px solid #8a6a3a; background: rgb(255 248 230 / .45); color: inherit; font: inherit; transition: background var(--t-fast), border-color var(--t-fast), transform .15s; }
 .tnp-opt > i { font-style: normal; font-size: 26px; }
 .tnp-opt b { display: block; }
 .tnp-opt small { opacity: .75; }
@@ -82,7 +82,7 @@
 /* Footprints between places (Mike, Nov 17): small prints alternating left and right, pointing along the path. */
 .tn-path { position: absolute; inset: 0; pointer-events: none; }
 .tn-step { position: absolute; width: 9px; height: 5px; border-radius: 60% 40% 40% 60%; background: #3a2414; opacity: .8; box-shadow: 0 0 2px #f4ead5aa;
-  transform: translate(-50%, -50%) rotate(var(--a, 0deg)) translateY(var(--side, 3px)); animation: tn-step-in .4s ease-out both; animation-delay: calc(var(--i, 0) * 40ms); }
+  transform: translate(-50%, -50%) rotate(var(--a, 0deg)) translateY(var(--side, 3px)); animation: tn-step-in var(--t-slow) var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms); }
 .tn-step.l { --side: -3px; }
 .tn-step.r { --side: 3px; }
 @keyframes tn-step-in { from { opacity: 0; } }

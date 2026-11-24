@@ -2,24 +2,21 @@
 // takes a seat gets this pop-up with a Continue button.
 import { $, call, onState, state } from '../client.js';
 import { me } from './identity.js';
+import { sheetPop } from '../dialog.js';
 
 let shownFor = null; // the character this phone already greeted
 
 export function joinedPop() {
   if (document.querySelector('.lobby-pop')) return;
-  const el = document.createElement('div');
-  el.className = 'pop-scrim lobby-pop';
-  el.innerHTML = `<div class="pop-sheet lobby-sheet" role="dialog" aria-modal="true" aria-label="Joined">
-    <h3>You have joined the game!</h3>
+  const pop = sheetPop({
+    cls: 'lobby-pop', sheetCls: 'lobby-sheet', label: 'Joined',
+    html: `<h3>You have joined the game!</h3>
     <p class="note">Your character is on the TV. The game starts when someone presses Start game.</p>
-    <button class="bigbtn" data-lobby-ok>Continue</button></div>`;
-  el.addEventListener('click', (e) => {
-    if (!e.target.closest('[data-lobby-ok]')) return;
-    el.classList.add('closing');
-    setTimeout(() => el.remove(), 220);
+    <button class="bigbtn" data-lobby-ok>Continue</button>`,
+    onClick: (e) => { if (e.target.closest('[data-lobby-ok]')) pop.close(); },
+    dismiss: () => pop.close(),
   });
-  document.body.appendChild(el);
-  window.Anim?.play?.(el.firstElementChild, 'pop', null);
+  window.Anim?.play?.(pop.sheet, 'pop', null);
   navigator.vibrate?.([30, 40, 30]);
 }
 

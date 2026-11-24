@@ -3,7 +3,7 @@
 // and travel (with an override), and veto or reveal road cards as they come up. Road cards draw on their own
 // while the party travels; the deck, the auto table and how often a card shows are edited under
 // Miscellaneous, in the Road cards part (Mike, Nov 15; it was a Planning Mode tab).
-import { $, emit, call, onState, onClick, mount, state } from '../client.js';
+import { $, emit, call, onState, onClick, mount, state, isOver } from '../client.js';
 import { dmKey } from './auth.js';
 
 const { esc } = Stage;
@@ -266,7 +266,7 @@ $('#wmBoard').addEventListener('pointermove', (e) => {
   $('#wmTrash').classList.toggle('hot', drag.trash);
   drag.el.classList.toggle('binning', drag.trash);
 });
-const overTrash = (e) => { const r = $('#wmTrash').getBoundingClientRect(); return e.clientX >= r.left - 8 && e.clientX <= r.right + 8 && e.clientY >= r.top - 8 && e.clientY <= r.bottom + 8; };
+const overTrash = (e) => isOver(e, $('#wmTrash'));
 function dragEnd(e) {
   if (!drag) return;
   const d = drag;

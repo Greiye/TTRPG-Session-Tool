@@ -10,12 +10,12 @@
 /* Portraits to give to */
 .it-party { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
 .it-party:empty { display: none; }
-.it-to { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 3px 4px; border: 1px dashed transparent; border-radius: 10px; background: none; color: var(--ink); opacity: .7; cursor: pointer; transition: opacity .2s, border-color .2s, transform .2s, background .2s; }
+.it-to { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 3px 4px; border: 1px dashed transparent; border-radius: 10px; background: none; color: var(--ink); opacity: .7; cursor: pointer; transition: opacity var(--t-fast), border-color var(--t-fast), transform var(--t-fast), background var(--t-fast); }
 .it-to small { font-size: 10px; max-width: 54px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .it-to.on { opacity: 1; border-color: var(--gold); border-style: solid; }
 body.it-drag .it-to, body.it-drag [data-hero-pick], body.it-drag #party .item, body.it-drag .dm-hero .hero { outline: 1px dashed color-mix(in srgb, var(--gold) 60%, transparent); outline-offset: 2px; opacity: 1; }
 .it-over { background: color-mix(in srgb, var(--gold) 25%, transparent) !important; transform: scale(1.08); outline: 2px solid var(--gold) !important; }
-.it-got { animation: it-got .6s ease-out; }
+.it-got { animation: it-got .6s var(--ease); }
 @keyframes it-got { 0% { transform: scale(1); } 35% { transform: scale(1.18); box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 60%, transparent); } 100% { transform: scale(1); box-shadow: none; } }
 
 /* Library */
@@ -27,7 +27,7 @@ body.it-drag .it-to, body.it-drag [data-hero-pick], body.it-drag #party .item, b
 .it-lib > .note { grid-column: 1 / -1; }
 
 /* A card */
-.it-card { --rar: var(--rar-common); position: relative; display: flex; flex-direction: column; border: 1px solid var(--rar); border-radius: 10px; background: linear-gradient(170deg, color-mix(in srgb, var(--rar) 18%, var(--panel)), var(--panel) 60%); box-shadow: 0 2px 6px rgb(0 0 0 / .35); overflow: hidden; animation: it-in .25s ease-out both; transition: transform .15s, box-shadow .15s; }
+.it-card { --rar: var(--rar-common); position: relative; display: flex; flex-direction: column; border: 1px solid var(--rar); border-radius: 10px; background: linear-gradient(170deg, color-mix(in srgb, var(--rar) 18%, var(--panel)), var(--panel) 60%); box-shadow: 0 2px 6px rgb(0 0 0 / .35); overflow: hidden; animation: it-in var(--t-medium) var(--ease) both; transition: transform .15s, box-shadow .15s; }
 .it-card[draggable="true"] { cursor: grab; }
 .it-card:hover, .it-card:focus-visible { box-shadow: 0 6px 14px rgb(0 0 0 / .45), 0 0 0 1px var(--rar); outline: none; }
 .it-card.picked { box-shadow: 0 0 0 2px var(--gold), 0 6px 14px rgb(0 0 0 / .45); }
@@ -70,7 +70,7 @@ body.it-drag .it-to, body.it-drag [data-hero-pick], body.it-drag #party .item, b
 .id-props-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .id-props { display: flex; flex-direction: column; gap: 4px; }
 .id-prop input[data-k="name"] { width: 130px; }
-.id-prop.fresh { animation: cd-row-in .2s ease both; }
+.id-prop.fresh { animation: cd-row-in var(--t-fast) var(--ease) both; }
 .id-btns { margin-top: 6px; }
 @media (max-width: 700px) { .id-shell { grid-template-columns: 1fr; } .id-preview { border-right: 0; border-bottom: 1px solid var(--line); } }
 
@@ -87,7 +87,7 @@ body.cascade #toolsCol > .card.it-cards:not(.folded) > .it-lib { flex: 1 1 0; fl
 
 /* Big view: a window over the map, not modal */
 .it-big { position: fixed; inset: 90px 300px 100px 390px; width: auto; height: auto; max-width: none; max-height: none; margin: 0; padding: 0; z-index: 40; display: none; flex-direction: column; border: 1px solid var(--gold); border-radius: 14px; background: var(--panel); color: var(--ink); box-shadow: 0 20px 60px rgb(0 0 0 / .6); overflow: hidden; }
-.it-big[open] { display: flex; animation: cd-in .26s cubic-bezier(.2, .9, .3, 1.2) both; }
+.it-big[open] { display: flex; animation: cd-in var(--t-medium) var(--ease-bounce) both; }
 .it-big-head { display: flex; align-items: baseline; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
 .it-big-body { display: flex; flex-direction: column; gap: 8px; padding: 10px 14px 14px; min-height: 0; flex: 1; }
 .it-big-body .it-lib { flex: 1; max-height: none; min-height: 0; }

@@ -7,9 +7,9 @@
 #cdWikiCard[data-mode="github"] .cd-dir, #cdWikiCard[data-mode="folder"] .cd-gh, #cdWikiCard[data-mode="off"] .cd-gh, #cdWikiCard[data-mode="off"] .cd-dir { display: none; }
 
 .cd-dlg { width: min(1100px, 96vw); height: min(820px, 92vh); max-width: none; max-height: none; padding: 0; border: 1px solid var(--gold); border-radius: 14px; background: var(--panel); color: var(--ink); box-shadow: 0 20px 60px rgb(0 0 0 / .6); overflow: hidden; }
-.cd-dlg[open] { animation: cd-in .26s cubic-bezier(.2, .9, .3, 1.2) both; }
-.cd-dlg.closing { animation: cd-out .18s ease-in both; }
-.cd-dlg::backdrop { background: rgb(8 5 10 / .7); backdrop-filter: blur(3px); animation: cd-fade .26s ease both; }
+.cd-dlg[open] { animation: cd-in var(--t-medium) var(--ease-bounce) both; }
+.cd-dlg.closing { animation: cd-out var(--t-fast) ease-in both; }
+.cd-dlg::backdrop { background: rgb(8 5 10 / .7); backdrop-filter: blur(3px); animation: cd-fade var(--t-medium) var(--ease) both; }
 @keyframes cd-in { from { opacity: 0; transform: translateY(14px) scale(.96); } }
 @keyframes cd-out { to { opacity: 0; transform: translateY(10px) scale(.97); } }
 @keyframes cd-fade { from { opacity: 0; } }
@@ -21,7 +21,7 @@
 .cd-tabs .chip { flex: 1; cursor: pointer; color: inherit; font: inherit; }
 .cd-tabs .chip.on { border-color: var(--gold); background: rgb(227 180 90 / .18); }
 .cd-list { overflow: auto; display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; }
-.cd-item { display: flex; align-items: center; gap: 8px; text-align: left; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; background: rgb(255 255 255 / .04); color: inherit; font: inherit; cursor: pointer; transition: background .15s, border-color .15s, transform .15s; animation: cd-row-in .2s ease both; }
+.cd-item { display: flex; align-items: center; gap: 8px; text-align: left; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; background: rgb(255 255 255 / .04); color: inherit; font: inherit; cursor: pointer; transition: background .15s, border-color .15s, transform .15s; animation: cd-row-in var(--t-fast) var(--ease) both; }
 .cd-item:hover { background: rgb(255 255 255 / .09); transform: translateX(2px); }
 .cd-item.on { border-color: var(--gold); background: rgb(227 180 90 / .14); }
 .cd-item i { font-style: normal; font-size: 1.3em; }
@@ -34,8 +34,8 @@
 .cd-main { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 .cd-top { padding: 10px 12px; border-bottom: 1px solid var(--line); }
 .cd-kinds { display: flex; gap: 4px; background: rgb(0 0 0 / .25); border-radius: 10px; padding: 3px; }
-.cd-kind { display: flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; padding: 6px 12px; background: none; color: var(--muted); font: inherit; cursor: pointer; transition: background .2s, color .2s, transform .15s; }
-.cd-kind i { font-style: normal; font-size: 1.2em; transition: transform .25s cubic-bezier(.2, .9, .3, 1.6); }
+.cd-kind { display: flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; padding: 6px 12px; background: none; color: var(--muted); font: inherit; cursor: pointer; transition: background var(--t-fast), color var(--t-fast), transform .15s; }
+.cd-kind i { font-style: normal; font-size: 1.2em; transition: transform var(--t-medium) var(--ease-bounce); }
 .cd-kind:hover { color: var(--ink); }
 .cd-kind.on { background: var(--gold); color: #1b1420; font-weight: 600; }
 .cd-kind.on i { transform: scale(1.25) rotate(-8deg); }
@@ -43,16 +43,16 @@
 .cd-chip.ok { border-color: var(--good); color: var(--good); }
 
 .cd-form { flex: 1; overflow: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
-.cd-form.swap > * { animation: cd-row-in .25s ease both; }
+.cd-form.swap > * { animation: cd-row-in var(--t-medium) var(--ease) both; }
 .cd-form.swap > :nth-child(2) { animation-delay: .03s; } .cd-form.swap > :nth-child(3) { animation-delay: .06s; } .cd-form.swap > :nth-child(4) { animation-delay: .09s; } .cd-form.swap > :nth-child(5) { animation-delay: .12s; } .cd-form.swap > :nth-child(n+6) { animation-delay: .15s; }
 .cd-hero { display: flex; gap: 12px; align-items: flex-start; }
-.cd-art { width: 112px; height: 112px; flex: none; border: 2px dashed var(--line); border-radius: 12px; display: grid; place-items: center; text-align: center; cursor: pointer; overflow: hidden; background: #140f17; transition: border-color .2s; }
+.cd-art { width: 112px; height: 112px; flex: none; border: 2px dashed var(--line); border-radius: 12px; display: grid; place-items: center; text-align: center; cursor: pointer; overflow: hidden; background: #140f17; transition: border-color var(--t-fast); }
 .cd-art:hover { border-color: var(--gold); }
 .cd-art img { width: 100%; height: 100%; object-fit: cover; }
 .cd-names { display: flex; flex-direction: column; gap: 6px; }
 .cd-name { font-family: var(--display); font-size: calc(22px * var(--ts)); color: var(--gold); }
 .cd-race-row { display: none; align-items: flex-end; }
-.cd-dlg.is-person .cd-race-row { display: flex; animation: cd-row-in .2s ease both; }
+.cd-dlg.is-person .cd-race-row { display: flex; animation: cd-row-in var(--t-fast) var(--ease) both; }
 
 .cd-sec { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; background: rgb(255 255 255 / .03); }
 .cd-sec h4 { margin: 0; display: flex; gap: 8px; align-items: center; font-family: var(--display); letter-spacing: .04em; }
@@ -65,7 +65,7 @@
 .cd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 10px; }
 .cd-grid .cd-row { min-width: 0; }
 .cd-row { display: flex; gap: 4px; align-items: center; }
-.cd-row.fresh { animation: cd-row-in .25s ease both; }
+.cd-row.fresh { animation: cd-row-in var(--t-medium) var(--ease) both; }
 .cd-row.leaving { animation: cd-row-out .16s ease-in both; }
 @keyframes cd-row-in { from { opacity: 0; transform: translateY(-6px); } }
 @keyframes cd-row-out { to { opacity: 0; transform: translateX(-12px); } }
@@ -80,14 +80,14 @@
 .cd-x:hover { color: var(--bad); background: rgb(255 122 107 / .12); }
 
 .cd-foot { padding: 10px 12px; border-top: 1px solid var(--line); background: rgb(0 0 0 / .2); }
-.cd-foot .btn.done { animation: cd-done .6s ease; }
+.cd-foot .btn.done { animation: cd-done .6s var(--ease); }
 @keyframes cd-done { 30% { transform: scale(1.08); box-shadow: 0 0 16px var(--good); } }
 .cd-push.busy { position: relative; overflow: hidden; pointer-events: none; }
 .cd-push.busy::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .45), transparent); animation: cd-shimmer .9s linear infinite; }
 @keyframes cd-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 .cd-msg { margin: 0; padding: 0 12px 8px; min-height: 1.2em; }
 .cd-msg.good { color: var(--good); } .cd-msg.bad { color: var(--bad); }
-.cd-msg.pop { animation: cd-row-in .25s ease both; }
+.cd-msg.pop { animation: cd-row-in var(--t-medium) var(--ease) both; }
 
 @media (max-width: 760px) {
   .cd-shell { grid-template-columns: 1fr; grid-template-rows: 180px 1fr; }
@@ -106,7 +106,7 @@
 .kw-ideas[open] summary h4::before { transform: rotate(90deg); }
 .kw-bar { gap: 6px; margin-top: 6px; }
 .kw-hits { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow: auto; }
-.kw-hit { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: rgb(0 0 0 / .15); animation: cd-row-in .22s ease both; }
+.kw-hit { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: rgb(0 0 0 / .15); animation: cd-row-in var(--t-fast) var(--ease) both; }
 .kw-head { gap: 6px; align-items: baseline; }
 .kw-head b { font-family: var(--display); color: var(--gold); text-transform: capitalize; }
 .kw-group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; }
@@ -115,7 +115,7 @@
 .kw-chip:hover { border-color: var(--gold); background: rgb(227 180 90 / .16); transform: translateY(-1px); }
 .kw-chip:active { transform: scale(.94); }
 .kw-chip.used { border-color: var(--good); color: var(--good); }
-.cd-dlg .kw-got { animation: kw-got .5s ease; }
+.cd-dlg .kw-got { animation: kw-got var(--t-slow) var(--ease); }
 @keyframes kw-got { 30% { box-shadow: 0 0 0 2px var(--gold); } }
 .kw-dlg { width: min(860px, 96vw); }
 @media (prefers-reduced-motion: reduce) { .kw-chip, .kw-hit, .kw-got, .kw-ideas summary h4::before { animation: none !important; transition: none !important; } }

@@ -8,6 +8,7 @@ import { me } from './identity.js';
 import { current } from './nav.js';
 import { addTab, setTabOn, setBadge } from './tabs.js';
 import { holdButton } from '../dm/hold.js';
+import { sheetPop } from '../dialog.js';
 
 const esc = (s) => Stage.esc(s);
 const ICON = () => window.Town?.ICON || {};
@@ -95,19 +96,14 @@ document.addEventListener('click', async (e) => {
   if (k === 'close') closePop();
 });
 
-function closePop() { pop?.el.remove(); pop = null; }
+function closePop() { pop?.close(); pop = null; }
 function showPop(kind, key, html) {
   if (pop?.kind === kind && pop.key === key) return;
   if (pop && pop.kind !== kind) closePop();
   if (!pop) {
-    const el = document.createElement('div');
-    el.className = 'pop-scrim dgp-scrim';
-    el.innerHTML = '<div class="pop-sheet dgp-sheet" role="dialog" aria-modal="true" aria-label="Town"></div>';
-    el.addEventListener('click', (e) => { if (e.target === el) closePop(); });
-    document.body.appendChild(el);
-    pop = { kind, key: '', el };
+    pop = { kind, key: '', ...sheetPop({ cls: 'dgp-scrim', sheetCls: 'dgp-sheet', label: 'Town', dismiss: closePop, backdrop: true }) };
   }
-  const sheet = pop.el.firstElementChild;
+  const sheet = pop.sheet;
   if (holding(sheet)) return;
   pop.key = key;
   sheet.innerHTML = `${html}<button class="btn small dgp-later" data-tnp="close">${kind === 'place' ? 'OK' : 'Later'}</button>`;

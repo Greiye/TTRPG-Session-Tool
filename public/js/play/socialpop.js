@@ -5,10 +5,12 @@
 import { onState, socket, state } from '../client.js';
 import { current } from './nav.js';
 import { me } from './identity.js';
+import { sheetPop } from '../dialog.js';
 import { wheelHtml, wireWheel, markWheel } from '../wheel.js';
 
 // Emotion wheel (Mike, Nov 16): shared with the DM's NPC wheel since Nov 18 (public/js/wheel.js).
 let seen = null; // social.entered counter the phone has already reacted to
+let pop = null;
 let el = null;
 let emotion = 'neutral';
 let lang = ''; // language of this phone's lines ('' = Common), from the languages the character knows (Nov 21)
@@ -16,25 +18,21 @@ let lang = ''; // language of this phone's lines ('' = Common), from the languag
 const live = (S) => S?.mode === 'social' && S.social.convo?.live && !S.social.convo.ending;
 function close() {
   if (!el) return;
-  const box = el;
-  el = null;
-  box.classList.add('closing');
-  setTimeout(() => box.remove(), 220);
+  pop.close();
+  pop = null; el = null;
 }
 
 function ask() {
   close();
-  el = document.createElement('div');
-  el.className = 'pop-scrim convo-pop';
-  el.innerHTML = `<div class="pop-sheet convo-sheet" role="dialog" aria-modal="true" aria-label="Join the conversation">
-    <h3>Join the Conversation?</h3>
+  pop = sheetPop({
+    cls: 'convo-pop', sheetCls: 'convo-sheet', label: 'Join the conversation', onClick, dismiss: close,
+    html: `<h3>Join the Conversation?</h3>
     <div class="convo-yn">
       <button class="btn go convo-yes" data-cv="yes">Yes</button>
       <button class="btn convo-no" data-cv="no">No</button>
-    </div>
-  </div>`;
-  el.addEventListener('click', onClick);
-  document.body.appendChild(el);
+    </div>`,
+  });
+  el = pop.el;
 }
 
 // The tongues this character can speak in: Common plus the languages on their sheet.

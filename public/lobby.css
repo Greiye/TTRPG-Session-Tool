@@ -2,7 +2,7 @@
    player joins, and the Group Map View count. */
 .lb-stage { display: flex; align-items: center; justify-content: center; }
 .lb { display: flex; flex-direction: column; align-items: center; gap: 4vh; width: 100%; padding: 4vh 4vw; color: #f4ead5; text-align: center; }
-.lb.lb-enter { animation: lb-in .6s ease-out both; }
+.lb.lb-enter { animation: lb-in .6s var(--ease) both; }
 .lb-title { margin: 0; font-family: var(--display, serif); font-size: clamp(32px, 6vw, 88px); letter-spacing: .08em; text-transform: uppercase; color: #f2c96e; text-shadow: 0 4px 0 #3a2410, 0 0 30px rgb(240 190 90 / .35); }
 .lb-slots { display: flex; flex-wrap: wrap; justify-content: center; gap: 4vw; margin: 0; padding: 0; list-style: none; }
 .lb-slot { display: flex; flex-direction: column; align-items: center; gap: 1.6vh; }
@@ -14,8 +14,8 @@
 .lb-join { font-family: var(--display, serif); font-size: clamp(18px, 2.2vw, 34px); letter-spacing: .06em; text-transform: uppercase; }
 .lb-slot:not(.filled) .lb-join { color: #f2c96e; animation: lb-blink 1.2s steps(2, start) infinite; }
 .lb-slot.filled .lb-card { border-color: #f2c96e; }
-.lb-slot.lb-new { animation: lb-pop .6s cubic-bezier(.2, 1.4, .4, 1) both; }
-.lb-start { padding: 1.4vh 4vw; border: 0; background: none; font-family: var(--display, serif); font-size: clamp(26px, 3.6vw, 60px); letter-spacing: .1em; text-transform: uppercase; color: #f4ead5; opacity: .25; margin: 0; transition: opacity .5s, text-shadow .5s; }
+.lb-slot.lb-new { animation: lb-pop .6s var(--ease-bounce) both; }
+.lb-start { padding: 1.4vh 4vw; border: 0; background: none; font-family: var(--display, serif); font-size: clamp(26px, 3.6vw, 60px); letter-spacing: .1em; text-transform: uppercase; color: #f4ead5; opacity: .25; margin: 0; transition: opacity var(--t-slow), text-shadow var(--t-slow); }
 .lb-start.ready { opacity: 1; color: #f2c96e; text-shadow: 0 0 22px rgb(240 190 90 / .7); animation: lb-pulse 1.6s ease-in-out infinite; }
 .lb-hint { margin: -2vh 0 0; font: 20px/1.3 system-ui, sans-serif; color: #c9b894; }
 .lb-qr { display: flex; align-items: center; gap: 14px; font: 18px/1.3 system-ui, sans-serif; color: #c9b894; }
@@ -25,11 +25,11 @@
 @keyframes lb-blink { to { visibility: hidden; } }
 @keyframes lb-pulse { 50% { text-shadow: 0 0 34px rgb(240 190 90 / 1); } }
 
-.lb-mapcount { position: fixed; top: 3vh; left: 50%; z-index: 55; display: flex; align-items: center; gap: 12px; padding: 12px 22px; transform: translateX(-50%); border: 2px solid #f2c96e; border-radius: 999px; background: rgb(27 20 32 / .92); color: #f4ead5; font: 22px/1 system-ui, sans-serif; box-shadow: 0 8px 24px rgb(0 0 0 / .5); animation: lb-drop .4s cubic-bezier(.2, 1.3, .4, 1) both; }
+.lb-mapcount { position: fixed; top: 3vh; left: 50%; z-index: 55; display: flex; align-items: center; gap: 12px; padding: 12px 22px; transform: translateX(-50%); border: 2px solid #f2c96e; border-radius: 999px; background: rgb(27 20 32 / .92); color: #f4ead5; font: 22px/1 system-ui, sans-serif; box-shadow: 0 8px 24px rgb(0 0 0 / .5); animation: lb-drop var(--t-slow) var(--ease-bounce) both; }
 .lb-mapcount i { font-style: normal; font-size: 28px; }
 .lb-mapcount b { color: #f2c96e; font-size: 28px; }
-.lb-mapcount.bump b { animation: lb-pop .4s both; display: inline-block; }
-.lb-mapcount.out { animation: lb-up .35s ease-in both; }
+.lb-mapcount.bump b { animation: lb-pop var(--t-slow) both; display: inline-block; }
+.lb-mapcount.out { animation: lb-up var(--t-medium) ease-in both; }
 @keyframes lb-drop { from { transform: translate(-50%, -160%); opacity: 0; } }
 @keyframes lb-up { to { transform: translate(-50%, -160%); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .lb.lb-enter, .lb-slot.lb-new, .lb-start.ready, .lb-slot:not(.filled) .lb-join, .lb-mapcount, .lb-mapcount.out { animation: none; } }

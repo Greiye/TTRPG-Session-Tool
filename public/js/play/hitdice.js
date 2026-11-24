@@ -3,7 +3,9 @@
 // "Not now" closes it. The DM can still change HP afterwards.
 import { socket, onState, state } from '../client.js';
 import { me } from './identity.js';
+import { sheetPop } from '../dialog.js';
 
+let pop = null;
 let el = null;
 let seen = null; // hdOffer.n this phone already showed
 let count = 1;
@@ -12,10 +14,8 @@ const left = (c) => Math.max(0, (c.level || 1) - (c.hitDice?.used || 0));
 
 function close() {
   if (!el) return;
-  const box = el;
-  el = null;
-  box.classList.add('closing');
-  setTimeout(() => box.remove(), 220);
+  pop.close();
+  pop = null; el = null;
 }
 
 function draw(c, why) {
@@ -33,11 +33,8 @@ function draw(c, why) {
 export function openHitDice(c, why = 'Spend hit dice') {
   if (!c?.hitDice?.die) return;
   if (!el) {
-    el = document.createElement('div');
-    el.className = 'pop-scrim hd-pop';
-    el.innerHTML = '<div class="pop-sheet hd-sheet" role="dialog" aria-modal="true" aria-label="Hit dice"></div>';
-    el.addEventListener('click', onClick);
-    document.body.appendChild(el);
+    pop = sheetPop({ cls: 'hd-pop', sheetCls: 'hd-sheet', label: 'Hit dice', onClick, dismiss: () => el?.querySelector('[data-hd-no]')?.click() });
+    el = pop.el;
   }
   el.dataset.why = why;
   count = 1;

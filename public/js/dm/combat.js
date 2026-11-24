@@ -79,7 +79,7 @@ function renderOrder(s, turn, def) {
       const was = before[el.dataset.oid];
       if (was == null) continue;
       const dy = was - el.getBoundingClientRect().top;
-      if (dy) el.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      if (dy) el.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 420, easing: Anim.ease() });
     }
   }
   lastOrder = key;

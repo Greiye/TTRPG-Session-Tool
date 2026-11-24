@@ -5,8 +5,10 @@
 import { socket, onState, state } from '../client.js';
 import { me } from './identity.js';
 import { current, onShow } from './nav.js';
+import { sheetPop } from '../dialog.js';
 
 const { esc } = Stage;
+let pop = null;
 let el = null;
 let shownKey = null;
 const closedCalls = new Set(); // roll call ids this phone pressed Continue on
@@ -14,10 +16,8 @@ const readLocal = new Set(); // handout ids marked read here, before the server 
 
 function close() {
   if (!el) return;
-  const old = el;
-  el = null; shownKey = null;
-  old.classList.add('leaving');
-  setTimeout(() => old.remove(), 220);
+  pop.close();
+  pop = null; el = null; shownKey = null;
 }
 
 // Pick what to show now. Returns { key, kind, html } or null.
@@ -68,12 +68,9 @@ function render() {
   if (next.key === shownKey) return;
   const fresh = !el || el.dataset.kind !== next.kind || el.dataset.id !== String(next.id);
   if (fresh) {
-    el?.remove();
-    el = document.createElement('div');
-    el.className = 'pop-scrim phone-pop';
-    el.innerHTML = '<div class="pop-sheet" role="dialog" aria-modal="true"></div>';
-    el.addEventListener('click', onClick);
-    document.body.appendChild(el);
+    pop?.close({ now: true });
+    pop = sheetPop({ cls: 'phone-pop', label: 'Message', onClick }); // no dismiss: it stays until the player answers
+    el = pop.el;
     navigator.vibrate?.([60, 40, 60]);
   }
   el.dataset.kind = next.kind; el.dataset.id = String(next.id);
