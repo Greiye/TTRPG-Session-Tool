@@ -13,14 +13,14 @@ module.exports = function loreSockets(socket) {
     ack?.(r);
     if (!r?.error) broadcast();
   });
-  dm('dm:lore:add', (f) => lore.add(state.lore, f));
-  dm('dm:lore:edit', (f) => lore.edit(state.lore, f));
-  dm('dm:lore:remove', ({ id }) => (lore.remove(state.lore, id) ? { ok: true } : { error: 'No such entry.' }));
-  dm('dm:lore:pull', () => ({ ok: true, added: lore.pull(state.lore, state) }));
+  dm('dm:lore:add', (f) => lore.add(state.world, f));
+  dm('dm:lore:edit', (f) => lore.edit(state.world, f)); // { ok, id }: a new category can mean a new ID
+  dm('dm:lore:remove', ({ id }) => (lore.remove(state.world, id) ? { ok: true } : { error: 'No such entry.' }));
+  dm('dm:lore:pull', () => ({ ok: true, added: lore.pull(state.world, state) }));
 
   // ----- lore repo sync -----
   const needWiki = () => (wiki.ready() ? null : { error: 'Connect the lore repo first (Planning › 🐉 Creatures › wiki settings).' });
-  dm('dm:lore:sync', () => ({ ok: true, ready: wiki.ready(), repo: wiki.cfg().repo, mode: wiki.cfg().mode, pending: lorebook.pending(state.lore) }));
-  dm('dm:lore:repo:pull', async () => needWiki() || { ok: true, ...(await lorebook.pull(state.lore)) });
-  dm('dm:lore:repo:push', async ({ force, ids }) => needWiki() || { ok: true, ...(await lorebook.push(state.lore, { force: !!force, ids: Array.isArray(ids) ? ids.map(String) : undefined })) });
+  dm('dm:lore:sync', () => ({ ok: true, ready: wiki.ready(), repo: wiki.cfg().repo, mode: wiki.cfg().mode, pending: lorebook.pending(state.world) }));
+  dm('dm:lore:repo:pull', async () => needWiki() || { ok: true, ...(await lorebook.pull(state.world)) });
+  dm('dm:lore:repo:push', async ({ force, ids }) => needWiki() || { ok: true, ...(await lorebook.push(state.world, { force: !!force, ids: Array.isArray(ids) ? ids.map(String) : undefined })) });
 };

@@ -46,9 +46,9 @@ module.exports = function designerSockets(socket) {
     const d = get(id);
     if (!d) return { error: 'No such design.' };
     const e = designer.toLore(d);
-    const prev = state.lore.find((x) => x.cat === e.cat && x.name.toLowerCase() === e.name.toLowerCase());
-    if (prev) return { ...lore.edit(state.lore, { id: prev.id, text: e.text, dm: e.dm }), updated: true };
-    return lore.add(state.lore, e);
+    const prev = lore.find(state.world, e.cat, e.name);
+    if (prev) return { ...lore.edit(state.world, { id: prev.id, text: e.text, dm: e.dm }), updated: true };
+    return lore.add(state.world, e);
   });
 
   // ----- keyword bank (Nov 19): suggestions for a design, and the DM's own words -----
