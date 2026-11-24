@@ -76,6 +76,10 @@
             "type": "string",
             "maxLength": 120
           },
+          "dungeon": {
+            "description": "A dungeon or ruin (the Lore tab's Dungeons).",
+            "type": "boolean"
+          },
           "parent": {
             "$ref": "common.schema.json#/$defs/ref"
           },

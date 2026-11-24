@@ -19,7 +19,7 @@ The Lore tab (📚) keeps step with Mike's lore repo, [Greiye/Artheria.ES.3D.Lor
 ## Push (⤒ Push to lore repo)
 
 - Writes every entry made or changed at the table to `content/table/<name>.md`, one commit per page. The button shows how many wait.
-- Entries that came from `content/lore/` or `content/artifacts/` are never written: edit those books in the lore repo, then pull.
+- Entries that came from `content/lore/` or `content/artifacts/` are never written: edit those books in the lore repo, then pull. Records imported from Arthuria are not written either.
 - DM notes and the Share tick never leave the laptop.
 - A page changed on GitHub since the last sync is not overwritten; the DM is asked first.
 - The lore game's build reads only `content/lore/` and `content/artifacts/`, so a pushed page can never break its deploy. To turn a table page into a library book, move it to `content/lore/` and give it `type: lore`.
@@ -42,6 +42,8 @@ game_id: lore1abc
 A ferryman on the Lyal. Charges a song.
 ```
 
-`cat` is one of `location`, `dungeon`, `npc`, `creature`, `item`, `book`, `note`. Pages can be edited by hand on github.com; the next pull brings the change in.
+`cat` is one of `location`, `dungeon`, `npc`, `faction`, `event`, `creature`, `item`, `book`, `note`. `game_id` is the entry's stable world ID (`docs/world-store.md`). Pages can be edited by hand on github.com; the next pull brings the change in.
+
+Entries are world store records (`docs/world-store.md`); the page link is the record's `sync` field.
 
 Code: `src/lorebook.js` (sync), `src/wiki.js` (GitHub or folder), `src/sockets/lore.js`, `public/js/dm/lore.js`. Tests: `test/lore-sync.js`, `test/lore-sync-ui.js`.
