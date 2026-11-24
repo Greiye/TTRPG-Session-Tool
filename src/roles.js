@@ -13,7 +13,7 @@ const BATTLE = [
   'dm:combat:start', 'dm:combat:next', 'dm:combat:end', 'dm:combat:stage', 'dm:tv:cam',
   // The DM's forces: add, attack with, roll for, damage and remove creatures
   'dm:enemy:add', 'dm:enemy:attack', 'dm:enemy:remove', 'dm:hp', 'dm:condition', 'dm:timer:condition',
-  'dm:concentrate', 'dm:concentrate:drop', 'dm:boss:card', 'dm:boss:clear',
+  'dm:concentrate', 'dm:concentrate:drop', 'dm:boss:card', 'dm:boss:clear', 'dm:cry:hide',
   'dm:creature:spawn', 'dm:creature:save', 'dm:creature:delete', 'dm:creature:accent',
   'dm:roll:creature', 'dm:rnd:art',
   // Battle map
@@ -24,7 +24,7 @@ const BATTLE = [
 const SOCIAL = [
   'dm:npc', 'dm:emotion', 'dm:pc:emotion', 'dm:say', 'dm:caption', 'dm:choices', 'dm:gloss', 'dm:intro',
   'dm:cast:add', 'dm:cast:pick', 'dm:cast:remove', 'dm:sprite', 'dm:relation',
-  'dm:convo:start', 'dm:convo:end', 'dm:convo:add', 'dm:convo:drop',
+  'dm:convo:start', 'dm:convo:end', 'dm:convo:add', 'dm:convo:drop', 'dm:npc:memory', 'dm:tts:npc',
 ];
 
 // Soundscape events (src/sockets/sound.js). Left out on purpose: sound:master, sound:output, sound:lock and

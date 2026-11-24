@@ -47,6 +47,7 @@
       <label class="slider">🔊 Master <input type="range" min="0" max="1" step="0.05" data-el="master" aria-label="Master volume"></label>
       <div class="ss-seg" data-el="outputs" role="group" aria-label="Where the sound plays"></div>
       <label class="chk"><input type="checkbox" data-el="autoCombat"> Combat shifts the mood to Epic (and back after)</label>
+      <label class="chk"><input type="checkbox" data-el="autoNight"> Night sounds follow the story clock</label>
       <label class="chk"><input type="checkbox" data-el="lock"> 🔒 Lock the soundscape (the Music Co-DM can only watch)</label>
     </div>
     <p class="note" data-el="by"></p>
@@ -89,6 +90,7 @@
       root.addEventListener('change', (ev) => {
         const t = ev.target;
         if (t === el('weather')) emit('sound:weather', { step: t.value });
+        else if (t === el('autoNight')) emit('sound:autonight', { on: t.checked });
         else if (t === el('autoCombat')) emit('sound:autocombat', { on: t.checked });
         else if (t === el('lock')) emit('sound:lock', { on: t.checked });
       });
@@ -181,7 +183,7 @@
         el('auto').hidden = !a;
         if (a) {
           const nm = (m) => (m ? MOOD[m]?.name : 'no mood');
-          el('auto').innerHTML = `<span>⚡ ${esc(a.reason)}: ${a.reason.startsWith('Scene') ? 'its soundscape started' : `mood ${esc(nm(a.from))} → ${esc(nm(a.to))}`}</span><button class="btn small" data-ss="undoAuto">↶ ${a.prev && a.reason.startsWith('Scene') ? 'Put back what was playing' : `Keep ${esc(nm(a.from))}`}</button>`;
+          el('auto').innerHTML = `<span>⚡ ${esc(a.reason)}: ${a.what ? esc(a.what) : a.reason.startsWith('Scene') ? 'its soundscape started' : `mood ${esc(nm(a.from))} → ${esc(nm(a.to))}`}</span><button class="btn small" data-ss="undoAuto">↶ ${a.prev && a.reason.startsWith('Scene') ? 'Put back what was playing' : `Keep ${esc(nm(a.from))}`}</button>`;
         }
 
         // DM output controls.
@@ -192,6 +194,7 @@
           b.setAttribute('aria-pressed', String(on));
         });
         el('autoCombat').checked = !!ss.autoCombat;
+        el('autoNight').checked = ss.autoNight !== false;
         el('lock').checked = !!ss.locked;
         const o = au.output || 'auto';
         el('where').textContent = o === 'tv' ? '🔈 plays on TV' : o === 'laptop' ? '🔈 plays on DM laptop' : s.screens ? '🔈 plays on TV' : '🔈 plays on DM laptop';

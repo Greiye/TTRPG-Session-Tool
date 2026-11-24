@@ -5,7 +5,7 @@ to-do list for small merges. A match is a suggestion: two functions can look ali
 
 - Near-duplicate functions: **8** pairs (at least 40 tokens, 70% alike)
 - Repeated CSS rules: **32** groups (at least 3 declarations, all the same)
-- Repeated `@keyframes`: **6** groups
+- Repeated `@keyframes`: **7** groups
 
 ## Functions
 
@@ -65,5 +65,6 @@ to-do list for small merges. A match is a suggestion: two functions can look ali
 | `public/combatfx.css:74` `cfx-fadeout`<br>`public/style.css:724` `condflash` | `cfx-fadeout` |
 | `public/designer.css:15` `cd-fade`<br>`public/dungeon.css:134` `dg-gate-in`<br>`public/style.css:40` `fadein`<br>`public/style.css:552` `mood-in`<br>`public/style.css:1192` `page-in`<br>`public/style.css:1334` `lobby-fade`<br>`public/town.css:88` `tn-step-in`<br>`public/worldmap.css:75` `wm-fade` | `cd-fade` |
 | `public/designer.css:70` `cd-row-in`<br>`public/dungeon.css:188` `dgw-in` | `cd-row-in` |
+| `public/style.css:145` `pulse`<br>`public/tableplay.css:5` `kb-wait` | `pulse` |
 | `public/style.css:877` `ic-in`<br>`public/style.css:1076` `end-fade`<br>`public/style.css:1105` `ppFade`<br>`public/theme.css:543` `fade-in` | `ic-in` |
 | `public/style.css:1174` `lore-open`<br>`public/theme.css:542` `fold-open` | `lore-open` |

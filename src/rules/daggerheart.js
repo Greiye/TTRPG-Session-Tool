@@ -19,6 +19,7 @@ module.exports = {
   name: 'Daggerheart (preview)',
   classes: CLASSES,
   skills: TRAITS,
+  keyBank: { Guardian: ['Strength', 'Agility'], Warrior: ['Agility', 'Strength'], Rogue: ['Finesse', 'Agility'], Ranger: ['Agility', 'Instinct'], Wizard: ['Knowledge', 'Instinct'], Bard: ['Presence', 'Finesse'] },
   skillGroups: { exploration: ['Agility', 'Instinct', 'Knowledge', 'Finesse', 'Strength'], social: ['Presence', 'Instinct'] },
   defenseLabel: 'Evasion',
   dcLabel: 'Difficulty',

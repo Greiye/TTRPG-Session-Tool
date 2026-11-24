@@ -41,5 +41,6 @@ module.exports = function soundSockets(socket) {
   on('sound:master', ({ value }) => { state.audio.master = clamp01(value); });
   on('sound:output', ({ output }) => { if (['auto', 'tv', 'laptop'].includes(output)) state.audio.output = output; });
   on('sound:lock', ({ on: locked }) => { state.soundscape.locked = !!locked; });
+  on('sound:autonight', ({ on: auto }) => { state.soundscape.autoNight = !!auto; });
   on('sound:autocombat', ({ on: auto }) => { state.soundscape.autoCombat = !!auto; });
 };

@@ -251,9 +251,32 @@ function read(id) {
   return { ...summary(id), items, kept: items.filter((x) => x.kept).length };
 }
 
+// NPC memory (Nov 24): the last kept moments with these NPCs, for the DM when a conversation opens. Moments with
+// these players come first, then the newest. Looks back over the last MEMORY_SESSIONS sessions.
+const MEMORY_SESSIONS = 12;
+const wordIn = (text, name) => {
+  const hay = ` ${String(text || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ')} `;
+  const needle = String(name).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  return !!needle && hay.includes(` ${needle} `);
+};
+function memory(npcs, pcs = [], max = 5) {
+  if (!npcs.length) return [];
+  const out = [];
+  for (const s of list().slice(0, MEMORY_SESSIONS)) {
+    for (const x of read(s.id)?.items || []) {
+      if (!x.kept) continue;
+      const npc = npcs.find((n) => x.mood?.npc === n || x.who === n || wordIn(x.text, n));
+      if (!npc) continue;
+      const withPcs = pcs.filter((p) => x.who === p || wordIn(x.text, p) || (x.mood?.party || []).some((m) => m.name === p));
+      out.push({ id: x.id, session: s.id, t: x.t, npc, who: x.who, text: str(x.said || x.text, 300), scene: x.mood?.scene || '', pcs: withPcs });
+    }
+  }
+  return out.sort((a, b) => (b.pcs.length > 0) - (a.pcs.length > 0) || b.t - a.t).slice(0, max);
+}
+
 // Called once at boot (src/state.js): opens the session lazily on the first record.
 function init({ onKept } = {}) { if (onKept) notify = onKept; }
 // Tests: forget the open file so the next record opens (or continues) a session again.
 function _reset() { cur = null; kept = new Set(); last = null; prevMood = ''; watched = null; lastAuto = 0; pendingMood = null; }
 
-module.exports = { line, roll, watch, keep, end, resume, rewind, list, read, summary, moodOf, isPublic, init, current: () => open().id, _reset, ID_RE };
+module.exports = { line, roll, watch, keep, end, resume, rewind, list, read, summary, memory, moodOf, isPublic, init, current: () => open().id, _reset, ID_RE };

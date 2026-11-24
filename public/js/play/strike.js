@@ -145,6 +145,7 @@ function drawSteps(field, steps) {
   });
 }
 
+import { takeCry } from './cry.js';
 let open = null;
 export const isOpen = () => !!open;
 const pref = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } } };
@@ -221,7 +222,7 @@ export function openStrike(foe, hero, opts = {}) {
     if (style === 'combo') field.querySelectorAll('.strike-node').forEach((d, i) => { d.style.animationDelay = `${i * 70}ms`; d.classList.add('burst'); });
     navigator.vibrate?.(style === 'pierce' ? [10, 30, 60] : style === 'combo' ? [] : [45]);
     const move = pick !== 'strike' ? moves[pick]?.name : undefined; // a named special move is called out on the TV log
-    later(() => socket.emit('player:combat', { act: 'attack', target: foe.id, style, move }), PAUSE_MS);
+    later(() => socket.emit('player:combat', { act: 'attack', target: foe.id, style, move, cry: takeCry() }), PAUSE_MS);
     later(close, 4000); // no answer (no line of sight, turn moved on): close anyway
   }
 

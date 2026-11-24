@@ -9,6 +9,11 @@ const save = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private 
 
 let cat = load('dmLoreCat', 'all');
 if (cat !== 'all' && !CATS[cat]) cat = 'all';
+// Sort by scale: from a person or a thing to a region, with events and notes last.
+const SCALE = ['npc', 'creature', 'item', 'book', 'dungeon', 'location', 'faction', 'event', 'note'];
+const scaleOf = (e) => { const i = SCALE.indexOf(e.cat); return i < 0 ? SCALE.length : i; };
+let sort = load('dmLoreSort', 'name');
+if (sort !== 'scale') sort = 'name';
 const openIds = new Set();
 let drawn = null;
 let fresh = null; // id of an entry just added: opened and flashed once
@@ -55,13 +60,13 @@ function draw(force = false) {
   const n = list.filter(dirty).length;
   $('#lorePending').textContent = n ? `(${n})` : '';
   const q = $('#loreFind').value.trim().toLowerCase();
-  const key = JSON.stringify([list, cat, q]);
+  const key = JSON.stringify([list, cat, q, sort]);
   // Don't redraw under the DM's cursor: an edit in progress would lose its caret.
   if (!force && (key === drawn || $('#loreList').contains(document.activeElement))) return;
   drawn = key;
   drawCats(list);
   const shown = list.filter((e) => (cat === 'all' || e.cat === cat) && (!q || `${e.name} ${e.text} ${e.dm}`.toLowerCase().includes(q)))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((a, b) => (sort === 'scale' ? scaleOf(a) - scaleOf(b) : 0) || a.name.localeCompare(b.name));
   $('#loreList').innerHTML = shown.length ? shown.map(entry).join('')
     : `<p class="note">${list.length ? 'Nothing matches.' : 'No lore yet. Add a name above, or pull the places and NPCs the table already has.'}</p>`;
   fresh = null;
@@ -76,6 +81,8 @@ $('#loreCats').addEventListener('click', (e) => {
   draw(true);
 });
 $('#loreFind').addEventListener('input', () => draw(true));
+$('#loreSort').value = sort;
+$('#loreSort').addEventListener('change', (e) => { sort = e.target.value; save('dmLoreSort', sort); draw(true); });
 
 async function add() {
   const name = $('#loreName').value.trim();

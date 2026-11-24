@@ -264,7 +264,7 @@ module.exports = function playerSockets(socket) {
     broadcast();
   });
 
-  socket.on('player:combat', ({ act, target, style, move } = {}) => {
+  socket.on('player:combat', ({ act, target, style, move, cry } = {}) => {
     const p = me();
     if (!p || game.currentTurnId() !== p.id || p.hp <= 0) return;
     T.bump(p.id, 'acts');
@@ -275,6 +275,7 @@ module.exports = function playerSockets(socket) {
       if (named) log('combat', `${p.name} uses ${named.name}!`);
       const r = game.attack(p, t, { style }); // style: the phone's strike gesture (slash, pierce, tap, combo), for the effects only
       if (r.blocked) { log('combat', r.blocked, { tone: 'bad', vis: { to: [p.id] } }); broadcast(); return; } // no roll, the turn goes on
+      require('../tableplay').cry(p, cry); // an optional short line with the strike
     } else if (['dodge', 'dash', 'help', 'hide'].includes(act)) {
       log('combat', `${p.name} takes the ${act[0].toUpperCase() + act.slice(1)} action.`);
     } else if (act === 'potion') {

@@ -35,7 +35,7 @@ const FAV_MAX = 12;
 const COMBAT_MOOD = 'epic';
 
 const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) || 0));
-const fresh = () => ({ on: false, env: null, mood: null, density: 0.6, layers: [], favs: [], autoCombat: true, auto: null, locked: false, by: null });
+const fresh = () => ({ on: false, env: null, mood: null, density: 0.6, layers: [], favs: [], autoCombat: true, autoNight: true, night: null, auto: null, locked: false, by: null });
 
 function ensure(state) {
   const s = state.soundscape = { ...fresh(), ...(state.soundscape || {}) };
@@ -207,6 +207,28 @@ function onMode(state, mode) {
     setMood(state, back, 'dm', { auto: true });
   }
 }
+// Night ambience (Nov 24): crickets join a playing soundscape when the story clock reaches dusk and leave at dawn.
+// Runs on every broadcast and acts only when night begins or ends, so a layer the DM took back stays away.
+const NIGHT_LAYER = 'loop-night';
+const INDOORS = ['tavern', 'dungeon', 'cave'];
+function onClock(state) {
+  const s = state.soundscape;
+  if (!s || !state.story) return false;
+  const night = require('./moments').segOf(state.story) >= 3; // dusk and night
+  const was = s.night;
+  s.night = night;
+  if (was === null || was === undefined || was === night || !s.on || s.autoNight === false) return false;
+  const prev = snap(s);
+  if (night) {
+    if (INDOORS.includes(s.env) || s.layers.some((l) => l.id === NIGHT_LAYER) || s.layers.length >= LAYER_MAX || !trackOf(state, NIGHT_LAYER)) return false;
+    s.layers = [...s.layers, { id: NIGHT_LAYER, volume: 0.4, auto: true }];
+  } else {
+    if (!s.layers.some((l) => l.id === NIGHT_LAYER && l.auto)) return false;
+    s.layers = s.layers.filter((l) => !(l.id === NIGHT_LAYER && l.auto));
+  }
+  s.auto = { from: s.mood, to: s.mood, reason: night ? 'Nightfall' : 'Dawn', what: night ? 'night sounds added' : 'night sounds removed', prev, at: Date.now() };
+  return true;
+}
 // One-tap override: put the soundscape back to what it was before the automatic change.
 function undoAuto(state, role) {
   const s = state.soundscape;
@@ -220,5 +242,5 @@ function undoAuto(state, role) {
 
 module.exports = {
   MOODS, ENVS, WEATHER_STEPS, LAYER_MAX, FAV_MAX, COMBAT_MOOD, fresh, ensure, sync, weatherStep, weatherLayers,
-  setMood, setEnv, addLayer, removeLayer, layerVolume, setDensity, stop, saveFav, loadFav, deleteFav, linkFav, onScene, onMode, undoAuto,
+  setMood, setEnv, addLayer, removeLayer, layerVolume, setDensity, stop, saveFav, loadFav, deleteFav, linkFav, onScene, onMode, onClock, undoAuto,
 };

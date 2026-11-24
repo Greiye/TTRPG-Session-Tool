@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/chronicle.css">
   <script src="/settings.js"></script>
   <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/tableplay.css">
   <link rel="stylesheet" href="/combatfx.css">
   <link rel="stylesheet" href="/ctxmenu.css">
   <link rel="stylesheet" href="/designer.css">
@@ -54,6 +55,7 @@
             <div id="convoOut" class="convo-pool" role="group" aria-label="Not in the conversation" data-drop="out"></div>
             <div id="convoLiveErr" class="note" role="alert"></div>
           </div>
+          <div class="card npc-memory" id="npcMemory" hidden></div>
           <!-- Rows (Mike, Nov 17; Nov 21): Emotions and Dialogue side by side, then NPC, then Live voice. -->
           <div class="social-grid social-rows">
         <div class="card social-emo">
@@ -72,6 +74,7 @@
           <div class="row">
             <input id="npcName" class="grow" placeholder="NPC name">
           </div>
+          <div id="npcVoice"></div>
           <h3>On the scene <span class="note">up to 5 NPCs or items</span></h3>
           <div id="castList" class="cast-list"></div>
           <div class="row">
@@ -424,6 +427,13 @@
       <div id="fogList" class="row"></div>
       <div class="row"><button class="btn small" data-act="fogAll">Uncover all</button><button class="btn small" data-act="fogHide">Cover all</button></div>
     </div>
+    <div class="card" data-tab="rolls" data-panel="exploration social combat" data-fold-key="keybank" id="keyBank">
+      <h3>Quick rolls <span class="note">one tap rolls for that character</span></h3>
+      <div id="kbParty"></div>
+      <div class="row"><select id="kbCls" style="width:auto" aria-label="Profession"></select><input id="kbKeys" class="grow" maxlength="400" placeholder="Stealth, Sneak = Stealth" aria-label="Skills for this profession"><button class="btn small" id="kbSave">Save</button></div>
+      <p class="note" id="kbMsg" aria-live="polite">Skills each profession leans on, with commas. Name = Skill gives one your own name. Empty goes back to the rules.</p>
+      <div class="row"><button class="btn small" id="tipsReset">Show phone tips again</button><span class="note" id="tipsMsg" aria-live="polite"></span></div>
+    </div>
     <div class="card" data-tab="rolls" data-panel="exploration">
       <h3>Hidden details <span class="note">perception-gated</span></h3>
       <div class="row"><input id="secText" class="grow" placeholder="A loose stone hides a key."><select id="secSkill" style="width:auto"></select><input id="secDc" type="number" value="13" style="width:64px" title="DC"><button class="btn" id="secAdd">Add</button></div>
@@ -519,7 +529,7 @@
     <div class="card lore-card" data-tab="lore" id="loreCard">
       <h3>📚 Lore <span class="note" id="loreCount"></span></h3>
       <div class="lore-cats" id="loreCats" role="tablist" aria-label="Lore categories"></div>
-      <div class="row"><input id="loreFind" class="grow" placeholder="Search the lore"><button class="btn small" id="lorePull" title="Add world map places and dungeons, and the NPCs on the scene, that the lore does not have yet">⤓ From the table</button></div>
+      <div class="row"><input id="loreFind" class="grow" placeholder="Search the lore"><select id="loreSort" style="width:auto" aria-label="Sort lore"><option value="name">A to Z</option><option value="scale">Smallest first</option></select><button class="btn small" id="lorePull" title="Add world map places and dungeons, and the NPCs on the scene, that the lore does not have yet">⤓ From the table</button></div>
       <div class="row lore-sync"><button class="btn small" id="loreRepoPull" title="Read the library books, characters and table pages from the lore repo into this tab">⤓ Pull lore repo</button><button class="btn small" id="loreRepoPush" title="Write the entries made or changed here to content/table/ in the lore repo. DM notes stay here.">⤒ Push to lore repo <small id="lorePending"></small></button></div>
       <div class="row"><select id="loreCat" style="width:auto" aria-label="Category"></select><input id="loreName" class="grow" maxlength="80" placeholder="Name"><button class="btn primary" id="loreAdd">Add</button></div>
       <p class="note" id="loreMsg" aria-live="polite"></p>
@@ -645,6 +655,7 @@
   <script src="/rollpop.js"></script>
   <script src="/combatfx.js"></script>
   <script src="/anim.js"></script>
+  <script src="/tableplay.js"></script>
   <script src="/dungeon.js"></script>
   <script src="/town.js"></script>
   <script src="/stage.js"></script>

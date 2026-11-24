@@ -567,6 +567,7 @@
     // Per-backdrop opacity (the bundled sample shows at 50%); the fade-in animates up to it.
     const op = Number(img?.opacity);
     bd.style.setProperty('--bd-op', op > 0 && op < 1 ? String(op) : '1');
+    bd.classList.toggle('drift', !!img && !(s.stillBackdrops || []).includes(img.id)); // a slow zoom on the TV (tableplay.css)
     const fx = root.querySelector(':scope > .fx');
     const fxKey = (s.backdrop?.effects || []).join(',');
     if (fx.dataset.key !== fxKey) {

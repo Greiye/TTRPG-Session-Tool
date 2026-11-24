@@ -17,6 +17,13 @@ const CLASSES = {
   Sorcerer: { blurb: 'Innate caster · AC 12', hp: 16, ac: 12, atk: 5, dmg: [1, 4, 0], init: 2, skills: { Athletics: 0, Perception: 1, Intimidation: 2, Insight: 1, Persuasion: 4, Deception: 3, Stealth: 1, Investigation: 0, Survival: 0, Arcana: 3 } },
 };
 const SKILLS = Object.keys(CLASSES.Fighter.skills);
+// Skills each profession leans on (phone quick rolls). The DM's own lists replace these (src/tableplay.js).
+const KEY_BANK = {
+  Fighter: ['Athletics', 'Perception', 'Intimidation'], Rogue: ['Stealth', 'Deception', 'Investigation'], Wizard: ['Arcana', 'Investigation', 'Insight'],
+  Cleric: ['Insight', 'Perception', 'Persuasion'], Ranger: ['Survival', 'Perception', 'Stealth'], Bard: ['Persuasion', 'Deception', 'Insight'],
+  Druid: ['Survival', 'Insight', 'Perception'], Paladin: ['Persuasion', 'Athletics', 'Insight'], Warlock: ['Arcana', 'Deception', 'Intimidation'],
+  Barbarian: ['Athletics', 'Survival', 'Intimidation'], Monk: ['Stealth', 'Athletics', 'Insight'], Sorcerer: ['Arcana', 'Persuasion', 'Deception'],
+};
 const ABILITIES = [['str', 'Strength'], ['dex', 'Dexterity'], ['con', 'Constitution'], ['int', 'Intelligence'], ['wis', 'Wisdom'], ['cha', 'Charisma']];
 const AB = ABILITIES.map((a) => a[0]);
 // Which ability drives each skill (used for labels and for creatures, which have no skill table).
@@ -88,6 +95,7 @@ module.exports = {
   name: 'D&D 5e',
   classes: CLASSES,
   skills: SKILLS,
+  keyBank: KEY_BANK,
   skillGroups: {
     exploration: ['Perception', 'Investigation', 'Stealth', 'Survival', 'Athletics', 'Arcana'],
     social: ['Persuasion', 'Deception', 'Intimidation', 'Insight'],

@@ -5,6 +5,7 @@
 import { socket, onState, state } from '../client.js';
 import { me } from './identity.js';
 import { current, onShow } from './nav.js';
+import { dieHtml, dragOn, wireDie } from './dragdie.js';
 import { sheetPop } from '../dialog.js';
 
 const { esc } = Stage;
@@ -42,7 +43,7 @@ function callPop(S, c, chk) {
     ? `<div class="pp-result ${done.pass == null || chk.hideDc ? '' : done.pass ? 'pass' : 'fail'}"><b>${done.total ?? done.roll}</b><small>d20 ${done.roll}</small></div>
        <p class="note">${chk.hideDc || done.pass == null ? 'The DM will tell you what happens.' : done.pass ? 'Success.' : 'Not this time.'}</p>
        <button class="bigbtn pp-continue" data-pp="call-close">Continue</button>`
-    : `<button class="bigbtn" data-pp="roll">🎲 Roll ${esc(chk.label)} (${sign(bonus)})</button>
+    : `${dragOn() ? dieHtml() : ''}<button class="bigbtn" data-pp="roll">🎲 Roll ${esc(chk.label)} (${sign(bonus)})</button>
        ${c.inspiration > 0 && chk.mode !== 'dis' ? `<button class="btn" data-pp="roll" data-inspire="1">✨ Roll with inspiration (${c.inspiration} left, advantage)</button>` : ''}`;
   return {
     key: `call:${chk.id}:${done ? 'd' : 'w'}:${c.inspiration || 0}`, kind: 'call', id: chk.id,
@@ -78,6 +79,7 @@ function render() {
   const sheet = el.querySelector('.pop-sheet');
   sheet.setAttribute('aria-label', next.kind === 'call' ? 'Roll call' : 'Message');
   sheet.innerHTML = next.html;
+  wireDie(sheet, () => socket.emit('player:answer', {}));
   sheet.classList.toggle('pp-msg', next.kind === 'msg');
   if (fresh) window.Anim?.play(sheet, next.kind === 'msg' ? 'unfold' : 'pop', null);
   else sheet.querySelector('.pp-result, .pp-opts .primary')?.classList.add('pp-bump');

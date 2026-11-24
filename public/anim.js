@@ -63,6 +63,7 @@
     slideUp: (a) => ({ frames: [{ transform: `translateY(${30 * a}px)`, opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], ms: 400, easing: ease() }),
     // Entrances for later features (handouts, cards, panels). Each collapses to a fade under reduce motion.
     unfold: (a) => ({ frames: [{ transform: `perspective(700px) rotateX(${Math.min(90, 90 * a)}deg)`, opacity: 0, transformOrigin: 'top center' }, { transform: 'perspective(700px) rotateX(0deg)', opacity: 1, transformOrigin: 'top center' }], ms: 700, easing: ease() }),
+    flip: () => ({ frames: [{ transform: 'perspective(700px) rotateY(85deg)', opacity: 0.2 }, { transform: 'perspective(700px) rotateY(0deg)', opacity: 1 }], ms: 350, easing: ease() }),
     reveal: (a) => ({ frames: [{ transform: `scale(${1 - 0.12 * a})`, opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], ms: 350, easing: ease() }),
     fade: () => ({ frames: [{ opacity: 0 }, { opacity: 1 }], ms: 300, easing: ease() }),
     // TV moments (public/moments.js): scene transitions and a character entrance.

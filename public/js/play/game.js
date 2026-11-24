@@ -1,4 +1,5 @@
 // The in-game phone screen: header, the view for the current mode, recent log, actions.
+import { takeCry } from './cry.js';
 import { socket, $, onState, state } from '../client.js';
 import { me as id } from './identity.js';
 import { onShow, current } from './nav.js';
@@ -93,7 +94,7 @@ $('#gameView').addEventListener('click', (e) => {
     const move = mi != null ? hero?.moves?.[mi] : null;
     window.__movePick = null;
     if (foe && wantGesture(state())) openStrike(foe, hero, { move: move ? mi : undefined });
-    else socket.emit('player:combat', { act: 'attack', target: d.attack, style: move ? 'combo' : 'tap', move: move?.name });
+    else socket.emit('player:combat', { act: 'attack', target: d.attack, style: move ? 'combo' : 'tap', move: move?.name, cry: takeCry() });
   }
   else if (d.movePick != null) { const i = Number(d.movePick); window.__movePick = window.__movePick === i ? null : i; render(); }
   else if (d.act) socket.emit('player:combat', { act: d.act });

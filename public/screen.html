@@ -22,6 +22,7 @@
     .tv-stats .est { color: #c9a86a; font-size: 14px; }
   </style>
   <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/tableplay.css">
 </head>
 <body class="tv">
   <div class="stage-wrap"><div id="stage" class="stage"></div></div>
@@ -44,6 +45,7 @@
   <script src="/combatfx.js"></script>
   <script src="/dice3d.js"></script>
   <script src="/weather.js"></script>
+  <script src="/tableplay.js"></script>
   <script type="module">
     import { isoStage } from '/js/iso3d.js';
     window.IsoTv = isoStage(document.getElementById('stage'), { role: 'screen', socket: window.tvSocket, layerClass: 'tv' });
@@ -69,6 +71,7 @@
       window.tvLast = s;
       if (!s.lobby) window.IsoTv?.update(s); // 3D battle map in combat (public/js/iso3d.js)
       Moments.render(s);
+      TablePlay.tv(s); // battle cries and NPC lines read aloud
       // End of session (Mike, Nov 16): a big card over everything until the DM resumes.
       const end = document.getElementById('endCard');
       end.hidden = !s.ended;

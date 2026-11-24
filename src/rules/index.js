@@ -4,6 +4,7 @@
 //   id, name                     identifiers
 //   classes {Name: {blurb, ...}} starter classes for character creation
 //   skills [string]              checkable skills/traits; skillGroups {exploration, social}
+//   keyBank {Class: [skill]}     skills each profession leans on (phone quick rolls; the DM can change them)
 //   defenseLabel, dcLabel        UI words ("AC"/"DC" vs "Evasion"/"Difficulty")
 //   newStats(cls)                stat fields for a fresh character
 //   editStats(c, fields)         DM stat edits, validated per system

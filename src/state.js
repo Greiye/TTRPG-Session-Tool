@@ -124,6 +124,7 @@ store.EXTRA.push('shopSeed'); // Greer's Trinkets seeded once
 store.EXTRA.push('town', 'townSeed'); // town maps and visits (PR V)
 store.EXTRA.push('soundscape'); // soundscape for the DM and Music Co-DM
 store.EXTRA.push('storyGraph'); // Story Nodes Graph (Nov 21)
+store.EXTRA.push('keyBank', 'tipsN', 'tts', 'stillBackdrops'); // table play (src/tableplay.js)
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
@@ -199,7 +200,7 @@ function log(kind, text, extra = {}) {
 // Full snapshot. Never sent as-is: stateFor() filters it per viewer (see visibility.js).
 function fullState() {
   const { io } = hub;
-  const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId, derived: derived(p), caster: isCaster(p) }));
+  const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId, derived: derived(p), caster: isCaster(p), keys: require('./tableplay').keysFor(p) }));
   const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId, dead: !!c.death }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const all = [...io.sockets.sockets.values()];
@@ -225,6 +226,7 @@ function broadcast() {
       if (c.socketId) hub.io.to(c.socketId).emit('notice', { id: s.id, text: s.text });
     });
     // Soundscape layers follow the shared weather however it changed (buttons, oracles, undo): src/soundscape.js.
+    require('./soundscape').onClock(state); // night layers follow the story clock
     require('./soundscape').sync(state);
     storybook.watch(state); // mood changes and TV moments for the storybook
     require('./storygraph').sync(state); // planted choice echoes get a node on the Story Nodes Graph
@@ -259,6 +261,7 @@ module.exports.flushAll = flushAll;
 module.exports.sys = () => rules.get(state.system);
 // Phase I table tools (src/table.js) load after this module's exports exist; fill in fields older saves lack.
 require('./table-state').ensure(state);
+require('./tableplay').ensure(state);
 // Replace the live campaign with a saved snapshot (save points). Phones keep the current room code.
 module.exports.loadSnapshot = (saved) => {
   const room = state.room;
@@ -269,6 +272,7 @@ module.exports.loadSnapshot = (saved) => {
   if (saved && saved.world === undefined) { state.world = {}; state.worldMerged = 0; }
   require('./entities').migrate(state);
   cast.ensure(state.social);
+  require('./tableplay').ensure(state);
   require('./storygraph').ensure(state);
 };
 module.exports.snapshot = snap;

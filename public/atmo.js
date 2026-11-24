@@ -57,6 +57,8 @@
       root.addEventListener('click', (ev) => {
         const del = ev.target.closest('[data-del]');
         if (del) { if (confirm('Delete this file?')) emit('atmo:delete', { id: del.dataset.del }); return; }
+        const dr = ev.target.closest('[data-drift]');
+        if (dr) { emit('dm:backdrop:drift', { id: dr.dataset.drift, on: !!dr.dataset.off }); return; }
         const b = ev.target.closest('button');
         if (!b) return;
         const d = b.dataset;
@@ -78,13 +80,14 @@
       return function render(s, { speaker } = {}) {
         const bd = s.backdrop;
         const au = s.audio;
-        const lk = `${bd.image?.id}|${bd.library.map((b) => b.id).join()}`;
+        const still = s.stillBackdrops || [];
+        const lk = `${s.viewer?.role}${s.viewer?.master || ''}|${still.join()}|${bd.image?.id}|${bd.library.map((b) => b.id).join()}`;
         if (lk !== libKey) {
           libKey = lk;
           el('bdLib').innerHTML = `<button class="bd-item none ${bd.image ? '' : 'on'}" data-bd="">Scene theme</button>` + bd.library.map((b) => `
             <button class="bd-item ${bd.image?.id === b.id ? 'on' : ''}" data-bd="${esc(b.id)}" title="${esc(b.name)}">
               ${b.video ? `<video src="${esc(b.url)}#t=1" muted preload="metadata"></video>` : `<img src="${esc(b.url)}" alt="" loading="lazy">`}
-              <span>${b.video ? '🎞 ' : ''}${esc(b.name)}</span>${b.sample ? '' : `<i class="del" data-del="${esc(b.id)}">✕</i>`}
+              <span>${b.video ? '🎞 ' : ''}${esc(b.name)}</span>${s.viewer?.role === 'dm' && !s.viewer.master ? `<i class="drift" data-drift="${esc(b.id)}" ${still.includes(b.id) ? 'data-off="1"' : ''} title="Slow zoom on the TV">${still.includes(b.id) ? 'Still' : 'Drift'}</i>` : ''}${b.sample ? '' : `<i class="del" data-del="${esc(b.id)}">✕</i>`}
             </button>`).join('');
         }
         el('fxBtns').innerHTML = s.effects.map((e) => `<button class="btn ${bd.effects.includes(e) ? 'on' : ''}" data-fx="${e}">${FX_ICON[e] || e}</button>`).join('');

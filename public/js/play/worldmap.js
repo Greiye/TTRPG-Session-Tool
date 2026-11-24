@@ -20,6 +20,15 @@ function roadNote(wm, place) {
   return `<p class="note">${r.legs} leg${r.legs === 1 ? '' : 's'} by road${via.length ? `, via ${esc(via.join(', '))}` : ''}.</p>`;
 }
 
+// Nearby places (PR AD): every known place the roads reach, nearest first.
+function nearby(wm) {
+  if (!wm.here || wm.travel) return '';
+  const list = wm.nodes.filter((n) => n.id !== wm.here && !n.fogged).map((n) => ({ n, r: WorldMap.route(wm, wm.here, n.id) })).filter((x) => x.r)
+    .sort((a, b) => a.r.legs - b.r.legs || a.n.name.localeCompare(b.n.name));
+  if (!list.length) return '';
+  return `<div class="card"><h3>Nearby</h3><ol class="near-list">${list.map(({ n, r }) => `<li><button class="btn" data-node="${esc(n.id)}"><span>${esc(n.name)}</span><small>${r.legs} leg${r.legs === 1 ? '' : 's'}</small></button></li>`).join('')}</ol></div>`;
+}
+
 function render() {
   const S = state();
   const el = $('#tabMap');
@@ -44,7 +53,8 @@ function render() {
       ${WorldMap.board(S, { selected: sel })}
       <div style="margin-top:8px">${voteBlock}</div>
     </div>
-    ${placeCard}`;
+    ${placeCard}
+    ${nearby(wm)}`;
 }
 
 onState(render);

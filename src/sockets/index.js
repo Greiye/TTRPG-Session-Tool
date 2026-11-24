@@ -78,6 +78,7 @@ module.exports = function sockets(io) {
     require('./web')(socket);
     require('./dungeon')(socket);
     require('./town')(socket); // town visits (PR V)
+    require('./tableplay')(socket); // key bank, battle cries, NPC memory and voices (PR AD)
     require('./lore')(socket); // Lore tab (Mike, Nov 16)
     require('./designer')(socket); // Creature Designer and lore wiki (PR W)
   });

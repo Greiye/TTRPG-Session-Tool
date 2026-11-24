@@ -131,6 +131,15 @@ function viewState(base, viewer) {
     out.myNudges = viewer.role === 'player' ? (base.nudges || []).filter((n) => n.charId === viewer.charId && n.status === 'sent') : [];
   }
   if (viewer.role !== 'dm') { delete out.framing; out.framingTokens = viewer.role === 'player' ? base.framing?.[viewer.charId] || 0 : 0; } // not `tokens`: that is the battle map
+  // Table play (src/tableplay.js): the DM sees the asks and the key bank; a phone only its own ask. NPC voices and
+  // still backdrops go to the DM and the TV, which use them.
+  if (viewer.role === 'dm') out.keyBank = require('./tableplay').bankView();
+  else {
+    out.myAsk = viewer.role === 'player' ? (base.asks || []).find((a) => a.charId === viewer.charId)?.skill || null : null;
+    delete out.asks; delete out.keyBank;
+    if (viewer.role !== 'screen') { delete out.tts; delete out.cry; }
+    if (!['screen', 'codm'].includes(viewer.role)) delete out.stillBackdrops;
+  }
   out.foreshadow = T.recapFor(base.foreshadow, viewer); // hints: DM only; paid-off payoffs: everyone
   out.montage = T.montageView(base.montage, viewer);
   if (base.worldMap) out.worldMap = require('./worldmap').viewFor(base.worldMap, viewer, base.players.length); // Phase G: see src/worldmap.js

@@ -43,10 +43,10 @@ const HOLD_MS = 450, COOL_MS = 3000;
 const cooldown = new Map();
 // Class features: tap opens the description; its Activate button needs a 3 s press and hold.
 const FEAT_HOLD_MS = 3000;
+const openSpells = new Set(); // spell cards showing their rules
 let openFeat = null; // feature name whose description is open
 let featNote = ''; // last activation result
 let featHolding = false; // no redraw while a thumb is on Activate
-let featFresh = false; // the description slides open only on the tap that opens it, not on every redraw
 
 const chip = (label, value) => `<span class="chip"><small>${label}</small><b>${value}</b></span>`;
 const pips = (level, s) => `<div class="slot-row"><span>Level ${level}</span><span class="pips">${Array.from({ length: s.max }, (_, i) => `<i class="pip ${i < s.max - s.used ? 'full' : ''}" role="img" aria-label="Level ${level} slot ${i + 1}, ${i < s.max - s.used ? 'available' : 'used'}"></i>`).join('')}</span></div>`;
@@ -55,18 +55,21 @@ const pips = (level, s) => `<div class="slot-row"><span>Level ${level}</span><sp
 function featuresHtml(c) {
   const list = c.features || [];
   if (!list.length) return '';
-  const html = `<div class="card"><h3>Class features <span class="note">tap to read · hold Activate for 3 s</span></h3>
-    <div class="feat-grid">${list.map((f) => { const left = Math.max(0, f.max - (c.uses?.[f.name] || 0)); return `<button class="btn feat ${openFeat === f.name ? 'on' : ''} ${left ? '' : 'spent'}" data-feat="${esc(f.name)}" aria-expanded="${openFeat === f.name}">${esc(f.name)}<small>${left} / ${f.max}${f.pool ? ' pts' : ''}</small></button>`; }).join('')}</div>
-    ${list.filter((f) => f.name === openFeat).map((f) => { const left = Math.max(0, f.max - (c.uses?.[f.name] || 0)); return `<div class="feat-desc${featFresh ? ' fresh' : ''}">
+  // Each feature is a card (Nov 24): tap to flip it to its rules, the uses left and the hold-to-activate button.
+  const card = (f) => {
+    const left = Math.max(0, f.max - (c.uses?.[f.name] || 0));
+    const count = `${left} / ${f.max}`;
+    if (f.name !== openFeat) return `<button class="flip feat ${left ? '' : 'spent'}" data-feat="${esc(f.name)}" aria-expanded="false"><b>${esc(f.name)}</b><small>${count}</small></button>`;
+    return `<div class="flip back feat-desc" data-flip="${esc(f.name)}"><button class="flip-head" data-feat="${esc(f.name)}" aria-expanded="true"><span>${esc(f.name)}</span><small>${count}</small></button>
       <p>${esc(f.text || 'No description yet. Ask your DM.')}</p>
       <p class="note">${left} of ${f.max}${f.pool ? ' points' : ' uses'} left · refills on a ${esc(f.reset)} rest${f.auto ? ' · takes effect by itself' : ''}</p>
       <button class="bigbtn feat-go" data-feat-go="${esc(f.name)}" ${left ? '' : 'disabled'} aria-label="Activate ${esc(f.name)}, press and hold for 3 seconds"><span class="feat-fill"></span><span class="feat-label">${left ? 'Hold to activate' : 'No uses left'}</span></button>
-      ${featNote ? `<p class="note" role="status">${esc(featNote)}</p>` : ''}
-    </div>`; }).join('')}
-  </div>`;
-  featFresh = false;
-  return html;
+      ${featNote ? `<p class="note" role="status">${esc(featNote)}</p>` : ''}</div>`;
+  };
+  return `<div class="card"><h3>Class features <span class="note">tap a card to flip it · hold Activate for 3 s</span></h3><div class="flip-grid">${list.map(card).join('')}</div></div>`;
 }
+// Turn a face in once, on the tap that flipped it (a redraw never replays it). Under Reduce it fades.
+function turn(root_, attr, name) { const el = [...root_.querySelectorAll(`[${attr}]`)].find((x) => x.getAttribute(attr) === name); if (el) window.Anim?.play(el.closest('.flip') || el, 'flip', null); }
 
 // Spells tab (Nov 21): only for characters with spell slots or spells; the DM keeps both up to date.
 function renderSpells(S, c) {
@@ -76,17 +79,29 @@ function renderSpells(S, c) {
   if (a && spellRoot().contains(a) && a.tagName === 'INPUT') return;
   const slots = Object.entries(c.slots || {});
   const known = (c.spells || []).map((id) => spells.byId(id)).filter(Boolean).sort((x, y) => x.level - y.level || x.name.localeCompare(y.name));
-  const open = new Set([...spellRoot().querySelectorAll('details[open]')].map((x) => x.dataset.k));
   spellRoot().innerHTML = `
     ${slots.length ? `<div class="card"><h3>Spell slots <span class="note">your DM marks them</span></h3>${slots.map(([l, x]) => pips(l, x)).join('')}</div>` : ''}
     <div class="card"><h3>Spells</h3>
-      ${known.map((x) => `<details data-k="${esc(x.id)}" ${open.has(x.id) ? 'open' : ''}><summary><b>${esc(x.name)}</b> <small class="muted">${x.level ? `level ${x.level}` : 'cantrip'}${x.concentration ? ' · conc.' : ''}</small></summary>
-        <p class="note">${esc([x.school, x.time, x.range, x.components, x.duration].filter(Boolean).join(' · '))}</p><p>${esc(x.text)}</p>${x.higher ? `<p class="note">${esc(x.higher)}</p>` : ''}<button class="btn small danger" data-spell-del="${esc(x.id)}">Forget</button></details>`).join('') || '<p class="note">No spells on your sheet yet.</p>'}
+      ${known.length ? `<div class="flip-grid">${known.map((x) => {
+        const sub = `${x.level ? `level ${x.level}` : 'cantrip'}${x.concentration ? ' · conc.' : ''}`;
+        if (!openSpells.has(x.id)) return `<button class="flip" data-spell="${esc(x.id)}" aria-expanded="false"><b>${esc(x.name)}</b><small class="muted">${sub}</small></button>`;
+        return `<div class="flip back"><button class="flip-head" data-spell="${esc(x.id)}" aria-expanded="true"><span>${esc(x.name)}</span><small class="muted">${sub}</small></button>
+          <p class="note">${esc([x.school, x.time, x.range, x.components, x.duration].filter(Boolean).join(' · '))}</p><p>${esc(x.text)}</p>${x.higher ? `<p class="note">${esc(x.higher)}</p>` : ''}<button class="btn small danger" data-spell-del="${esc(x.id)}">Forget</button></div>`;
+      }).join('')}</div>` : '<p class="note">No spells on your sheet yet.</p>'}
       <form class="row" id="spellForm"><input id="spellAdd" class="grow" list="spellList" placeholder="Add a spell by name"><datalist id="spellList">${spells.items.filter((x) => !(c.spells || []).includes(x.id)).map((x) => `<option value="${esc(x.name)}">`).join('')}</datalist><button class="btn">Add</button></form>
     </div>`;
 }
 // Spells tab: add a spell by name, or forget one (the slots stay with the DM).
 spellRoot().addEventListener('click', (e) => {
+  const flip = e.target.closest('[data-spell]');
+  if (flip && state()) {
+    const id = flip.dataset.spell;
+    if (openSpells.has(id)) openSpells.delete(id); else openSpells.add(id);
+    renderSpells(state(), mine());
+    turn(spellRoot(), 'data-spell', id);
+    navigator.vibrate?.(20);
+    return;
+  }
   const b = e.target.closest('[data-spell-del]');
   const c = mine();
   if (b && c) send({ spells: c.spells.filter((x) => x !== b.dataset.spellDel) });
@@ -148,7 +163,7 @@ root().addEventListener('click', (e) => {
   if (!b || !c) return;
   const d = b.dataset;
   if (d.hdSpend) openHitDice(c, 'Spend hit dice');
-  else if (d.feat) { openFeat = openFeat === d.feat ? null : d.feat; featNote = ''; featFresh = !!openFeat; render(); }
+  else if (d.feat) { openFeat = openFeat === d.feat ? null : d.feat; featNote = ''; render(); turn(root(), 'data-feat', d.feat); }
   else if (d.moveNew) openMoveBuilder(c);
   else if (d.moveEdit) openMoveBuilder(c, Number(d.moveEdit));
   else if (d.moveDel) { if (c.moves.length > 1) send({ moves: c.moves.filter((_, i) => i !== Number(d.moveDel)) }); }

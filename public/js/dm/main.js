@@ -42,6 +42,7 @@ import './chronicle.js';
 import './dock.js';
 import './endsession.js';
 import './lore.js';
+import './tableplay.js'; // asks, key bank, NPC memory and voices (PR AD)
 import './designer.js'; // Creature Designer and lore wiki (PR W)
 import './keywords.js'; // creature keyword bank and ideas in the designer (Nov 19)
 import './menus.js';
