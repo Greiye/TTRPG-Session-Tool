@@ -294,3 +294,31 @@ Mike's sticky note: "Bard song mode. Bards set their spells. Duration: effect. A
 - [ ] DM one-tap override: grant, cut or extend any song effect. [Every automated result gets an override]
 - [ ] System-agnostic effects: songs carry effect tags (heal, buff, debuff, area) that `src/rules/` maps to 5e now and Daggerheart later. No 5e-only rules in shared code.
 - Open question: should misplayed notes have a downside (a backfire or a lost turn), or only lower the strength?
+
+## AI Text RPG spec v2, merged (Mike, 2026-11-24)
+
+Mike asked to merge his "AI Text RPG Project Spec v2" into this plan, not build it. The full comparison (Built,
+Partly, New, Not adopted, with reasons) is in `docs/spec-merge.md`. The AI game master, stealth DM takeover,
+accounts and paid tiers are not adopted. These are the new items worth having at this table.
+
+### PR AC: Code health from the spec (no behaviour change)
+`tools/dupes.js` (new), `docs/duplication-report.md` (new), `public/theme.css`, `public/style.css`, `public/anim.js`, `public/js/dm/dgwindow.js`, `test/run.js`
+- [ ] Duplication audit: `npm run dupes` lists near-duplicate functions and CSS blocks across `src/` and `public/`, and writes `docs/duplication-report.md` (files, lines, what they should merge into). Sits beside `docs/module-graph.md`.
+- [ ] Merge steps from the report, smallest and safest first, one PR each, each with its own test and no visible change.
+- [ ] Motion tokens: the CSS uses 22 different easings. Fold them into a few named tokens in `public/theme.css` (one standard ease, one bounce; fast, medium and slow durations). `public/anim.js` reads the same tokens. The Motion setting keeps working as it does.
+- [ ] One dialog shell: list the pop-ups that still build their own frame, close button and Escape handling, and move them onto the shared dialog.
+- [ ] Measure before optimising: a check for dice tray and TV frame rate during a busy combat, next to the payload sizes PR #157 measures.
+
+### PR AD: Table play ideas from the spec
+`src/rules/`, `src/sheet.js`, `public/js/play/rolls.js`, `public/js/play/sheet.js`, `public/js/dm/social.js`, `src/storybook.js`, `public/js/play/mapview.js`, `public/js/dm/lore.js`, `src/soundscape.js`, `public/stage.js`, `public/audio.js`, `src/visibility.js`
+- [ ] Key bank per profession: the rules file lists which skills each profession leans on (Rogue: Stealth, Sleight of Hand; Bard: Performance, Persuasion). The phone shows them as quick-roll buttons with the bonus ("Stealth +7"); tapping one asks the DM, who accepts or sets a DC. The DM's party card gets the same buttons. [Builds on PR Y profession kits; system-agnostic, names editable]
+- [ ] Ability cards: features, spells and special moves show as cards that flip to the full rules on tap. Reuse the item card from PR #143. Respects the Motion setting (Reduce swaps faces with a fade).
+- [ ] Drag-to-roll die on phones: flick the die to roll a roll call; the result still comes from the server, the drag only sets the tumble. A tap still rolls. Display setting "Drag dice to roll", default on.
+- [ ] NPC memory: when the DM opens a conversation, a DM-only strip shows the last few kept moments with that NPC and those players, from the Storybook journal. Bookkeeping only; nothing is written for the DM. [Stripped in `src/visibility.js`, with a test]
+- [ ] Battle cry: an optional short line with a strike, shown on the TV under the roll pop-up. DM can hide it with one tap.
+- [ ] Nearby places: the phone map lists known places by road legs from the party, nearest first.
+- [ ] Lore sorted by scale: Lore tab sort option from smallest (a person) to largest (a region or the world).
+- [ ] First-time tips: the first time a player opens each phone tab, one short tip explains it. Tap anywhere to close; the DM can reset tips for the table.
+- [ ] Night ambience: the soundscape adds night layers (crickets) when the story clock reaches dusk and removes them at dawn. One-tap undo like the other automatic changes.
+- [ ] Backdrop drift: a slow zoom on the TV backdrop (Ken Burns style). Off under Reduce motion; per-backdrop on or off.
+- [ ] NPC voices read aloud (optional): the TV can speak an NPC's line with the browser's built-in voices; each NPC gets a voice, pitch and speed on its card, with preview, mute per NPC and a global off switch. Off by default. [Pairs with the existing speech-to-text]
