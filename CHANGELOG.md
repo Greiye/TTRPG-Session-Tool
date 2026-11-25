@@ -4,6 +4,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+- **Run skill for agents** (Nov 25). `.claude/skills/run-tavern-screen/`: `driver.mjs` boots the server on a temp data dir, opens DM, TV and phone pages in headless Chromium and takes line commands (join, mode, emit, click, hold, ss, state); `SKILL.md` documents it with the gotchas (TV stats card, world map in social, hold-to-start conversation).
+
 ### Fixed
 - **Flaky phone sheet UI test** (Nov 23). The class feature description replayed its slide-open animation on every redraw, so a state update while `test/ui.js` aimed at Activate moved or replaced the button ("Element is not attached", main run Nov 22). It now animates only on the tap that opens it, which also stops it flickering on players' phones. The test presses Activate through `hover()`, which waits and retries, and checks a redraw does not replay the animation.
 - **Shop layout UI test waits for layout** (Nov 23). `test/nov21-ui.js` now waits for the TV shop columns to settle before checking the merchant sits on the right, instead of reading the layout on the first frame (failed once in CI on PR #158).
