@@ -329,7 +329,7 @@ Generated NPCs get very simple stats, no more than 5. The DM can promote one to 
 elaborate it then. Look reference (Mike's screenshot): an Oregon Trail style sheet with grouped panels, an icon
 per stat, segmented 6-pip bars, and "UNDISCOVERED" in place of a bar until the players learn it.
 
-### PR AE: Simple NPC stats, reveal and promotion
+### PR AF: Simple NPC stats, reveal and promotion
 `src/npcstats.js` (new), `src/cast.js`, `src/creatures.js`, `src/rules/`, `src/visibility.js`, `src/sockets/dm.js`, `public/js/dm/social.js`, `public/js/dm/creatures.js`, `public/js/play/`, `public/stage.js`, `public/theme.css`
 - [ ] Five stats on every generated NPC, each 0 to 6 pips. Candidate set (names, icons and count editable in the rules file, so Mike's system can rename them):
   - **Health**: how much it takes to drop them.
