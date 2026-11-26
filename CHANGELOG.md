@@ -5,6 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Backlog: simple NPC stats** (Mike, Nov 26). PR AE in `docs/backlog.md`: five pip stats on generated NPCs (Health, Nerve, Attitude, Wit, Knack), undiscovered until the DM reveals them, and promotion to a named NPC in the Creature Designer. Not built.
 - **Run skill for agents** (Nov 25). `.claude/skills/run-tavern-screen/`: `driver.mjs` boots the server on a temp data dir, opens DM, TV and phone pages in headless Chromium and takes line commands (join, mode, emit, click, hold, ss, state); `SKILL.md` documents it with the gotchas (TV stats card, world map in social, hold-to-start conversation).
 
 ### Fixed
