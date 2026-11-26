@@ -389,6 +389,11 @@
       <h3>Roll call <span class="note" id="callStatus"></span></h3>
       <!-- The DC ladder is the top segment of the Roll call window (Mike, Nov 17). -->
       <div class="row dc-ladder-row"><span class="note">DC ladder:</span> <div id="dcLadder" class="row"></div></div>
+      <!-- Quick rolls sit in the Roll call window, not a window of their own, so the Rolls tab still fits without scrolling (Nov 25). -->
+      <div id="keyBank" class="kb-section">
+        <div class="note"><b>Quick rolls</b>: one tap rolls for that character.</div>
+        <div id="kbParty"></div>
+      </div>
       <!-- Each drop-down gets its own row so its text is not cut off in the tools column (Mike, Nov 15). -->
       <label class="fld call-fld">Preset<select id="callPreset"><option value="">Custom</option></select></label>
       <label class="fld call-fld">Roll type<select id="callKind"><option value="skill">Skill</option><option value="save">Save</option><option value="ability">Ability</option></select></label>
@@ -411,6 +416,11 @@
       <input id="callPass" placeholder="On success, e.g. You spot the tracks.">
       <input id="callFail" placeholder="On failure, e.g. Nothing out of place.">
       <div id="checkResults" class="list"></div>
+      <div class="kb-edit"><div class="note"><b>Quick rolls per profession</b></div>
+        <div class="row"><select id="kbCls" style="width:auto" aria-label="Profession"></select><input id="kbKeys" class="grow" maxlength="400" placeholder="Stealth, Sneak = Stealth" aria-label="Skills for this profession"><button class="btn small" id="kbSave">Save</button></div>
+        <p class="note" id="kbMsg" aria-live="polite">Skills each profession leans on, with commas. Name = Skill gives one your own name. Empty goes back to the rules.</p>
+        <div class="row"><button class="btn small" id="tipsReset">Show phone tips again</button><span class="note" id="tipsMsg" aria-live="polite"></span></div>
+      </div>
     </div>
     <div class="card" data-tab="rolls" data-panel="exploration social combat">
       <h3>Roll dice <span class="note">Secret rolls only show here</span></h3>
@@ -426,13 +436,6 @@
       <h3>Hidden points of interest <span class="note">uncover them on the TV</span></h3>
       <div id="fogList" class="row"></div>
       <div class="row"><button class="btn small" data-act="fogAll">Uncover all</button><button class="btn small" data-act="fogHide">Cover all</button></div>
-    </div>
-    <div class="card" data-tab="rolls" data-panel="exploration social combat" data-fold-key="keybank" id="keyBank">
-      <h3>Quick rolls <span class="note">one tap rolls for that character</span></h3>
-      <div id="kbParty"></div>
-      <div class="row"><select id="kbCls" style="width:auto" aria-label="Profession"></select><input id="kbKeys" class="grow" maxlength="400" placeholder="Stealth, Sneak = Stealth" aria-label="Skills for this profession"><button class="btn small" id="kbSave">Save</button></div>
-      <p class="note" id="kbMsg" aria-live="polite">Skills each profession leans on, with commas. Name = Skill gives one your own name. Empty goes back to the rules.</p>
-      <div class="row"><button class="btn small" id="tipsReset">Show phone tips again</button><span class="note" id="tipsMsg" aria-live="polite"></span></div>
     </div>
     <div class="card" data-tab="rolls" data-panel="exploration">
       <h3>Hidden details <span class="note">perception-gated</span></h3>

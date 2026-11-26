@@ -38,3 +38,5 @@ body.tv .bd.drift img, body.tv .bd.drift video { animation: fadein .8s, bd-drift
 @keyframes bd-drift { from { transform: scale(1); } to { transform: scale(1.08) translate(-1%, 1%); } }
 html[data-motion="reduce"] body.tv .bd.drift :is(img, video) { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { html:not([data-motion="full"]) body.tv .bd.drift :is(img, video) { animation: none !important; } }
+.kb-section, .kb-edit { display: grid; gap: 6px; margin: 8px 0; }
+.kb-section:has(#kbParty:empty) { display: none; }
