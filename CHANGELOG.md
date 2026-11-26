@@ -5,7 +5,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
-- **Backlog: road events while travelling** (Mike, Nov 26). PR AE in `docs/backlog.md`: an Oregon Trail style list of road events in a Markdown file; events fire on world map road legs (story clock segments) filtered by time of day, weather and terrain; the DM approves each before the table sees it; players vote on choices on their phones; system-agnostic checks; outcomes spend time, coins, items or HP; a TV event card; one-tap DM override and undo. Not built.
+- **Backlog: road events while travelling** (Mike, Nov 26). PR AE in `docs/backlog.md`: an Oregon Trail style list of road events in a Markdown file; events fire on world map road legs (story clock segments) filtered by time of day, weather and terrain; the DM approves each before the table sees it; players vote on choices on their phones; system-agnostic checks; outcomes spend time, coins, items or HP; a TV event card; one-tap DM override and undo; a module the DM can switch on or off. Not built.
 - **Run skill for agents** (Nov 25). `.claude/skills/run-tavern-screen/`: `driver.mjs` boots the server on a temp data dir, opens DM, TV and phone pages in headless Chromium and takes line commands (join, mode, emit, click, hold, ss, state); `SKILL.md` documents it with the gotchas (TV stats card, world map in social, hold-to-start conversation).
 
 ### Fixed

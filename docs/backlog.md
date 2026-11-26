@@ -329,6 +329,7 @@ Mike: "I am considering a kind of Oregon Trail format for travelling. There's a 
 
 ### PR AE: Road events while travelling
 `data/road-events.md` (new, DM's own list), `src/roadevents.js` (new), `src/sockets/roadevents.js` (new), `src/worldmap.js`, `src/clock.js`, `src/living.js`, `src/rules/`, `src/visibility.js`, `src/storybook.js`, `public/js/dm/roadevents.js` (new), `public/js/play/`, `public/stage.js`
+- [ ] Toggleable module (Mike, Nov 26): road events are one self-contained module the DM switches on or off (DM Screen › Settings › Modules, `state.modules.roadEvents`, off by default). Off means no draws, no DM card, no phone or TV UI, and travel works exactly as today; the code lives only in the files marked (new) plus one hook call in `src/worldmap.js` that checks the switch. Turning it off mid-event closes the card with no outcome. The switch is the first entry in a small module list other optional systems can join later.
 - [ ] Event list in Markdown: one file, `data/road-events.md`, editable by hand or from the DM Screen (Planning › Road events). A starter list ships in `docs/road-events.example.md`. Each event is a heading, a few `key: value` lines, the text, then one `-` line per choice:
 
   ```md
