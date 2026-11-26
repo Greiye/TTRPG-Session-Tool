@@ -328,3 +328,58 @@ accounts and paid tiers are not adopted. These are the new items worth having at
 - A step-by-step prep screen before the TV goes live: walk through every Planning step (Modules, session plan, party, world map, shops, creatures, story nodes, soundscape), then Start game.
 - Planning › Modules (built Nov 26, `src/features.js`) is its first step: switch off what this session does not use.
 - Not built.
+## Mike's notes, 2026-11-26 (road events)
+
+Mike: "I am considering a kind of Oregon Trail format for travelling. There's a list of road events in an .md file, and the players can decide how to handle them as they travel on the map." Plan only, not built. The look is from a screenshot he shared of a trail game's event card (dated title, speaker portrait and quote, wide scene with the wagon, big Continue button).
+
+### PR AE: Road events while travelling
+`data/road-events.md` (new, DM's own list), `src/roadevents.js` (new), `src/sockets/roadevents.js` (new), `src/worldmap.js`, `src/clock.js`, `src/living.js`, `src/rules/`, `src/visibility.js`, `src/storybook.js`, `public/js/dm/roadevents.js` (new), `public/js/play/`, `public/stage.js`
+- [ ] Toggleable module (Mike, Nov 26): road events are one self-contained module the DM switches on or off (Planning › Modules, built Nov 26: add `roadEvents` to `src/features.js` with a `default: off` flag, since every module there is on by default). Off means no draws, no DM card, no phone or TV UI, and travel works exactly as today; the code lives only in the files marked (new) plus one hook call in `src/worldmap.js` that checks the switch. Turning it off mid-event closes the card with no outcome. The module list already exists (`src/features.js`, PR #166).
+- [ ] Event list in Markdown: one file, `data/road-events.md`, editable by hand or from the DM Screen (Planning › Road events). A starter list ships in `docs/road-events.example.md`. Each event is a heading, a few `key: value` lines, the text, then one `-` line per choice:
+
+  ```md
+  ## Broken wheel
+  when: road, day | weight: 3 | terrain: hills, forest | weather: rain, storm
+  who: Jack Keetley (portrait: keetley.png)
+  > "That wheel won't last another mile, friend."
+
+  The cart lurches and a wheel cracks on a rock.
+
+  - Fix it here | check: craft 12 | pass: lose 1 segment | fail: lose 2 segments, -5 coins
+  - Leave the cart | lose: cart | gain: 1 segment
+  - Ask the stranger for help | cost: 10 coins | lose 1 segment
+  ```
+
+  Everything but the heading and the choices is optional. Unknown keys are kept and shown to the DM, never an error.
+- [ ] Triggers on road legs: each leg of travel already spends one segment of the story clock (PR V). After each leg an event roll decides whether one fires (Mike, Nov 26: decided on a roll). The DM sets the die and the target (default d6, event on a 1); dusk, night and storms shift it through `encounterFactor` in `src/living.js`. The roll shows in the dice log with the DM's usual one-tap reroll or override. It then draws one event whose `when`, `terrain`, `weather` and time of day fit, by `weight`. An event fired this session is not drawn again unless it says `repeat: yes`.
+- [ ] Conditions read shared state: time of day from the story clock, `state.weather` (one weather source), terrain from the road or the node it leads to (a road gets an optional terrain tag in the DM's road card). Places can add their own events with `place: Millbrook`.
+- [ ] DM first, always: a drawn event is a pending card on the DM Screen only (stripped in `src/visibility.js`, with a test). The DM taps **Run it**, **Draw another** or **Skip** before anyone sees it. Travel pauses on the leg until the event is run or skipped. A DM button **Road event now** fires one by hand.
+- [ ] TV event card (layout from Mike's screenshot): title and the in-world date and time across the top; the speaker's portrait with name plate on the left and the quote beside it; the scene below as a wide strip (the current backdrop or the event's own `image`, with the party's portraits walking in a line, placeholder art for now); the choices as large buttons along the bottom with live vote counts. After the outcome, one **Continue** (DM or every player) closes it. Slides in and out; Reduce motion swaps it with a fade.
+- [ ] Choices by phone vote: players see nothing until the DM runs the event and the vote opens (Mike, Nov 26). Then each phone shows the event text and the choices; players vote, spectators can suggest but their taps do not count. The DM sees the tally and picks (any choice, not only the winner), or lets the vote close itself after a time he sets. Reuses the world map vote and roll call pop-ups, no new vote system.
+- [ ] Checks stay system-agnostic: a choice's `check: <skill> <DC>` turns into a roll call for the chosen player or the whole party through `src/rules/` (5e skills now, Mike's own system later; skill names are just text). `check: group` means most of the party must pass. The DC can be secret like other checks (no pass/fail leak to the TV).
+- [ ] Outcomes spend resources: plain words the server knows: `lose`/`gain` segments (story clock), coins, an item by name, HP (`-1d6 hp` to each or to one), a condition, a town's standing. Anything it does not know is shown to the DM as a note to apply by hand. No inventory weight (Mike rejected it).
+- [ ] Party supplies (Mike, Nov 26): one shared counter of supply boxes, shown small on the DM party bar and the phone Inventory. A box costs 5 copper in any shop and feeds the whole party for about a season. Use is randomized: each road leg has a small chance to use part of a box, tuned so one box lasts roughly a season of story clock on average. Present but ignorable: running out only shows "Out of supplies" to the DM and the table, with no damage, conditions or forced events. Events may say `cost: 1 supplies` or `gain: 1 supplies`. The DM sets or resets the count with one tap. Part of the road events module, so it hides when the module is off.
+- [ ] DM one-tap override on every automated result: change the roll, swap the outcome, or **Undo** the whole event (uses the existing undo history). The vote result is a suggestion the DM can overrule.
+- [ ] Storybook: each event and the choice made goes into the session journal, so it shows in the /story replay and the story pack.
+- Mike's answers (Nov 26): an event fires on a roll; players do not see choices before the vote opens; yes to a randomized supplies counter (5 copper a box, about a season per box, never affects the story).
+
+## Mike's notes, 2026-11-26 (simple NPC stats)
+
+Generated NPCs get very simple stats, no more than 5. The DM can promote one to a named NPC later and
+elaborate it then. Look reference (Mike's screenshot): an Oregon Trail style sheet with grouped panels, an icon
+per stat, segmented 6-pip bars, and "UNDISCOVERED" in place of a bar until the players learn it.
+
+### PR AF: Simple NPC stats, reveal and promotion
+`src/npcstats.js` (new), `src/cast.js`, `src/creatures.js`, `src/rules/`, `src/visibility.js`, `src/sockets/dm.js`, `public/js/dm/social.js`, `public/js/dm/creatures.js`, `public/js/play/`, `public/stage.js`, `public/theme.css`
+- [ ] Five stats on every generated NPC, each 0 to 6 pips. Candidate set (names, icons and count editable in the rules file, so Mike's system can rename them):
+  - **Health**: how much it takes to drop them.
+  - **Nerve**: how long they hold before they flee, fold or panic.
+  - **Attitude**: how they feel about the party, hostile to friendly.
+  - **Wit**: how sharp they are; spots lies, tells good lies.
+  - **Knack**: one thing they are good at, with a free-text name (Carpentry, Wayfinding, Haggling).
+- [ ] Generate: the DM's new-NPC button rolls the five pips with a light bias from the NPC's role (a guard leans Health, a merchant leans Wit). One tap rerolls; every pip is editable. [Bookkeeping only; the DM can override any value]
+- [ ] Stat card: grouped panel, icon per stat, segmented 6-pip bar that fills in left to right. Shown on the DM's cast card and, for the stats the party knows, on phones and the TV. Respects the Motion setting.
+- [ ] Discovered or undiscovered per stat, per NPC. Undiscovered stats show "UNDISCOVERED" to players and the TV. The DM reveals one with a tap (after a good read, a roll or a conversation); the bar fills in with a short reveal animation on the TV. Hide again with one tap. [Hidden values stripped for player, screen and guest in `src/visibility.js`, with a test; co-DM sees all]
+- [ ] Promote to named NPC: one button on the cast card opens the Creature Designer (PR W) prefilled with the name, the five stats and anything revealed. The DM elaborates there (full stats, skills, lore, abilities). The five-pip card stays as the quick view; NPC memory (PR AD) and Storybook moments follow the promoted NPC.
+- [ ] Pool NPCs (Albert, Brent, Christina) and NPCs from plans get the same five stats, defaulting to undiscovered.
+- Open question: should Health pips drive the NPC's HP in combat (rules file maps pips to HP), or stay a story hint only?
