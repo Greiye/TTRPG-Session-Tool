@@ -357,3 +357,24 @@ Mike: "I am considering a kind of Oregon Trail format for travelling. There's a 
 - [ ] DM one-tap override on every automated result: change the roll, swap the outcome, or **Undo** the whole event (uses the existing undo history). The vote result is a suggestion the DM can overrule.
 - [ ] Storybook: each event and the choice made goes into the session journal, so it shows in the /story replay and the story pack.
 - Mike's answers (Nov 26): an event fires on a roll; players do not see choices before the vote opens; yes to a randomized supplies counter (5 copper a box, about a season per box, never affects the story).
+
+## Mike's notes, 2026-11-26 (simple NPC stats)
+
+Generated NPCs get very simple stats, no more than 5. The DM can promote one to a named NPC later and
+elaborate it then. Look reference (Mike's screenshot): an Oregon Trail style sheet with grouped panels, an icon
+per stat, segmented 6-pip bars, and "UNDISCOVERED" in place of a bar until the players learn it.
+
+### PR AF: Simple NPC stats, reveal and promotion
+`src/npcstats.js` (new), `src/cast.js`, `src/creatures.js`, `src/rules/`, `src/visibility.js`, `src/sockets/dm.js`, `public/js/dm/social.js`, `public/js/dm/creatures.js`, `public/js/play/`, `public/stage.js`, `public/theme.css`
+- [ ] Five stats on every generated NPC, each 0 to 6 pips. Candidate set (names, icons and count editable in the rules file, so Mike's system can rename them):
+  - **Health**: how much it takes to drop them.
+  - **Nerve**: how long they hold before they flee, fold or panic.
+  - **Attitude**: how they feel about the party, hostile to friendly.
+  - **Wit**: how sharp they are; spots lies, tells good lies.
+  - **Knack**: one thing they are good at, with a free-text name (Carpentry, Wayfinding, Haggling).
+- [ ] Generate: the DM's new-NPC button rolls the five pips with a light bias from the NPC's role (a guard leans Health, a merchant leans Wit). One tap rerolls; every pip is editable. [Bookkeeping only; the DM can override any value]
+- [ ] Stat card: grouped panel, icon per stat, segmented 6-pip bar that fills in left to right. Shown on the DM's cast card and, for the stats the party knows, on phones and the TV. Respects the Motion setting.
+- [ ] Discovered or undiscovered per stat, per NPC. Undiscovered stats show "UNDISCOVERED" to players and the TV. The DM reveals one with a tap (after a good read, a roll or a conversation); the bar fills in with a short reveal animation on the TV. Hide again with one tap. [Hidden values stripped for player, screen and guest in `src/visibility.js`, with a test; co-DM sees all]
+- [ ] Promote to named NPC: one button on the cast card opens the Creature Designer (PR W) prefilled with the name, the five stats and anything revealed. The DM elaborates there (full stats, skills, lore, abilities). The five-pip card stays as the quick view; NPC memory (PR AD) and Storybook moments follow the promoted NPC.
+- [ ] Pool NPCs (Albert, Brent, Christina) and NPCs from plans get the same five stats, defaulting to undiscovered.
+- Open question: should Health pips drive the NPC's HP in combat (rules file maps pips to HP), or stay a story hint only?
