@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/dungeon.css">
   <link rel="stylesheet" href="/town.css">
   <script src="/settings.js"></script>
+  <script src="/features.js"></script>
   <link rel="stylesheet" href="/theme.css">
 </head>
 <body class="codm">
@@ -36,6 +37,7 @@
       document.getElementById('denied').hidden = ok;
     }));
     socket.on('state', (s) => {
+      Features.apply(s); // Planning › Modules (public/features.js)
       Stage.stage(document.getElementById('stage'), s);
       render(s);
     });

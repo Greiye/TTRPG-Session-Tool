@@ -6,7 +6,7 @@ const { esc } = Stage;
 const KINDS = ['entrance', 'passage', 'room', 'crypt', 'trap', 'treasure', 'monster', 'scroll', 'puzzle', 'secret', 'boss', 'exit'];
 const kindOpts = (sel) => KINDS.map((k) => `<option value="${k}" ${k === sel ? 'selected' : ''}>${Dungeon.ICON[k]} ${k}</option>`).join('');
 
-mount(`<div class="card" data-tab="scene" data-sub="scene" data-panel="exploration" id="dgCard">
+mount(`<div class="card" data-tab="scene" data-sub="scene" data-panel="exploration" id="dgCard" data-feature="dungeon">
   <h3>Dungeon nodes <span class="note">rooms on levels, joined by ropes</span></h3>
   <p class="note" id="dgWhere"></p>
   <div class="row wrap">

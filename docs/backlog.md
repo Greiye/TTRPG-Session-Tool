@@ -322,3 +322,9 @@ accounts and paid tiers are not adopted. These are the new items worth having at
 - [ ] Night ambience: the soundscape adds night layers (crickets) when the story clock reaches dusk and removes them at dawn. One-tap undo like the other automatic changes.
 - [ ] Backdrop drift: a slow zoom on the TV backdrop (Ken Burns style). Off under Reduce motion; per-backdrop on or off.
 - [ ] NPC voices read aloud (optional): the TV can speak an NPC's line with the browser's built-in voices; each NPC gets a voice, pitch and speed on its card, with preview, mute per NPC and a global off switch. Off by default. [Pairs with the existing speech-to-text]
+
+## DM Prep Screen (Mike, 2026-11-26)
+
+- A step-by-step prep screen before the TV goes live: walk through every Planning step (Modules, session plan, party, world map, shops, creatures, story nodes, soundscape), then Start game.
+- Planning › Modules (built Nov 26, `src/features.js`) is its first step: switch off what this session does not use.
+- Not built.

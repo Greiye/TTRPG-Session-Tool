@@ -4,7 +4,7 @@
 import { $, call, mount, onState, socket } from '../client.js';
 import { dmKey, masterRole } from './auth.js';
 
-const bar = mount(`<span class="keep-bar" id="keepBar">
+const bar = mount(`<span class="keep-bar" id="keepBar" data-feature="storybook">
   <button class="btn small keep-btn" id="keepBtn" aria-pressed="false" aria-keyshortcuts="K" title="Keep the last moment for the storybook (K)">☆ Keep</button>
   <a class="btn small" id="storyLink" target="_blank" title="Replay past sessions and download a story pack">📖 Storybook</a>
   <span class="undo-note" id="keepNote" role="status" aria-live="polite"></span>

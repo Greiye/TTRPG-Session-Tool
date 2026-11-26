@@ -5,6 +5,8 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ## [Unreleased]
 
 ### Added
+- **Planning › Modules** (Mike, Nov 26). Every optional feature (34 modules: world map, towns, dungeons, weather, puzzles, camp, downtime, combat, battle map, creatures, social, live voice, shops, factions, living world, relations, items, messages, journal, lore, inspiration, legends, clocks, TV moments, soundscape, lights, table tools, quiz, spectators, Keep star, helpers, Creature Designer, Story Nodes) has an on/off switch in a new Planning tab. Off hides it on the DM page, the TV and phones and the server refuses its events; nothing is deleted, and **All on** brings it back. Everything starts on, so the table looks the same. `src/features.js`, `public/features.js`, `public/js/dm/modules.js`.
+- **Feature list** (Mike, Nov 26). `docs/features.md` lists everything the game does, by pillar, with the module switch for each.
 - **Run skill for agents** (Nov 25). `.claude/skills/run-tavern-screen/`: `driver.mjs` boots the server on a temp data dir, opens DM, TV and phone pages in headless Chromium and takes line commands (join, mode, emit, click, hold, ss, state); `SKILL.md` documents it with the gotchas (TV stats card, world map in social, hold-to-start conversation).
 
 ### Fixed

@@ -102,6 +102,7 @@ const state = {
   trophy: null, // { id, n } trophy story card on the TV (transient)
   narration: [], // { id, text } the DM's last 10 narrate posts, shown under the scene description
   storyGraph: { nodes: [], links: [] }, // Story Nodes Graph in Planning, DM only (src/storygraph.js)
+  features: {}, // Planning › Modules: { id: false } for each switched-off module (src/features.js)
   shopPop: null, // { shopId, n, done: [charId] } shop pop-up on the TV and phones (transient, src/shops.js)
   legendsShow: null, // 'hall' | 'shelf' | null: legends card on the TV (transient)
   // lighting preset is kept on the scene (src/world.js)
@@ -124,11 +125,13 @@ store.EXTRA.push('shopSeed'); // Greer's Trinkets seeded once
 store.EXTRA.push('town', 'townSeed'); // town maps and visits (PR V)
 store.EXTRA.push('soundscape'); // soundscape for the DM and Music Co-DM
 store.EXTRA.push('storyGraph'); // Story Nodes Graph (Nov 21)
+store.EXTRA.push('features'); // Planning › Modules: switched-off modules (Nov 26, src/features.js)
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
 seq = store.restore(state, roster, store.load());
 require('./storygraph').ensure(state);
+if (!state.features || typeof state.features !== 'object') state.features = {}; // every module on (src/features.js)
 if (!state.room) state.room = newRoomCode();
 state.scene.secrets ??= [];
 state.factions ??= [];
@@ -209,7 +212,7 @@ function fullState() {
   const spectators = [...io.sockets.sockets.values()].filter((x) => x.data.spectator).length;
   const bulbsTargets = require('./bulbs').targets().length;
   const legendsView = legends.view(); // hall of fame and trophy shelf: public, kept across campaigns
-  return { ...state, lobbyStarter: state.lobby ? require('./lobby').starter() : null, bulbsTargets, legends: legendsView, houseRuleList: houserules.list(state), plans: plan.withDanger(state.plans, state), players, roster: cards, screens, codms, masters, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
+  return { ...state, lobbyStarter: state.lobby ? require('./lobby').starter() : null, bulbsTargets, legends: legendsView, houseRuleList: houserules.list(state), featureList: require('./features').list(state), featuresOff: require('./features').offList(state), plans: plan.withDanger(state.plans, state), players, roster: cards, screens, codms, masters, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
 }
 const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
 

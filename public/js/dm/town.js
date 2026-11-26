@@ -8,6 +8,7 @@ import { dmKey } from './auth.js';
 const esc = (s) => Stage.esc(s);
 const host = document.createElement('section');
 host.className = 'card tn-ed';
+host.dataset.feature = 'town';
 host.hidden = true;
 host.innerHTML = `<h3>🏘 <span id="tnTitle">Town</span> <span class="note">town map: places the party discovers and visits</span></h3>
   <div id="tnVisit"></div>

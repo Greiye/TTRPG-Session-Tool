@@ -32,6 +32,7 @@ export function onState(fn) {
 }
 socket.on('state', (s) => {
   current = s;
+  window.Features?.apply(s); // Planning › Modules: hide switched-off features (public/features.js)
   for (const fn of subs) {
     try { fn(s); } catch (e) { console.error(e); }
   }
