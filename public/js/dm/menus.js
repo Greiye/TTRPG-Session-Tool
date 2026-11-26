@@ -12,6 +12,7 @@ const attr = (name, v) => `[${name}="${CSS.escape(v)}"]`;
 const clip = (t, n = 40) => { t = String(t || '').replace(/\s+/g, ' ').trim(); return t.length > n ? `${t.slice(0, n - 1)}…` : t; };
 const copy = (text) => navigator.clipboard?.writeText(text).catch(() => {});
 const clickEl = (el) => { if (el && !el.disabled) { el.click(); return true; } return false; };
+const off = (id) => !!window.Features?.off(state(), id); // Planning › Modules (src/features.js)
 const toLore = async (cat, name, text = '') => {
   const r = await call('dm:lore:add', { cat, name, text });
   if (r?.error) alert(r.error);
@@ -59,14 +60,14 @@ function unitMenu(id) {
       canHit && { h: `Attack with ${actor.name}`, items: (actor.attacks?.length ? actor.attacks : [{ name: 'Attack', atk: null }]).map((a, i) => ({ label: `⚔ ${a.name}${a.atk != null ? ` ${a.atk >= 0 ? '+' : ''}${a.atk}` : ''}`, run: () => emit('dm:enemy:attack', { target: id, attack: i }) })) },
       { h: 'Hit points', row: true, wrap: false, items: [-10, -5, -1, 1, 5, 10].map((d) => ({ label: `${d > 0 ? '+' : ''}${d}`, tone: d < 0 ? 'neg' : 'pos', keep: true, run: () => emit('dm:hp', { id, delta: d }) })) },
       { h: 'Conditions', row: true, items: CONDS.map((n) => ({ label: n, on: conds.includes(n), keep: true, run: () => emit('dm:condition', { id, name: n, on: !conds.includes(n) }) })) },
-      pc && { h: `Inspiration (${pc.inspiration || 0})`, row: true, wrap: false, items: [
+      pc && !off('inspiration') && { h: `Inspiration (${pc.inspiration || 0})`, row: true, wrap: false, items: [
         { label: '− Take one', tone: 'neg', keep: true, disabled: !pc.inspiration, run: () => emit('dm:inspiration', { id, delta: -1 }) },
         { label: '+ Give one', tone: 'pos', keep: true, run: () => emit('dm:inspiration', { id, delta: 1 }) },
       ] },
       { items: [
         pick && { label: '👤 Show in the hero column', run: () => pick.click() },
         pc && { label: '⭐ Spotlight on the TV', run: () => emit('dm:spotlight', { id }) },
-        pc && pc.hitDice?.die && { label: '🎲 Offer hit dice on their phone', run: () => emit('dm:hitdice:offer', { id }) },
+        pc && pc.hitDice?.die && !off('camp') && { label: '🎲 Offer hit dice on their phone', run: () => emit('dm:hitdice:offer', { id }) },
         foe?.boss && (s.bossCard?.id === id ? { label: '👑 Hide boss card', run: () => emit('dm:boss:clear') } : { label: '👑 Show boss card', run: () => emit('dm:boss:card', { id }) }),
         tok && window.IsoDm?.battle && { label: '🎯 Centre the 3D map on it', run: () => window.IsoDm.battle.camera.focus(tok.x, tok.y) },
         conc && { label: `💫 Drop concentration (${conc.name})`, run: () => emit('dm:concentrate:drop', { id }) },
@@ -109,7 +110,7 @@ function nodeMenu(id) {
         { label: '🏰 Dungeon entrance', on: !!n.dungeon, keep: true, run: () => emit('dm:worldmap:node', { id, dungeon: !n.dungeon }) },
       ] },
       { items: [
-        { label: '📚 Add to lore', run: () => toLore(n.dungeon ? 'dungeon' : 'location', n.name, n.info || '') },
+        !off('lore') && { label: '📚 Add to lore', run: () => toLore(n.dungeon ? 'dungeon' : 'location', n.name, n.info || '') },
         { label: '✕ Remove place', danger: true, arm: '✕ Click again to remove', run: () => emit('dm:worldmap:node:remove', { id }) },
       ] },
     ],
@@ -154,7 +155,7 @@ function poiMenu(poi) {
       { items: [
         { label: open ? '☁ Hide from the TV' : '👁 Reveal on the TV', run: () => emit('dm:reveal', { poi, hide: open }) },
         { label: '🔎 Call for an Investigation check', title: 'Uses the DC in the Scene card', run: () => emit('dm:check', { skill: s.rules.skills.find((k) => /investigation/i.test(k)) || s.rules.skills[0], dc: q('#checkDc')?.value || 12 }) },
-        { label: '📚 Add to lore', run: () => toLore('location', poi) },
+        !off('lore') && { label: '📚 Add to lore', run: () => toLore('location', poi) },
         { label: '✕ Remove from the scene', danger: true, arm: '✕ Click again to remove', run: () => emit('dm:scene', { ...s.scene, poi: s.scene.poi.filter((p) => p !== poi) }) },
       ] },
     ],
@@ -175,7 +176,7 @@ function castMenu(id) {
       { items: [{ label: talking ? '💬 Talking now' : '💬 Talk as this NPC', disabled: talking, run: () => emit('dm:cast:pick', { id }) }] },
       talking && c.kind !== 'item' && { h: 'Emotion', row: true, items: Object.entries(EMO).map(([k, e]) => ({ label: `${e.icon} ${e.label}`, on: s.social.npc.emotion === k, keep: true, run: () => emit('dm:emotion', { emotion: k }) })) },
       { items: [
-        { label: '📚 Add to lore', run: () => toLore(c.kind === 'item' ? 'item' : 'npc', c.name) },
+        !off('lore') && { label: '📚 Add to lore', run: () => toLore(c.kind === 'item' ? 'item' : 'npc', c.name) },
         { label: '✕ Remove from the scene', danger: true, arm: '✕ Click again to remove', run: () => emit('dm:cast:remove', { id }) },
       ] },
     ],

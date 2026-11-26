@@ -199,7 +199,7 @@ function viewState(base, viewer) {
   // Battle and Social Masters run the table live, so they get the DM view without the DM's prep and admin:
   // session plans (DM notes), save slots, the world library and the laptop's network addresses.
   if (viewer.master) for (const k of ['plans', 'saves', 'entities', 'lan', 'undo']) delete out[k];
-  return out;
+  return require('./features').blank(out, base, viewer); // switched-off modules (Planning › Modules)
 }
 
 module.exports = { FIELD_RULES, viewerOf, viewerKey, canSee, viewState, filterList };

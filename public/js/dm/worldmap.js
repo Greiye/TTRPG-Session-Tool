@@ -46,7 +46,7 @@ mount(`<div class="card wm-page-card">
 </div>`, '#wmPageEnd');
 
 // Miscellaneous > Road cards (Mike, Nov 15; was a Planning tab): the deck, the auto table and how often a card comes up.
-mount(`<div class="card" data-tab="misc" data-sub="roads">
+mount(`<div class="card" data-tab="misc" data-sub="roads" data-feature="worldmap">
   <h3>Road cards <span class="note">a DM deck drawn first, then the auto table</span></h3>
   <div class="row"><label class="note tight">A card every <input id="wmCard" type="number" min="5" max="600" style="width:72px"> seconds while travelling</label></div>
   <form id="wmDeck" class="row wrap">

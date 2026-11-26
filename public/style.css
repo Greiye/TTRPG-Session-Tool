@@ -382,6 +382,7 @@ span.av svg { width: 100%; height: 100%; display: block; transform: scale(1.35) 
 @keyframes insp-toast { 0% { transform: translate(-50%, 40px); opacity: 0; } 15%, 80% { transform: translate(-50%, 0); opacity: 1; } 100% { transform: translate(-50%, -20px); opacity: 0; } }
 .gift-toast { animation-duration: 3.2s; max-width: calc(100vw - 32px); white-space: normal; text-align: center; border-radius: 18px; }
 html[data-motion="reduce"] .insp-toast { animation: none; }
+html.no-inspiration .insp-toast { display: none; }
 .camp-tv { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgb(0 0 0 / .55); }
 .camp-tv-box { width: min(70cqw, 1000px); text-align: center; color: #f4ead5; }
 .camp-tv-box img, .camp-tv-box video { width: 100%; max-height: 60cqh; object-fit: cover; border-radius: 12px; }
@@ -1370,3 +1371,17 @@ body.cascade #toolsCol > .card[data-tab].folded > h3:first-of-type { margin-bott
 .lobby-wait { padding: 10px; border: 1px dashed var(--gold); border-radius: 10px; }
 @keyframes lb-glow { 50% { box-shadow: 0 0 18px rgb(240 190 90 / .8); } }
 @media (prefers-reduced-motion: reduce) { .lobby-bar .lobby-start { animation: none; } }
+
+/* Planning › Modules (Nov 26): one switch per feature, grouped by pillar (public/js/dm/modules.js). */
+.mod-pillar { margin: 12px 0 4px; font-size: calc(14px * var(--ts)); }
+.mod-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.mod-row { display: flex; gap: 10px; align-items: center; padding: 4px 6px; border-radius: 8px; transition: opacity .25s ease, background-color .25s ease; }
+.mod-row.is-off { opacity: .55; }
+.mod-row:hover { background: rgb(255 255 255 / .05); }
+.mod-txt { display: flex; flex-direction: column; min-width: 0; }
+.mod-txt em { font-style: normal; font-weight: 600; }
+.mod-sw { flex: none; position: relative; width: 42px; height: 24px; border-radius: 12px; border: 1px solid var(--line, #6b5a44); background: #3a3030; cursor: pointer; padding: 0; transition: background-color .2s ease; }
+.mod-sw i { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #d9cdb8; transition: transform .2s cubic-bezier(.2,.9,.3,1.3); }
+.mod-sw.on { background: var(--gold); }
+.mod-sw.on i { transform: translateX(18px); background: #1b1420; }
+.mod-sw:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
