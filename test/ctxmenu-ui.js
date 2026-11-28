@@ -18,7 +18,11 @@ const h = harness('ctxmenu');
   d.on('pageerror', (e) => errors.push(e.message));
   await d.goto(h.URL + '/dm?key=dmkey'); await d.waitForSelector('.dm-hero [data-hero-pick]'); await h.settled(d, 'body');
   const menu = d.locator('.ctx-menu:not(.closing)');
-  const close = async () => { await d.keyboard.press('Escape'); await d.waitForSelector('.ctx-menu', { state: 'detached', timeout: 3000 }).catch(() => {}); };
+  // Escape closes the deepest side menu first, so press it until no menu is left.
+  const close = async () => {
+    for (let i = 0; i < 4 && await menu.count(); i++) await d.keyboard.press('Escape');
+    await d.waitForSelector('.ctx-menu', { state: 'detached', timeout: 3000 }).catch(() => {});
+  };
   const tab = async (id) => { await d.click(`[data-stab="${id}"]`); await h.settled(d, 'body'); };
 
   // Party member in the hero column's picker.
@@ -30,9 +34,11 @@ const h = harness('ctxmenu');
   await menu.locator('button', { hasText: /^-5$/ }).click();
   h.ok(await h.until(() => dm.last.players.find((p) => p.id === pc.id).hp === Math.max(0, hp0 - 5)), 'HP -5 from the menu');
   h.ok(await menu.count() === 1, 'the menu stays open for repeated HP taps');
-  await menu.locator('button', { hasText: 'Prone' }).click();
+  await menu.first().locator('button.has-sub', { hasText: 'Conditions' }).click(); // conditions cascade into a side menu (Nov 28)
+  await d.waitForSelector('.ctx-menu.ctx-sub:not(.closing)');
+  await d.locator('.ctx-menu.ctx-sub button', { hasText: 'Prone' }).click();
   h.ok(await h.until(() => dm.last.players.find((p) => p.id === pc.id).conditions?.includes('Prone')), 'condition toggled from the menu');
-  h.ok(await menu.locator('button.on', { hasText: 'Prone' }).waitFor({ timeout: 2000 }).then(() => true, () => false), 'the open menu updates live');
+  h.ok(await d.locator('.ctx-menu.ctx-sub button.on', { hasText: 'Prone' }).waitFor({ timeout: 2000 }).then(() => true, () => false), 'the open side menu updates live');
   await close();
   h.ok(await menu.count() === 0, 'Escape closes the menu');
 

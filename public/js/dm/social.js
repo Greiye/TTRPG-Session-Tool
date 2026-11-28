@@ -40,6 +40,9 @@ function drawWindow(s) {
   const win = $('#socialWin');
   if (win.hidden === show) { win.hidden = !show; if (show) Anim.play(win, 'reveal', null); }
   const live = s.mode === 'social' && !!convo.live;
+  // The TV preview above is a drop zone too (Mike, Nov 28: drag a character "to the social window above").
+  const tvDrop = document.querySelector('#tablePage .stage-wrap');
+  if (tvDrop) { if (show && s.mode === 'social') { tvDrop.dataset.drop = 'in'; tvDrop.setAttribute('aria-label', 'TV preview: drop here to bring into the conversation'); } else if (tvDrop.dataset.drop) { delete tvDrop.dataset.drop; tvDrop.removeAttribute('aria-label'); } }
   $('#convoPick').hidden = live;
   $('#convoLive').hidden = !live;
   if (live !== wasLive && wasLive !== null && live) Anim.play($('#convoLive'), 'unfold', null);
