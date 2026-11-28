@@ -84,9 +84,13 @@ const h = harness('wrap-cascade');
 
   // Keyboard: Right arrow opens a side menu, Left arrow goes back.
   await zoneChip.click({ button: 'right' });
-  await menu.locator('button.has-sub', { hasText: 'Character' }).focus();
+  const charItem = menu.locator('button.has-sub', { hasText: 'Character' });
+  await charItem.focus();
+  await d.waitForFunction(() => document.activeElement?.matches('.ctx-menu button.has-sub'), null, { timeout: 2000 }).catch(() => {});
   await d.keyboard.press('ArrowRight');
-  h.ok(await d.waitForFunction(() => document.activeElement?.closest('.ctx-sub'), null, { timeout: 2000 }).then(() => true, () => false), 'Right arrow opens the side menu and moves focus into it');
+  const rightOk = await d.waitForFunction(() => document.activeElement?.closest('.ctx-sub'), null, { timeout: 2000 }).then(() => true, () => false);
+  const where = rightOk ? '' : await d.evaluate(() => `menus ${document.querySelectorAll('.ctx-menu:not(.closing)').length}, focus on ${document.activeElement?.tagName}.${document.activeElement?.className} "${document.activeElement?.textContent?.trim().slice(0, 20)}"`);
+  h.ok(rightOk, `Right arrow opens the side menu and moves focus into it${where ? ` (${where})` : ''}`);
   await d.keyboard.press('ArrowLeft');
   h.ok(await d.waitForFunction(() => document.querySelectorAll('.ctx-menu:not(.closing)').length === 1 && document.activeElement?.classList.contains('has-sub'), null, { timeout: 2000 }).then(() => true, () => false), 'Left arrow closes it and returns to the item');
   await closeAll();

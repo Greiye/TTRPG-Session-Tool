@@ -134,6 +134,7 @@ function makeEl(spec, label) {
   m.addEventListener('contextmenu', (e) => e.preventDefault());
   m.addEventListener('click', onClick);
   m.addEventListener('pointerover', onHover);
+  m.addEventListener('keydown', keys); // also here, for a key pressed before the window listener is added
   document.body.append(m);
   return m;
 }
