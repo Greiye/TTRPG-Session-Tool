@@ -21,7 +21,7 @@ References between records (`location`, `faction`, `parent`, `where`, `who`, `me
 Type-specific fields:
 
 - **npc**: `race`, `role`, `mood` (one of the 8 dialogue emotions), `hue`, `faction`, `location`, `knows[]`, `statblock`
-- **location**: `region`, `parent`, `map`, `theme`, `poi[]`
+- **location**: `region`, `parent`, `map`, `theme`, `poi[]`, `dungeon` (true for the Lore tab's Dungeons)
 - **faction**: `goals`, `members[]`
 - **event**: `when` (in-world date text), `session` (real date), `where`, `who[]`
 - **lore**: `category`, `secret`
@@ -29,6 +29,8 @@ Type-specific fields:
   - `status`: `alive` or `dead`. A fallen character is `dead` and keeps a `death` record: `at` (date-time, required), `cause`, `epitaph` and `session` (short text). Import sets, clears or leaves the death record by `status` (a missing `status` changes nothing).
 
 Unknown fields are rejected, so typos surface at import time.
+
+Tavern Screen also keeps `shared`, `sync` and `createdAt` on its own records (`docs/world-store.md`). They are table-only: never exported, and an import keeps the table's values. Since Nov 23 the export carries every Lore tab entry too, because the Lore tab and the library are one store.
 
 ## Bundle
 

@@ -2,7 +2,7 @@
 // over the same connection as the Creature Designer's wiki (src/wiki.js: GitHub token or a local clone).
 //
 //   Pull  reads content/lore/ (red books), content/artifacts/ (characters, songs, food, art) and content/table/
-//         (pages this tool wrote) into Lore tab entries. Each entry remembers its page (e.src), so a second
+//         (pages this tool wrote) into Lore tab entries. Each entry remembers its page (its record's `sync`), so a second
 //         pull updates it instead of adding a copy.
 //   Push  writes the entries made at the table (and edits to pages that came from content/table/) to
 //         content/table/<name>.md. The lore game's build only reads content/lore and content/artifacts, so a
@@ -70,14 +70,17 @@ function toPage(e, { author = 'mike', credit = 'Mike' } = {}) {
 const pageName = (e) => (e.src?.folder === TABLE ? e.src.path.split('/').pop().replace(/\.md$/i, '') : slug(e.name) || e.id);
 // Changed at the table since the last pull or push.
 const dirty = (e) => !e.src || (e.at || 0) > (e.src.at || 0);
-const canPush = (e) => !e.src || e.src.folder === TABLE;
+// Pages from content/table, and entries made at the table. Records from Arthuria are edited in Arthuria.
+const canPush = (e) => (e.src ? e.src.folder === TABLE : e.source !== 'arthuria');
 
-// Pull every page into the Lore tab. A page that has not changed since the last sync is skipped; one that
-// changed while its entry was also edited at the table keeps the table's words (counted in `kept`).
-async function pull(list) {
+// Pull every page into the Lore tab (the world store, src/entities.js). A page that has not changed since the
+// last sync is skipped; one that changed while its entry was also edited at the table keeps the table's words
+// (counted in `kept`).
+async function pull(w) {
   const out = { added: 0, updated: 0, same: 0, kept: [], errors: [] };
   for (const folder of READ) {
     for (const p of await wiki.list(folder)) {
+      const list = lore.list(w);
       const prev = list.find((e) => e.src?.path === p.path);
       if (prev && p.sha && prev.src.sha === p.sha) { out.same++; continue; }
       let page;
@@ -88,18 +91,18 @@ async function pull(list) {
       const src = { folder, path: page.path, sha: page.sha || '', hash: h, at: Date.now() };
       const match = prev || list.find((e) => !e.src && e.cat === got.cat && e.name.toLowerCase() === got.name.toLowerCase());
       if (!match) {
-        const r = lore.add(list, got);
+        const r = lore.add(w, got);
         if (r.error) { out.errors.push(`${p.path}: ${r.error}`); continue; }
-        const e = list.find((x) => x.id === r.id);
-        e.src = { ...src, at: e.at };
+        lore.setSync(w, r.id, { ...src, at: lore.view(w[r.id]).at });
         out.added++;
         continue;
       }
-      if (match.src?.hash === h) { match.src = { ...src, at: match.src.at }; out.same++; continue; }
+      if (match.src?.hash === h) { lore.setSync(w, match.id, { ...src, at: match.src.at }); out.same++; continue; }
       if (match.src && dirty(match)) { out.kept.push(match.name); continue; }
-      if (match.text === got.text && match.name === got.name) { match.src = src; out.same++; continue; }
-      lore.edit(list, { id: match.id, name: got.name, text: got.text });
-      match.src = { ...src, at: Date.now() };
+      if (match.text === got.text && match.name === got.name) { lore.setSync(w, match.id, src); out.same++; continue; }
+      const r = lore.edit(w, { id: match.id, name: got.name, text: got.text });
+      if (r.error) { out.errors.push(`${p.path}: ${r.error}`); continue; }
+      lore.setSync(w, r.id, { ...src, at: Date.now() });
       out.updated++;
     }
   }
@@ -108,17 +111,16 @@ async function pull(list) {
 
 // Push the entries changed at the table to content/table/. One page that moved on in the repo since the last
 // sync is not overwritten (listed in `conflicts`) unless `force`.
-async function push(list, { force = false, ids } = {}) {
+async function push(w, { force = false, ids } = {}) {
   const c = wiki.cfg();
   const out = { pushed: 0, conflicts: [], errors: [] };
-  const todo = list.filter((e) => canPush(e) && (ids ? ids.includes(e.id) : dirty(e)));
+  const todo = lore.list(w).filter((e) => canPush(e) && (ids ? ids.includes(e.id) : dirty(e)));
   for (const e of todo) {
-    e.created = e.created || e.at || Date.now(); // the page's "created" date stays put across pushes
     const text = toPage(e, { author: c.author, credit: c.credit });
     try {
       const r = await wiki.write(pageName(e), text, { folder: TABLE, sha: e.src?.sha || '', force, message: `${e.src ? 'Update' : 'Add'} ${e.name} from the Tavern Screen lore` });
       if (r.conflict) { out.conflicts.push(e.name); continue; }
-      e.src = { folder: TABLE, path: r.path, sha: r.sha || '', hash: hash(text), at: Date.now() };
+      lore.setSync(w, e.id, { folder: TABLE, path: r.path, sha: r.sha || '', hash: hash(text), at: Date.now() });
       out.pushed++;
     } catch (err) {
       out.errors.push(`${e.name}: ${err.message}`);
@@ -129,6 +131,6 @@ async function push(list, { force = false, ids } = {}) {
 }
 
 // What the Lore tab shows next to the buttons: how many entries wait to be pushed.
-const pending = (list) => (list || []).filter((e) => canPush(e) && dirty(e)).length;
+const pending = (w) => lore.list(w).filter((e) => canPush(e) && dirty(e)).length;
 
-module.exports = { READ, TABLE, catOf, fromPage, toPage, pull, push, pending };
+module.exports = { READ, TABLE, catOf, fromPage, toPage, canPush, pull, push, pending };

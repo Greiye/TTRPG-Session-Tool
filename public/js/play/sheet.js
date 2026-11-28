@@ -46,6 +46,7 @@ const FEAT_HOLD_MS = 3000;
 let openFeat = null; // feature name whose description is open
 let featNote = ''; // last activation result
 let featHolding = false; // no redraw while a thumb is on Activate
+let featFresh = false; // the description slides open only on the tap that opens it, not on every redraw
 
 const chip = (label, value) => `<span class="chip"><small>${label}</small><b>${value}</b></span>`;
 const pips = (level, s) => `<div class="slot-row"><span>Level ${level}</span><span class="pips">${Array.from({ length: s.max }, (_, i) => `<i class="pip ${i < s.max - s.used ? 'full' : ''}" role="img" aria-label="Level ${level} slot ${i + 1}, ${i < s.max - s.used ? 'available' : 'used'}"></i>`).join('')}</span></div>`;
@@ -54,15 +55,17 @@ const pips = (level, s) => `<div class="slot-row"><span>Level ${level}</span><sp
 function featuresHtml(c) {
   const list = c.features || [];
   if (!list.length) return '';
-  return `<div class="card"><h3>Class features <span class="note">tap to read · hold Activate for 3 s</span></h3>
+  const html = `<div class="card"><h3>Class features <span class="note">tap to read · hold Activate for 3 s</span></h3>
     <div class="feat-grid">${list.map((f) => { const left = Math.max(0, f.max - (c.uses?.[f.name] || 0)); return `<button class="btn feat ${openFeat === f.name ? 'on' : ''} ${left ? '' : 'spent'}" data-feat="${esc(f.name)}" aria-expanded="${openFeat === f.name}">${esc(f.name)}<small>${left} / ${f.max}${f.pool ? ' pts' : ''}</small></button>`; }).join('')}</div>
-    ${list.filter((f) => f.name === openFeat).map((f) => { const left = Math.max(0, f.max - (c.uses?.[f.name] || 0)); return `<div class="feat-desc">
+    ${list.filter((f) => f.name === openFeat).map((f) => { const left = Math.max(0, f.max - (c.uses?.[f.name] || 0)); return `<div class="feat-desc${featFresh ? ' fresh' : ''}">
       <p>${esc(f.text || 'No description yet. Ask your DM.')}</p>
       <p class="note">${left} of ${f.max}${f.pool ? ' points' : ' uses'} left · refills on a ${esc(f.reset)} rest${f.auto ? ' · takes effect by itself' : ''}</p>
       <button class="bigbtn feat-go" data-feat-go="${esc(f.name)}" ${left ? '' : 'disabled'} aria-label="Activate ${esc(f.name)}, press and hold for 3 seconds"><span class="feat-fill"></span><span class="feat-label">${left ? 'Hold to activate' : 'No uses left'}</span></button>
       ${featNote ? `<p class="note" role="status">${esc(featNote)}</p>` : ''}
     </div>`; }).join('')}
   </div>`;
+  featFresh = false;
+  return html;
 }
 
 // Spells tab (Nov 21): only for characters with spell slots or spells; the DM keeps both up to date.
@@ -145,7 +148,7 @@ root().addEventListener('click', (e) => {
   if (!b || !c) return;
   const d = b.dataset;
   if (d.hdSpend) openHitDice(c, 'Spend hit dice');
-  else if (d.feat) { openFeat = openFeat === d.feat ? null : d.feat; featNote = ''; render(); }
+  else if (d.feat) { openFeat = openFeat === d.feat ? null : d.feat; featNote = ''; featFresh = !!openFeat; render(); }
   else if (d.moveNew) openMoveBuilder(c);
   else if (d.moveEdit) openMoveBuilder(c, Number(d.moveEdit));
   else if (d.moveDel) { if (c.moves.length > 1) send({ moves: c.moves.filter((_, i) => i !== Number(d.moveDel)) }); }

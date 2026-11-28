@@ -44,6 +44,13 @@ const SHOTS = process.env.SHOTS;
   ok(await poll(dmp, () => window.IsoDm?.battle?.ambience?.(), null, 10000), 'the DM page shows the 3D map');
   ok(await poll(tv, () => window.IsoTv?.battle?.ambience?.(), null, 10000), 'the TV shows the 3D map');
 
+  // DM tools panel (Mike, Nov 27): closed by default, the map bar's Tools button opens and closes it.
+  ok(await dmp.locator('.isob-dm').first().isHidden(), 'the DM tools panel starts closed');
+  await dmp.locator('.iso-cov .iso-tools').first().click();
+  ok(await poll(dmp, () => !document.querySelector('.isob-dm')?.hidden), 'the Tools button opens the DM tools');
+  await dmp.locator('.iso-cov .iso-tools').first().click();
+  ok(await poll(dmp, () => document.querySelector('.isob-dm')?.hidden), 'and closes them again');
+
   // Compass on every screen.
   for (const [p, name] of [[dmp, 'DM page'], [tv, 'TV']]) ok(await p.locator('.isob-compass').first().isVisible(), `the ${name} shows a compass rose`);
 

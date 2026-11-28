@@ -3,7 +3,7 @@
 import { $, call, onState, state } from '../client.js';
 
 const { esc } = Stage;
-const CATS = { location: ['🏰', 'Locations'], dungeon: ['🕳', 'Dungeons'], npc: ['🧑', 'NPCs'], creature: ['🐾', 'Creatures'], item: ['🗡', 'Items'], book: ['📖', 'Books'], note: ['📝', 'Notes'] };
+const CATS = { location: ['🏰', 'Locations'], dungeon: ['🕳', 'Dungeons'], npc: ['🧑', 'NPCs'], faction: ['⚑', 'Factions'], event: ['📅', 'Events'], creature: ['🐾', 'Creatures'], item: ['🗡', 'Items'], book: ['📖', 'Books'], note: ['📝', 'Notes'] };
 const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
 
@@ -14,11 +14,11 @@ let drawn = null;
 let fresh = null; // id of an entry just added: opened and flashed once
 
 // Lore repo sync (src/lorebook.js): library books and characters come from the repo and are edited there;
-// entries made here go to content/table/ on Push.
-const canPush = (e) => !e.src || e.src.folder === 'content/table';
+// entries made here go to content/table/ on Push. Records imported from Arthuria are edited in Arthuria.
+const canPush = (e) => (e.src ? e.src.folder === 'content/table' : e.source !== 'arthuria');
 const dirty = (e) => canPush(e) && (!e.src || (e.at || 0) > (e.src.at || 0));
 function repoBadge(e) {
-  if (!e.src) return '';
+  if (!e.src) return e.source === 'arthuria' ? '<span class="lore-badge repo" title="Imported from Arthuria. Edit it there; the next import brings changes in.">🗺 Arthuria</span>' : '';
   if (!canPush(e)) return `<span class="lore-badge repo" title="From ${esc(e.src.path)} in the lore repo. Edit it there; a pull brings changes in.">📖 lore repo</span>`;
   return dirty(e) ? '<span class="lore-badge repo dirty" title="Changed here since the last push">✎ to push</span>'
     : `<span class="lore-badge repo" title="In sync with ${esc(e.src.path)}">☁ synced</span>`;
@@ -40,9 +40,9 @@ function entry(e) {
   return `<details class="lore-entry ${e.shared ? 'shared' : ''} ${e.id === fresh ? 'fresh' : ''}" data-lore="${esc(e.id)}" ${openIds.has(e.id) ? 'open' : ''}>
     <summary><i>${icon}</i><b>${esc(e.name)}</b>${cat === 'all' ? `<small class="muted">${catName}</small>` : ''}${repoBadge(e)}${e.shared ? '<span class="lore-badge" title="Phones can read this">👁 shared</span>' : ''}</summary>
     <div class="lore-body">
-      <div class="row"><input class="grow" data-lore-f="name" maxlength="80" value="${esc(e.name)}" aria-label="Name"><select data-lore-f="cat" style="width:auto" aria-label="Category">${Object.entries(CATS).map(([k, [i, n]]) => `<option value="${k}" ${k === e.cat ? 'selected' : ''}>${i} ${n}</option>`).join('')}</select></div>
-      <label class="fld">What the party can learn<textarea data-lore-f="text" rows="3" maxlength="2000" placeholder="Description, history, what people say">${esc(e.text)}</textarea></label>
-      <label class="fld">DM only<textarea data-lore-f="dm" rows="2" maxlength="2000" placeholder="Secrets, stats, hooks. Never leaves this screen.">${esc(e.dm)}</textarea></label>
+      <div class="row"><input class="grow" data-lore-f="name" maxlength="${Math.max(80, e.name.length)}" value="${esc(e.name)}" aria-label="Name"><select data-lore-f="cat" style="width:auto" aria-label="Category">${Object.entries(CATS).map(([k, [i, n]]) => `<option value="${k}" ${k === e.cat ? 'selected' : ''}>${i} ${n}</option>`).join('')}</select></div>
+      <label class="fld">What the party can learn<textarea data-lore-f="text" rows="3" maxlength="${Math.max(2000, e.text.length)}" placeholder="Description, history, what people say">${esc(e.text)}</textarea></label>
+      <label class="fld">DM only<textarea data-lore-f="dm" rows="2" maxlength="${Math.max(2000, e.dm.length)}" placeholder="Secrets, stats, hooks. Never leaves this screen.">${esc(e.dm)}</textarea></label>
       <div class="row"><label class="chk grow"><input type="checkbox" data-lore-f="shared" ${e.shared ? 'checked' : ''}> Share with phones (Journal › Lore)</label><button class="btn small danger" data-lore-del="${esc(e.id)}">Delete</button></div>
     </div>
   </details>`;
@@ -135,6 +135,7 @@ list.addEventListener('change', async (e) => {
   const value = f === 'shared' ? e.target.checked : e.target.value;
   const r = await call('dm:lore:edit', { id, [f]: value });
   if (r?.error) msg(r.error);
+  if (r?.id && r.id !== id) { openIds.delete(id); openIds.add(r.id); } // a new category can mean a new ID
   if (f === 'shared' || f === 'cat') { e.target.blur(); draw(true); }
 });
 list.addEventListener('focusout', () => setTimeout(() => { if (!list.contains(document.activeElement)) draw(); }, 0));

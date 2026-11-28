@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { UPLOAD_DIR } = require('./config');
-const { entities, upsert, validateBundle, validateEntity, errorsText } = require('./entities');
+const { all, upsert, validateBundle, validateEntity, errorsText } = require('./entities');
 const { roster, saveRoster } = require('./roster');
 const { state } = require('./state');
 const rules = require('./rules');
@@ -37,7 +37,9 @@ function pcEntity(c, files) {
 
 function exportBundle({ includeDmNotes = true } = {}) {
   const files = {};
-  const list = [...Object.values(entities).map((e) => ({ ...e })), ...Object.values(roster).map((c) => pcEntity(c, files))];
+  // Every world record, Lore tab entries included. Fields that only mean something at this table (the Share tick,
+  // the lore repo link, when it was first written here) stay home.
+  const list = [...all().map(({ shared, sync, createdAt, ...e }) => e), ...Object.values(roster).map((c) => pcEntity(c, files))];
   for (const e of list) {
     if (e.type !== 'pc' && e.image) e.image = fileFromUrl(`/uploads/${e.image}`, files);
     if (!e.image) delete e.image;

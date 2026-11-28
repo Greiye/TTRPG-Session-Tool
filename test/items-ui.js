@@ -48,6 +48,10 @@ const shot = async (p, name) => { if (SHOTS) await p.screenshot({ path: path.joi
     ok(await dm.$eval('#itParty', (e) => e.querySelectorAll('[data-give]').length === 2), 'the Items window shows a portrait for the test player and the phone');
     const total = await dm.$$eval('#itLib .it-card', (e) => e.length);
     ok(total > 20 && (await dm.$eval('#itLib', (e) => e.dataset.view)) === 'gallery', `sample item cards in a gallery (${total})`);
+    // Nov 27: in a squeezed window the cards showed blank (rows shrank to a sliver). One column, full height.
+    const fit = await dm.$eval('#itLib', (L) => { const c = L.querySelector('.it-card'); const n = c.querySelector('.it-name'); const cr = c.getBoundingClientRect(); const nr = n.getBoundingClientRect(); return { cols: getComputedStyle(L).gridTemplateColumns.split(' ').length, shown: nr.bottom <= cr.bottom + 0.5 && cr.height > 60 }; });
+    ok(fit.cols === 1, 'the item cards sit in one column');
+    ok(fit.shown, 'a card is tall enough to show its art and name');
     await shot(dm, 'dm-items-gallery.png');
 
     await dm.fill('#itSearch', 'potion');

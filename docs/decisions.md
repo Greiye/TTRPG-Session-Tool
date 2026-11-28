@@ -7,7 +7,7 @@ Mike can overrule any of these; each is isolated in one module.
 | 0g | **HTTPS for phones** (Mike's call). Self-signed certificate for localhost + every LAN IP, made on first start, renewed when IPs change. HTTP stays on for the laptop itself; phones are redirected to HTTPS. | Browsers only allow the mic and Chrome speech on secure origins. | `src/tls.js`, `server.js` |
 | 13 | **Vosk** is the local speech model (Mike's call); Chrome Web Speech stays as the other option. | Runs offline on the laptop. | (Phase 5) |
 | 29 | Packaging is low priority: Mike hosts. | | |
-| 0i | **JSON files**, not SQLite: `data/campaign.json` (table state), `data/characters.json`, `data/entities.json`. Debounced atomic writes; flushed on Ctrl+C. | Small data, no native build step. Easy to back up and read. | `src/store.js` |
+| 0i | **JSON files**, not SQLite: `data/campaign.json` (table state), `data/characters.json`. Debounced atomic writes; flushed on Ctrl+C. | Small data, no native build step. Easy to back up and read. | `src/store.js` |
 | 0a | Rules adapters behind one interface. **D&D 5e** full; **Daggerheart** preview (duality dice, Hope/Fear, traits as skills; no initiative). DM switches in the top bar. | System-agnostic core. | `src/rules/` |
 | 0b | Visibility: per-viewer state (dm, codm, player, screen, guest). Items carry `vis` (`all`, `dm`, or `{ to: [ids], screen }`); fields like `secret`, `hooks`, enemy `atk/dmg` are DM-only. | One rule for whispers, perception, spoils. | `src/visibility.js` |
 | 0d | 4-letter room code (in the QR, `/j/CODE` short link, typed on the phone). Device tokens let a phone reclaim its seat silently; taking over a seat in use needs a confirm. Room code is only sent to the DM and the TV. | Stops stale tabs and neighbours; survives dropped phones and restarts. | `src/session.js` |
@@ -21,6 +21,7 @@ Mike can overrule any of these; each is isolated in one module.
 
 | Item | Decision | Why | Where |
 |---|---|---|---|
+| Nov 23 | **One world store**: the Lore tab and the Arthuria library (`data/entities.json` until then) are one set of entity records in `state.world`, inside the campaign save. | One record per NPC or place, and Undo, save points and backups cover the whole world. Migration keeps every old entry. | `src/entities.js`, `docs/world-store.md` |
 | 1 | Autosave stays as in 0i. Added **save points** (named snapshots of table state + characters, `data/saves/`) and a **startup backup** of all data files (`data/backups/`, last 8 kept). Loading a save point keeps the current room code so phones stay seated. | A bad session can be rolled back. | `src/saves.js` |
 | 2 | Sheet fields live on the character: abilities, save proficiencies, speed, spell slots, hit dice, inventory, languages, spell list, notes, temp HP. Players edit what they track at the table (HP, slots, hit dice, inventory, spells, notes); only the DM edits abilities, slot maximums, speed, languages. Other phones and the TV see only the public card. | Live to the DM without leaking notes. | `src/sheet.js` |
 | 2 | Derived numbers (modifiers, saves, passive scores) are computed by the rules adapter on the server and sent as `derived`. | Keeps 5e math out of the clients (Daggerheart later). | `src/rules/` |

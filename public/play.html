@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/worldmap.css">
   <link rel="stylesheet" href="/chronicle.css">
   <script src="/settings.js"></script>
+  <script src="/features.js"></script>
   <link rel="stylesheet" href="/theme.css">
   <link rel="stylesheet" href="/items.css">
   <link rel="stylesheet" href="/combatfx.css">
@@ -25,7 +26,7 @@
     </form>
     <div id="roster" class="roster"></div>
     <button id="newBtn" class="btn" style="width:100%;margin-top:10px">+ New character</button>
-    <button id="specBtn" class="btn" style="width:100%;margin-top:10px">👀 Watch as a spectator</button>
+    <button id="specBtn" data-feature="spectators" class="btn" style="width:100%;margin-top:10px">👀 Watch as a spectator</button>
     <div id="newForm" class="card" hidden style="margin-top:10px">
       <input id="name" maxlength="24" placeholder="Character name" autocomplete="off">
       <div class="row"><input id="race" maxlength="24" placeholder="Race (e.g. Half-Elf)" class="grow"><input id="player" maxlength="24" placeholder="Your name" class="grow"></div>
@@ -74,7 +75,7 @@
     <div id="combatPop" class="combat-pop" hidden></div>
     <div id="dicePool" class="card dice-pool"></div>
     <div id="main" style="display:flex;flex-direction:column;gap:12px;margin-top:12px"></div>
-    <div id="suggest"></div>
+    <div id="suggest" data-feature="spectators"></div>
     <form id="sayForm" class="sayform">
       <input id="say" class="grow" maxlength="200" placeholder="What do you do?" autocomplete="off">
       <button class="btn primary">Send</button>

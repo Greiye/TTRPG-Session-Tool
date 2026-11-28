@@ -25,7 +25,22 @@
         "image": { "$ref": "#/$defs/file" },
         "links": { "description": "Related entities.", "type": "array", "items": { "type": "object", "required": ["to"], "properties": { "to": { "$ref": "#/$defs/ref" }, "rel": { "type": "string", "maxLength": 60 } }, "additionalProperties": false }, "maxItems": 200 },
         "source": { "description": "Which app last wrote this record.", "enum": ["tavern-screen", "arthuria"] },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "description": "When the record was first written at this table. Not exported.", "type": "string", "format": "date-time" },
+        "shared": { "description": "Tavern Screen only: players' phones can read the name and body (never dmNotes). Not exported.", "type": "boolean" },
+        "sync": {
+          "description": "Tavern Screen only: the lore repo page this record is kept in step with (src/lorebook.js). Not exported.",
+          "type": "object",
+          "required": ["folder", "path"],
+          "properties": {
+            "folder": { "type": "string", "maxLength": 200 },
+            "path": { "type": "string", "maxLength": 400 },
+            "sha": { "type": "string", "maxLength": 80 },
+            "hash": { "type": "string", "maxLength": 80 },
+            "at": { "description": "Unix ms of the last pull or push.", "type": "number" }
+          },
+          "additionalProperties": false
+        }
       }
     }
   }

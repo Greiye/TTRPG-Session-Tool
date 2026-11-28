@@ -50,14 +50,14 @@ const keep = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private 
 
 // ----- Planning > Creatures card -----
 mount(`
-<div class="card cd-card" data-tab="designer" data-dm-only data-fold="open" id="cdCard">
+<div class="card cd-card" data-tab="designer" data-feature="designer" data-dm-only data-fold="open" id="cdCard">
   <h3>🐉 Creature Designer <span class="note" id="cdCount"></span></h3>
   <p class="note">Peoples, beasts, monsters and named persons, with stats for any system. Pages sync with the lore wiki.</p>
   <button class="btn primary cd-open" id="cdOpen">🐉 Open Creature Designer</button>
   <div class="cd-recent" id="cdRecent"></div>
 </div>`);
 mount(`
-<div class="card" data-tab="designer" data-dm-only data-fold="closed" data-fold-key="wiki-link" id="cdWikiCard">
+<div class="card" data-tab="designer" data-feature="designer" data-dm-only data-fold="closed" data-fold-key="wiki-link" id="cdWikiCard">
   <h3>🔗 Lore wiki <span class="note" id="cdWikiState"></span></h3>
   <div class="row"><label class="chk"><input type="radio" name="cdMode" value="github"> GitHub</label><label class="chk"><input type="radio" name="cdMode" value="folder"> Folder on this laptop</label><label class="chk"><input type="radio" name="cdMode" value="off"> Off</label></div>
   <div class="cd-gh">

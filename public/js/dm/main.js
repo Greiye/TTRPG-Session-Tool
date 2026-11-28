@@ -49,6 +49,7 @@ import './reorder.js'; // re-orderable sidebar windows (Mike, Nov 17)
 import './toggles.js'; // Show/Hide checkboxes become one toggle button (Mike, Nov 18)
 import './undo.js';
 import './keep.js'; // Keep star and Storybook link (src/storybook.js)
+import './modules.js'; // Planning › Modules: switch whole features on or off (src/features.js)
 import { isoStage } from '../iso3d.js';
 
 
@@ -69,7 +70,7 @@ window.IsoDm = iso; // handle for debugging
 
 // The preview mirrors the TV: the world map (with the dungeon pop-up over it) while it is on the TV in exploration.
 onState((s) => {
-  if (s.worldMap?.onTv && !s.shopPop && window.WorldMap) WorldMap.tv($('#stage'), s, { dm: true });
+  if (s.worldMap?.onTv && !s.shopPop && window.WorldMap && !window.Features?.off(s, 'worldmap')) WorldMap.tv($('#stage'), s, { dm: true });
   else Stage.stage($('#stage'), s);
   iso.update(s);
   renderAtmo(s);

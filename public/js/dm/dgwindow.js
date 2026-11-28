@@ -12,6 +12,7 @@ const esc = (s) => Stage.esc(s); // shared escaper (public/stage.js)
 
 const host = document.createElement('section');
 host.className = 'dgw';
+host.dataset.feature = 'dungeon';
 host.hidden = true;
 host.innerHTML = `<header class="dgw-tabs" role="tablist">
     <button class="dgw-tab on" role="tab" aria-selected="true" id="dgwTab"><span>🏰</span> <b id="dgwName">Dungeon</b></button>
