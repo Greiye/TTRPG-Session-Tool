@@ -33,3 +33,15 @@
 .ctx-target { animation: ctx-glow .6s ease-out; }
 @keyframes ctx-glow { 0% { box-shadow: 0 0 0 2px #e3b45a; } 100% { box-shadow: 0 0 0 2px transparent; } }
 @media (prefers-reduced-motion: reduce) { .ctx-menu, .ctx-menu *, .ctx-target { animation: none !important; } }
+/* Cascading side menus (Nov 28): an item with a ▸ opens a menu beside it on hover, click or Right arrow. */
+.ctx-menu button.has-sub { display: flex; align-items: center; gap: 8px; }
+.ctx-menu button > span { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.ctx-caret { flex: none; font-style: normal; font-size: 10px; color: #bfae8e; transition: transform .12s; }
+.ctx-menu button.sub-open { background: #2e2318; border-color: #8a6a3a; }
+.ctx-menu button.sub-open .ctx-caret { color: #f2c96e; transform: translateX(2px); }
+.ctx-menu.ctx-sub { animation: ctx-sub-in .14s ease-out; }
+.ctx-menu.ctx-sub.flip { animation-name: ctx-sub-in-flip; }
+@keyframes ctx-sub-in { from { opacity: 0; transform: translateX(-6px); } }
+@keyframes ctx-sub-in-flip { from { opacity: 0; transform: translateX(6px); } }
+.ctx-menu { width: max-content; max-width: min(340px, calc(100vw - 16px)); }
+html[data-motion="reduce"] .ctx-menu, html[data-motion="reduce"] .ctx-menu *, html[data-motion="reduce"] .ctx-target { animation: none !important; transition: none !important; }
