@@ -12,7 +12,11 @@
   const seen = new Set(); // characters already in a slot, so a new one pops in once
 
   function render(root, s, socket) {
-    const joined = (s.players || []).filter((p) => p.online);
+    // Test mode (Mike, Nov 27): test characters in the party take a slot like any playable character. They have no
+    // phone, so Start game still waits for a real player (or the DM).
+    const isTest = (p) => p.player === 'Test' && /^\[Test\]/.test(p.name || '');
+    const real = (s.players || []).filter((p) => p.online);
+    const joined = [...real, ...(s.settings?.testMode ? (s.players || []).filter((p) => !p.online && isTest(p)) : [])];
     const key = JSON.stringify([joined.map((p) => [p.id, p.name, p.portrait, p.hue]), s.room]);
     if (root.dataset.lobby === '1' && key === lastKey) return;
     lastKey = key;
@@ -24,7 +28,7 @@
       return `<li class="lb-slot filled ${seen.has(p.id) ? '' : 'lb-new'}"><div class="lb-card" style="--hue:${Number(p.hue) || 40}">${art}</div><b class="lb-join">${esc(p.name)}</b></li>`;
     }).join('');
     joined.forEach((p) => seen.add(p.id));
-    const ready = joined.length > 0;
+    const ready = real.length > 0;
     const first = root.dataset.lobby !== '1';
     root.className = 'stage lb-stage';
     root.dataset.lobby = '1';
@@ -32,7 +36,7 @@
       <h1 class="lb-title">Landing Page</h1>
       <ol class="lb-slots">${slots}</ol>
       <p class="lb-start ${ready ? 'ready' : ''}" aria-live="polite">Start game</p>
-      <p class="lb-hint">${ready ? `${esc(joined[0].name)} can start the game from their phone` : 'Scan the code with your phone to join'}</p>
+      <p class="lb-hint">${ready ? `${esc(real[0].name)} can start the game from their phone` : 'Scan the code with your phone to join'}</p>
       ${s.room ? `<div class="lb-qr"><img src="/qr.svg?r=${esc(s.room)}${KEY_QS}" alt="Join QR"><span>Scan to join · Room <b>${esc(s.room)}</b></span></div>` : ''}
     </div>`;
   }

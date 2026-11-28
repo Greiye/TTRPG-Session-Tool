@@ -19,6 +19,22 @@ ok(Object.keys(require('../src/rules/dnd5e').classes).sort().join() === ALL.join
   const dm = await h.dm();
   const testers = () => (dm.last?.players || []).filter((p) => p.name?.startsWith('[Test]'));
 
+  // Test mode (Mike, Nov 27): every test character is on the phones' character list and a phone can play one.
+  const cards = () => (dm.last?.roster || []).filter((c) => c.name?.startsWith('[Test]'));
+  dm.emit('dm:testmode', { on: true });
+  ok(await until(() => cards().length === 12), 'test mode puts every test character on the phone character list');
+  ok(testers().length === 1, 'only one test character sits in the party until a phone picks another');
+  const room = await h.room();
+  const mira = cards().find((c) => c.name === '[Test] Mira');
+  const phone = await h.client();
+  const res = await h.call(phone, 'join', { id: mira.id, room });
+  ok(res?.id === mira.id && !res.error, 'a phone can pick a test character and play it');
+  ok(await until(() => dm.last?.players?.find((p) => p.id === mira.id)?.online), 'the picked test character is seated in the party');
+  dm.emit('dm:testmode', { on: false });
+  ok(await until(() => !cards().some((c) => c.name === '[Test] Quill')), 'test mode off takes unseated test characters off the list');
+  ok(cards().some((c) => c.id === mira.id), 'a test character played on a phone stays on the list');
+  phone.close();
+
   dm.emit('dm:testparty');
   ok(await until(() => testers().length === 12), 'the DM can seat the twelve test characters');
   const druid = testers().find((p) => p.cls === 'Druid');
@@ -27,6 +43,7 @@ ok(Object.keys(require('../src/rules/dnd5e').classes).sort().join() === ALL.join
   dm.emit('dm:testparty');
   await h.wait(200);
   ok(testers().length === 12, 'seeding again does not duplicate the test party');
+
 
   dm.close(); await h.done(srv);
 })();
