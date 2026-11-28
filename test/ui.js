@@ -66,19 +66,17 @@ const SHOTS = process.env.SHOTS;
   if (await ph.$('#tabSheet [data-feat]')) {
     await ph.click('#tabSheet [data-feat]');
     const go = ph.locator('#tabSheet [data-feat-go]'); // a locator, so a redraw after the skill roll does not lose it
-    // The sheet can redraw (a state broadcast) between finding the button and scrolling to it; try again on the new one.
-    let bb = null;
-    for (let i = 0; i < 20 && !bb; i++) {
-      try { await go.waitFor({ timeout: 3000 }); await go.scrollIntoViewIfNeeded({ timeout: 1000 }); bb = await go.boundingBox(); } catch { bb = null; }
-    }
-    if (!bb) throw new Error('the class feature Activate button did not settle');
-    await ph.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
+    // hover() scrolls, waits for the button to hold still and retries if a redraw replaces it, then leaves the
+    // pointer on it (scrollIntoViewIfNeeded + boundingBox did not retry: "Element is not attached", Nov 22 main run).
+    await go.hover();
     await ph.mouse.down(); await ph.waitForTimeout(800); await ph.mouse.up(); // too short: nothing happens
     await ph.waitForTimeout(300); // nothing should happen: give a wrong activation time to show up
     if (/activated/.test(await ph.textContent('#tabSheet'))) errors.push('a short press activated a feature');
-    await ph.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2);
-    await ph.mouse.down(); await ph.waitForTimeout(3300); await ph.mouse.up();
+    await go.hover(); // letting go redrew the sheet
+    await ph.mouse.down(); await ph.waitForTimeout(3300); await ph.mouse.up(); // the 3 s hold is the feature under test
     await ph.waitForFunction(() => /activated/.test(document.querySelector('#tabSheet').textContent), null, { timeout: 3000 }).catch(() => errors.push('holding Activate for 3 s did not activate the feature'));
+    // That result line was a redraw: the description must not slide open again (it only animates on the opening tap).
+    if (await ph.$('#tabSheet .feat-desc.fresh')) errors.push('a redraw replayed the feature description animation');
   }
   await ph.dispatchEvent('#tabSheet [data-sk]', 'pointerdown');
   await ph.waitForSelector('#tabSheet [data-sk].cool', { timeout: 3000 }).catch(() => errors.push('holding a skill did not roll it'));

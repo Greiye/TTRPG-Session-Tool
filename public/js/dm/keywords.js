@@ -125,7 +125,7 @@ $('#kwSpark').onclick = () => {
 
 // ----- 2. The bank (its own pop-up, opened from Planning › Creatures or from ✎ in the ideas panel) -----
 mount(`
-<div class="card" data-tab="designer" data-dm-only data-fold="closed" data-fold-key="kw-bank" id="kwCard">
+<div class="card" data-tab="designer" data-feature="designer" data-dm-only data-fold="closed" data-fold-key="kw-bank" id="kwCard">
   <h3>💡 Keyword bank <span class="note" id="kwCount"></span></h3>
   <p class="note">Words that spark creature ideas: frog = pond, swamp, slimy, croak. The Creature Designer suggests them. Add your own or change any.</p>
   <button class="btn" id="kwOpen">💡 Open keyword bank</button>

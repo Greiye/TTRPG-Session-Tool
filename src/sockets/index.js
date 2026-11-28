@@ -4,6 +4,7 @@ const { isLocalAddr } = require('../net');
 const { stateFor, broadcast } = require('../state');
 const worldSockets = require('./worldmap');
 const recorder = require('../recorder');
+const features = require('../features');
 require('../lobby'); // state.lobby: the TV opens on the landing page each server start
 require('../testparty').bootTestMode(); // test mode: one test player at a fresh table (Nov 18)
 
@@ -14,6 +15,9 @@ function guard(socket) {
   const on = socket.on.bind(socket);
   socket.on = (event, fn) => on(event, (...args) => {
     if (args[0] === null) args[0] = undefined;
+    // Planning › Modules (src/features.js): a switched-off module's events are refused for everyone.
+    const off = features.blocked(require('../state').state, event, args[0]);
+    if (off) { const ack = args.find((a) => typeof a === 'function'); ack?.({ error: features.refusal(off) }); return undefined; }
     try { return fn(...args); } catch (e) {
       console.warn(`  Event "${event}" failed and was ignored: ${e.message}`);
       recorder.failed(socket, event, e.message); // session recorder (tools/replay.js); a no-op unless recording
@@ -43,6 +47,14 @@ module.exports = function sockets(io) {
       if (['dm', 'battle'].includes(socket.data.role)) socket.join('dms'); else socket.leave('dms');
       ack?.({ ok: !!socket.data.role, role: socket.data.role });
       broadcast();
+    });
+
+    // Planning › Modules (Mike, Nov 26): the DM turns whole features on or off. Not for helpers.
+    socket.on('dm:features:set', ({ id, on, all } = {}, ack) => {
+      if (socket.data.role !== 'dm') return ack?.({ error: 'Only the DM changes modules.' });
+      const r = all ? features.setAll(require('../state').state, !!on) : features.set(require('../state').state, id, on);
+      if (!r.error) broadcast();
+      ack?.(r);
     });
 
     require('./player')(socket);

@@ -39,7 +39,9 @@ const inMode = (c) => !c.dataset.panel || c.dataset.panel.split(' ').includes(mo
 // The Music Co-DM gets the Soundscape card only (Scene › Soundscape).
 const MASTER_CARDS = { battle: (c) => c.dataset.tab === 'combat' && mode === 'combat', social: () => false, music: (c) => c.id === 'soundscape' };
 // data-dm-only keeps a card from helpers even when it sits in their tab.
-const fits = (c) => { const m = MASTER_CARDS[masterRole()]; return m ? m(c) && !c.hasAttribute('data-dm-only') : inMode(c); };
+// Planning › Modules (src/features.js): a card or tab of a switched-off module never shows.
+const featOff = (el) => (el.dataset.feature || '').split(/\s+/).some((id) => id && window.Features?.off(state(), id));
+const fits = (c) => { if (featOff(c)) return false; const m = MASTER_CARDS[masterRole()]; return m ? m(c) && !c.hasAttribute('data-dm-only') : inMode(c); };
 // A planning tab marked data-live (Shops) also shows during play.
 const planTab = (id) => !!$(`[data-group][data-plan] [data-stab="${id}"]:not([data-live])`);
 
@@ -52,6 +54,7 @@ function visibleTabs() {
 
 function apply() {
   if (masterRole()) { planning = false; mapPage = false; } // not saved: the laptop keeps the DM's choice
+  if (mapPage && window.Features?.off(state(), 'worldmap')) mapPage = false; // World map module switched off
   const waiting = masterRole() === 'battle' && mode !== 'combat';
   document.body.classList.toggle('battle-waiting', waiting);
   $('#battleWait').hidden = !waiting;
@@ -71,7 +74,7 @@ function apply() {
   // and the Planning group shows only in Planning (its Shops tab, data-live, also during play).
   $$('[data-stab]').forEach((b) => {
     const show = vis.has(b.dataset.stab);
-    const keep = !masterRole() && !planTab(b.dataset.stab);
+    const keep = !masterRole() && !planTab(b.dataset.stab) && !featOff(b);
     b.hidden = !show && !keep;
     b.disabled = !show;
     b.classList.toggle('on', show && b.dataset.stab === tab);
@@ -186,7 +189,7 @@ $('#subTabs')?.addEventListener('click', (e) => {
 $('#planToggle')?.addEventListener('click', () => {
   planning = !planning;
   save('dmPlanning', planning ? '1' : '');
-  if (planning) tab = 'shops'; // open on the first planning tab (Road cards moved to Miscellaneous, Nov 15)
+  if (planning) tab = window.Features?.off(state(), 'shops') ? 'modules' : 'shops'; // open on the first planning tab (Road cards moved to Miscellaneous, Nov 15)
   // Planning is a row of the Modes card (Mike, Nov 21), a DM-only view over whatever mode the table is in.
   apply();
 });

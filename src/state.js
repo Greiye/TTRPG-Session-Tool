@@ -98,10 +98,11 @@ const state = {
   houseRules: {}, // house rule id -> on (src/houserules.js); enforced by the tool
   absent: {}, // empty chairs: charId -> { away, autopilot, missed } (src/absent.js)
   ended: null, // { n, at, session } while the DM has ended the session: TV and phones show the end card (transient)
-  lore: [], // Lore tab: locations, dungeons, NPCs, items, books and notes; phones see shared entries (src/lore.js)
+  world: {}, // world store (Nov 23): every NPC, location, faction, event and lore entry by stable ID (src/entities.js); the Lore tab is a view of it (src/lore.js)
   trophy: null, // { id, n } trophy story card on the TV (transient)
   narration: [], // { id, text } the DM's last 10 narrate posts, shown under the scene description
   storyGraph: { nodes: [], links: [] }, // Story Nodes Graph in Planning, DM only (src/storygraph.js)
+  features: {}, // Planning › Modules: { id: false } for each switched-off module (src/features.js)
   shopPop: null, // { shopId, n, done: [charId] } shop pop-up on the TV and phones (transient, src/shops.js)
   legendsShow: null, // 'hall' | 'shelf' | null: legends card on the TV (transient)
   // lighting preset is kept on the scene (src/world.js)
@@ -118,16 +119,19 @@ store.EXTRA.push('houseRules', 'absent'); // phase J house rules and empty chair
 store.EXTRA.push('intro', 'timers'); // phase D intro card text and timers
 store.EXTRA.push('dungeon', 'trail'); // exploration dungeon nodes and the party trail
 store.EXTRA.push('puzzle', 'web'); // Phase F teamwork puzzle and relations web
-store.EXTRA.push('lore'); // Lore tab (Mike, Nov 16)
+store.EXTRA.push('world', 'worldMerged'); // world store (Nov 23): the Lore tab and the Arthuria library in one
+store.EXTRA.push('lore'); // read only: the Lore tab's own list before Nov 23, folded into the world on load
 store.EXTRA.push('shopSeed'); // Greer's Trinkets seeded once
 store.EXTRA.push('town', 'townSeed'); // town maps and visits (PR V)
 store.EXTRA.push('soundscape'); // soundscape for the DM and Music Co-DM
 store.EXTRA.push('storyGraph'); // Story Nodes Graph (Nov 21)
+store.EXTRA.push('features'); // Planning › Modules: switched-off modules (Nov 26, src/features.js)
 saves.backupOnStart();
 require('./srd').seed();
 let seq = 0;
 seq = store.restore(state, roster, store.load());
 require('./storygraph').ensure(state);
+if (!state.features || typeof state.features !== 'object') state.features = {}; // every module on (src/features.js)
 if (!state.room) state.room = newRoomCode();
 state.scene.secrets ??= [];
 state.factions ??= [];
@@ -158,7 +162,12 @@ if (!state.townSeed) {
   if (mb && !Object.keys(state.town.maps).length) { mb.settlement = true; state.town.maps.w1 = require('./town').starter(); state.town.skipAt = 'w1'; }
   state.townSeed = 1;
 }
-state.lore = require('./lore').ensure(state.lore);
+// One world store (Nov 23): the old Lore tab list and data/entities.json fold into state.world, once (src/entities.js).
+{
+  const m = require('./entities').migrate(state);
+  if (m.library || m.lore || m.joined) console.log(`  World store: ${m.library} library records and ${m.lore + m.joined} Lore tab entries moved in (${m.joined} joined their library twin).`);
+  for (const s of m.skipped) console.warn(`  World store skipped ${s}`);
+}
 // Every table starts with Greer's Trinkets (Mike, Nov 15). Seeded once: removing it keeps it gone.
 if (!state.shopSeed) { state.shops ??= []; if (!state.shops.some((x) => x.name === "Greer's Trinkets")) state.shops.unshift(require('./shops').greer('greer')); state.shopSeed = 1; }
 // Placeholder weapons, armour, potions and gear (Mike, Nov 17), also seeded once into older saves.
@@ -194,7 +203,7 @@ function log(kind, text, extra = {}) {
 function fullState() {
   const { io } = hub;
   const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId, derived: derived(p), caster: isCaster(p) }));
-  const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId, dead: !!c.death }));
+  const cards = Object.values(roster).filter((c) => state.settings.testMode || state.players[c.id] || !require('./testparty').isTest(c)).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId, dead: !!c.death }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const all = [...io.sockets.sockets.values()];
   const helpers = all.map((x) => x.data.role);
@@ -203,7 +212,7 @@ function fullState() {
   const spectators = [...io.sockets.sockets.values()].filter((x) => x.data.spectator).length;
   const bulbsTargets = require('./bulbs').targets().length;
   const legendsView = legends.view(); // hall of fame and trophy shelf: public, kept across campaigns
-  return { ...state, lobbyStarter: state.lobby ? require('./lobby').starter() : null, bulbsTargets, legends: legendsView, houseRuleList: houserules.list(state), plans: plan.withDanger(state.plans, state), players, roster: cards, screens, codms, masters, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
+  return { ...state, lobbyStarter: state.lobby ? require('./lobby').starter() : null, bulbsTargets, legends: legendsView, houseRuleList: houserules.list(state), featureList: require('./features').list(state), featuresOff: require('./features').offList(state), plans: plan.withDanger(state.plans, state), players, roster: cards, screens, codms, masters, spectators, emotions: EMOTIONS, effects: EFFECTS, classes: Object.keys(rules.get(state.system).classes), rules: rules.describe(state.system), systems: rules.list(), checks: require('./rolls').describe(), lib: library.versions(), joinUrl: net.joinUrl(state.room) };
 }
 const stateFor = (socket, base = fullState()) => viewState(base, viewerOf(socket));
 
@@ -240,7 +249,7 @@ function broadcast() {
 // Each file is saved on its own, so one failed write never skips the rest. SIGHUP is what Windows sends
 // when the console window is closed with the X button.
 function flushAll() {
-  for (const f of [() => store.flush(snap), () => saveRoster.flush?.(), () => legends.flush(), () => require('./entities').flush(), () => library.flushAll()]) {
+  for (const f of [() => store.flush(snap), () => saveRoster.flush?.(), () => legends.flush(), () => library.flushAll()]) {
     try { f(); } catch (e) { console.warn(`  Save on exit failed: ${e.message}`); }
   }
 }
@@ -258,6 +267,10 @@ module.exports.loadSnapshot = (saved) => {
   const room = state.room;
   seq = Math.max(seq, store.restore(state, roster, saved));
   state.room = room;
+  // A save point from before the world store (Nov 23) holds the Lore tab as it was and no world: rebuild the
+  // world as it was then, from that list and data/entities.json (left on disk by the merge).
+  if (saved && saved.world === undefined) { state.world = {}; state.worldMerged = 0; }
+  require('./entities').migrate(state);
   cast.ensure(state.social);
   require('./storygraph').ensure(state);
 };

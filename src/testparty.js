@@ -35,7 +35,8 @@ const PARTY = [
 ];
 
 // The DM's tool: create or refresh the test characters and seat them in the party.
-function seedTestParty(defs = PARTY) {
+// seat: false makes the character (on the phones' "Who are you?" list) without putting it in the party.
+function seedTestParty(defs = PARTY, { seat = true } = {}) {
   const out = [];
   for (const def of defs) {
     let c = Object.values(roster).find((x) => x.name === def.name);
@@ -52,7 +53,7 @@ function seedTestParty(defs = PARTY) {
     if (!c.portrait) c.portrait = `/samples/placeholders/placeholder-portrait-${def.cls.toLowerCase()}.svg`;
     c.slots = Object.fromEntries(Object.entries(def.slots).map(([lvl, max]) => [lvl, { max, used: 0 }]));
     c.inventory = def.weapon ? [{ id: `test-${def.cls.toLowerCase()}`, name: def.weapon, qty: 1, note: 'test kit' }] : [];
-    if (!state.players[c.id]) { state.players[c.id] = c; log('system', `${c.name} joins the party (test).`); }
+    if (seat && !state.players[c.id]) { state.players[c.id] = c; log('system', `${c.name} joins the party (test).`); }
     out.push(c.id);
   }
   saveRoster();
@@ -62,12 +63,17 @@ function seedTestParty(defs = PARTY) {
 // Test mode (Mike, Nov 18): on by default, so a fresh table has one test player ([Test] Brann, a fighter) to try
 // every tool on before friends arrive. The DM turns it off in the top bar, which takes the test characters out of
 // the party (they stay in the roster). Saved with the table; TEST_MODE=0 starts a fresh table with it off (the
-// tests use that). A test player has no phone, so it never counts for the landing page or the map vote.
+// tests use that). A test player has no phone, so it never counts for Start game or the map vote; it
+// does show in a TV landing page slot (public/lobby.js, Nov 27).
+// While test mode is on, every test character is on the phones' character list like any saved character, so a
+// phone can pick one and play it (Mike, Nov 27). Off hides them from that list (src/state.js) and keeps them saved.
 const isTest = (c) => c?.player === 'Test' && /^\[Test\]/.test(c.name || '');
 function setTestMode(on) {
   state.settings.testMode = !!on;
   if (on) {
     if (!Object.values(state.players).some(isTest)) seedTestParty(PARTY.slice(0, 1));
+    const missing = PARTY.filter((d) => !Object.values(roster).some((c) => c.name === d.name));
+    if (missing.length) seedTestParty(missing, { seat: false });
   } else {
     for (const c of Object.values(state.players)) if (isTest(c) && !c.socketId) delete state.players[c.id];
   }

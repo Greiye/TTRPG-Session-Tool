@@ -16,7 +16,7 @@ const KINDS = {
 };
 const kindOpts = (on, skip = []) => Object.entries(KINDS).filter(([k]) => !skip.includes(k)).map(([k, [i, n]]) => `<option value="${k}" ${k === on ? 'selected' : ''}>${i} ${n}</option>`).join('');
 
-const card = mount(`<div class="card sg-card" data-tab="graph" data-fold-key="story-graph">
+const card = mount(`<div class="card sg-card" data-tab="graph" data-feature="graph" data-fold-key="story-graph">
   <h3>Story Nodes Graph <span class="note">hooks, NPCs, places, clues and choice echoes</span></h3>
   <div class="sg-wrap" id="sgWrap">
     <div class="row sg-add">

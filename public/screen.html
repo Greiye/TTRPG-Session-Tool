@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/combatfx.css">
   <link rel="stylesheet" href="/lobby.css">
   <script src="/settings.js"></script>
+  <script src="/features.js"></script>
   <style>
     .tv-ver { position: fixed; right: 12px; bottom: 8px; font: 13px/1 system-ui, sans-serif; color: #8a8478; background: none; border: 0; cursor: pointer; z-index: 50; }
     .tv-stats { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.7); z-index: 60; }
@@ -59,6 +60,7 @@
     let mapOn = null; let revealAt = 0;
     socket.on('state', (s) => {
       Settings.apply(s.settings.display);
+      Features.apply(s); // Planning › Modules (public/features.js)
       const on = !!(s.worldMap?.onTv && !s.shopPop); // a shop pop-up shows over the map; the map comes back when it closes
       if (on && mapOn === false) revealAt = Date.now();
       mapOn = on;

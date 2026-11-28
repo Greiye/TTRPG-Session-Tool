@@ -16,7 +16,7 @@ function init(d) { deps = d; past = []; future = []; capture(); }
 const NAMES = {
   scene: 'scene', combat: 'combat', social: 'conversation', map: 'battle map', tokens: 'battle map', worldMap: 'world map',
   dungeon: 'dungeon', clocks: 'clocks', living: 'living world', weather: 'weather', story: 'story clock', shops: 'shops',
-  handouts: 'messages', camp: 'camp', factions: 'factions', lore: 'lore', timers: 'timers', tv: 'TV',
+  handouts: 'messages', camp: 'camp', factions: 'factions', world: 'lore', lore: 'lore', timers: 'timers', tv: 'TV',
   backdrop: 'backdrop', audio: 'music', mode: 'mode', party: 'party', rolls: 'dice log', journal: 'journal', trail: 'trail',
 };
 
