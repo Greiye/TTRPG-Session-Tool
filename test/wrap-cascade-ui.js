@@ -84,9 +84,13 @@ const h = harness('wrap-cascade');
 
   // Keyboard: Right arrow opens a side menu, Left arrow goes back.
   await zoneChip.click({ button: 'right' });
-  await menu.locator('button.has-sub', { hasText: 'Character' }).focus();
+  const charItem = menu.locator('button.has-sub', { hasText: 'Character' });
+  await charItem.focus();
+  await d.waitForFunction(() => document.activeElement?.matches('.ctx-menu button.has-sub'), null, { timeout: 2000 }).catch(() => {});
   await d.keyboard.press('ArrowRight');
-  h.ok(await d.waitForFunction(() => document.activeElement?.closest('.ctx-sub'), null, { timeout: 2000 }).then(() => true, () => false), 'Right arrow opens the side menu and moves focus into it');
+  const rightOk = await d.waitForFunction(() => document.activeElement?.closest('.ctx-sub'), null, { timeout: 2000 }).then(() => true, () => false);
+  const where = rightOk ? '' : await d.evaluate(() => `menus ${document.querySelectorAll('.ctx-menu:not(.closing)').length}, focus on ${document.activeElement?.tagName}.${document.activeElement?.className} "${document.activeElement?.textContent?.trim().slice(0, 20)}"`);
+  h.ok(rightOk, `Right arrow opens the side menu and moves focus into it${where ? ` (${where})` : ''}`);
   await d.keyboard.press('ArrowLeft');
   h.ok(await d.waitForFunction(() => document.querySelectorAll('.ctx-menu:not(.closing)').length === 1 && document.activeElement?.classList.contains('has-sub'), null, { timeout: 2000 }).then(() => true, () => false), 'Left arrow closes it and returns to the item');
   await closeAll();
@@ -111,6 +115,16 @@ const h = harness('wrap-cascade');
   h.ok(tools, 'open tool windows grow to fit their content (no inner scrollbar)');
   const modes = await d.evaluate(() => { const c = document.querySelector('.modes-card').getBoundingClientRect(); return [...document.querySelectorAll('.modes-card .modes .btn')].filter((x) => x.offsetParent).every((x) => x.getBoundingClientRect().right <= c.right + 1 && x.scrollWidth <= x.clientWidth + 1); });
   h.ok(modes, 'mode buttons wrap inside their window');
+
+  // The TV scene panel (title, description, narration) hugs its content and grows with it.
+  await d.waitForSelector('#stage .explore');
+  const box = () => d.evaluate(() => { const e = document.querySelector('#stage .explore').getBoundingClientRect(); const st = document.querySelector('#stage').getBoundingClientRect(); return { w: e.width, h: e.height, inside: e.right <= st.right + 1, narrow: e.width < st.width * 0.7 }; });
+  const b1 = await box();
+  dm.emit('dm:narrate', { text: 'A person wishes to speak with the party about the missing caravan that left Millbrook three days ago and never reached Harrowgate, and about the hooded rider seen on the old mill road.' });
+  await d.waitForFunction((h0) => document.querySelector('#stage .explore')?.getBoundingClientRect().height > h0 + 4, b1.h, { timeout: 3000 }).catch(() => {});
+  const b2 = await box();
+  h.ok(b1.narrow && b1.inside, 'the TV scene panel is as wide as its content, inside the screen');
+  h.ok(b2.h > b1.h && b2.inside, 'the TV scene panel grows with a new narration line and stays on screen');
 
   h.ok(!errors.length, `no page errors${errors.length ? `: ${errors.join(' | ')}` : ''}`);
   await b.close(); await h.done(srv);

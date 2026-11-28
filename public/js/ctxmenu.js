@@ -73,6 +73,7 @@ const outside = (e) => { if (levels.length && levelOf(e.target) < 0) closeMenu()
 const onScroll = (e) => { if (levels.length && levelOf(e.target) < 0) closeMenu(); };
 function keys(e) {
   if (!levels.length) return;
+  keyAt = Date.now();
   const at = Math.max(0, levelOf(document.activeElement));
   const lvl = levels[at] || levels[0];
   const focused = document.activeElement?.closest?.('button[data-i]');
@@ -133,6 +134,7 @@ function makeEl(spec, label) {
   m.addEventListener('contextmenu', (e) => e.preventDefault());
   m.addEventListener('click', onClick);
   m.addEventListener('pointerover', onHover);
+  m.addEventListener('keydown', keys); // also here, for a key pressed before the window listener is added
   document.body.append(m);
   return m;
 }
@@ -155,8 +157,9 @@ function onClick(e) {
 }
 
 // Hovering an item with a side menu opens it after a short pause; hovering a plain item closes deeper menus.
+let keyAt = 0; // last arrow or Enter key in the menu: hover that is not a real pointer move is ignored right after
 function onHover(e) {
-  if (e.pointerType === 'touch') return;
+  if (e.pointerType === 'touch' || Date.now() - keyAt < 600) return;
   const b = e.target.closest('button[data-i]');
   const at = levelOf(e.target);
   if (!b || at < 0) return;
@@ -166,7 +169,8 @@ function onHover(e) {
   hoverTimer = setTimeout(() => {
     if (!b.isConnected || levelOf(b) !== at) return;
     if (it?.sub && !it.disabled) openSub(at, b);
-    else if (levels.length > at + 1) closeFrom(at);
+    // A side menu opened from the keyboard stays open while focus is in it, even if the pointer rests on the menu.
+    else if (levels.length > at + 1 && levelOf(document.activeElement) <= at) closeFrom(at);
   }, HOVER_MS);
 }
 

@@ -102,7 +102,10 @@ const shot = async (p, name) => { if (SHOTS) await p.screenshot({ path: path.joi
     await titles.nth(1).click();
     const open = await dm.$$eval('#toolsCol > .card[data-tab="rolls"]:not([hidden])', (cs) => cs.filter((c) => !c.classList.contains('folded')).length);
     ok(open === 1, `cascade keeps one window open (${open})`);
-    ok(await dm.evaluate(() => { const c = document.getElementById('toolsCol'); return c.scrollHeight <= c.clientHeight + 2; }), 'the tools column does not scroll');
+    // Nov 28 (Mike: "have all windows wrap/expand to content"): the open window shows everything in it with no
+    // scrollbar of its own; when that is taller than the screen the tools column scrolls instead (it used to
+    // squeeze the window into the room left, Nov 18).
+    ok(await dm.evaluate(() => [...document.querySelectorAll('#toolsCol > .card[data-tab="rolls"]:not([hidden]):not(.folded)')].every((c) => c.scrollHeight <= c.clientHeight + 2)), 'the open window grows to fit its content');
     await shot(dm, 'dm-cascade.png');
 
     // ----- mode windows -----
