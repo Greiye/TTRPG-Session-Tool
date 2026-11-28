@@ -224,7 +224,8 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
       transport,
       keyboard: role !== 'screen',
       // Phones (Mike, Nov 21): just the overhead map; moves come from the D-pad, a gamepad or a tap on a tile.
-      ui: { topBar: role === 'dm', initiative: false, actions: role === 'dm', log: false, dmPanel: dm, hint: role === 'dm', party: false },
+      // DM tools (Mike, Nov 27): closed until the 🛠 Tools button in the map's bar opens them (see dmChrome).
+      ui: { topBar: role === 'dm', initiative: false, actions: role === 'dm', log: false, dmPanel: dm, hint: role === 'dm', party: false, toolsButton: false },
       strainMs: dm ? 700 : 0, // DM arrow keys: a step past the creature's speed is a longer hold (Mike, Nov 21)
       dmTools: ['select', 'teleport', 'raise', 'lower', 'paint', 'obstacle'],
       dmOptions: { inspector: false, initiative: false, fog: false, maps: false },
@@ -329,7 +330,7 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
   function dmChrome() {
     cov = document.createElement('div');
     cov.className = 'iso-cov';
-    cov.innerHTML = '<button type="button" class="iso-fit" title="Show the whole battle map">⛶ Fit</button><label>Coverage <input type="range" min="3" max="60" step="0.5" aria-label="Map coverage"></label>'
+    cov.innerHTML = '<button type="button" class="iso-tools" aria-pressed="false" title="Show or hide the DM tools (T)">🛠 Tools</button><button type="button" class="iso-fit" title="Show the whole battle map">⛶ Fit</button><label>Coverage <input type="range" min="3" max="60" step="0.5" aria-label="Map coverage"></label>'
       + '<span class="iso-tvcam" title="Turn the TV view of the battle map"><b>TV</b><button type="button" data-tvcam="-1" aria-label="Turn the TV view left">⟲</button><button type="button" data-tvcam="1" aria-label="Turn the TV view right">⟳</button><button type="button" data-tvcam="top" aria-label="TV overhead view" aria-pressed="false">⬒ Top</button></span>'
       + '<label class="iso-daylight" title="Light on the battle map. Auto follows the time of day; a dungeon is always dark.">☀ <select aria-label="Battle map light"><option value="auto">Auto</option><option value="dawn">Dawn</option><option value="day">Day</option><option value="dusk">Dusk</option><option value="night">Night</option><option value="dark">Dark</option></select></label>';
     cov.querySelector('.iso-daylight select').onchange = (e) => emit('dm:map:daylight', { light: e.target.value });
@@ -341,6 +342,10 @@ export function isoStage(root, { role, socket, emit = () => {}, charId = () => n
     const range = cov.querySelector('input');
     range.oninput = () => battle?.camera.zoom(Number(range.value));
     cov.querySelector('.iso-fit').onclick = () => battle?.camera.fit();
+    const tools = cov.querySelector('.iso-tools');
+    const syncTools = () => { const on = !!battle?.dmPanelOpen; tools.setAttribute('aria-pressed', String(on)); tools.classList.toggle('on', on); tools.style.borderColor = on ? '#f2c96e' : ''; };
+    tools.onclick = () => battle?.setDmPanel(!battle.dmPanelOpen);
+    battle.on('dmPanel', syncTools); battle.on('ready', syncTools); syncTools();
     battle.on('zoom', (z) => { range.value = z; });
     tray = document.createElement('div');
     tray.className = 'iso-tray';
