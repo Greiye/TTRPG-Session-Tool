@@ -383,3 +383,16 @@ per stat, segmented 6-pip bars, and "UNDISCOVERED" in place of a bar until the p
 - [ ] Promote to named NPC: one button on the cast card opens the Creature Designer (PR W) prefilled with the name, the five stats and anything revealed. The DM elaborates there (full stats, skills, lore, abilities). The five-pip card stays as the quick view; NPC memory (PR AD) and Storybook moments follow the promoted NPC.
 - [ ] Pool NPCs (Albert, Brent, Christina) and NPCs from plans get the same five stats, defaulting to undiscovered.
 - Open question: should Health pips drive the NPC's HP in combat (rules file maps pips to HP), or stay a story hint only?
+
+## Mike's notes, 2026-11-23 (wrap to content)
+
+### PR AB: Nodes and windows wrap their content
+`public/theme.css`, `public/js/dm/`, `public/js/play/`, `public/screen.html`, world map and town node modules
+Mike: "Nodes and windows should wrap the content." Read as world-map and town **nodes** (labels and hover lists) and pop-up **windows**; Mike can redirect if he meant something else. In priority order:
+- [ ] Map node labels and hover lists (world map, town nodes): size to the text with a max width, wrap beyond it; no clipping or overlap. [DM Screen, TV, phones]
+- [ ] Phone node and town windows: shrink-wrap to content; max height is the viewport, with internal scroll. [Phones]
+- [ ] DM pop-ups (Creature Designer, Item Designer, dungeon pop-up): content-sized with min and max bounds, and the drag position is remembered. [DM Screen]
+- [ ] TV pop-ups (roll, moment and banner cards): wrap to content and never truncate, so they read from across the room. [TV]
+- [ ] Tools dock: fixed width, height follows content. [DM Screen]
+- Already done on Nov 28 (not part of this list): the TV scene panel, the Social window and its chips, the open tool windows, mode buttons and character rows now grow to fit (`public/theme.css`, `test/wrap-cascade-ui.js`).
+- Out of scope: full-screen panels and the 3D battle map keep their fixed layouts.
