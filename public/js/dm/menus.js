@@ -6,7 +6,6 @@ import { $, emit, call, onState, state } from '../client.js';
 import { contextMenus, refreshMenu } from '../ctxmenu.js';
 import { condMenu } from './conds.js';
 
-const CONDS = ['Prone', 'Poisoned', 'Frightened', 'Restrained', 'Grappled', 'Invisible', 'Stunned', 'Unconscious'];
 const q = (sel) => document.querySelector(sel);
 const attr = (name, v) => `[${name}="${CSS.escape(v)}"]`;
 const clip = (t, n = 40) => { t = String(t || '').replace(/\s+/g, ' ').trim(); return t.length > n ? `${t.slice(0, n - 1)}…` : t; };
@@ -21,6 +20,9 @@ const toLore = async (cat, name, text = '') => {
 const reveal = (el) => { if (!el) return; const card = el.closest('.card[data-fold]'); if (card?.classList.contains('folded')) card.querySelector(':scope > h3')?.click(); el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
 
 // ---------- characters and creatures ----------
+
+// The conditions menu (public/js/dm/conds.js) as a side menu of the unit menu.
+const condSub = (id) => { const c = condMenu(id); return c && { title: c.title, sections: c.sections }; };
 
 // The character or creature an element stands for, wherever it is drawn: party list, hero column, the TV
 // preview's party bar and tokens, combat cards and the saved characters list.
@@ -59,7 +61,7 @@ function unitMenu(id) {
     sections: [
       canHit && { h: `Attack with ${actor.name}`, items: (actor.attacks?.length ? actor.attacks : [{ name: 'Attack', atk: null }]).map((a, i) => ({ label: `⚔ ${a.name}${a.atk != null ? ` ${a.atk >= 0 ? '+' : ''}${a.atk}` : ''}`, run: () => emit('dm:enemy:attack', { target: id, attack: i }) })) },
       { h: 'Hit points', row: true, wrap: false, items: [-10, -5, -1, 1, 5, 10].map((d) => ({ label: `${d > 0 ? '+' : ''}${d}`, tone: d < 0 ? 'neg' : 'pos', keep: true, run: () => emit('dm:hp', { id, delta: d }) })) },
-      { h: 'Conditions', row: true, items: CONDS.map((n) => ({ label: n, on: conds.includes(n), keep: true, run: () => emit('dm:condition', { id, name: n, on: !conds.includes(n) }) })) },
+      { items: [{ label: `🩹 Conditions${conds.length ? ` (${conds.length})` : ''}`, sub: () => condSub(id) }] },
       pc && !off('inspiration') && { h: `Inspiration (${pc.inspiration || 0})`, row: true, wrap: false, items: [
         { label: '− Take one', tone: 'neg', keep: true, disabled: !pc.inspiration, run: () => emit('dm:inspiration', { id, delta: -1 }) },
         { label: '+ Give one', tone: 'pos', keep: true, run: () => emit('dm:inspiration', { id, delta: 1 }) },
@@ -174,7 +176,7 @@ function castMenu(id) {
     sub: `${c.kind === 'item' ? 'Item' : 'NPC'} on the scene${talking ? ' · talking now' : ''}`,
     sections: [
       { items: [{ label: talking ? '💬 Talking now' : '💬 Talk as this NPC', disabled: talking, run: () => emit('dm:cast:pick', { id }) }] },
-      talking && c.kind !== 'item' && { h: 'Emotion', row: true, items: Object.entries(EMO).map(([k, e]) => ({ label: `${e.icon} ${e.label}`, on: s.social.npc.emotion === k, keep: true, run: () => emit('dm:emotion', { emotion: k }) })) },
+      talking && c.kind !== 'item' && { items: [{ label: `${EMO[s.social.npc.emotion]?.icon || '🙂'} Emotion`, sub: () => ({ title: 'Emotion', sections: [{ row: true, items: Object.entries(EMO).map(([k, e]) => ({ label: `${e.icon} ${e.label}`, on: state()?.social.npc.emotion === k, keep: true, run: () => emit('dm:emotion', { emotion: k }) })) }] }) }] },
       { items: [
         !off('lore') && { label: '📚 Add to lore', run: () => toLore(c.kind === 'item' ? 'item' : 'npc', c.name) },
         { label: '✕ Remove from the scene', danger: true, arm: '✕ Click again to remove', run: () => emit('dm:cast:remove', { id }) },
@@ -237,24 +239,94 @@ function labelOf(b) {
   if (tip && face.length <= 3 && !/^[+−-]?\d+$/.test(face)) return `${face} ${tip}`;
   return face;
 }
+// A menu spec shown as a side menu: its title, subtitle and sections.
+const asSub = (spec) => spec && { title: spec.title, sub: spec.sub, sections: spec.sections };
+const titleOf = (el) => clip(el?.querySelector(':scope > h3, :scope > header b, :scope > summary, h3, h4, summary')?.childNodes[0]?.textContent || el?.getAttribute?.('aria-label') || '', 40);
+const buttonItems = (ctls) => ctls.map((b) => (b.type === 'checkbox'
+  ? { label: labelOf(b), on: b.checked, disabled: b.disabled, run: () => b.click() }
+  : { label: labelOf(b), disabled: b.disabled, danger: b.classList.contains('danger'), on: b.classList.contains('on') || undefined, run: () => b.click() }));
+
+// The window (card) around a click: fold or open it, bring it into view, and every button in it as a side
+// menu, grouped by the row they sit in when there are many.
+function windowSection(win, skip = []) {
+  if (!win) return null;
+  const all = controlsIn(win).filter((b) => !skip.includes(b));
+  const groups = new Map();
+  for (const b of all) { const g = b.closest('.row, .ctx-group, fieldset, li, .item') || win; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(b); }
+  const many = all.length > 14 && groups.size > 1;
+  const name = titleOf(win) || 'This window';
+  const foldable = win.matches('.card[data-fold]') && win.querySelector(':scope > h3');
+  return { h: name, items: [
+    foldable && { label: win.classList.contains('folded') ? '▾ Open window' : '▴ Fold window', run: () => win.querySelector(':scope > h3').click() },
+    { label: '⤢ Bring into view', run: () => win.scrollIntoView({ block: 'nearest', behavior: document.documentElement.dataset.motion === 'reduce' ? 'auto' : 'smooth' }) },
+    all.length && { label: `☰ All buttons (${all.length})`, sub: () => ({ title: name, sections: many
+      ? [{ items: [...groups].slice(0, 24).map(([g, bs], i) => (bs.length === 1 ? buttonItems(bs)[0] : { label: clip(g.querySelector('b, strong, label, h4, summary, .note')?.textContent || labelOf(bs[0]), 32) || `Group ${i + 1}`, sub: () => ({ sections: [{ items: buttonItems(bs.filter((b) => b.isConnected)) }] }) })) }]
+      : [{ items: buttonItems(all.filter((b) => b.isConnected).slice(0, 40)) }] }) },
+  ] };
+}
+const WIN = '.card, .dgw, .social-win, dialog[open]';
+
 function genericMenu(target) {
   let el = target;
   for (; el && el !== document.body; el = el.parentElement) {
-    if (el.matches('#stage, .ctx-menu, dialog:not([open])')) return null;
+    if (el.matches('.ctx-menu, dialog:not([open])')) return null;
+    if (el.matches('#stage')) return pageMenu(); // the TV preview: tokens and places have their own menus
     const n = controlsIn(el).length;
-    if (n > 16) return null; // a whole card or page: too broad to be useful
+    if (n > 16) break; // a whole card or page: show the window menu instead
     if (n) break;
-    if (el.matches('.card, .dm-hero, header')) return null;
+    if (el.matches(WIN + ', .dm-hero, header')) break;
   }
-  if (!el || el === document.body) return null;
+  if (!el || el === document.body) return pageMenu();
+  const win = el.closest(WIN);
   const ctls = controlsIn(el);
+  if (!ctls.length || ctls.length > 16) return win ? { title: titleOf(win), sections: [windowSection(win), ...pageMenu().sections] } : pageMenu();
   const title = el.matches(CTL) ? '' : el.querySelector('b, strong, h3, h4, summary, .wm-text')?.textContent;
   const own = el.matches(CTL) ? [el] : ctls;
   return {
     title: clip(title || '', 48),
-    sections: [{ items: own.map((b) => (b.type === 'checkbox'
-      ? { label: labelOf(b), on: b.checked, disabled: b.disabled, run: () => b.click() }
-      : { label: labelOf(b), disabled: b.disabled, danger: b.classList.contains('danger'), on: b.classList.contains('on') || undefined, run: () => b.click() })) }],
+    sections: [{ items: buttonItems(own) }, win && windowSection(win, own)],
+  };
+}
+
+// Anywhere else on the DM screen: switch mode, open a tool tab, or open one of the windows in the tools column.
+function pageMenu() {
+  const vis = (sel) => [...document.querySelectorAll(sel)].filter((b) => b.offsetParent !== null || b.closest('#toolsCol'));
+  const modes = [...document.querySelectorAll('#toolsCol .modes [data-mode]')].filter((b) => !b.hidden);
+  const tabs = [...document.querySelectorAll('#sideTabs [data-stab]')].filter((b) => !b.hidden && !b.closest('[hidden]'));
+  const wins = vis('#toolsCol > .card[data-tab]:not([hidden])').filter((c) => c.querySelector(':scope > h3'));
+  return {
+    title: 'DM screen',
+    sections: [{ items: [
+      modes.length && { label: '🎭 Mode', sub: () => ({ title: 'Mode', sections: [{ items: modes.map((b) => ({ label: b.textContent.trim(), on: b.classList.contains('on'), run: () => b.click() })) }] }) },
+      tabs.length && { label: '🧰 Tools', sub: () => ({ title: 'Tools', sections: [{ items: tabs.map((b) => ({ label: `${b.querySelector('i')?.textContent || ''} ${b.querySelector('span')?.textContent || b.getAttribute('aria-label')}`.trim(), on: b.classList.contains('on'), run: () => b.click() })) }] }) },
+      wins.length && { label: '🪟 Windows', sub: () => ({ title: 'Windows in this tab', sections: [{ items: wins.filter((c) => c.isConnected).map((c) => ({ label: titleOf(c) || 'Window', on: !c.classList.contains('folded'), run: () => { if (c.classList.contains('folded')) c.querySelector(':scope > h3').click(); reveal(c); } })) }] }) },
+    ] }],
+  };
+}
+
+// A character or NPC chip in the Social window: in or out of the conversation, then its own menu to the side.
+function convoMenu(btn) {
+  const id = btn.dataset.drag;
+  const s = state();
+  if (!s || !id) return null;
+  const pc = s.players.find((p) => p.id === id);
+  const npc = (s.social.pool || []).find((p) => p.id === id) || (s.social.cast || []).find((c) => c.id === id);
+  const inside = btn.matches('[data-zone], [data-in]') || (btn.matches('[data-pool]') && btn.classList.contains('on'));
+  const x = btn.closest('.convo-chip-wrap')?.querySelector('[data-convo-x]');
+  const onCast = (s.social.cast || []).some((c) => c.id === id);
+  return {
+    title: pc?.name || npc?.name || btn.textContent.trim(),
+    sub: `${pc ? 'Player character' : 'NPC'} · ${inside ? 'in the conversation' : 'not in the conversation'}`,
+    sections: [
+      { items: [
+        inside
+          ? { label: '↩ Take out of the conversation', run: () => (x ? x.click() : btn.click()) }
+          : { label: '💬 Bring into the conversation', run: () => btn.click() },
+        onCast && { label: '🎭 NPC', sub: () => asSub(castMenu(id)) },
+        pc && { label: '👤 Character', sub: () => asSub(unitMenu(id)) },
+      ] },
+    ],
+    rebuild: () => { const now = btn.isConnected ? btn : document.querySelector(`#socialWin .convo-npc${attr('data-drag', id)}`); return now ? convoMenu(now) : null; },
   };
 }
 
@@ -266,6 +338,7 @@ contextMenus(document, [
   { sel: '#wmBoard [data-road]', build: (el) => roadMenu(el.dataset.road) },
   { sel: '[data-fog]', build: (el) => poiMenu(el.dataset.fog) },
   { sel: '.cast-chip', build: (el) => castMenu(el.querySelector('[data-cast-pick]')?.dataset.castPick) },
+  { sel: '.convo-npc[data-drag]', build: convoMenu },
   { sel: '[data-cast-pick], [data-enter]', build: (el) => castMenu(el.dataset.castPick || el.dataset.enter) },
   { sel: '[data-hero-pick], .pc[data-pid], .tok[data-tok], [data-oid], .dm-hero .hero, #party .item, .char-row', build: (el) => { const id = unitIdOf(el); return id ? unitMenu(id) : null; } },
   { sel: 'details[data-lore]', build: loreMenu },
@@ -275,4 +348,4 @@ contextMenus(document, [
 
 onState(() => refreshMenu());
 
-export { unitMenu, nodeMenu, roadMenu, poiMenu, castMenu, genericMenu };
+export { unitMenu, nodeMenu, roadMenu, poiMenu, castMenu, genericMenu, pageMenu, convoMenu };
