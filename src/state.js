@@ -203,7 +203,7 @@ function log(kind, text, extra = {}) {
 function fullState() {
   const { io } = hub;
   const players = Object.values(state.players).map((p) => ({ ...p, online: !!p.socketId, derived: derived(p), caster: isCaster(p) }));
-  const cards = Object.values(roster).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId, dead: !!c.death }));
+  const cards = Object.values(roster).filter((c) => state.settings.testMode || state.players[c.id] || !require('./testparty').isTest(c)).map((c) => ({ id: c.id, name: c.name, player: c.player, race: c.race, cls: c.cls, level: c.level, hue: c.hue, portrait: c.portrait, online: !!c.socketId, dead: !!c.death }));
   const screens = [...io.sockets.sockets.values()].filter((x) => x.data.screen).length;
   const all = [...io.sockets.sockets.values()];
   const helpers = all.map((x) => x.data.role);
